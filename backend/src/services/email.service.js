@@ -74,6 +74,10 @@ class EmailService {
     }
   }
 
+  async sendGenericEmail({ to, subject, html, attachments }) {
+    return this.sendEmail({ to, subject, html, attachments });
+  }
+
   async sendEmail({ to, subject, html, attachments }) {
     await this.init(); // Refresh config dynamically before sending
 

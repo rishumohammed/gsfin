@@ -25,8 +25,8 @@
       </div>
 
       <div class="header-actions d-flex align-center">
-        <v-btn variant="tonal" color="primary" class="mr-4 d-none d-sm-flex text-none font-weight-bold" rounded="lg" size="small" to="/">
-          <v-icon icon="mdi-home-outline" start size="16"></v-icon>
+        <v-btn variant="flat" color="primary" class="mr-4 d-none d-sm-flex text-none font-weight-bold" rounded="lg" size="small" href="/" target="_blank">
+          <v-icon icon="mdi-open-in-new" start size="16"></v-icon>
           View Website
         </v-btn>
 

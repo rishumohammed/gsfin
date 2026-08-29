@@ -1,12 +1,12 @@
 <template>
-  <v-container fluid class="pa-6">
+  <v-container fluid class="py-8 px-6 bg-grey-lighten-4 min-vh-100">
     <!-- Header -->
     <div class="d-flex justify-space-between align-center mb-6">
       <div>
-        <h1 class="text-h4 font-weight-bold mb-1">System Users</h1>
-        <p class="text-body-1 text-grey-darken-1">Manage internal staff accounts and permissions</p>
+        <h1 class="text-h4 font-weight-bold text-slate-900 tracking-tight mb-1">System Users</h1>
+        <p class="text-secondary mb-0">Manage internal staff accounts, roles, and administrative permissions.</p>
       </div>
-      <v-btn color="primary" rounded="pill" elevation="0" size="large" class="px-6 font-weight-bold text-none" prepend-icon="mdi-account-plus" @click="openAddModal">
+      <v-btn color="primary" height="42" rounded="lg" elevation="0" class="px-5 font-weight-bold text-none" prepend-icon="mdi-account-plus" @click="openAddModal">
         Add System User
       </v-btn>
     </div>
@@ -14,53 +14,53 @@
     <!-- Dashboard Cards -->
     <v-row class="mb-6">
       <v-col cols="12" sm="6" md="3">
-        <v-card class="rounded-xl" elevation="1">
+        <v-card class="rounded-xl border-surface bg-white" variant="outlined">
           <v-card-text class="pa-4 d-flex align-center">
-            <v-avatar color="primary-lighten-4" size="48" class="mr-4">
+            <div class="rounded-xl d-flex align-center justify-center mr-4" style="width: 48px; height: 48px; background: #eff6ff;">
               <v-icon color="primary" size="24">mdi-account-group</v-icon>
-            </v-avatar>
+            </div>
             <div>
-              <div class="text-h5 font-weight-bold">{{ stats.total || 0 }}</div>
-              <div class="text-caption text-secondary">Total System Users</div>
+              <div class="text-h5 font-weight-black text-slate-900">{{ stats.total || 0 }}</div>
+              <div class="text-caption text-secondary font-weight-medium">Total System Users</div>
             </div>
           </v-card-text>
         </v-card>
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-card class="rounded-xl" elevation="1">
+        <v-card class="rounded-xl border-surface bg-white" variant="outlined">
           <v-card-text class="pa-4 d-flex align-center">
-            <v-avatar color="success-lighten-4" size="48" class="mr-4">
+            <div class="rounded-xl d-flex align-center justify-center mr-4" style="width: 48px; height: 48px; background: #ecfdf5;">
               <v-icon color="success" size="24">mdi-account-check</v-icon>
-            </v-avatar>
+            </div>
             <div>
-              <div class="text-h5 font-weight-bold">{{ stats.active || 0 }}</div>
-              <div class="text-caption text-secondary">Active Users</div>
+              <div class="text-h5 font-weight-black text-slate-900">{{ stats.active || 0 }}</div>
+              <div class="text-caption text-secondary font-weight-medium">Active Users</div>
             </div>
           </v-card-text>
         </v-card>
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-card class="rounded-xl" elevation="1">
+        <v-card class="rounded-xl border-surface bg-white" variant="outlined">
           <v-card-text class="pa-4 d-flex align-center">
-            <v-avatar color="warning-lighten-4" size="48" class="mr-4">
+            <div class="rounded-xl d-flex align-center justify-center mr-4" style="width: 48px; height: 48px; background: #fffbeb;">
               <v-icon color="warning" size="24">mdi-shield-account</v-icon>
-            </v-avatar>
+            </div>
             <div>
-              <div class="text-h5 font-weight-bold">{{ stats.subAdmin || 0 }}</div>
-              <div class="text-caption text-secondary">Sub Admins</div>
+              <div class="text-h5 font-weight-black text-slate-900">{{ stats.subAdmin || 0 }}</div>
+              <div class="text-caption text-secondary font-weight-medium">Sub Admins</div>
             </div>
           </v-card-text>
         </v-card>
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-card class="rounded-xl" elevation="1">
+        <v-card class="rounded-xl border-surface bg-white" variant="outlined">
           <v-card-text class="pa-4 d-flex align-center">
-            <v-avatar color="info-lighten-4" size="48" class="mr-4">
+            <div class="rounded-xl d-flex align-center justify-center mr-4" style="width: 48px; height: 48px; background: #f0f9ff;">
               <v-icon color="info" size="24">mdi-headset</v-icon>
-            </v-avatar>
+            </div>
             <div>
-              <div class="text-h5 font-weight-bold">{{ stats.crm || 0 }}</div>
-              <div class="text-caption text-secondary">CRM Agents</div>
+              <div class="text-h5 font-weight-black text-slate-900">{{ stats.crm || 0 }}</div>
+              <div class="text-caption text-secondary font-weight-medium">CRM Agents</div>
             </div>
           </v-card-text>
         </v-card>
@@ -68,20 +68,21 @@
     </v-row>
 
     <!-- Data Table -->
-    <v-card class="rounded-xl" elevation="1">
+    <v-card class="rounded-xl border-surface bg-white" variant="outlined">
       <v-card-title class="pa-4 d-flex align-center">
         <v-text-field
           v-model="search"
-          append-inner-icon="mdi-magnify"
-          label="Search Users"
+          prepend-inner-icon="mdi-magnify"
+          placeholder="Search System Users..."
           single-line
           hide-details
           variant="outlined"
           density="compact"
-          style="max-width: 300px"
+          class="rounded-lg"
+          style="max-width: 320px"
         ></v-text-field>
         <v-spacer></v-spacer>
-        <v-btn variant="text" prepend-icon="mdi-history" @click="showAuditLogs = true">
+        <v-btn variant="tonal" color="primary" rounded="lg" class="text-none font-weight-bold" prepend-icon="mdi-history" @click="showAuditLogs = true">
           Audit Logs
         </v-btn>
       </v-card-title>
@@ -92,6 +93,7 @@
         :search="search"
         :loading="loading"
         hover
+        class="clean-table"
       >
         <template v-slot:item.name="{ item }">
           <div class="d-flex align-center py-2">
@@ -350,3 +352,9 @@ const confirmDelete = async (user) => {
 
 onMounted(fetchData);
 </script>
+
+<style scoped>
+.border-surface {
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+</style>

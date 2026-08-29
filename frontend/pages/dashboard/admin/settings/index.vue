@@ -1,14 +1,14 @@
 <template>
-  <v-container fluid class="pa-6">
+  <v-container fluid class="py-8 px-6 bg-grey-lighten-4 min-vh-100">
     <div class="mb-8">
-      <h1 class="text-h4 font-weight-bold mb-1">System Settings</h1>
-      <p class="text-subtitle-1 text-medium-emphasis mb-6">Configure branding, integrations, and global parameters.</p>
+      <h1 class="text-h4 font-weight-bold text-slate-900 tracking-tight mb-1">System Settings</h1>
+      <p class="text-secondary mb-0">Configure branding, integrations, and global parameters.</p>
     </div>
 
-    <div class="settings-layout">
+    <div class="settings-layout shadow-sm">
       <!-- Internal Sidebar -->
-      <div class="settings-sidebar pa-2">
-        <v-list v-model:selected="activeTab" color="primary" mandatory class="settings-list">
+      <div class="settings-sidebar pa-3">
+        <v-list v-model:selected="activeTab" mandatory class="settings-list pa-0">
           <v-list-item 
             v-for="tab in tabs" 
             :key="tab.value" 
@@ -16,7 +16,7 @@
             :prepend-icon="tab.icon" 
             :title="tab.label"
             rounded="lg"
-            class="mb-1"
+            class="mb-1 text-subtitle-2 font-weight-medium"
           ></v-list-item>
         </v-list>
       </div>
@@ -115,9 +115,10 @@
               Configure your Resend API credentials. Emails are dispatched via HTTPS REST API (Port 443), ensuring reliable delivery without SMTP port blocking.
             </p>
 
-            <v-alert type="info" variant="tonal" class="mb-6 rounded-xl text-body-2" density="comfortable">
-              <div class="d-flex align-center gap-2 mb-1">
-                <strong>Resend Configuration Guide</strong>
+            <div class="pa-4 rounded-xl mb-6 text-body-2" style="background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;">
+              <div class="d-flex align-center gap-2 mb-1 font-weight-bold">
+                <v-icon icon="mdi-information-outline" size="18" color="primary" class="me-1"></v-icon>
+                Resend Configuration Guide
               </div>
               <div>
                 • Get your API Key from your <a href="https://resend.com/api-keys" target="_blank" class="text-primary font-weight-bold" style="text-decoration: underline;">Resend Dashboard</a>.
@@ -125,7 +126,7 @@
               <div class="mt-1">
                 • For testing, you can use <code>onboarding@resend.dev</code> as the From Email. For production, add and verify your custom domain in Resend.
               </div>
-            </v-alert>
+            </div>
 
             <div class="mb-4">
               <AppInput
@@ -609,22 +610,19 @@ onMounted(() => {
 </script>
 
 <style scoped>
-
-
 .settings-layout {
   display: flex;
   background: white;
   border-radius: var(--radius-lg);
-  
   min-height: 600px;
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
 }
 
 .settings-sidebar {
   width: 260px;
-  background: var(--g1);
-  border-right: 1px solid rgba(0, 0, 0, 0.05);
+  background: #f8fafc;
+  border-right: 1px solid rgba(226, 232, 240, 0.8);
 }
 
 .settings-content {
@@ -636,9 +634,14 @@ onMounted(() => {
 }
 
 :deep(.v-list-item--selected) {
-  background-color: white !important;
-  border: 1px solid var(--border);
-  
+  background-color: #eff6ff !important;
+  color: #2563eb !important;
+  border: 1px solid #bfdbfe !important;
+  font-weight: 700 !important;
+}
+
+:deep(.v-list-item--selected .v-icon) {
+  color: #2563eb !important;
 }
 
 .fr2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -650,5 +653,5 @@ onMounted(() => {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.border-t { border-top: 1px solid rgba(0, 0, 0, 0.05); }
+.border-t { border-top: 1px solid rgba(226, 232, 240, 0.8); }
 </style>

@@ -1,18 +1,18 @@
 <template>
-  <v-container fluid class="pa-6">
+  <v-container fluid class="py-8 px-6 bg-grey-lighten-4 min-vh-100">
     <div v-if="loading">
       <v-skeleton-loader type="heading" class="mb-8" width="300"></v-skeleton-loader>
       <v-row class="mb-4">
         <v-col v-for="i in 4" :key="i" cols="12" sm="6" md="3">
-          <v-skeleton-loader type="card" class="rounded-lg"></v-skeleton-loader>
+          <v-skeleton-loader type="card" class="rounded-xl"></v-skeleton-loader>
         </v-col>
       </v-row>
       <v-row>
         <v-col cols="12" md="8">
-          <v-skeleton-loader type="table" class="rounded-lg"></v-skeleton-loader>
+          <v-skeleton-loader type="table" class="rounded-xl"></v-skeleton-loader>
         </v-col>
         <v-col cols="12" md="4">
-          <v-skeleton-loader type="list-item-three-line" class="rounded-lg" height="300"></v-skeleton-loader>
+          <v-skeleton-loader type="list-item-three-line" class="rounded-xl" height="300"></v-skeleton-loader>
         </v-col>
       </v-row>
     </div>
@@ -22,29 +22,32 @@
       <h2 class="text-h5 font-weight-bold text-grey-darken-2">Dashboard Data Unavailable</h2>
       <p class="text-grey mb-2">We couldn't load the talent hunt analytics at this moment.</p>
       <p v-if="errorMsg" class="text-error mb-6 font-weight-bold">{{ errorMsg }}</p>
-      <v-btn color="primary" @click="fetchData" prepend-icon="mdi-reload" class="text-none">Retry Loading</v-btn>
+      <v-btn color="primary" @click="fetchData" prepend-icon="mdi-reload" class="text-none font-weight-bold px-6" rounded="lg">Retry Loading</v-btn>
     </div>
 
     <div v-else>
       <div class="d-flex align-center flex-wrap mb-8 gap-4">
         <div>
-          <h1 class="text-h4 font-weight-bold mb-1">Talent Hunt Overview</h1>
-          <p class="text-secondary">Comprehensive analytics and system health for your exam platform.</p>
+          <h1 class="text-h4 font-weight-bold text-slate-900 tracking-tight mb-1">Talent Hunt Overview</h1>
+          <p class="text-secondary mb-0">Comprehensive analytics and system health for your exam platform.</p>
         </div>
         <v-spacer></v-spacer>
+        <v-btn color="primary" prepend-icon="mdi-plus" height="42" rounded="lg" class="px-5 text-none font-weight-bold" elevation="0" to="/admin/multi-tenant">
+          Sub-Center Console
+        </v-btn>
       </div>
 
       <v-row class="mb-8" v-if="data.kpis && data.kpis.row1">
         <v-col cols="12" sm="6" md="3" v-for="stat in data.kpis.row1" :key="stat.title">
           <v-card variant="outlined" class="pa-5 rounded-xl border-surface h-100 bg-white hover-up transition-fast">
             <div class="d-flex justify-space-between align-start mb-2">
-              <v-avatar :color="stat.color" size="48" rounded="lg" variant="tonal">
-                <v-icon :icon="stat.icon" size="28" :color="stat.color"></v-icon>
-              </v-avatar>
+              <div class="rounded-xl d-flex align-center justify-center" style="width: 48px; height: 48px; background: #eff6ff;">
+                <v-icon :icon="stat.icon" size="26" color="primary"></v-icon>
+              </div>
             </div>
             <div class="mt-4">
-              <div class="text-h4 font-weight-black mb-1 text-grey-darken-4">{{ stat.value }}</div>
-              <div class="text-subtitle-2 text-medium-emphasis font-weight-medium text-uppercase letter-spacing-1">{{ stat.title }}</div>
+              <div class="text-h4 font-weight-black mb-1 text-slate-900">{{ stat.value }}</div>
+              <div class="text-caption text-secondary font-weight-bold text-uppercase letter-spacing-1">{{ stat.title }}</div>
             </div>
           </v-card>
         </v-col>
@@ -53,30 +56,30 @@
       <v-row>
         <!-- Recent Candidates Table -->
         <v-col cols="12" md="8">
-          <v-card class="pa-6 rounded-xl border-surface h-100" variant="outlined">
+          <v-card class="pa-6 rounded-xl border-surface bg-white h-100" variant="outlined">
             <div class="d-flex align-center justify-space-between mb-6">
               <div class="d-flex align-center">
-                <v-avatar color="primary" variant="tonal" rounded="lg" size="40" class="mr-3">
-                  <v-icon icon="mdi-account-clock-outline" color="primary"></v-icon>
-                </v-avatar>
-                <div class="text-h6 font-weight-bold">Recent Registrations</div>
+                <div class="rounded-xl d-flex align-center justify-center mr-3" style="width: 40px; height: 40px; background: #eff6ff;">
+                  <v-icon icon="mdi-account-clock-outline" color="primary" size="20"></v-icon>
+                </div>
+                <div class="text-h6 font-weight-bold text-slate-900">Recent Registrations</div>
               </div>
               <v-btn variant="text" color="primary" size="small" class="text-none font-weight-bold" to="/dashboard/admin/exams/candidates">View All</v-btn>
             </div>
             
-            <v-table hover>
+            <v-table hover class="clean-table">
               <thead>
                 <tr>
-                  <th class="font-weight-bold bg-grey-lighten-4 rounded-tl-lg">Candidate</th>
-                  <th class="font-weight-bold bg-grey-lighten-4">Registered Exam</th>
-                  <th class="font-weight-bold bg-grey-lighten-4">Date</th>
-                  <th class="font-weight-bold bg-grey-lighten-4 text-right rounded-tr-lg">Action</th>
+                  <th class="font-weight-bold text-secondary bg-slate-50">Candidate</th>
+                  <th class="font-weight-bold text-secondary bg-slate-50">Registered Exam</th>
+                  <th class="font-weight-bold text-secondary bg-slate-50">Date</th>
+                  <th class="font-weight-bold text-secondary bg-slate-50 text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="c in data.recentCandidates" :key="c.id">
                   <td class="font-weight-bold py-3">
-                    <div class="text-body-2 font-weight-bold text-grey-darken-4">{{ c.name }}</div>
+                    <div class="text-body-2 font-weight-bold text-slate-900">{{ c.name }}</div>
                     <div class="text-caption text-secondary">{{ c.email }}</div>
                   </td>
                   <td class="py-3">
@@ -102,17 +105,17 @@
         <v-col cols="12" md="4" class="d-flex flex-column gap-6">
           
           <!-- System Health -->
-          <v-card class="pa-6 rounded-xl border-surface" variant="outlined">
+          <v-card class="pa-6 rounded-xl border-surface bg-white" variant="outlined">
             <div class="d-flex align-center mb-6">
-              <v-avatar color="success" variant="tonal" rounded="lg" size="40" class="mr-3">
-                <v-icon icon="mdi-server-network" color="success"></v-icon>
-              </v-avatar>
-              <div class="text-h6 font-weight-bold">System Health</div>
+              <div class="rounded-xl d-flex align-center justify-center mr-3" style="width: 40px; height: 40px; background: #ecfdf5;">
+                <v-icon icon="mdi-server-network" color="success" size="20"></v-icon>
+              </div>
+              <div class="text-h6 font-weight-bold text-slate-900">System Health</div>
             </div>
             
             <div class="mb-6">
               <div class="d-flex justify-space-between align-end mb-2">
-                <span class="text-subtitle-2 font-weight-bold text-grey-darken-2">Storage Capacity</span>
+                <span class="text-subtitle-2 font-weight-bold text-slate-700">Storage Capacity</span>
                 <span class="text-caption font-weight-bold" :class="data.systemHealth?.diskUsage > 80 ? 'text-error' : 'text-primary'">{{ data.systemHealth?.diskUsage || 0 }}% used</span>
               </div>
               <v-progress-linear 
@@ -129,7 +132,7 @@
                 <template #prepend><v-icon icon="mdi-database-check-outline" color="success" class="mr-3"></v-icon></template>
                 <v-list-item-title class="font-weight-medium text-body-2">Database Service</v-list-item-title>
                 <template #append>
-                  <v-chip size="x-small" color="success" variant="flat" class="font-weight-bold shadow-sm">
+                  <v-chip size="x-small" color="success" variant="flat" class="font-weight-bold">
                     {{ data.systemHealth?.dbStatus || 'Unknown' }}
                   </v-chip>
                 </template>
@@ -138,7 +141,7 @@
                 <template #prepend><v-icon icon="mdi-cached" color="success" class="mr-3"></v-icon></template>
                 <v-list-item-title class="font-weight-medium text-body-2">Redis Cache</v-list-item-title>
                 <template #append>
-                  <v-chip size="x-small" color="success" variant="flat" class="font-weight-bold shadow-sm">
+                  <v-chip size="x-small" color="success" variant="flat" class="font-weight-bold">
                     {{ data.systemHealth?.redisStatus || 'Unknown' }}
                   </v-chip>
                 </template>
@@ -146,6 +149,18 @@
             </v-list>
           </v-card>
           
+          <!-- Sub-Center & Certification Platform Link -->
+          <v-card class="pa-6 rounded-xl bg-indigo-darken-3 text-white shadow-lg overflow-hidden position-relative mb-4">
+            <div class="position-absolute opacity-10" style="right: -20px; top: -20px; transform: scale(2);">
+              <v-icon size="150" color="white">mdi-shield-crown</v-icon>
+            </div>
+            <div class="position-relative z-index-1">
+              <div class="text-h6 font-weight-bold mb-2">Sub-Center Management</div>
+              <p class="text-body-2 mb-6 opacity-90">Manage sub-center accounts, token packages, exam catalog, and real-time live feeds.</p>
+              <v-btn color="white" class="text-indigo-darken-3 font-weight-bold px-6" rounded="lg" to="/admin/multi-tenant">Open Sub-Center Admin</v-btn>
+            </div>
+          </v-card>
+
           <!-- Quick Links -->
           <v-card class="pa-6 rounded-xl bg-primary text-white shadow-lg overflow-hidden position-relative">
             <div class="position-absolute opacity-10" style="right: -20px; top: -20px; transform: scale(2);">
@@ -228,7 +243,7 @@ const formatDate = (date: string | Date) => dayjs(date).format('MMM D, YYYY h:mm
 definePageMeta({
   layout: 'dashboard',
   middleware: ['auth', 'role'],
-  role: ['super_admin']
+  role: ['super_admin', 'sub_admin']
 });
 
 onMounted(fetchData);
@@ -236,7 +251,7 @@ onMounted(fetchData);
 
 <style scoped>
 .border-surface {
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
 }
 
 .transition-fast {
@@ -245,8 +260,8 @@ onMounted(fetchData);
 
 .hover-up:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.06) !important;
-  border-color: rgba(0,0,0,0.12) !important;
+  box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08) !important;
+  border-color: #cbd5e1 !important;
 }
 
 .letter-spacing-1 {

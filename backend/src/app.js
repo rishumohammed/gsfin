@@ -69,14 +69,22 @@ app.use('/uploads', (req, res, next) => {
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: process.env.NODE_ENV === 'test' ? 10000 : 100,
+  max: 2000,
   skip: (req) => {
-    return process.env.NODE_ENV === 'test' || 
-           req.ip === '127.0.0.1' || 
-           req.ip === '::1';
+    return process.env.NODE_ENV === 'development' ||
+           process.env.NODE_ENV === 'test' || 
+           req.ip?.includes('127.0.0.1') || 
+           req.ip?.includes('::1') ||
+           req.ip?.includes('localhost');
   }
 });
 app.use('/api/', limiter);
+
+import mainAdminRoutes from './routes/main-admin.routes.js';
+import subCenterRoutes from './routes/sub-center.routes.js';
+import assignmentSessionRoutes from './routes/assignment-session.routes.js';
+import { initBatchAutocloseJob } from './jobs/batch-autoclose.job.js';
+import { initMultitenantNotificationsJob } from './jobs/multitenant-notifications.job.js';
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -88,6 +96,11 @@ app.use('/api/admin/faqs', adminFaqsRoutes);
 app.use('/api/proctoring', proctoringRoutes);
 app.use('/api/admin/system-users', adminSystemUsersRoutes);
 app.use('/api/admin/email-templates', adminEmailTemplatesRoutes);
+
+// Multi-Tenant Certification Platform Routes
+app.use('/api/main-admin', mainAdminRoutes);
+app.use('/api/sub-center', subCenterRoutes);
+app.use('/api/assignment-session', assignmentSessionRoutes);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
@@ -103,6 +116,8 @@ const PORT = process.env.PORT || 5000;
 initExamRemindersJob();
 initFollowupJob();
 initExamAutocompleteJob();
+initBatchAutocloseJob();
+initMultitenantNotificationsJob();
 
 httpServer.listen(PORT, () => {
   console.log(`Kefta Talent Hunt Server running on port ${PORT}`);

@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@aems/shared": "file:../shared",
+    "@mdi/font": "^7.4.47",
     "@mediapipe/face_detection": "^0.4.1646425229",
     "@nuxtjs/google-fonts": "^3.2.0",
     "@pinia/nuxt": "^0.5.1",

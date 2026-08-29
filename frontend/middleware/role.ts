@@ -4,9 +4,11 @@ export default defineNuxtRouteMiddleware((to, from) => {
   const authStore = useAuthStore();
   const role = authStore.userRole;
 
-  const adminRoles = ['super_admin', 'sub_admin', 'lms_user', 'placement_coordinator', 'finance_staff'];
+  const adminRoles = ['super_admin', 'main_admin', 'sub_center_staff', 'sub_admin', 'lms_user', 'placement_coordinator', 'finance_staff'];
 
   if (to.path === '/dashboard') {
+    if (role === 'main_admin') return navigateTo('/admin/multi-tenant');
+    if (role === 'sub_center_staff') return navigateTo('/sub-center');
     if (role === 'super_admin' || role === 'sub_admin') return navigateTo('/dashboard/admin');
     
     switch (role) {

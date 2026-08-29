@@ -876,7 +876,7 @@ function handleBeforeUnload(e: BeforeUnloadEvent) {
 
 <style scoped>
 .take-exam-app {
-  font-family: 'Figtree', sans-serif !important;
+  font-family: var(--font-body), 'Inter', sans-serif !important;
 }
 
 .take-main {
@@ -889,22 +889,22 @@ function handleBeforeUnload(e: BeforeUnloadEvent) {
 }
 
 .option-item {
-  border-radius: 12px !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
-  transition: all 0.2s ease;
-  background-color: #f8fafc;
+  border-radius: var(--radius-md, 12px) !important;
+  border: 1px solid var(--k-border, #E2E8F0) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: var(--k-surface, #FFFFFF);
 }
 
 .option-item:hover {
-  border-color: rgba(86, 36, 208, 0.3) !important;
-  background-color: rgba(86, 36, 208, 0.02);
+  border-color: var(--k-accent, #2563EB) !important;
+  background-color: var(--k-accent-soft, #EFF6FF);
+  transform: translateY(-1px);
 }
 
 .option-item-selected {
-  border-color: #5624D0 !important;
-  background-color: rgba(86, 36, 208, 0.06);
-  border: 1px solid var(--border);
-  
+  border-color: var(--k-accent, #2563EB) !important;
+  background-color: var(--k-accent-soft, #EFF6FF) !important;
+  box-shadow: 0 0 0 1px var(--k-accent, #2563EB) !important;
 }
 
 .palette-btn {

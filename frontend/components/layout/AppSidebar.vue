@@ -24,13 +24,11 @@
           <v-list-item
             v-for="item in navStore.filteredNavItems.filter(i => (i.section || '') === section)"
             :key="item.label + (item.route || '')"
-            :to="item.route && !item.target ? item.route : undefined"
             :href="item.target ? item.route : undefined"
             :target="item.target"
             link
-            :exact="item.route === '/dashboard' || item.route === '/'"
             class="nav-item mb-1 px-4"
-            active-class="nav-item-active"
+            :class="{ 'nav-item-active': isItemActive(item) }"
             @click="handleItemClick(item)"
           >
             <template v-slot:prepend>
@@ -73,15 +71,39 @@ import { useAuthStore } from '@/stores/auth';
 import { useDisplay } from 'vuetify';
 import { onMounted, watch } from 'vue';
 
+const route = useRoute();
+const router = useRouter();
 const navStore = useNavStore();
 const uiStore = useUIStore();
 const authStore = useAuthStore();
 const display = useDisplay();
 const instituteName = useState('instituteName', () => '');
 
+const isItemActive = (item: any) => {
+  if (!item.route) return false;
+
+  if (item.route.includes('?')) {
+    return route.fullPath === item.route;
+  }
+
+  if (route.fullPath.includes('?') && route.path === item.route.split('?')[0]) {
+    return false;
+  }
+
+  if (item.route === '/dashboard' || item.route === '/') {
+    return route.path === item.route;
+  }
+
+  return route.path === item.route || route.path.startsWith(item.route + '/');
+};
+
 const handleItemClick = (item: any) => {
   if (item.action === 'logout') {
     authStore.logout();
+    return;
+  }
+  if (item.route) {
+    router.push(item.route);
   }
   if (display.mobile.value) {
     uiStore.isSidebarOpen = false;
@@ -110,12 +132,10 @@ watch(
 }
 
 #app-sidebar {
-  background-color: #f5f5f7 !important; /* Apple gray background */
+  background-color: #f8fafc !important;
   border-right: 1px solid rgba(0, 0, 0, 0.05) !important;
   z-index: 1000 !important;
 }
-
-
 
 .search-pill {
   height: 40px;
@@ -129,7 +149,6 @@ watch(
   background: white;
   border-color: #6366f1;
   border: 1px solid var(--border);
-  
 }
 
 .search-input {
@@ -160,30 +179,42 @@ watch(
 }
 
 .nav-item {
-  color: #86868b !important;
-  font-size: 14px !important;
+  color: #64748b !important;
+  font-size: 13.5px !important;
   font-weight: 600 !important;
-  min-height: 44px !important;
-  transition: all 0.2s ease !important;
+  min-height: 42px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   position: relative;
   border-radius: 10px !important;
-  margin-bottom: 4px !important;
+  margin: 0 12px 4px 12px !important;
+  background-color: transparent !important;
 }
 
 .nav-item:hover {
-  background-color: rgba(0, 0, 0, 0.04) !important;
-  color: #1d1d1f !important;
+  background-color: rgba(99, 102, 241, 0.08) !important;
+  color: #0f172a !important;
+}
+
+:deep(.v-list-item--active:not(.nav-item-active)),
+.v-list-item--active:not(.nav-item-active) {
+  background-color: transparent !important;
+  background: transparent !important;
+  color: #64748b !important;
+  box-shadow: none !important;
+  border-left: none !important;
 }
 
 .nav-item-active {
   background: #ffffff !important;
-  color: #007aff !important;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+  color: #4f46e5 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  border-left: 3px solid #4f46e5 !important;
 }
 
 .nav-item-active .icon-wrapper {
-  color: #007aff;
-  transform: scale(1.05);
+  color: #4f46e5 !important;
+  transform: scale(1.08);
 }
 
 .icon-wrapper {

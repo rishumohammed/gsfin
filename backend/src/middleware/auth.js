@@ -19,10 +19,6 @@ export const authenticateJWT = (req, res, next) => {
       next();
     });
   } else {
-    console.log('--- Auth Failure: Missing Token ---');
-    console.log('Path:', req.path);
-    console.log('Method:', req.method);
-    // Optionally log headers if needed, but be careful with PII
     res.status(401).json({ message: 'Unauthorized: Missing token' });
   }
 };

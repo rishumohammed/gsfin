@@ -70,17 +70,15 @@ defineEmits(['click']);
 /* Primary */
 .btn-p,
 .btn-blue {
-  background-color: var(--ink);
+  background-color: #2563EB;
   color: white;
-  border: 1px solid var(--border);
-  
+  border: 1px solid #2563EB;
 }
 .btn-p:hover:not(:disabled),
 .btn-blue:hover:not(:disabled) {
-  background-color: #0f0f24;
+  background-color: #1D4ED8;
   transform: translateY(-1px);
-  border: 1px solid var(--border);
-  
+  border: 1px solid #1D4ED8;
 }
 
 /* Ghost */

@@ -1,18 +1,17 @@
 :root {
   /* ── Dynamic Brand Palette ── */
-  /* These are meant to be overridden by the configuration. These defaults provide a clean fallback. */
-  --brand:       #111827;   /* Default to dark gray/black */
-  --brand-d:     #000000;   
-  --brand-l:     #F3F4F6;   
-  --brand-m:     #D1D5DB;   
+  --brand:       #2563EB;   /* Electric Blue */
+  --brand-d:     #1D4ED8;   
+  --brand-l:     #EFF6FF;   
+  --brand-m:     #93C5FD;   
   --brand-accent:#4F46E5;   
   --brand-gold:  #F59E0B;   
 
   /* Semantic aliases */
-  --blue:    var(--v-theme-primary, #111827);
-  --blue-d:  #000000;
-  --blue-l:  #F3F4F6;
-  --blue-m:  #D1D5DB;
+  --blue:    #2563EB;
+  --blue-d:  #1D4ED8;
+  --blue-l:  #EFF6FF;
+  --blue-m:  #93C5FD;
   --purple:  #4F46E5;
   --purple-l:#EEF2FF;
   --green:   #10B981;

@@ -1,28 +1,29 @@
 <template>
-  <div class="admin-page pa-6 mx-auto" style="max-width: 1000px;">
+  <v-container fluid class="py-8 px-6 bg-grey-lighten-4 min-vh-100">
     <!-- Header Section -->
     <div class="d-flex justify-space-between align-center mb-6">
       <div>
-        <h1 class="text-h4 font-weight-bold text-ink">Manage FAQs</h1>
-        <p class="text-body-2 text-grey-darken-1 mt-1">Configure the Frequently Asked Questions displayed on the homepage.</p>
+        <h1 class="text-h4 font-weight-bold text-slate-900 tracking-tight mb-1">Manage FAQs</h1>
+        <p class="text-secondary mb-0">Configure the Frequently Asked Questions displayed on the homepage.</p>
       </div>
-      <v-btn color="primary" prepend-icon="mdi-plus" rounded="pill" elevation="0" @click="openDialog()">
+      <v-btn color="primary" prepend-icon="mdi-plus" height="42" rounded="lg" elevation="0" class="px-5 text-none font-weight-bold" @click="openDialog()">
         Add New FAQ
       </v-btn>
     </div>
 
     <!-- Error/Loading State -->
-    <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable @click:close="error = null">
+    <v-alert v-if="error" type="error" variant="tonal" class="mb-4 rounded-lg" closable @click:close="error = null">
       {{ error }}
     </v-alert>
 
-    <v-card variant="flat" class="border rounded-xl">
+    <v-card class="rounded-xl border-surface bg-white" variant="outlined">
       <v-data-table
         :headers="headers"
         :items="faqs"
         :loading="loading"
         hover
         density="comfortable"
+        class="clean-table"
       >
         <template v-slot:item.is_active="{ item }">
           <v-switch
@@ -113,7 +114,7 @@
         </div>
       </v-card>
     </v-dialog>
-  </div>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -265,3 +266,9 @@ const moveDown = (index: number) => {
   updateOrderOnServer();
 };
 </script>
+
+<style scoped>
+.border-surface {
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+</style>

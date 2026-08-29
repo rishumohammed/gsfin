@@ -45,7 +45,7 @@ export default defineNuxtConfig({
 
   googleFonts: {
     families: {
-      Figtree: [300, 400, 500, 600, 700, 800, 900],
+      'Plus Jakarta Sans': [400, 500, 600, 700, 800],
       Inter: [400, 500, 600, 700],
       'JetBrains Mono': [400, 500, 600]
     },
@@ -58,34 +58,34 @@ export default defineNuxtConfig({
     },
     vuetifyOptions: {
       theme: {
-        defaultTheme: 'brand',
+        defaultTheme: 'light',
         themes: {
-          brand: {
+          light: {
             dark: false,
             colors: {
-              primary: '#1B1B3A',
-              secondary: '#6B6B76',
-              accent: '#F4791F',
-              background: '#FAFAF9',
-              surface: '#FFFFFF',
-              error: '#D85A30',
-              success: '#27500A',
-              warning: '#854F0B',
-              info: '#0C447C'
+              primary: '#2563EB',     /* 10% Electric Blue CTA */
+              secondary: '#64748B',   /* Slate Muted */
+              accent: '#F43F5E',      /* Coral Pink Highlight */
+              background: '#F8FAFC',  /* 60% Dominant Neutral Light */
+              surface: '#FFFFFF',     /* 30% Card Surface */
+              error: '#F43F5E',
+              success: '#10B981',
+              warning: '#F59E0B',
+              info: '#3B82F6'
             }
           },
-          adminNeutral: {
-            dark: false,
+          dark: {
+            dark: true,
             colors: {
-              primary: '#007AFF',    /* Apple System Blue */
-              secondary: '#86868B',  /* Soft Gray */
-              accent: '#5E5CE6',     /* Indigo */
-              background: '#F5F5F7', /* Classic Apple Light Gray */
-              surface: '#FFFFFF',
-              error: '#FF3B30',      /* Apple Red */
-              success: '#34C759',    /* Apple Green */
-              warning: '#FF9500',    /* Apple Orange */
-              info: '#32ADE6'        /* Light Blue */
+              primary: '#3B82F6',
+              secondary: '#94A3B8',
+              accent: '#F43F5E',
+              background: '#0B0F17',
+              surface: '#1E293B',
+              error: '#F43F5E',
+              success: '#10B981',
+              warning: '#F59E0B',
+              info: '#3B82F6'
             }
           }
         }
@@ -93,11 +93,12 @@ export default defineNuxtConfig({
       defaults: {
         VCard: {
           elevation: 0,
+          rounded: 'lg',
         },
         VBtn: {
           elevation: 0,
-          rounded: 'md',
-          style: 'text-transform: none;'
+          rounded: 'lg',
+          style: 'text-transform: none; font-weight: 600;'
         },
         VAppBar: {
           elevation: 0
@@ -115,13 +116,15 @@ export default defineNuxtConfig({
         VChip: {
           rounded: 'pill',
           variant: 'flat',
-          style: 'font-weight: 700; font-size: 11px; letter-spacing: 0.1px;'
+          style: 'font-weight: 600; font-size: 12px;'
         }
       }
     }
   },
 
   css: [
+    '@mdi/font/css/materialdesignicons.css',
+    '@/assets/css/design-system.css',
     '@/assets/styles/base.css',
     '@/assets/styles/main.css',
     '@/assets/css/tokens.css'
@@ -129,7 +132,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.API_BASE_URL || '/api',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || process.env.API_BASE_URL || 'http://127.0.0.1:5002/api',
       razorpayKeyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder'
     }
   },
@@ -141,6 +144,9 @@ export default defineNuxtConfig({
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: 'Kefta Talent Hunt' }
+      ],
+      link: [
+        { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css' }
       ],
       script: [
         { src: 'https://checkout.razorpay.com/v1/checkout.js', defer: true }

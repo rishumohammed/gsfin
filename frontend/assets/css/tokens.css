@@ -25,14 +25,15 @@ body, .v-application {
   letter-spacing: -0.01em;
 }
 
-.v-btn, .v-chip, .v-card {
-  border-radius: var(--radius-md) !important;
+.v-chip, .v-card {
+  border-radius: var(--radius-md);
 }
 
 .v-btn {
   font-weight: 600;
   letter-spacing: 0;
   box-shadow: none !important;
+  text-transform: none !important;
 }
 
 .v-btn:not(.v-btn--variant-text):not(.v-btn--variant-plain) {
@@ -50,13 +51,14 @@ body, .v-application {
 }
 
 .v-navigation-drawer .v-list-item--active {
-  background-color: var(--ink) !important;
-  color: var(--white) !important;
+  background-color: #ffffff !important;
+  color: #2563eb !important;
   border-radius: var(--radius-sm);
+  font-weight: 700 !important;
 }
 
 .v-navigation-drawer .v-list-item--active .v-icon {
-  color: var(--white) !important;
+  color: #2563eb !important;
 }
 
 .v-navigation-drawer .v-list-item:not(.v-list-item--active):hover {

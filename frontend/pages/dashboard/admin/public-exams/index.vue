@@ -1,18 +1,18 @@
 <template>
-  <v-container fluid class="pa-6">
+  <v-container fluid class="py-8 px-6 bg-grey-lighten-4 min-vh-100">
     <!-- Header -->
     <div class="d-flex align-center justify-space-between mb-8 flex-wrap gap-4">
       <div>
-        <h1 class="text-h4 font-weight-bold mb-1">All Public Exams</h1>
-        <p class="text-subtitle-2 text-secondary">Manage visitor entrance exams, change publish workflows, and duplicate exam sessions.</p>
+        <h1 class="text-h4 font-weight-bold text-slate-900 tracking-tight mb-1">All Public Exams</h1>
+        <p class="text-secondary mb-0">Manage visitor entrance exams, change publish workflows, and duplicate exam sessions.</p>
       </div>
-      <div class="d-flex gap-2">
+      <div class="d-flex gap-3">
         <v-btn
           variant="outlined"
           color="primary"
           rounded="lg"
-          height="44"
-          class="text-capitalize font-weight-bold"
+          height="42"
+          class="text-none font-weight-bold px-5"
           to="/dashboard/admin/public-exams/categories"
         >
           Manage Categories
@@ -21,8 +21,8 @@
           color="primary"
           rounded="lg"
           elevation="0"
-          height="44"
-          class="text-capitalize font-weight-bold"
+          height="42"
+          class="text-none font-weight-bold px-5"
           prepend-icon="mdi-plus"
           to="/dashboard/admin/public-exams/create"
         >
@@ -32,7 +32,7 @@
     </div>
 
     <!-- Search & Filters -->
-    <v-card flat border class="pa-4 mb-6 rounded-xl">
+    <v-card variant="outlined" class="pa-4 mb-6 rounded-xl border-surface bg-white">
       <v-row align="center" no-gutters class="gap-4 flex-wrap">
         <v-col cols="12" md="4" class="pa-0">
           <v-text-field
@@ -41,7 +41,7 @@
             prepend-inner-icon="mdi-magnify"
             hide-details
             clearable
-            density="comfortable"
+            density="compact"
             variant="outlined"
             rounded="lg"
           ></v-text-field>
@@ -54,7 +54,7 @@
             item-value="id"
             label="Filter by Category"
             hide-details
-            density="comfortable"
+            density="compact"
             variant="outlined"
             rounded="lg"
           ></v-select>
@@ -65,7 +65,7 @@
             :items="['All', 'draft', 'review', 'published', 'archived']"
             label="Filter by Status"
             hide-details
-            density="comfortable"
+            density="compact"
             variant="outlined"
             rounded="lg"
             class="text-capitalize"
@@ -75,7 +75,7 @@
     </v-card>
 
     <!-- Table -->
-    <v-card variant="outlined" class="rounded-xl bg-white border-0 shadow-sm overflow-hidden">
+    <v-card variant="outlined" class="rounded-xl border-surface bg-white overflow-hidden">
       <div v-if="loading" class="pa-12 text-center">
         <v-progress-circular indeterminate color="primary" size="48"></v-progress-circular>
         <div class="mt-4 text-grey font-weight-bold">Loading public exams...</div>
@@ -85,7 +85,7 @@
         v-else
         :headers="headers"
         :items="filteredExams"
-        class="bg-transparent custom-table"
+        class="bg-transparent custom-table clean-table"
       >
         <!-- Exam Details Column -->
         <template v-slot:item.name="{ item }">
@@ -489,6 +489,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.border-surface {
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
 .text-dark { color: #1e293b; }
 .gap-2 { gap: 8px; }
 .gap-4 { gap: 16px; }
