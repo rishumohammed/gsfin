@@ -11,6 +11,31 @@
         <div class="login-card-header">
           <h1 class="login-title">Welcome Back</h1>
           <p class="login-sub">Sign in to GSFIN Partner &amp; Admin Portal</p>
+
+          <!-- Quick Demo Credential Chips -->
+          <div class="demo-chips-wrap mt-3">
+            <button
+              type="button"
+              class="demo-chip"
+              @click="email = 'admin@aems.local'; password = 'Admin@1234'"
+            >
+              <i class="mdi mdi-shield-account"></i> System Admin
+            </button>
+            <button
+              type="button"
+              class="demo-chip"
+              @click="email = 'mainadmin@certification.org'; password = 'Password123!'"
+            >
+              <i class="mdi mdi-domain"></i> Main Admin
+            </button>
+            <button
+              type="button"
+              class="demo-chip"
+              @click="email = 'staff@apexcenter.com'; password = 'Password123!'"
+            >
+              <i class="mdi mdi-office-building"></i> Partner Center
+            </button>
+          </div>
         </div>
 
         <form @submit.prevent="handleLogin">
@@ -176,11 +201,33 @@ const handleLogin = async () => {
   letter-spacing: -0.02em;
 }
 
-.login-sub {
-  font-size: 0.92rem;
-  color: #64748B;
-  margin: 0;
-  font-weight: 500;
+.demo-chips-wrap {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.demo-chip {
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 50px;
+  padding: 5px 12px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.demo-chip:hover {
+  background: #E31B23;
+  color: #FFFFFF;
+  border-color: #E31B23;
 }
 
 .form-group {
