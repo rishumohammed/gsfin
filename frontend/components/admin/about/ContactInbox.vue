@@ -52,27 +52,27 @@
       <v-card v-if="detailModal.data" class="rounded-xl pa-6">
         <div class="d-flex justify-space-between align-center mb-6">
           <div class="text-h6 font-weight-bold">Message Details</div>
-          <v-chip :color="statusColor(detailModal.data.status)" size="small">{{ detailModal.data.status }}</v-chip>
+          <v-chip :color="statusColor(detailModal.data?.status)" size="small">{{ detailModal.data?.status }}</v-chip>
         </div>
         
         <div class="mb-4">
           <div class="text-caption text-grey">From</div>
-          <div class="font-weight-bold">{{ detailModal.data.name }} &lt;{{ detailModal.data.email }}&gt;</div>
-          <div v-if="detailModal.data.phone" class="text-caption text-grey">Phone: {{ detailModal.data.phone }}</div>
+          <div class="font-weight-bold">{{ detailModal.data?.name }} &lt;{{ detailModal.data?.email }}&gt;</div>
+          <div v-if="detailModal.data?.phone" class="text-caption text-grey">Phone: {{ detailModal.data?.phone }}</div>
         </div>
 
         <div class="mb-4">
           <div class="text-caption text-grey">Subject</div>
-          <div class="font-weight-bold">{{ detailModal.data.subject }}</div>
+          <div class="font-weight-bold">{{ detailModal.data?.subject }}</div>
         </div>
 
         <div class="bg-grey-lighten-4 pa-4 rounded-lg mb-6">
-          <div class="text-body-1">{{ detailModal.data.message }}</div>
+          <div class="text-body-1">{{ detailModal.data?.message }}</div>
         </div>
 
         <div class="d-flex justify-end gap-3">
           <v-btn variant="outlined" rounded="pill" @click="updateStatus('read')">Mark as Read</v-btn>
-          <v-btn color="primary" rounded="pill" prepend-icon="mdi-reply" :href="`mailto:${detailModal.data.email}?subject=Re: ${detailModal.data.subject}`" @click="updateStatus('replied')">Reply</v-btn>
+          <v-btn color="primary" rounded="pill" prepend-icon="mdi-reply" :href="`mailto:${detailModal.data?.email}?subject=Re: ${detailModal.data?.subject}`" @click="updateStatus('replied')">Reply</v-btn>
         </div>
       </v-card>
     </v-dialog>

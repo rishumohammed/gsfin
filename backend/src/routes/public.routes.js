@@ -97,4 +97,74 @@ router.get('/faqs', async (req, res) => {
   }
 });
 
+// Helper for parsing JSON arrays
+const parseJsonArray = (val) => {
+  if (!val) return [];
+  if (typeof val === 'object') return val;
+  try {
+    return JSON.parse(val);
+  } catch (e) {
+    return [];
+  }
+};
+
+// GET /api/public/qualifications - List all active qualifications for catalog & homepage
+router.get('/qualifications', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        id, slug, name, subtitle, short_description, full_description, category, level,
+        duration, assessment_type, validity, prerequisites, key_modules, who_should_attend,
+        benefits, badge_tag, image_url, icon_name, order_index
+      FROM qualifications
+      WHERE is_active = 1 AND deleted_at IS NULL
+      ORDER BY order_index ASC, id DESC
+    `);
+
+    const formatted = rows.map((q) => ({
+      ...q,
+      prerequisites: parseJsonArray(q.prerequisites),
+      key_modules: parseJsonArray(q.key_modules),
+      who_should_attend: parseJsonArray(q.who_should_attend),
+      benefits: parseJsonArray(q.benefits)
+    }));
+
+    res.json(formatted);
+  } catch (error) {
+    console.error('Error fetching public qualifications:', error);
+    res.status(500).json({ error: 'Server error fetching qualifications' });
+  }
+});
+
+// GET /api/public/qualifications/:slug - Get active qualification details by slug
+router.get('/qualifications/:slug', async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const [rows] = await pool.query(`
+      SELECT 
+        id, slug, name, subtitle, short_description, full_description, category, level,
+        duration, assessment_type, validity, prerequisites, key_modules, who_should_attend,
+        benefits, badge_tag, image_url, icon_name, order_index
+      FROM qualifications
+      WHERE slug = ? AND is_active = 1 AND deleted_at IS NULL
+    `, [slug]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Qualification not found' });
+    }
+
+    const q = rows[0];
+    res.json({
+      ...q,
+      prerequisites: parseJsonArray(q.prerequisites),
+      key_modules: parseJsonArray(q.key_modules),
+      who_should_attend: parseJsonArray(q.who_should_attend),
+      benefits: parseJsonArray(q.benefits)
+    });
+  } catch (error) {
+    console.error('Error fetching qualification by slug:', error);
+    res.status(500).json({ error: 'Server error fetching qualification' });
+  }
+});
+
 export default router;

@@ -26,6 +26,7 @@ export const useNavStore = defineStore('nav', {
 
       // EXAM CATALOG
       { label: 'Certification Exam Catalog', icon: 'mdi-file-certificate', route: '/admin/multi-tenant?tab=exams', roles: ['super_admin', 'main_admin'], section: 'EXAM CATALOG' },
+      { label: 'Qualifications Catalog', icon: 'mdi-certificate-outline', route: '/dashboard/admin/qualifications', roles: ['super_admin', 'main_admin', 'lms_user'], section: 'EXAM CATALOG' },
 
       // TOKEN MANAGEMENT
       { label: 'Token Packages Catalog', icon: 'mdi-package-variant-closed', route: '/admin/multi-tenant?tab=packages', roles: ['super_admin', 'main_admin'], section: 'TOKEN MANAGEMENT' },

@@ -13,13 +13,14 @@
   --shadow-brand:   0 4px 14px rgba(86,36,208,0.30);
   --border-radius-card: 8px;
   --border-radius-pill: 999px;
-  --font-family: 'Figtree', sans-serif;
+  --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Inter", "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
 * {
   font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 html {

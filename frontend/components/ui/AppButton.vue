@@ -71,43 +71,47 @@ defineEmits(['click']);
 .btn-p,
 .btn-blue {
   background-color: #2563EB;
-  color: white;
+  color: #FFFFFF !important;
   border: 1px solid #2563EB;
 }
 .btn-p:hover:not(:disabled),
 .btn-blue:hover:not(:disabled) {
   background-color: #1D4ED8;
+  color: #FFFFFF !important;
   transform: translateY(-1px);
   border: 1px solid #1D4ED8;
 }
 
 /* Ghost */
 .btn-g {
-  background-color: var(--paper);
-  color: var(--muted);
+  background-color: var(--paper, #FAFAF9);
+  color: var(--muted, #1F2937);
   border: 1px solid rgba(0, 0, 0, 0.07);
 }
 .btn-g:hover:not(:disabled) {
-  background-color: var(--panel);
+  background-color: #E5E7EB;
+  color: #111827 !important;
 }
 
 /* Danger */
 .btn-danger {
-  background-color: var(--red);
-  color: white;
+  background-color: #EF4444;
+  color: #FFFFFF !important;
 }
 .btn-danger:hover:not(:disabled) {
-  background-color: #E03127;
+  background-color: #DC2626;
+  color: #FFFFFF !important;
   transform: translateY(-1px);
 }
 
 /* Success */
 .btn-success {
-  background-color: var(--green);
-  color: white;
+  background-color: #10B981;
+  color: #FFFFFF !important;
 }
 .btn-success:hover:not(:disabled) {
-  background-color: #28A142;
+  background-color: #059669;
+  color: #FFFFFF !important;
   transform: translateY(-1px);
 }
 
@@ -119,9 +123,8 @@ defineEmits(['click']);
 .apple-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  
   transform: none !important;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border, #E2E8F0);
 }
 
 .apple-btn:active:not(:disabled) {

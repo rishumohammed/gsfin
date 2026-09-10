@@ -12,10 +12,13 @@ router.use(authenticateJWT, authorizeRoles('main_admin', 'super_admin'));
 
 router.get('/dashboard/overview', async (req, res) => {
   try {
-    const [[{ totalSubCenters }]] = await pool.query(`SELECT COUNT(*) as totalSubCenters FROM organizations`);
-    const [[{ activeBatches }]] = await pool.query(`SELECT COUNT(*) as activeBatches FROM batches WHERE status = 'open'`);
-    const [[{ totalTokensSold }]] = await pool.query(`SELECT COALESCE(SUM(tokens_purchased), 0) as totalTokensSold FROM sub_center_wallets`);
-    const [[{ totalTokensConsumed }]] = await pool.query(`SELECT COALESCE(SUM(tokens_used), 0) as totalTokensConsumed FROM sub_center_wallets`);
+    const [[metrics]] = await pool.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM organizations) as totalSubCenters,
+        (SELECT COUNT(*) FROM batches WHERE status = 'open') as activeBatches,
+        (SELECT COALESCE(SUM(tokens_purchased), 0) FROM sub_center_wallets) as totalTokensSold,
+        (SELECT COALESCE(SUM(tokens_used), 0) FROM sub_center_wallets) as totalTokensConsumed
+    `);
 
     const [recentBatches] = await pool.query(`
       SELECT b.*, o.name as org_name, e.name as exam_name,
@@ -34,10 +37,10 @@ router.get('/dashboard/overview', async (req, res) => {
 
     res.json({
       metrics: {
-        totalSubCenters,
-        activeBatches,
-        totalTokensSold,
-        totalTokensConsumed
+        totalSubCenters: Number(metrics.totalSubCenters) || 0,
+        activeBatches: Number(metrics.activeBatches) || 0,
+        totalTokensSold: Number(metrics.totalTokensSold) || 0,
+        totalTokensConsumed: Number(metrics.totalTokensConsumed) || 0
       },
       recentBatches
     });

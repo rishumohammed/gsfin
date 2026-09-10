@@ -2,13 +2,13 @@
 --ink: #1B1B3A;
 --paper: #FAFAF9;
 --panel: #F4F4F6;
---accent: #F4791F;
---accent-soft: #FDEBDD;
+--accent: #2563EB;
+--accent-soft: #EFF6FF;
 --muted: #6B6B76;
 --border: #E4E4E8;
 --white: #FFFFFF;
---font-body: 'Inter', sans-serif;
---font-mono: 'JetBrains Mono', monospace;
+--font-body: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
+--font-mono: 'SF Mono', 'JetBrains Mono', ui-monospace, monospace;
 --radius-sm: 6px;
 --radius-md: 10px;
 --radius-lg: 16px;

@@ -30,7 +30,7 @@ async function sendImmediateAssignmentNotifications() {
        WHERE ea.notified_at IS NULL AND ea.status = 'not_started'`
     );
 
-    for (const assign of assignments) {
+    const tasks = assignments.map(async (assign) => {
       const examUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/exam/take-${assign.assignment_id}`;
       const subject = `Exam Enrollment: ${assign.exam_name}`;
       const htmlContent = `
@@ -60,7 +60,9 @@ async function sendImmediateAssignmentNotifications() {
       } catch (sendErr) {
         console.warn(`[sendImmediateNotifications] Failed for assignment ${assign.assignment_id}:`, sendErr.message);
       }
-    }
+    });
+
+    await Promise.allSettled(tasks);
   } catch (err) {
     console.error('[sendImmediateNotifications] Error:', err);
   }
@@ -89,7 +91,7 @@ async function sendPreExamReminders() {
       [leadTimeHours]
     );
 
-    for (const rem of reminders) {
+    const reminderTasks = reminders.map(async (rem) => {
       const examUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/exam/take-${rem.assignment_id}`;
       const subject = `Reminder: Upcoming Certification Exam - ${rem.exam_name}`;
       const htmlContent = `
@@ -113,7 +115,9 @@ async function sendPreExamReminders() {
       } catch (sendErr) {
         console.warn(`[sendPreExamReminders] Failed for assignment ${rem.assignment_id}:`, sendErr.message);
       }
-    }
+    });
+
+    await Promise.allSettled(reminderTasks);
   } catch (err) {
     console.error('[sendPreExamReminders] Error:', err);
   }

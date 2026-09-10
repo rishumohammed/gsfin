@@ -28,9 +28,9 @@
   --k-pop-amber: #F59E0B;     /* Warning status */
 
   /* --- Typography --- */
-  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-heading: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono: 'SF Mono', 'JetBrains Mono', ui-monospace, monospace;
 
   /* --- Radii & Shadows --- */
   --radius-sm: 8px;
@@ -62,7 +62,6 @@
 body, .v-application {
   font-family: var(--font-body) !important;
   background-color: var(--k-bg) !important;
-  color: var(--k-text-main) !important;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -94,37 +93,140 @@ h1, h2, h3, h4, h5, h6,
   box-shadow: var(--shadow-md), 0 0 12px rgba(37, 99, 235, 0.1) !important;
 }
 
-/* --- Buttons & Action Elements --- */
-.k-btn-primary {
-  background-color: var(--k-accent) !important;
-  color: #FFFFFF !important;
-  font-family: var(--font-heading) !important;
-  font-weight: 600 !important;
-  border-radius: var(--radius-md) !important;
-  padding: 10px 20px !important;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3) !important;
-  transition: all 0.2s ease !important;
+/* ==========================================================================
+   PERMANENT BUTTON ACCESSIBILITY & HOVER CONTRAST SYSTEM
+   ========================================================================== */
+
+.v-btn,
+.k-btn-primary,
+.k-btn-secondary,
+.apple-btn,
+button {
+  font-family: var(--font-heading, 'Inter', sans-serif) !important;
+  text-transform: none !important;
+  letter-spacing: -0.01em !important;
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.15s ease !important;
 }
 
-.k-btn-primary:hover {
-  background-color: var(--k-accent-hover) !important;
-  box-shadow: var(--shadow-glow) !important;
-  transform: translateY(-1px);
+.v-btn .v-btn__content,
+.v-btn .v-icon {
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+/* Solid Variant Buttons (Flat & Elevated) */
+.v-btn--variant-flat:hover,
+.v-btn--variant-elevated:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(0.94) !important;
+}
+
+.v-btn--variant-flat .v-btn__content,
+.v-btn--variant-elevated .v-btn__content,
+.v-btn--variant-flat .v-icon,
+.v-btn--variant-elevated .v-icon {
+  opacity: 1 !important;
+}
+
+/* Tonal Variant Buttons (variant="tonal") - High contrast hover guarantee */
+.v-btn--variant-tonal {
+  font-weight: 700 !important;
+}
+
+.v-btn--variant-tonal:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(0.92) contrast(1.1) !important;
+}
+
+.v-btn--variant-tonal .v-btn__content,
+.v-btn--variant-tonal .v-icon {
+  opacity: 1 !important;
+  font-weight: 700 !important;
+}
+
+/* Outlined Variant Buttons (variant="outlined") */
+.v-btn--variant-outlined {
+  font-weight: 600 !important;
+  border-width: 1.5px !important;
+}
+
+.v-btn--variant-outlined:hover {
+  transform: translateY(-1px) !important;
+  background-color: rgba(37, 99, 235, 0.08) !important;
+}
+
+.v-btn--variant-outlined .v-btn__content,
+.v-btn--variant-outlined .v-icon {
+  opacity: 1 !important;
+  font-weight: 600 !important;
+}
+
+/* Text / Plain Variant Buttons */
+.v-btn--variant-text:hover,
+.v-btn--variant-plain:hover {
+  background-color: rgba(15, 23, 42, 0.06) !important;
+  opacity: 1 !important;
+}
+
+.v-btn--variant-text .v-btn__content,
+.v-btn--variant-plain .v-btn__content,
+.v-btn--variant-text .v-icon,
+.v-btn--variant-plain .v-icon {
+  opacity: 1 !important;
+}
+
+/* Dark mode specific button hover contrast overrides */
+.dark .v-btn--variant-text:hover,
+.dark .v-btn--variant-plain:hover,
+[data-theme="dark"] .v-btn--variant-text:hover,
+[data-theme="dark"] .v-btn--variant-plain:hover {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.dark .v-btn--variant-outlined:hover,
+[data-theme="dark"] .v-btn--variant-outlined:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Design System Custom Button Classes */
+.k-btn-primary {
+  background-color: var(--k-accent, #2563EB) !important;
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-md, 12px) !important;
+  padding: 10px 20px !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3) !important;
+}
+
+.k-btn-primary:hover:not(:disabled) {
+  background-color: var(--k-accent-hover, #1D4ED8) !important;
+  color: #FFFFFF !important;
+  box-shadow: var(--shadow-glow, 0 0 20px rgba(37, 99, 235, 0.25)) !important;
+  transform: translateY(-1px) !important;
+}
+
+.k-btn-primary .v-icon,
+.k-btn-primary span,
+.k-btn-primary div {
+  color: #FFFFFF !important;
 }
 
 .k-btn-secondary {
-  background-color: var(--k-surface) !important;
-  color: var(--k-text-main) !important;
-  border: 1px solid var(--k-border) !important;
-  font-family: var(--font-heading) !important;
+  background-color: var(--k-surface, #FFFFFF) !important;
+  color: var(--k-text-main, #0F172A) !important;
+  border: 1px solid var(--k-border, #E2E8F0) !important;
   font-weight: 600 !important;
-  border-radius: var(--radius-md) !important;
-  transition: all 0.2s ease !important;
+  border-radius: var(--radius-md, 12px) !important;
 }
 
-.k-btn-secondary:hover {
-  background-color: var(--k-bg-subtle) !important;
-  border-color: var(--k-text-subtle) !important;
+.k-btn-secondary:hover:not(:disabled) {
+  background-color: var(--k-bg-subtle, #F1F5F9) !important;
+  color: var(--k-text-main, #0F172A) !important;
+  border-color: var(--k-border-focus, #CBD5E1) !important;
+  transform: translateY(-1px) !important;
 }
 
 /* --- Status Badges --- */
@@ -159,6 +261,72 @@ h1, h2, h3, h4, h5, h6,
   color: var(--k-pop-coral);
 }
 
+/* Guarantee Vuetify tonal and colored button contrast */
+.v-btn--variant-tonal.bg-warning,
+.v-btn--variant-tonal.text-warning,
+.v-btn--variant-tonal.v-btn--color-warning {
+  background-color: #FEF3C7 !important;
+  color: #B45309 !important;
+}
+
+.v-btn--variant-tonal.bg-success,
+.v-btn--variant-tonal.text-success,
+.v-btn--variant-tonal.v-btn--color-success {
+  background-color: #D1FAE5 !important;
+  color: #047857 !important;
+}
+
+.v-btn--variant-tonal.bg-error,
+.v-btn--variant-tonal.text-error,
+.v-btn--variant-tonal.v-btn--color-error {
+  background-color: #FEE2E2 !important;
+  color: #B91C1C !important;
+}
+
+.v-btn--variant-tonal.bg-info,
+.v-btn--variant-tonal.text-info,
+.v-btn--variant-tonal.v-btn--color-info {
+  background-color: #DBEAFE !important;
+  color: #1D4ED8 !important;
+}
+
+.v-btn--variant-tonal.bg-teal-darken-2,
+.v-btn--variant-tonal.v-btn--color-teal-darken-2 {
+  background-color: #CCFBF1 !important;
+  color: #0F766E !important;
+}
+
+.v-btn--variant-tonal.bg-purple-darken-1,
+.v-btn--variant-tonal.v-btn--color-purple-darken-1 {
+  background-color: #F3E8FF !important;
+  color: #6B21A8 !important;
+}
+
+/* Fix Vuetify buttons with flat/elevated variant */
+.v-btn--variant-flat.bg-primary,
+.v-btn--variant-flat.v-btn--color-primary,
+.v-btn--variant-elevated.bg-primary,
+.v-btn--variant-elevated.v-btn--color-primary {
+  background-color: #2563EB !important;
+  color: #FFFFFF !important;
+}
+
+.v-btn--variant-flat.bg-warning,
+.v-btn--variant-flat.v-btn--color-warning,
+.v-btn--variant-elevated.bg-warning,
+.v-btn--variant-elevated.v-btn--color-warning {
+  background-color: #F59E0B !important;
+  color: #FFFFFF !important;
+}
+
+.v-btn--variant-flat.bg-success,
+.v-btn--variant-flat.v-btn--color-success,
+.v-btn--variant-elevated.bg-success,
+.v-btn--variant-elevated.v-btn--color-success {
+  background-color: #10B981 !important;
+  color: #FFFFFF !important;
+}
+
 /* --- Vuetify Specific Overrides --- */
 .v-card {
   border-radius: var(--radius-md) !important;
@@ -166,8 +334,4 @@ h1, h2, h3, h4, h5, h6,
   box-shadow: var(--shadow-sm) !important;
 }
 
-.v-btn {
-  font-family: var(--font-heading) !important;
-  text-transform: none !important;
-  letter-spacing: -0.01em !important;
-}
+

@@ -448,7 +448,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { useApi } from '@/composables/useApi';
 
+const api = useApi();
 const route = useRoute();
 const config = useRuntimeConfig();
 const activeTab = ref(route.query.tab ? String(route.query.tab) : 'overview');
@@ -645,8 +647,8 @@ async function fetchAllData() {
 async function fetchOverview() {
   loadingOverview.value = true;
   try {
-    const res = await $fetch<any>(`${config.public.apiBase}/main-admin/dashboard/overview`, { credentials: 'include' });
-    overview.value = res;
+    const { data } = await api.get('/main-admin/dashboard/overview');
+    overview.value = data;
   } catch (err) {
     console.error('Error fetching overview', err);
   } finally {
@@ -657,7 +659,8 @@ async function fetchOverview() {
 async function fetchOrganizations() {
   loadingOrgs.value = true;
   try {
-    organizations.value = await $fetch<any[]>(`${config.public.apiBase}/main-admin/organizations`, { credentials: 'include' });
+    const { data } = await api.get('/main-admin/organizations');
+    organizations.value = data;
   } catch (err) {
     console.error(err);
   } finally {
@@ -669,16 +672,12 @@ async function createOrganization() {
   if (!newOrg.value.name || !newOrg.value.contact_email) return;
   savingOrg.value = true;
   try {
-    await $fetch(`${config.public.apiBase}/main-admin/organizations`, {
-      method: 'POST',
-      body: newOrg.value,
-      credentials: 'include'
-    });
+    await api.post('/main-admin/organizations', newOrg.value);
     showAddOrgModal.value = false;
     newOrg.value = { name: '', contact_email: '', contact_phone: '' };
     fetchOrganizations();
   } catch (err: any) {
-    alert(err.message || 'Failed to create organization');
+    alert(err.response?.data?.message || err.message || 'Failed to create organization');
   } finally {
     savingOrg.value = false;
   }
@@ -687,21 +686,18 @@ async function createOrganization() {
 async function toggleOrgStatus(item: any) {
   const newStatus = item.status === 'active' ? 'suspended' : 'active';
   try {
-    await $fetch(`${config.public.apiBase}/main-admin/organizations/${item.id}/status`, {
-      method: 'PATCH',
-      body: { status: newStatus },
-      credentials: 'include'
-    });
+    await api.patch(`/main-admin/organizations/${item.id}/status`, { status: newStatus });
     fetchOrganizations();
   } catch (err: any) {
-    alert(err.message || 'Failed to update status');
+    alert(err.response?.data?.message || err.message || 'Failed to update status');
   }
 }
 
 async function fetchExams() {
   loadingExams.value = true;
   try {
-    exams.value = await $fetch<any[]>(`${config.public.apiBase}/main-admin/exams`, { credentials: 'include' });
+    const { data } = await api.get('/main-admin/exams');
+    exams.value = data;
   } catch (err) {
     console.error(err);
   } finally {
@@ -719,24 +715,16 @@ async function saveExam() {
   savingExam.value = true;
   try {
     if (editingExam.value) {
-      await $fetch(`${config.public.apiBase}/main-admin/exams/${editingExam.value.id}`, {
-        method: 'PUT',
-        body: examForm.value,
-        credentials: 'include'
-      });
+      await api.put(`/main-admin/exams/${editingExam.value.id}`, examForm.value);
     } else {
-      await $fetch(`${config.public.apiBase}/main-admin/exams`, {
-        method: 'POST',
-        body: examForm.value,
-        credentials: 'include'
-      });
+      await api.post('/main-admin/exams', examForm.value);
     }
     showAddExamModal.value = false;
     editingExam.value = null;
     examForm.value = { name: '', description: '', duration_minutes: 60, max_attempts: 1, status: 'active' };
     fetchExams();
   } catch (err: any) {
-    alert(err.message || 'Failed to save exam');
+    alert(err.response?.data?.message || err.message || 'Failed to save exam');
   } finally {
     savingExam.value = false;
   }
@@ -745,7 +733,8 @@ async function saveExam() {
 async function fetchPackages() {
   loadingPackages.value = true;
   try {
-    packages.value = await $fetch<any[]>(`${config.public.apiBase}/main-admin/token-packages`, { credentials: 'include' });
+    const { data } = await api.get('/main-admin/token-packages');
+    packages.value = data;
   } catch (err) {
     console.error(err);
   } finally {
@@ -756,16 +745,12 @@ async function fetchPackages() {
 async function createPackage() {
   savingPkg.value = true;
   try {
-    await $fetch(`${config.public.apiBase}/main-admin/token-packages`, {
-      method: 'POST',
-      body: pkgForm.value,
-      credentials: 'include'
-    });
+    await api.post('/main-admin/token-packages', pkgForm.value);
     showAddPkgModal.value = false;
     pkgForm.value = { name: '', token_count: 50, price: 500 };
     fetchPackages();
   } catch (err: any) {
-    alert(err.message || 'Failed to create package');
+    alert(err.response?.data?.message || err.message || 'Failed to create package');
   } finally {
     savingPkg.value = false;
   }
@@ -774,21 +759,18 @@ async function createPackage() {
 async function togglePkgStatus(item: any) {
   const newStatus = item.status === 'active' ? 'retired' : 'active';
   try {
-    await $fetch(`${config.public.apiBase}/main-admin/token-packages/${item.id}/status`, {
-      method: 'PATCH',
-      body: { status: newStatus },
-      credentials: 'include'
-    });
+    await api.patch(`/main-admin/token-packages/${item.id}/status`, { status: newStatus });
     fetchPackages();
   } catch (err: any) {
-    alert(err.message || 'Failed to update package status');
+    alert(err.response?.data?.message || err.message || 'Failed to update package status');
   }
 }
 
 async function fetchAudit() {
   loadingAudit.value = true;
   try {
-    auditTransactions.value = await $fetch<any[]>(`${config.public.apiBase}/main-admin/audit-transactions`, { credentials: 'include' });
+    const { data } = await api.get('/main-admin/audit-transactions');
+    auditTransactions.value = data;
   } catch (err) {
     console.error(err);
   } finally {

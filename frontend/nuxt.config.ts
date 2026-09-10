@@ -74,6 +74,34 @@ export default defineNuxtConfig({
               info: '#3B82F6'
             }
           },
+          brand: {
+            dark: false,
+            colors: {
+              primary: '#2563EB',
+              secondary: '#64748B',
+              accent: '#F43F5E',
+              background: '#F8FAFC',
+              surface: '#FFFFFF',
+              error: '#F43F5E',
+              success: '#10B981',
+              warning: '#F59E0B',
+              info: '#3B82F6'
+            }
+          },
+          adminNeutral: {
+            dark: false,
+            colors: {
+              primary: '#2563EB',
+              secondary: '#64748B',
+              accent: '#F43F5E',
+              background: '#F8FAFC',
+              surface: '#FFFFFF',
+              error: '#F43F5E',
+              success: '#10B981',
+              warning: '#F59E0B',
+              info: '#3B82F6'
+            }
+          },
           dark: {
             dark: true,
             colors: {
