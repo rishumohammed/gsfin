@@ -1,459 +1,571 @@
 <template>
-  <v-container fluid class="py-8 px-6 bg-grey-lighten-4 min-vh-100">
-    <!-- Header -->
-    <div class="d-flex align-center justify-space-between mb-6">
-      <div>
-        <h1 class="text-h4 font-weight-bold text-slate-900 tracking-tight mb-0">
-          {{ currentTitle }}
-        </h1>
+  <div class="gsfin-admin-page">
+    <div class="admin-wrap">
+
+      <!-- ═══ TOP HEADER ═══ -->
+      <div class="admin-header-row">
+        <div>
+          <div class="eyebrow-red">GSFIN MAIN ADMIN PORTAL</div>
+          <h1 class="admin-title">{{ currentTitle }}</h1>
+          <p class="admin-subtitle">Authority control hub for sub-center accounts, exam catalogs, token wallets, and live feed.</p>
+        </div>
+
+        <div class="header-actions">
+          <button v-if="activeTab === 'subcenters'" class="btn-red" @click="showAddOrgModal = true">
+            <i class="mdi mdi-plus"></i> Add Sub-Center
+          </button>
+          <button v-if="activeTab === 'exams'" class="btn-red" @click="showAddExamModal = true">
+            <i class="mdi mdi-plus"></i> Create Catalog Exam
+          </button>
+          <button v-if="activeTab === 'packages'" class="btn-red" @click="showAddPkgModal = true">
+            <i class="mdi mdi-plus"></i> Create Token Package
+          </button>
+
+          <div class="live-status-badge">
+            <span class="pulse-dot"></span> Live Hub
+          </div>
+        </div>
       </div>
-      <div class="d-flex align-center gap-3">
-        <v-btn v-if="activeTab === 'subcenters'" color="primary" prepend-icon="mdi-plus" height="42" rounded="lg" class="px-5 text-none font-weight-bold text-subtitle-2" elevation="0" @click="showAddOrgModal = true">
-          Add Sub-Center
-        </v-btn>
-        <v-btn v-if="activeTab === 'exams'" color="primary" prepend-icon="mdi-plus" height="42" rounded="lg" class="px-5 text-none font-weight-bold text-subtitle-2" elevation="0" @click="showAddExamModal = true">
-          Create Catalog Exam
-        </v-btn>
-        <v-btn v-if="activeTab === 'packages'" color="primary" prepend-icon="mdi-plus" height="42" rounded="lg" class="px-5 text-none font-weight-bold text-subtitle-2" elevation="0" @click="showAddPkgModal = true">
-          Create Token Package
-        </v-btn>
-        <v-chip color="success" variant="tonal" size="small" class="font-weight-bold ms-2">
-          <v-icon start icon="mdi-radiobox-marked" class="pulse-icon"></v-icon>
-          Live
-        </v-chip>
+
+      <!-- ═══ METRICS CARDS ROW ═══ -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon-box bg-indigo-light">
+            <i class="mdi mdi-office-building text-indigo"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Sub-Centers</span>
+            <span class="metric-value">{{ overview.metrics.totalSubCenters || 0 }}</span>
+            <span class="metric-sub text-indigo">Active Partner Centers</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-box bg-emerald-light">
+            <i class="mdi mdi-layers-triple text-emerald"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Active Batches</span>
+            <span class="metric-value">{{ overview.metrics.activeBatches || 0 }}</span>
+            <span class="metric-sub text-emerald">Live Running Sessions</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-box bg-amber-light">
+            <i class="mdi mdi-ticket-confirmation text-amber"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Tokens Issued</span>
+            <span class="metric-value">{{ overview.metrics.totalTokensSold || 0 }}</span>
+            <span class="metric-sub text-amber">Issued to Wallets</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-box bg-red-light">
+            <i class="mdi mdi-ticket-percent text-red"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Tokens Consumed</span>
+            <span class="metric-value">{{ overview.metrics.totalTokensConsumed || 0 }}</span>
+            <span class="metric-sub text-red">Exam Candidate Seats</span>
+          </div>
+        </div>
       </div>
+
+      <!-- ═══ NAVIGATION TABS ═══ -->
+      <div class="admin-tabs-bar">
+        <button
+          v-for="tab in tabItems"
+          :key="tab.value"
+          class="tab-btn"
+          :class="{ 'tab-btn--active': activeTab === tab.value }"
+          @click="activeTab = tab.value"
+        >
+          <i :class="['mdi', tab.icon]"></i> {{ tab.label }}
+        </button>
+      </div>
+
+      <!-- ═══ TAB CONTENT PANELS ═══ -->
+
+      <!-- TAB 1: OVERVIEW & LIVE BATCHES -->
+      <div v-if="activeTab === 'overview'" class="tab-panel">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <div class="panel-title-wrap">
+              <i class="mdi mdi-cube-outline panel-icon"></i>
+              <h3>Live Sub-Center Batches Feed</h3>
+            </div>
+
+            <div class="panel-filter-row">
+              <div class="search-input-wrap">
+                <i class="mdi mdi-magnify search-icon"></i>
+                <input
+                  v-model="batchSearch"
+                  type="text"
+                  placeholder="Search batch or exam..."
+                  class="table-search-input"
+                />
+              </div>
+
+              <select v-model="batchStatusFilter" class="table-select-filter">
+                <option value="all">All Statuses</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="created">Created</option>
+              </select>
+
+              <button class="btn-icon-refresh" @click="fetchOverview" :disabled="loadingOverview">
+                <i :class="['mdi', 'mdi-refresh', { 'spin-icon': loadingOverview }]"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="gsfin-table">
+              <thead>
+                <tr>
+                  <th>Sub-Center</th>
+                  <th>Exam Title</th>
+                  <th>Status</th>
+                  <th>Student Metrics</th>
+                  <th>Created At</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="loadingOverview">
+                  <td colspan="5" class="text-center py-6 text-slate-500">
+                    <span class="spinner-sm-red"></span> Loading Live Feed...
+                  </td>
+                </tr>
+                <tr v-else-if="filteredBatches.length === 0">
+                  <td colspan="5" class="text-center py-8 text-slate-500">
+                    <i class="mdi mdi-layers-off-outline text-3xl block mb-2 text-slate-400"></i>
+                    No Active Batches Found
+                  </td>
+                </tr>
+                <tr v-for="b in filteredBatches" :key="b.id">
+                  <td class="font-weight-bold text-slate-900">{{ b.org_name || 'Sub-Center' }}</td>
+                  <td>{{ b.exam_name || b.exam_title || 'Certification Exam' }}</td>
+                  <td>
+                    <span :class="['badge-chip', getBatchStatusClass(b.status)]">
+                      {{ b.status }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="metrics-pill-row">
+                      <span class="chip-blue">Total: {{ b.student_count || 0 }}</span>
+                      <span class="chip-green">Passed: {{ b.passed_count || 0 }}</span>
+                      <span class="chip-red">Failed: {{ b.failed_count || 0 }}</span>
+                      <span class="chip-amber">In Progress: {{ b.in_progress_count || 0 }}</span>
+                    </div>
+                  </td>
+                  <td class="text-slate-500">{{ formatDate(b.created_at) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: SUB-CENTER ACCOUNTS MANAGEMENT -->
+      <div v-else-if="activeTab === 'subcenters'" class="tab-panel">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <div class="search-input-wrap">
+              <i class="mdi mdi-magnify search-icon"></i>
+              <input
+                v-model="orgSearch"
+                type="text"
+                placeholder="Search sub-center name or email..."
+                class="table-search-input"
+              />
+            </div>
+
+            <select v-model="orgStatusFilter" class="table-select-filter">
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </div>
+
+          <div class="table-responsive">
+            <table class="gsfin-table">
+              <thead>
+                <tr>
+                  <th>Sub-Center Name</th>
+                  <th>Contact Email</th>
+                  <th>Contact Phone</th>
+                  <th>Status</th>
+                  <th>Wallet Tokens</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="loadingOrgs">
+                  <td colspan="6" class="text-center py-6 text-slate-500">
+                    <span class="spinner-sm-red"></span> Loading Accounts...
+                  </td>
+                </tr>
+                <tr v-else-if="filteredOrganizations.length === 0">
+                  <td colspan="6" class="text-center py-8 text-slate-500">No Sub-Centers Found</td>
+                </tr>
+                <tr v-for="org in filteredOrganizations" :key="org.id">
+                  <td class="font-weight-bold text-slate-900">{{ org.name }}</td>
+                  <td>{{ org.contact_email }}</td>
+                  <td>{{ org.contact_phone || '-' }}</td>
+                  <td>
+                    <span :class="['badge-chip', org.status === 'active' ? 'chip-green' : 'chip-amber']">
+                      {{ org.status }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge-token-count">
+                      <i class="mdi mdi-ticket-confirmation"></i> {{ org.token_balance || 0 }} Tokens
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      class="btn-table-action"
+                      :class="org.status === 'active' ? 'btn-warn' : 'btn-success'"
+                      @click="toggleOrgStatus(org)"
+                    >
+                      {{ org.status === 'active' ? 'Suspend' : 'Activate' }}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: EXAM CATALOG -->
+      <div v-else-if="activeTab === 'exams'" class="tab-panel">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <div class="search-input-wrap">
+              <i class="mdi mdi-magnify search-icon"></i>
+              <input
+                v-model="examSearch"
+                type="text"
+                placeholder="Search catalog exams..."
+                class="table-search-input"
+              />
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="gsfin-table">
+              <thead>
+                <tr>
+                  <th>Exam Name</th>
+                  <th>Duration (Mins)</th>
+                  <th>Max Attempts Cap</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="loadingExams">
+                  <td colspan="5" class="text-center py-6 text-slate-500">
+                    <span class="spinner-sm-red"></span> Loading Exams...
+                  </td>
+                </tr>
+                <tr v-else-if="filteredExams.length === 0">
+                  <td colspan="5" class="text-center py-8 text-slate-500">No Catalog Exams Found</td>
+                </tr>
+                <tr v-for="exam in filteredExams" :key="exam.id">
+                  <td class="font-weight-bold text-slate-900">{{ exam.name }}</td>
+                  <td>{{ exam.duration_minutes }} Mins</td>
+                  <td>{{ exam.max_attempts }} Attempts</td>
+                  <td>
+                    <span :class="['badge-chip', exam.status === 'active' ? 'chip-green' : 'chip-slate']">
+                      {{ exam.status }}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn-table-action btn-edit" @click="editExam(exam)">
+                      <i class="mdi mdi-pencil"></i> Edit
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: TOKEN PACKAGES CATALOG -->
+      <div v-else-if="activeTab === 'packages'" class="tab-panel">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <div class="search-input-wrap">
+              <i class="mdi mdi-magnify search-icon"></i>
+              <input
+                v-model="pkgSearch"
+                type="text"
+                placeholder="Search token packages..."
+                class="table-search-input"
+              />
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="gsfin-table">
+              <thead>
+                <tr>
+                  <th>Package Name</th>
+                  <th>Token Count</th>
+                  <th>Price</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="loadingPackages">
+                  <td colspan="5" class="text-center py-6 text-slate-500">
+                    <span class="spinner-sm-red"></span> Loading Packages...
+                  </td>
+                </tr>
+                <tr v-else-if="filteredPackages.length === 0">
+                  <td colspan="5" class="text-center py-8 text-slate-500">No Token Packages Found</td>
+                </tr>
+                <tr v-for="pkg in filteredPackages" :key="pkg.id">
+                  <td class="font-weight-bold text-slate-900">{{ pkg.name }}</td>
+                  <td>
+                    <span class="badge-token-count">
+                      <i class="mdi mdi-ticket-confirmation"></i> {{ pkg.token_count }} Tokens
+                    </span>
+                  </td>
+                  <td class="font-weight-bold text-emerald">${{ pkg.price }}</td>
+                  <td>
+                    <span :class="['badge-chip', pkg.status === 'active' ? 'chip-green' : 'chip-slate']">
+                      {{ pkg.status }}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      class="btn-table-action"
+                      :class="pkg.status === 'active' ? 'btn-warn' : 'btn-success'"
+                      @click="togglePkgStatus(pkg)"
+                    >
+                      {{ pkg.status === 'active' ? 'Retire' : 'Activate' }}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: TOKEN AUDIT TRAIL -->
+      <div v-else-if="activeTab === 'audit'" class="tab-panel">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <div class="search-input-wrap">
+              <i class="mdi mdi-magnify search-icon"></i>
+              <input
+                v-model="auditSearch"
+                type="text"
+                placeholder="Search sub-center or transaction type..."
+                class="table-search-input"
+              />
+            </div>
+
+            <select v-model="auditTypeFilter" class="table-select-filter">
+              <option value="all">All Types</option>
+              <option value="purchase">Purchase</option>
+              <option value="consumption">Consumption</option>
+              <option value="refund">Refund</option>
+            </select>
+          </div>
+
+          <div class="table-responsive">
+            <table class="gsfin-table">
+              <thead>
+                <tr>
+                  <th>Sub-Center</th>
+                  <th>Transaction Type</th>
+                  <th>Token Count</th>
+                  <th>Package</th>
+                  <th>Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="loadingAudit">
+                  <td colspan="5" class="text-center py-6 text-slate-500">
+                    <span class="spinner-sm-red"></span> Loading Audit Trail...
+                  </td>
+                </tr>
+                <tr v-else-if="filteredAuditTransactions.length === 0">
+                  <td colspan="5" class="text-center py-8 text-slate-500">No Transactions Recorded</td>
+                </tr>
+                <tr v-for="tx in filteredAuditTransactions" :key="tx.id">
+                  <td class="font-weight-bold text-slate-900">{{ tx.org_name || 'Sub-Center' }}</td>
+                  <td>
+                    <span :class="['badge-chip', getTxTypeClass(tx.type)]">
+                      {{ tx.type }}
+                    </span>
+                  </td>
+                  <td class="font-weight-bold" :class="tx.token_count > 0 ? 'text-green' : 'text-red'">
+                    {{ tx.token_count > 0 ? '+' : '' }}{{ tx.token_count }}
+                  </td>
+                  <td>{{ tx.package_name || '-' }}</td>
+                  <td class="text-slate-500">{{ formatDate(tx.created_at) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Main View Window -->
-    <v-window v-model="activeTab">
-          
-          <!-- TAB 1: REAL-TIME OVERVIEW DASHBOARD -->
-          <v-window-item value="overview">
-            <!-- Metrics Row -->
-            <v-row class="mb-6">
-              <v-col cols="12" sm="6" md="3">
-                <v-card class="pa-5 rounded-xl border-0 shadow-sm metric-card metric-indigo">
-                  <div class="d-flex justify-space-between align-start">
-                    <div>
-                      <div class="text-caption font-weight-bold text-uppercase tracking-wider text-slate-500">Sub-Centers</div>
-                      <div class="text-h3 font-weight-black text-slate-900 mt-1">{{ overview.metrics.totalSubCenters || 0 }}</div>
-                      <div class="text-caption text-indigo-darken-2 font-weight-semibold mt-1">
-                        <v-icon icon="mdi-office-building" size="14" class="me-1"></v-icon>Active Organizations
-                      </div>
-                    </div>
-                    <div class="rounded-xl bg-indigo-lighten-5 d-flex align-center justify-center" style="width: 52px; height: 52px;">
-                      <v-icon icon="mdi-office-building" size="28" color="indigo-darken-1"></v-icon>
-                    </div>
-                  </div>
-                </v-card>
-              </v-col>
+    <!-- ═══ MODALS ═══ -->
 
-              <v-col cols="12" sm="6" md="3">
-                <v-card class="pa-5 rounded-xl border-0 shadow-sm metric-card metric-emerald">
-                  <div class="d-flex justify-space-between align-start">
-                    <div>
-                      <div class="text-caption font-weight-bold text-uppercase tracking-wider text-slate-500">Active Batches</div>
-                      <div class="text-h3 font-weight-black text-slate-900 mt-1">{{ overview.metrics.activeBatches || 0 }}</div>
-                      <div class="text-caption text-emerald-darken-2 font-weight-semibold mt-1">
-                        <v-icon icon="mdi-layers-triple" size="14" class="me-1"></v-icon>Live Running Sessions
-                      </div>
-                    </div>
-                    <div class="rounded-xl bg-emerald-lighten-5 d-flex align-center justify-center" style="width: 52px; height: 52px;">
-                      <v-icon icon="mdi-account-group" size="28" color="emerald-darken-1"></v-icon>
-                    </div>
-                  </div>
-                </v-card>
-              </v-col>
-
-              <v-col cols="12" sm="6" md="3">
-                <v-card class="pa-5 rounded-xl border-0 shadow-sm metric-card metric-amber">
-                  <div class="d-flex justify-space-between align-start">
-                    <div>
-                      <div class="text-caption font-weight-bold text-uppercase tracking-wider text-slate-500">Tokens Issued</div>
-                      <div class="text-h3 font-weight-black text-slate-900 mt-1">{{ overview.metrics.totalTokensSold || 0 }}</div>
-                      <div class="text-caption text-amber-darken-3 font-weight-semibold mt-1">
-                        <v-icon icon="mdi-ticket-confirmation" size="14" class="me-1"></v-icon>Sub-Center Wallets
-                      </div>
-                    </div>
-                    <div class="rounded-xl bg-amber-lighten-5 d-flex align-center justify-center" style="width: 52px; height: 52px;">
-                      <v-icon icon="mdi-ticket-confirmation" size="28" color="amber-darken-2"></v-icon>
-                    </div>
-                  </div>
-                </v-card>
-              </v-col>
-
-              <v-col cols="12" sm="6" md="3">
-                <v-card class="pa-5 rounded-xl border-0 shadow-sm metric-card metric-purple">
-                  <div class="d-flex justify-space-between align-start">
-                    <div>
-                      <div class="text-caption font-weight-bold text-uppercase tracking-wider text-slate-500">Tokens Consumed</div>
-                      <div class="text-h3 font-weight-black text-slate-900 mt-1">{{ overview.metrics.totalTokensConsumed || 0 }}</div>
-                      <div class="text-caption text-purple-darken-2 font-weight-semibold mt-1">
-                        <v-icon icon="mdi-ticket-percent" size="14" class="me-1"></v-icon>Exam Enrollments
-                      </div>
-                    </div>
-                    <div class="rounded-xl bg-purple-lighten-5 d-flex align-center justify-center" style="width: 52px; height: 52px;">
-                      <v-icon icon="mdi-ticket-percent" size="28" color="purple-darken-1"></v-icon>
-                    </div>
-                  </div>
-                </v-card>
-              </v-col>
-            </v-row>
-
-            <!-- Real-Time Batches Table -->
-            <v-card variant="outlined" class="rounded-lg border">
-              <v-card-title class="d-flex flex-wrap align-center justify-space-between pa-4 bg-grey-lighten-4 border-b gap-3">
-                <div class="d-flex align-center me-auto">
-                  <v-icon icon="mdi-cube-outline" class="me-2" color="primary"></v-icon>
-                  <span class="text-h6 font-weight-bold text-slate-900">Live Sub-Center Batches Feed</span>
-                </div>
-                <div class="d-flex align-center gap-3 flex-wrap">
-                  <v-text-field
-                    v-model="batchSearch"
-                    prepend-inner-icon="mdi-magnify"
-                    placeholder="Search batch or exam..."
-                    hide-details
-                    density="compact"
-                    variant="outlined"
-                    style="max-width: 240px;"
-                    clearable
-                  ></v-text-field>
-                  <v-select
-                    v-model="batchStatusFilter"
-                    :items="[
-                      { title: 'All Statuses', value: 'all' },
-                      { title: 'In Progress', value: 'in_progress' },
-                      { title: 'Completed', value: 'completed' },
-                      { title: 'Created', value: 'created' }
-                    ]"
-                    hide-details
-                    density="compact"
-                    variant="outlined"
-                    style="max-width: 170px;"
-                  ></v-select>
-                  <v-btn icon="mdi-refresh" variant="text" size="small" @click="fetchOverview" :loading="loadingOverview"></v-btn>
-                </div>
-              </v-card-title>
-              
-              <v-data-table
-                :headers="batchHeaders"
-                :items="filteredBatches"
-                :loading="loadingOverview"
-                class="elevation-0"
-              >
-                <template v-slot:no-data>
-                  <div class="text-center py-10 px-4">
-                    <div class="rounded-circle bg-slate-100 d-inline-flex align-center justify-center mb-3 pa-4">
-                      <v-icon size="40" color="grey-darken-1">mdi-layers-off-outline</v-icon>
-                    </div>
-                    <div class="text-subtitle-1 font-weight-bold text-slate-800">No Active Batches Available</div>
-                    <div class="text-caption text-slate-500 max-w-xs mx-auto mb-4">
-                      Sub-centers have not launched any batch exam sessions yet.
-                    </div>
-                  </div>
-                </template>
-
-                <template v-slot:item.status="{ item }: any">
-                  <v-chip
-                    :color="getBatchStatusColor(item.status)"
-                    size="small"
-                    variant="tonal"
-                    class="font-weight-bold text-uppercase"
-                  >
-                    {{ item.status }}
-                  </v-chip>
-                </template>
-                <template v-slot:item.stats="{ item }: any">
-                  <div class="d-flex gap-2">
-                    <v-chip size="x-small" color="blue" variant="flat">Total: {{ item.student_count || 0 }}</v-chip>
-                    <v-chip size="x-small" color="success" variant="flat">Passed: {{ item.passed_count || 0 }}</v-chip>
-                    <v-chip size="x-small" color="error" variant="flat">Failed: {{ item.failed_count || 0 }}</v-chip>
-                    <v-chip size="x-small" color="warning" variant="flat">In Progress: {{ item.in_progress_count || 0 }}</v-chip>
-                  </div>
-                </template>
-                <template v-slot:item.created_at="{ item }: any">
-                  {{ formatDate(item.created_at) }}
-                </template>
-              </v-data-table>
-            </v-card>
-          </v-window-item>
-
-          <!-- TAB 2: SUB-CENTER ACCOUNTS MANAGEMENT -->
-          <v-window-item value="subcenters">
-            <v-card variant="outlined" class="rounded-lg border">
-              <div class="pa-4 border-b bg-grey-lighten-4 d-flex align-center justify-space-between flex-wrap gap-3">
-                <v-text-field
-                  v-model="orgSearch"
-                  prepend-inner-icon="mdi-magnify"
-                  placeholder="Search sub-center name or email..."
-                  hide-details
-                  density="compact"
-                  variant="outlined"
-                  style="max-width: 300px;"
-                  clearable
-                ></v-text-field>
-                <v-select
-                  v-model="orgStatusFilter"
-                  :items="[
-                    { title: 'All Statuses', value: 'all' },
-                    { title: 'Active', value: 'active' },
-                    { title: 'Suspended', value: 'suspended' }
-                  ]"
-                  hide-details
-                  density="compact"
-                  variant="outlined"
-                  style="max-width: 170px;"
-                ></v-select>
-              </div>
-              <v-data-table
-                :headers="orgHeaders"
-                :items="filteredOrganizations"
-                :loading="loadingOrgs"
-                class="elevation-0"
-              >
-                <template v-slot:item.status="{ item }: any">
-                  <v-chip :color="item.status === 'active' ? 'success' : 'error'" size="small" variant="flat">
-                    {{ item.status }}
-                  </v-chip>
-                </template>
-                <template v-slot:item.tokens="{ item }: any">
-                  <div class="font-weight-medium">
-                    <span class="text-success font-weight-bold">{{ item.tokens_remaining }}</span> remaining
-                    <span class="text-grey">({{ item.tokens_used }} used / {{ item.tokens_purchased }} bought)</span>
-                  </div>
-                </template>
-                <template v-slot:item.actions="{ item }: any">
-                  <v-btn
-                    size="small"
-                    :color="item.status === 'active' ? 'warning' : 'success'"
-                    variant="tonal"
-                    @click="toggleOrgStatus(item)"
-                  >
-                    {{ item.status === 'active' ? 'Suspend' : 'Activate' }}
-                  </v-btn>
-                </template>
-              </v-data-table>
-            </v-card>
-          </v-window-item>
-
-          <!-- TAB 3: EXAM CATALOG -->
-          <v-window-item value="exams">
-            <v-card variant="outlined" class="rounded-lg border">
-              <div class="pa-4 border-b bg-grey-lighten-4 d-flex align-center justify-space-between flex-wrap gap-3">
-                <v-text-field
-                  v-model="examSearch"
-                  prepend-inner-icon="mdi-magnify"
-                  placeholder="Search exam name..."
-                  hide-details
-                  density="compact"
-                  variant="outlined"
-                  style="max-width: 300px;"
-                  clearable
-                ></v-text-field>
-              </div>
-              <v-data-table
-                :headers="examHeaders"
-                :items="filteredExams"
-                :loading="loadingExams"
-                class="elevation-0"
-              >
-                <template v-slot:item.max_attempts="{ item }: any">
-                  <v-chip color="indigo" size="small" variant="flat">
-                    {{ item.max_attempts }} Attempt(s)
-                  </v-chip>
-                </template>
-                <template v-slot:item.status="{ item }: any">
-                  <v-chip :color="item.status === 'active' ? 'success' : 'grey'" size="small" variant="flat">
-                    {{ item.status }}
-                  </v-chip>
-                </template>
-                <template v-slot:item.actions="{ item }: any">
-                  <v-btn size="small" icon="mdi-pencil" variant="text" color="primary" @click="openEditExamModal(item)"></v-btn>
-                </template>
-              </v-data-table>
-            </v-card>
-          </v-window-item>
-
-          <!-- TAB 4: TOKEN PACKAGES -->
-          <v-window-item value="packages">
-            <v-card variant="outlined" class="rounded-lg border">
-              <div class="pa-4 border-b bg-grey-lighten-4 d-flex align-center justify-space-between flex-wrap gap-3">
-                <v-text-field
-                  v-model="pkgSearch"
-                  prepend-inner-icon="mdi-magnify"
-                  placeholder="Search package name..."
-                  hide-details
-                  density="compact"
-                  variant="outlined"
-                  style="max-width: 300px;"
-                  clearable
-                ></v-text-field>
-              </div>
-              <v-data-table
-                :headers="packageHeaders"
-                :items="filteredPackages"
-                :loading="loadingPackages"
-                class="elevation-0"
-              >
-                <template v-slot:item.price="{ item }: any">
-                  <span class="font-weight-bold text-success">${{ Number(item.price).toFixed(2) }}</span>
-                </template>
-                <template v-slot:item.token_count="{ item }: any">
-                  <v-chip color="amber-darken-3" size="small" variant="flat">
-                    {{ item.token_count }} Tokens
-                  </v-chip>
-                </template>
-                <template v-slot:item.status="{ item }: any">
-                  <v-chip :color="item.status === 'active' ? 'success' : 'grey'" size="small" variant="flat">
-                    {{ item.status }}
-                  </v-chip>
-                </template>
-                <template v-slot:item.actions="{ item }: any">
-                  <v-btn
-                    size="small"
-                    :color="item.status === 'active' ? 'grey' : 'success'"
-                    variant="tonal"
-                    @click="togglePkgStatus(item)"
-                  >
-                    {{ item.status === 'active' ? 'Retire' : 'Activate' }}
-                  </v-btn>
-                </template>
-              </v-data-table>
-            </v-card>
-          </v-window-item>
-
-          <!-- TAB 5: AUDIT TRAIL -->
-          <v-window-item value="audit">
-            <v-card variant="outlined" class="rounded-lg border">
-              <div class="pa-4 border-b bg-grey-lighten-4 d-flex align-center justify-space-between flex-wrap gap-3">
-                <v-text-field
-                  v-model="auditSearch"
-                  prepend-inner-icon="mdi-magnify"
-                  placeholder="Search sub-center, transaction type, or notes..."
-                  hide-details
-                  density="compact"
-                  variant="outlined"
-                  style="max-width: 320px;"
-                  clearable
-                ></v-text-field>
-                <v-select
-                  v-model="auditTypeFilter"
-                  :items="[
-                    { title: 'All Types', value: 'all' },
-                    { title: 'Purchase', value: 'purchase' },
-                    { title: 'Consumption', value: 'consumption' },
-                    { title: 'Refund', value: 'refund' }
-                  ]"
-                  hide-details
-                  density="compact"
-                  variant="outlined"
-                  style="max-width: 170px;"
-                ></v-select>
-              </div>
-              <v-data-table
-                :headers="auditHeaders"
-                :items="filteredAuditTransactions"
-                :loading="loadingAudit"
-                class="elevation-0"
-              >
-                <template v-slot:item.type="{ item }: any">
-                  <v-chip :color="getTxTypeColor(item.type)" size="small" variant="flat" class="text-uppercase font-weight-bold">
-                    {{ item.type }}
-                  </v-chip>
-                </template>
-                <template v-slot:item.token_count="{ item }: any">
-                  <span :class="item.token_count > 0 ? 'text-success font-weight-bold' : 'text-error font-weight-bold'">
-                    {{ item.token_count > 0 ? '+' : '' }}{{ item.token_count }}
-                  </span>
-                </template>
-                <template v-slot:item.created_at="{ item }: any">
-                  {{ formatDate(item.created_at) }}
-                </template>
-              </v-data-table>
-            </v-card>
-          </v-window-item>
-
-        </v-window>
-
-    <!-- MODALS -->
     <!-- Create Sub-Center Modal -->
-    <v-dialog v-model="showAddOrgModal" max-width="500">
-      <v-card class="pa-4 rounded-xl">
-        <v-card-title class="text-h6 font-weight-bold">Create New Sub-Center</v-card-title>
-        <v-card-text>
-          <v-form ref="orgForm">
-            <v-text-field v-model="newOrg.name" label="Sub-Center Name" required variant="outlined" class="mb-2"></v-text-field>
-            <v-text-field v-model="newOrg.contact_email" label="Contact Email" type="email" required variant="outlined" class="mb-2"></v-text-field>
-            <v-text-field v-model="newOrg.contact_phone" label="Contact Phone" variant="outlined"></v-text-field>
-          </v-form>
-        </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="showAddOrgModal = false">Cancel</v-btn>
-          <v-btn color="primary" variant="flat" :loading="savingOrg" @click="createOrganization">Create Sub-Center</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showAddOrgModal" class="modal-overlay" @click.self="showAddOrgModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3>Create New Sub-Center</h3>
+              <button class="modal-close-btn" @click="showAddOrgModal = false"><i class="mdi mdi-close"></i></button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group mb-3">
+                <label class="form-label">Sub-Center Name</label>
+                <input v-model="newOrg.name" type="text" placeholder="Apex Testing Center" class="modal-input" />
+              </div>
+              <div class="form-group mb-3">
+                <label class="form-label">Contact Email</label>
+                <input v-model="newOrg.contact_email" type="email" placeholder="contact@apexcenter.com" class="modal-input" />
+              </div>
+              <div class="form-group mb-3">
+                <label class="form-label">Contact Phone</label>
+                <input v-model="newOrg.contact_phone" type="text" placeholder="+1-555-0199" class="modal-input" />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-glass" @click="showAddOrgModal = false">Cancel</button>
+              <button class="btn-red" :disabled="savingOrg" @click="createOrganization">
+                {{ savingOrg ? 'Creating...' : 'Create Sub-Center' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- Create/Edit Exam Modal -->
-    <v-dialog v-model="showAddExamModal" max-width="550">
-      <v-card class="pa-4 rounded-xl">
-        <v-card-title class="text-h6 font-weight-bold">{{ editingExam ? 'Edit Exam' : 'Create Catalog Exam' }}</v-card-title>
-        <v-card-text>
-          <v-form>
-            <v-text-field v-model="examForm.name" label="Exam Title" required variant="outlined" class="mb-2"></v-text-field>
-            <v-textarea v-model="examForm.description" label="Description" variant="outlined" class="mb-2" rows="3"></v-textarea>
-            <v-row>
-              <v-col cols="6">
-                <v-text-field v-model.number="examForm.duration_minutes" label="Duration (Minutes)" type="number" variant="outlined"></v-text-field>
-              </v-col>
-              <v-col cols="6">
-                <v-text-field v-model.number="examForm.max_attempts" label="Max Attempts Limit" type="number" variant="outlined" hint="Admin-set cap"></v-text-field>
-              </v-col>
-            </v-row>
-            <v-select v-if="editingExam" v-model="examForm.status" :items="['active', 'retired']" label="Status" variant="outlined" class="mt-2"></v-select>
-          </v-form>
-        </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="showAddExamModal = false">Cancel</v-btn>
-          <v-btn color="primary" variant="flat" :loading="savingExam" @click="saveExam">Save Exam</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showAddExamModal" class="modal-overlay" @click.self="showAddExamModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3>{{ editingExam ? 'Edit Exam' : 'Create Catalog Exam' }}</h3>
+              <button class="modal-close-btn" @click="showAddExamModal = false"><i class="mdi mdi-close"></i></button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group mb-3">
+                <label class="form-label">Exam Title</label>
+                <input v-model="examForm.name" type="text" placeholder="Food Safety Manager Exam" class="modal-input" />
+              </div>
+              <div class="form-group mb-3">
+                <label class="form-label">Description</label>
+                <textarea v-model="examForm.description" rows="3" placeholder="Comprehensive evaluation..." class="modal-textarea"></textarea>
+              </div>
+              <div class="form-row-2 mb-3">
+                <div class="form-group">
+                  <label class="form-label">Duration (Minutes)</label>
+                  <input v-model.number="examForm.duration_minutes" type="number" class="modal-input" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Max Attempts Limit</label>
+                  <input v-model.number="examForm.max_attempts" type="number" class="modal-input" />
+                </div>
+              </div>
+              <div v-if="editingExam" class="form-group mb-3">
+                <label class="form-label">Status</label>
+                <select v-model="examForm.status" class="modal-select">
+                  <option value="active">Active</option>
+                  <option value="retired">Retired</option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-glass" @click="showAddExamModal = false">Cancel</button>
+              <button class="btn-red" :disabled="savingExam" @click="saveExam">
+                {{ savingExam ? 'Saving...' : 'Save Exam' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- Create Package Modal -->
-    <v-dialog v-model="showAddPkgModal" max-width="500">
-      <v-card class="pa-4 rounded-xl">
-        <v-card-title class="text-h6 font-weight-bold">Create Token Package</v-card-title>
-        <v-card-text>
-          <v-form>
-            <v-text-field v-model="pkgForm.name" label="Package Name" required variant="outlined" class="mb-2"></v-text-field>
-            <v-row>
-              <v-col cols="6">
-                <v-text-field v-model.number="pkgForm.token_count" label="Token Count" type="number" required variant="outlined"></v-text-field>
-              </v-col>
-              <v-col cols="6">
-                <v-text-field v-model.number="pkgForm.price" label="Price ($)" type="number" required variant="outlined"></v-text-field>
-              </v-col>
-            </v-row>
-          </v-form>
-        </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="showAddPkgModal = false">Cancel</v-btn>
-          <v-btn color="primary" variant="flat" :loading="savingPkg" @click="createPackage">Create Package</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </v-container>
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showAddPkgModal" class="modal-overlay" @click.self="showAddPkgModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3>Create Token Package</h3>
+              <button class="modal-close-btn" @click="showAddPkgModal = false"><i class="mdi mdi-close"></i></button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group mb-3">
+                <label class="form-label">Package Name</label>
+                <input v-model="pkgForm.name" type="text" placeholder="Starter Pack (50 Tokens)" class="modal-input" />
+              </div>
+              <div class="form-row-2 mb-3">
+                <div class="form-group">
+                  <label class="form-label">Token Count</label>
+                  <input v-model.number="pkgForm.token_count" type="number" class="modal-input" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Price ($)</label>
+                  <input v-model.number="pkgForm.price" type="number" class="modal-input" />
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-glass" @click="showAddPkgModal = false">Cancel</button>
+              <button class="btn-red" :disabled="savingPkg" @click="createPackage">
+                {{ savingPkg ? 'Creating...' : 'Create Package' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useApi } from '@/composables/useApi';
 
+definePageMeta({
+  layout: 'dashboard',
+  middleware: ['auth', 'role']
+});
+
 const api = useApi();
 const route = useRoute();
-const config = useRuntimeConfig();
 const activeTab = ref(route.query.tab ? String(route.query.tab) : 'overview');
+
+const tabItems = [
+  { label: 'Overview & Live Batches', value: 'overview', icon: 'mdi-view-dashboard-outline' },
+  { label: 'Sub-Center Accounts', value: 'subcenters', icon: 'mdi-office-building' },
+  { label: 'Exam Catalog', value: 'exams', icon: 'mdi-file-certificate' },
+  { label: 'Token Packages', value: 'packages', icon: 'mdi-package-variant-closed' },
+  { label: 'Token Audit Trail', value: 'audit', icon: 'mdi-history' }
+];
 
 const currentTitle = computed(() => {
   switch (activeTab.value) {
@@ -501,16 +613,13 @@ const pkgForm = ref({ name: '', token_count: 50, price: 500 });
 const auditTransactions = ref<any[]>([]);
 const loadingAudit = ref(false);
 
-// Search & Filter state
+// Filter states
 const batchSearch = ref('');
 const batchStatusFilter = ref('all');
-
 const orgSearch = ref('');
 const orgStatusFilter = ref('all');
-
 const examSearch = ref('');
 const pkgSearch = ref('');
-
 const auditSearch = ref('');
 const auditTypeFilter = ref('all');
 
@@ -522,7 +631,7 @@ const filteredBatches = computed(() => {
   }
   if (batchSearch.value.trim()) {
     const q = batchSearch.value.toLowerCase();
-    list = list.filter((b: any) => 
+    list = list.filter((b: any) =>
       (b.title || b.batch_name || '').toLowerCase().includes(q) ||
       (b.exam_name || b.exam_title || '').toLowerCase().includes(q) ||
       (b.org_name || '').toLowerCase().includes(q)
@@ -550,7 +659,7 @@ const filteredExams = computed(() => {
   let list = exams.value || [];
   if (examSearch.value.trim()) {
     const q = examSearch.value.toLowerCase();
-    list = list.filter((e: any) => (e.title || e.name || '').toLowerCase().includes(q));
+    list = list.filter((e: any) => (e.name || e.title || '').toLowerCase().includes(q));
   }
   return list;
 });
@@ -580,53 +689,10 @@ const filteredAuditTransactions = computed(() => {
   return list;
 });
 
-// Headers
-const batchHeaders = [
-  { title: 'Sub-Center', key: 'org_name' },
-  { title: 'Exam Title', key: 'exam_name' },
-  { title: 'Status', key: 'status' },
-  { title: 'Student Sitting Metrics', key: 'stats' },
-  { title: 'Created At', key: 'created_at' }
-];
-
-const orgHeaders = [
-  { title: 'Sub-Center Name', key: 'name' },
-  { title: 'Contact Email', key: 'contact_email' },
-  { title: 'Contact Phone', key: 'contact_phone' },
-  { title: 'Status', key: 'status' },
-  { title: 'Wallet Tokens Summary', key: 'tokens' },
-  { title: 'Actions', key: 'actions', sortable: false }
-];
-
-const examHeaders = [
-  { title: 'Exam Name', key: 'name' },
-  { title: 'Duration (Mins)', key: 'duration_minutes' },
-  { title: 'Max Attempts Cap', key: 'max_attempts' },
-  { title: 'Status', key: 'status' },
-  { title: 'Actions', key: 'actions', sortable: false }
-];
-
-const packageHeaders = [
-  { title: 'Package Name', key: 'name' },
-  { title: 'Token Count', key: 'token_count' },
-  { title: 'Price', key: 'price' },
-  { title: 'Status', key: 'status' },
-  { title: 'Actions', key: 'actions', sortable: false }
-];
-
-const auditHeaders = [
-  { title: 'Sub-Center', key: 'org_name' },
-  { title: 'Transaction Type', key: 'type' },
-  { title: 'Token Count', key: 'token_count' },
-  { title: 'Package', key: 'package_name' },
-  { title: 'Timestamp', key: 'created_at' }
-];
-
 let pollInterval: any = null;
 
 onMounted(() => {
   fetchAllData();
-  // Poll every 5 seconds for real-time live feed update
   pollInterval = setInterval(() => {
     if (activeTab.value === 'overview') fetchOverview();
   }, 5000);
@@ -705,13 +771,20 @@ async function fetchExams() {
   }
 }
 
-function openEditExamModal(exam: any) {
+function editExam(exam: any) {
   editingExam.value = exam;
-  examForm.value = { ...exam };
+  examForm.value = {
+    name: exam.name,
+    description: exam.description || '',
+    duration_minutes: exam.duration_minutes || 60,
+    max_attempts: exam.max_attempts || 1,
+    status: exam.status || 'active'
+  };
   showAddExamModal.value = true;
 }
 
 async function saveExam() {
+  if (!examForm.value.name) return;
   savingExam.value = true;
   try {
     if (editingExam.value) {
@@ -743,6 +816,7 @@ async function fetchPackages() {
 }
 
 async function createPackage() {
+  if (!pkgForm.value.name || !pkgForm.value.token_count) return;
   savingPkg.value = true;
   try {
     await api.post('/main-admin/token-packages', pkgForm.value);
@@ -750,7 +824,7 @@ async function createPackage() {
     pkgForm.value = { name: '', token_count: 50, price: 500 };
     fetchPackages();
   } catch (err: any) {
-    alert(err.response?.data?.message || err.message || 'Failed to create package');
+    alert(err.response?.data?.message || err.message || 'Failed to create token package');
   } finally {
     savingPkg.value = false;
   }
@@ -769,7 +843,7 @@ async function togglePkgStatus(item: any) {
 async function fetchAudit() {
   loadingAudit.value = true;
   try {
-    const { data } = await api.get('/main-admin/audit-transactions');
+    const { data } = await api.get('/main-admin/token-audit');
     auditTransactions.value = data;
   } catch (err) {
     console.error(err);
@@ -778,65 +852,557 @@ async function fetchAudit() {
   }
 }
 
-// Helpers
-function getBatchStatusColor(status: string) {
-  switch (status) {
-    case 'open': return 'success';
-    case 'closed': return 'grey';
-    case 'cancelled': return 'error';
-    default: return 'info';
-  }
-}
-
-function getTxTypeColor(type: string) {
-  switch (type) {
-    case 'purchase': return 'success';
-    case 'consume': return 'warning';
-    case 'refund_unused': return 'purple';
-    case 'refund_edit_removal': return 'info';
-    default: return 'grey';
-  }
-}
-
 function formatDate(dateStr: string) {
   if (!dateStr) return '-';
-  return new Date(dateStr).toLocaleString();
+  return new Date(dateStr).toLocaleString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
 }
 
-definePageMeta({
-  layout: 'dashboard',
-  middleware: ['auth', 'role'],
-  role: ['super_admin', 'main_admin']
-});
+function getBatchStatusClass(status: string) {
+  switch (status) {
+    case 'in_progress': return 'chip-blue';
+    case 'completed': return 'chip-green';
+    default: return 'chip-slate';
+  }
+}
+
+function getTxTypeClass(type: string) {
+  switch (type) {
+    case 'purchase': return 'chip-green';
+    case 'consumption': return 'chip-red';
+    case 'refund': return 'chip-amber';
+    default: return 'chip-slate';
+  }
+}
 </script>
 
 <style scoped>
-.pulse-icon {
-  animation: pulse 1.5s infinite;
+.gsfin-admin-page {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  background: #FAFAFD;
+  color: #0F172A;
+  min-height: 100vh;
+  padding: 32px 36px;
+  box-sizing: border-box;
 }
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.3; }
-  100% { opacity: 1; }
+
+.admin-wrap {
+  max-width: 1300px;
+  margin: 0 auto;
 }
+
+.admin-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.eyebrow-red {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #E31B23;
+}
+
+.admin-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.admin-subtitle {
+  font-size: 0.92rem;
+  color: #64748B;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-red {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #E31B23;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.86rem;
+  box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.btn-red:hover {
+  background: #C4131B;
+  transform: translateY(-1px);
+}
+
+.btn-glass {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #F1F5F9;
+  color: #334155;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-glass:hover {
+  background: #E2E8F0;
+}
+
+.live-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: #10B981;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  animation: pulseDot 1.8s infinite;
+}
+@keyframes pulseDot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Metrics Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 28px;
+}
+@media (max-width: 1024px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .metrics-grid { grid-template-columns: 1fr; } }
 
 .metric-card {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(226, 232, 240, 0.8) !important;
-  background: #ffffff !important;
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
 }
 
-.metric-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03) !important;
+.metric-icon-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  flex-shrink: 0;
 }
 
-.metric-indigo:hover { border-color: #a5b4fc !important; }
-.metric-emerald:hover { border-color: #6ee7b7 !important; }
-.metric-amber:hover { border-color: #fde68a !important; }
-.metric-purple:hover { border-color: #d8b4fe !important; }
+.bg-indigo-light { background: rgba(79, 70, 229, 0.1); }
+.text-indigo { color: #4F46E5; }
+.bg-emerald-light { background: rgba(16, 185, 129, 0.1); }
+.text-emerald { color: #059669; }
+.bg-amber-light { background: rgba(245, 158, 11, 0.1); }
+.text-amber { color: #D97706; }
+.bg-red-light { background: rgba(227, 27, 35, 0.1); }
+.text-red { color: #E31B23; }
 
-.tracking-wider {
+.metric-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
   letter-spacing: 0.05em;
+  color: #64748B;
 }
+
+.metric-value {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #0F172A;
+  line-height: 1.2;
+  margin: 2px 0;
+}
+
+.metric-sub {
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+/* Tabs Bar */
+.admin-tabs-bar {
+  display: flex;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  padding: 6px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #64748B;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  color: #0F172A;
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.tab-btn--active {
+  background: #FFFFFF !important;
+  color: #E31B23 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+/* Panel & Card */
+.panel-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+  overflow: hidden;
+}
+
+.panel-card-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: #FAFAFD;
+}
+
+.panel-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.panel-icon {
+  font-size: 1.4rem;
+  color: #E31B23;
+}
+.panel-title-wrap h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.panel-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  color: #94A3B8;
+  font-size: 1.1rem;
+}
+
+.table-search-input {
+  padding: 9px 14px 9px 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #FFFFFF;
+  font-size: 0.86rem;
+  color: #0F172A;
+  outline: none;
+  width: 240px;
+  transition: border-color 0.2s;
+}
+.table-search-input:focus {
+  border-color: #E31B23;
+}
+
+.table-select-filter {
+  padding: 9px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #FFFFFF;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #0F172A;
+  outline: none;
+  cursor: pointer;
+}
+
+.btn-icon-refresh {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #FFFFFF;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-icon-refresh:hover {
+  color: #E31B23;
+  border-color: #E31B23;
+}
+.spin-icon {
+  animation: spin 0.75s linear infinite;
+}
+
+/* Tables */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.gsfin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.gsfin-table th {
+  padding: 14px 20px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748B;
+  background: #F8FAFC;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.gsfin-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  color: #334155;
+  vertical-align: middle;
+}
+
+.gsfin-table tbody tr:hover {
+  background: rgba(248, 250, 252, 0.8);
+}
+
+/* Badges & Chips */
+.badge-chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.chip-green { background: rgba(16, 185, 129, 0.1); color: #059669; }
+.chip-blue { background: rgba(59, 130, 246, 0.1); color: #2563EB; }
+.chip-red { background: rgba(227, 27, 35, 0.1); color: #E31B23; }
+.chip-amber { background: rgba(245, 158, 11, 0.1); color: #D97706; }
+.chip-slate { background: rgba(100, 116, 139, 0.1); color: #64748B; }
+
+.badge-token-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(245, 158, 11, 0.1);
+  color: #D97706;
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 4px 12px;
+  border-radius: 50px;
+}
+
+.metrics-pill-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.metrics-pill-row span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+/* Action Buttons */
+.btn-table-action {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-warn { background: rgba(245, 158, 11, 0.1); color: #D97706; }
+.btn-warn:hover { background: #D97706; color: #FFFFFF; }
+
+.btn-success { background: rgba(16, 185, 129, 0.1); color: #059669; }
+.btn-success:hover { background: #059669; color: #FFFFFF; }
+
+.btn-edit { background: #F1F5F9; color: #334155; }
+.btn-edit:hover { background: #E31B23; color: #FFFFFF; }
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-header h3 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+.modal-close-btn {
+  background: #F1F5F9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #64748B;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+}
+.modal-input, .modal-select, .modal-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #F8FAFC;
+  font-size: 0.9rem;
+  color: #0F172A;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.modal-input:focus, .modal-select:focus, .modal-textarea:focus {
+  border-color: #E31B23;
+  background: #FFFFFF;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  background: #FAFAFD;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.25s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+.spinner-sm-red {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(227, 27, 35, 0.2);
+  border-top-color: #E31B23;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>

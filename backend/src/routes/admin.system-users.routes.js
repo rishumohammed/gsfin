@@ -29,9 +29,9 @@ const SYSTEM_ROLES = [
 router.get('/', authenticateJWT, authorizeRoles('super_admin'), async (req, res) => {
   try {
     const [users] = await pool.query(`
-      SELECT id, name, email, phone, role, status, last_login_at, created_at, permissions_json 
+      SELECT id, name, email, phone, role, status, last_login_at, created_at, NULL as permissions_json 
       FROM users 
-      WHERE role IN (?) AND deleted_at IS NULL
+      WHERE role IN (?)
       ORDER BY created_at DESC
     `, [SYSTEM_ROLES]);
     

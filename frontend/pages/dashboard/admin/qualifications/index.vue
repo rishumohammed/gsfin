@@ -1,455 +1,319 @@
 <template>
-  <v-container fluid class="py-8 px-6 bg-grey-lighten-4 min-vh-100">
-    <!-- Header Section -->
-    <div class="d-flex flex-wrap justify-space-between align-center mb-6 gap-4">
-      <div>
-        <div class="d-flex align-center gap-2 mb-1">
-          <v-icon color="red-darken-1" size="28">mdi-certificate-outline</v-icon>
-          <h1 class="text-h4 font-weight-bold text-slate-900 tracking-tight">GSFIN Qualifications</h1>
+  <div class="gsfin-admin-page">
+    <div class="admin-wrap">
+
+      <!-- ═══ TOP HEADER ═══ -->
+      <div class="admin-header-row">
+        <div>
+          <div class="eyebrow-red">GSFIN CERTIFICATION FRAMEWORK</div>
+          <h1 class="admin-title">Qualifications Management</h1>
+          <p class="admin-subtitle">Manage global food safety &amp; quality certification standards, detail pages, and curricula.</p>
         </div>
-        <p class="text-secondary mb-0">Manage global food safety & quality certification standards, detail pages, and curricula.</p>
+
+        <div class="header-actions">
+          <NuxtLink to="/qualifications" target="_blank" class="btn-glass">
+            <i class="mdi mdi-open-in-new"></i> View Public Catalog
+          </NuxtLink>
+          <button class="btn-red" @click="openDialog()">
+            <i class="mdi mdi-plus"></i> Add Qualification
+          </button>
+        </div>
       </div>
-      <div class="d-flex gap-3">
-        <v-btn
-          to="/qualifications"
-          target="_blank"
-          variant="outlined"
-          color="grey-darken-2"
-          height="42"
-          rounded="lg"
-          prepend-icon="mdi-open-in-new"
-          class="text-none font-weight-bold"
-        >
-          View Public Catalog
-        </v-btn>
-        <v-btn
-          color="red-darken-1"
-          prepend-icon="mdi-plus"
-          height="42"
-          rounded="lg"
-          elevation="0"
-          class="px-5 text-none font-weight-bold"
-          @click="openDialog()"
-        >
-          Add Qualification
-        </v-btn>
+
+      <!-- Alert Banner -->
+      <Transition name="fade">
+        <div v-if="error" class="error-banner">
+          <i class="mdi mdi-alert-circle-outline"></i>
+          <span>{{ error }}</span>
+          <button class="close-alert-btn" @click="error = null"><i class="mdi mdi-close"></i></button>
+        </div>
+      </Transition>
+
+      <!-- ═══ DATA TABLE CONTAINER ═══ -->
+      <div class="panel-card mt-4">
+        <div class="panel-card-header">
+          <div class="panel-filter-row">
+            <div class="search-input-wrap">
+              <i class="mdi mdi-magnify search-icon"></i>
+              <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Search qualifications..."
+                class="table-search-input"
+              />
+            </div>
+
+            <select v-model="categoryFilter" class="table-select-filter">
+              <option value="All Categories">All Categories</option>
+              <option value="Food Safety">Food Safety</option>
+              <option value="Quality Management">Quality Management</option>
+              <option value="Food Science">Food Science</option>
+            </select>
+          </div>
+
+          <span class="total-count-badge">Total: {{ filteredQualifications.length }} Qualifications</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="gsfin-table">
+            <thead>
+              <tr>
+                <th>Qualification Standard</th>
+                <th>Category &amp; Level</th>
+                <th>Duration &amp; Validity</th>
+                <th>Status</th>
+                <th>Display Order</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="loading">
+                <td colspan="6" class="text-center py-8 text-slate-500">
+                  <span class="spinner-sm-red"></span> Loading Qualifications...
+                </td>
+              </tr>
+              <tr v-else-if="filteredQualifications.length === 0">
+                <td colspan="6" class="text-center py-8 text-slate-500">
+                  <i class="mdi mdi-certificate-outline text-3xl block mb-2 text-slate-400"></i>
+                  No Qualifications Found
+                </td>
+              </tr>
+              <tr v-for="q in filteredQualifications" :key="q.id">
+                <td>
+                  <div class="qual-cell-row">
+                    <div class="qual-thumb">
+                      <img :src="q.image_url || '/hero-bk.png'" :alt="q.name" />
+                    </div>
+                    <div>
+                      <div class="qual-name">{{ q.name }}</div>
+                      <div class="qual-sub text-slate-500">{{ q.subtitle || q.short_description }}</div>
+                      <span v-if="q.badge_tag" class="chip-red-sm mt-1">{{ q.badge_tag }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="font-weight-bold text-slate-900">{{ q.category }}</div>
+                  <div class="text-slate-500 text-xs">{{ q.level }}</div>
+                </td>
+                <td>
+                  <div><i class="mdi mdi-clock-outline text-slate-400"></i> {{ q.duration }}</div>
+                  <div class="text-slate-500 text-xs"><i class="mdi mdi-shield-check-outline text-slate-400"></i> {{ q.validity }}</div>
+                </td>
+                <td>
+                  <button
+                    class="badge-chip cursor-pointer border-0"
+                    :class="q.is_active ? 'chip-green' : 'chip-slate'"
+                    @click="toggleActive(q)"
+                  >
+                    {{ q.is_active ? 'Active' : 'Draft' }}
+                  </button>
+                </td>
+                <td>
+                  <div class="order-adjust-wrap">
+                    <span>{{ q.order_index }}</span>
+                    <div class="order-btns">
+                      <button class="order-btn" @click="changeOrder(q, -1)"><i class="mdi mdi-chevron-up"></i></button>
+                      <button class="order-btn" @click="changeOrder(q, 1)"><i class="mdi mdi-chevron-down"></i></button>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="actions-cell">
+                    <button class="btn-table-action btn-edit" @click="openDialog(q)">
+                      <i class="mdi mdi-pencil"></i> Edit
+                    </button>
+                    <button class="btn-table-action btn-danger" @click="confirmDelete(q)">
+                      <i class="mdi mdi-trash-can-outline"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
+
     </div>
 
-    <!-- Alert Banner -->
-    <v-alert v-if="error" type="error" variant="tonal" class="mb-4 rounded-lg" closable @click:close="error = null">
-      {{ error }}
-    </v-alert>
-
-    <!-- Data Table Card -->
-    <v-card class="rounded-xl border-surface bg-white" variant="outlined">
-      <v-card-title class="px-6 pt-5 pb-3 d-flex align-center justify-space-between flex-wrap gap-4">
-        <div class="d-flex align-center gap-3">
-          <v-text-field
-            v-model="searchQuery"
-            prepend-inner-icon="mdi-magnify"
-            placeholder="Search qualifications..."
-            variant="outlined"
-            density="compact"
-            hide-details
-            style="width: 280px"
-            rounded="lg"
-          ></v-text-field>
-          <v-select
-            v-model="categoryFilter"
-            :items="['All Categories', 'Food Safety', 'Quality Management', 'Food Science']"
-            variant="outlined"
-            density="compact"
-            hide-details
-            style="width: 200px"
-            rounded="lg"
-          ></v-select>
-        </div>
-        <span class="text-caption text-grey-darken-1">Total: {{ filteredQualifications.length }} Qualifications</span>
-      </v-card-title>
-
-      <v-divider></v-divider>
-
-      <v-data-table
-        :headers="headers"
-        :items="filteredQualifications"
-        :loading="loading"
-        hover
-        density="comfortable"
-        class="clean-table"
-      >
-        <!-- Name & Badge Column -->
-        <template v-slot:item.name="{ item }">
-          <div class="py-2">
-            <div class="d-flex align-center gap-2">
-              <v-icon color="red-darken-1" size="20">{{ item.icon_name || 'mdi-certificate' }}</v-icon>
-              <span class="font-weight-bold text-slate-900 text-subtitle-2">{{ item.name }}</span>
+    <!-- ═══ ADD / EDIT QUALIFICATION MODAL ═══ -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="dialog" class="modal-overlay" @click.self="closeDialog">
+          <div class="modal-card modal-lg">
+            <div class="modal-header">
+              <h3>{{ editedItem.id ? 'Edit Qualification Standard' : 'Add New Qualification Standard' }}</h3>
+              <button class="modal-close-btn" @click="closeDialog"><i class="mdi mdi-close"></i></button>
             </div>
-            <div class="text-caption text-grey-darken-1 text-truncate" style="max-width: 280px;">
-              {{ item.subtitle || item.short_description }}
+
+            <!-- Tab Navigation inside Modal -->
+            <div class="modal-tabs-bar">
+              <button class="modal-tab-btn" :class="{ 'active': modalTab === 'basic' }" @click="modalTab = 'basic'">
+                1. Basic Metadata
+              </button>
+              <button class="modal-tab-btn" :class="{ 'active': modalTab === 'curriculum' }" @click="modalTab = 'curriculum'">
+                2. Curriculum &amp; Modules
+              </button>
+              <button class="modal-tab-btn" :class="{ 'active': modalTab === 'audience' }" @click="modalTab = 'audience'">
+                3. Audience &amp; Benefits
+              </button>
             </div>
-            <v-chip v-if="item.badge_tag" size="x-small" color="red-lighten-4" text-color="red-darken-3" class="mt-1 font-weight-bold">
-              {{ item.badge_tag }}
-            </v-chip>
-          </div>
-        </template>
 
-        <!-- Category & Level -->
-        <template v-slot:item.category="{ item }">
-          <div>
-            <div class="font-weight-medium text-body-2">{{ item.category }}</div>
-            <v-chip size="x-small" variant="tonal" color="slate-700" class="mt-1">
-              {{ item.level }}
-            </v-chip>
-          </div>
-        </template>
-
-        <!-- Duration & Validity -->
-        <template v-slot:item.duration="{ item }">
-          <div class="text-caption">
-            <div><v-icon size="14" class="mr-1">mdi-clock-outline</v-icon>{{ item.duration || 'N/A' }}</div>
-            <div class="text-grey"><v-icon size="14" class="mr-1">mdi-shield-check-outline</v-icon>{{ item.validity || 'Lifetime' }}</div>
-          </div>
-        </template>
-
-        <!-- Status Switch -->
-        <template v-slot:item.is_active="{ item }">
-          <v-switch
-            v-model="item.is_active"
-            color="success"
-            hide-details
-            density="compact"
-            @change="toggleActive(item)"
-          ></v-switch>
-        </template>
-
-        <!-- Order Column -->
-        <template v-slot:item.order_index="{ item, index }">
-          <div class="d-flex align-center gap-1">
-            <span class="font-weight-bold text-caption mr-1">{{ item.order_index }}</span>
-            <v-btn icon="mdi-chevron-up" variant="text" size="x-small" :disabled="index === 0" @click="moveUp(index)"></v-btn>
-            <v-btn icon="mdi-chevron-down" variant="text" size="x-small" :disabled="index === qualifications.length - 1" @click="moveDown(index)"></v-btn>
-          </div>
-        </template>
-
-        <!-- Actions -->
-        <template v-slot:item.actions="{ item }">
-          <div class="d-flex align-center justify-end gap-1">
-            <v-btn
-              :to="`/qualifications/${item.slug}`"
-              target="_blank"
-              icon="mdi-open-in-new"
-              variant="text"
-              size="small"
-              color="grey-darken-1"
-              title="Preview Detail Page"
-            ></v-btn>
-            <v-btn
-              icon="mdi-pencil"
-              variant="text"
-              size="small"
-              color="primary"
-              title="Edit Qualification"
-              @click="openDialog(item)"
-            ></v-btn>
-            <v-btn
-              icon="mdi-delete"
-              variant="text"
-              size="small"
-              color="error"
-              title="Delete Qualification"
-              @click="confirmDelete(item)"
-            ></v-btn>
-          </div>
-        </template>
-
-        <template v-slot:no-data>
-          <div class="pa-8 text-center text-grey-darken-1">
-            <v-icon size="48" class="mb-3 opacity-50">mdi-certificate-outline</v-icon>
-            <br>
-            No qualifications found. Click "Add Qualification" to create one.
-          </div>
-        </template>
-      </v-data-table>
-    </v-card>
-
-    <!-- Create / Edit Dialog -->
-    <v-dialog v-model="dialog" max-width="900" persistent scrollable>
-      <v-card class="rounded-xl">
-        <v-card-title class="text-h5 font-weight-bold pt-5 px-6 pb-3 d-flex align-center justify-space-between border-bottom">
-          <div class="d-flex align-center gap-2">
-            <v-icon color="red-darken-1">{{ editedItem.id ? 'mdi-pencil-box-outline' : 'mdi-plus-box-outline' }}</v-icon>
-            <span>{{ editedItem.id ? `Edit: ${editedItem.name}` : 'Create New Qualification' }}</span>
-          </div>
-          <v-btn icon="mdi-close" variant="text" size="small" @click="closeDialog" :disabled="saving"></v-btn>
-        </v-card-title>
-
-        <v-card-text class="px-6 py-4">
-          <v-tabs v-model="tab" color="red-darken-1" class="mb-6">
-            <v-tab value="basic" class="text-none font-weight-bold">Basic Metadata</v-tab>
-            <v-tab value="descriptions" class="text-none font-weight-bold">Overview & Copy</v-tab>
-            <v-tab value="curriculum" class="text-none font-weight-bold">Modules & Audience</v-tab>
-          </v-tabs>
-
-          <v-form ref="form" v-model="valid">
-            <v-window v-model="tab">
+            <div class="modal-body">
               <!-- TAB 1: BASIC METADATA -->
-              <v-window-item value="basic">
-                <v-row dense>
-                  <v-col cols="12" md="7">
-                    <v-text-field
-                      v-model="editedItem.name"
-                      label="Qualification Title *"
-                      placeholder="e.g. ISO 22000:2018 Food Safety Management System"
-                      variant="outlined"
-                      density="comfortable"
-                      :rules="[v => !!v || 'Title is required']"
-                      @input="autoGenerateSlug"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="5">
-                    <v-text-field
-                      v-model="editedItem.slug"
-                      label="URL Slug *"
-                      placeholder="e.g. iso-22000"
-                      variant="outlined"
-                      density="comfortable"
-                      hint="Public URL: /qualifications/:slug"
-                      persistent-hint
-                      :rules="[v => !!v || 'Slug is required']"
-                    ></v-text-field>
-                  </v-col>
-
-                  <v-col cols="12">
-                    <v-text-field
-                      v-model="editedItem.subtitle"
-                      label="Subtitle / Tagline"
-                      placeholder="e.g. International FSMS Auditor & Implementer Certification"
-                      variant="outlined"
-                      density="comfortable"
-                    ></v-text-field>
-                  </v-col>
-
-                  <v-col cols="12" md="4">
-                    <v-select
-                      v-model="editedItem.category"
-                      :items="['Food Safety', 'Quality Management', 'Food Science', 'Regulatory Compliance']"
-                      label="Category"
-                      variant="outlined"
-                      density="comfortable"
-                    ></v-select>
-                  </v-col>
-                  <v-col cols="12" md="4">
-                    <v-select
-                      v-model="editedItem.level"
-                      :items="['Foundation', 'Intermediate', 'Advanced', 'Master Executive']"
-                      label="Level"
-                      variant="outlined"
-                      density="comfortable"
-                    ></v-select>
-                  </v-col>
-                  <v-col cols="12" md="4">
-                    <v-text-field
-                      v-model="editedItem.badge_tag"
-                      label="Badge Tag (e.g. GFSI Standard)"
-                      placeholder="e.g. GFSI Benchmark"
-                      variant="outlined"
-                      density="comfortable"
-                    ></v-text-field>
-                  </v-col>
-
-                  <v-col cols="12" md="4">
-                    <v-text-field
-                      v-model="editedItem.duration"
-                      label="Course Duration"
-                      placeholder="e.g. 5 Days (40 Hours)"
-                      variant="outlined"
-                      density="comfortable"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="4">
-                    <v-text-field
-                      v-model="editedItem.assessment_type"
-                      label="Assessment Type"
-                      placeholder="e.g. Written Exam & Case Study"
-                      variant="outlined"
-                      density="comfortable"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="4">
-                    <v-text-field
-                      v-model="editedItem.validity"
-                      label="Certificate Validity"
-                      placeholder="e.g. 3 Years (Renewable)"
-                      variant="outlined"
-                      density="comfortable"
-                    ></v-text-field>
-                  </v-col>
-
-                  <v-col cols="12" md="6">
-                    <v-text-field
-                      v-model="editedItem.icon_name"
-                      label="MDI Icon Class"
-                      placeholder="e.g. mdi-shield-check"
-                      prepend-inner-icon="mdi-flower"
-                      variant="outlined"
-                      density="comfortable"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-text-field
-                      v-model="editedItem.image_url"
-                      label="Hero Image URL (Optional)"
-                      placeholder="/uploads/branding/..."
-                      variant="outlined"
-                      density="comfortable"
-                    ></v-text-field>
-                  </v-col>
-
-                  <v-col cols="12" md="6" class="d-flex align-center">
-                    <v-switch
-                      v-model="editedItem.is_active"
-                      color="success"
-                      label="Published & Visible on Website"
-                      hide-details
-                    ></v-switch>
-                  </v-col>
-                </v-row>
-              </v-window-item>
-
-              <!-- TAB 2: OVERVIEW & DESCRIPTIONS -->
-              <v-window-item value="descriptions">
-                <v-textarea
-                  v-model="editedItem.short_description"
-                  label="Short Card Description (1-2 sentences)"
-                  variant="outlined"
-                  rows="2"
-                  auto-grow
-                  class="mb-4"
-                  hint="Displayed on the homepage and catalog grid cards"
-                  persistent-hint
-                ></v-textarea>
-
-                <v-textarea
-                  v-model="editedItem.full_description"
-                  label="Full Overview & Course Introduction"
-                  variant="outlined"
-                  rows="8"
-                  auto-grow
-                  hint="Main content on the public qualification detail page"
-                  persistent-hint
-                ></v-textarea>
-              </v-window-item>
-
-              <!-- TAB 3: CURRICULUM & AUDIENCE -->
-              <v-window-item value="curriculum">
-                <!-- Key Modules -->
-                <div class="mb-6">
-                  <div class="d-flex justify-space-between align-center mb-2">
-                    <label class="font-weight-bold text-subtitle-2">Key Learning Modules</label>
-                    <v-btn size="small" variant="tonal" color="red-darken-1" prepend-icon="mdi-plus" @click="addModule">Add Module</v-btn>
+              <div v-if="modalTab === 'basic'" class="modal-tab-content">
+                <div class="form-row-2 mb-3">
+                  <div class="form-group">
+                    <label class="form-label">Qualification Name *</label>
+                    <input v-model="editedItem.name" type="text" placeholder="CODEX HACCP" class="modal-input" @input="autoGenerateSlug" />
                   </div>
-                  <div v-for="(mod, idx) in editedItem.key_modules" :key="idx" class="d-flex gap-2 mb-2 align-center">
-                    <v-text-field
-                      v-model="editedItem.key_modules[idx]"
-                      placeholder="Module title (e.g. Module 1: Hazard Identification)"
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                    ></v-text-field>
-                    <v-btn icon="mdi-close" variant="text" size="small" color="error" @click="removeModule(idx)"></v-btn>
+                  <div class="form-group">
+                    <label class="form-label">URL Slug *</label>
+                    <input v-model="editedItem.slug" type="text" placeholder="codex-haccp" class="modal-input" />
                   </div>
                 </div>
 
-                <v-divider class="my-4"></v-divider>
+                <div class="form-group mb-3">
+                  <label class="form-label">Subtitle Header</label>
+                  <input v-model="editedItem.subtitle" type="text" placeholder="Hazard Analysis &amp; Critical Control Points..." class="modal-input" />
+                </div>
 
-                <!-- Who Should Attend -->
-                <div class="mb-6">
-                  <div class="d-flex justify-space-between align-center mb-2">
-                    <label class="font-weight-bold text-subtitle-2">Target Audience / Who Should Attend</label>
-                    <v-btn size="small" variant="tonal" color="red-darken-1" prepend-icon="mdi-plus" @click="addAudience">Add Target Audience</v-btn>
+                <div class="form-group mb-3">
+                  <label class="form-label">Short Description</label>
+                  <textarea v-model="editedItem.short_description" rows="2" placeholder="Brief summary for catalog cards..." class="modal-textarea"></textarea>
+                </div>
+
+                <div class="form-row-2 mb-3">
+                  <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select v-model="editedItem.category" class="modal-select">
+                      <option value="Food Safety">Food Safety</option>
+                      <option value="Quality Management">Quality Management</option>
+                      <option value="Food Science">Food Science</option>
+                    </select>
                   </div>
-                  <div v-for="(aud, idx) in editedItem.who_should_attend" :key="idx" class="d-flex gap-2 mb-2 align-center">
-                    <v-text-field
-                      v-model="editedItem.who_should_attend[idx]"
-                      placeholder="Audience role (e.g. Food Safety Managers & Auditors)"
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                    ></v-text-field>
-                    <v-btn icon="mdi-close" variant="text" size="small" color="error" @click="removeAudience(idx)"></v-btn>
+                  <div class="form-group">
+                    <label class="form-label">Level Tag</label>
+                    <input v-model="editedItem.level" type="text" placeholder="Advanced Level" class="modal-input" />
                   </div>
                 </div>
 
-                <v-divider class="my-4"></v-divider>
-
-                <!-- Key Benefits -->
-                <div class="mb-6">
-                  <div class="d-flex justify-space-between align-center mb-2">
-                    <label class="font-weight-bold text-subtitle-2">Key Career & Organizational Benefits</label>
-                    <v-btn size="small" variant="tonal" color="red-darken-1" prepend-icon="mdi-plus" @click="addBenefit">Add Benefit</v-btn>
+                <div class="form-row-2 mb-3">
+                  <div class="form-group">
+                    <label class="form-label">Duration</label>
+                    <input v-model="editedItem.duration" type="text" placeholder="35 Hours Self-Paced + Exam" class="modal-input" />
                   </div>
-                  <div v-for="(ben, idx) in editedItem.benefits" :key="idx" class="d-flex gap-2 mb-2 align-center">
-                    <v-text-field
-                      v-model="editedItem.benefits[idx]"
-                      placeholder="Benefit statement (e.g. Global recognition across 150+ countries)"
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                    ></v-text-field>
-                    <v-btn icon="mdi-close" variant="text" size="small" color="error" @click="removeBenefit(idx)"></v-btn>
+                  <div class="form-group">
+                    <label class="form-label">Assessment Type</label>
+                    <input v-model="editedItem.assessment_type" type="text" placeholder="Online Exam (Proctored)" class="modal-input" />
                   </div>
                 </div>
 
-                <v-divider class="my-4"></v-divider>
-
-                <!-- Prerequisites -->
-                <div>
-                  <div class="d-flex justify-space-between align-center mb-2">
-                    <label class="font-weight-bold text-subtitle-2">Prerequisites</label>
-                    <v-btn size="small" variant="tonal" color="red-darken-1" prepend-icon="mdi-plus" @click="addPrereq">Add Prerequisite</v-btn>
+                <div class="form-row-2 mb-3">
+                  <div class="form-group">
+                    <label class="form-label">Validity Period</label>
+                    <input v-model="editedItem.validity" type="text" placeholder="3 Years International Recognition" class="modal-input" />
                   </div>
-                  <div v-for="(pre, idx) in editedItem.prerequisites" :key="idx" class="d-flex gap-2 mb-2 align-center">
-                    <v-text-field
-                      v-model="editedItem.prerequisites[idx]"
-                      placeholder="Prerequisite (e.g. Basic understanding of HACCP)"
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                    ></v-text-field>
-                    <v-btn icon="mdi-close" variant="text" size="small" color="error" @click="removePrereq(idx)"></v-btn>
+                  <div class="form-group">
+                    <label class="form-label">Red Badge Tag (Optional)</label>
+                    <input v-model="editedItem.badge_tag" type="text" placeholder="Global Standard" class="modal-input" />
                   </div>
                 </div>
-              </v-window-item>
-            </v-window>
-          </v-form>
-        </v-card-text>
 
-        <v-card-actions class="px-6 pb-5 pt-3 bg-grey-lighten-5 border-top">
-          <v-spacer></v-spacer>
-          <v-btn color="grey-darken-1" variant="text" @click="closeDialog" :disabled="saving">Cancel</v-btn>
-          <v-btn color="red-darken-1" variant="flat" rounded="lg" class="px-6 font-weight-bold text-none" @click="saveItem" :loading="saving">
-            {{ editedItem.id ? 'Update Qualification' : 'Save Qualification' }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+                <div class="form-group mb-3">
+                  <label class="form-label">Banner Image URL</label>
+                  <input v-model="editedItem.image_url" type="text" placeholder="/img/course-haccp.jpg" class="modal-input" />
+                </div>
+              </div>
 
-    <!-- Delete Confirmation Dialog -->
-    <v-dialog v-model="deleteDialog" max-width="420">
-      <v-card class="rounded-xl pa-5 text-center">
-        <v-icon color="error" size="64" class="mx-auto mb-3">mdi-alert-circle-outline</v-icon>
-        <h3 class="text-h5 font-weight-bold mb-2">Delete Qualification?</h3>
-        <p class="text-body-2 text-grey-darken-1 mb-6">
-          Are you sure you want to delete <strong>{{ itemToDelete?.name }}</strong>? This will remove it from the public catalog.
-        </p>
-        <div class="d-flex gap-3 justify-center">
-          <v-btn variant="outlined" color="grey-darken-1" rounded="pill" class="px-6" @click="deleteDialog = false" :disabled="deleting">Cancel</v-btn>
-          <v-btn color="error" variant="flat" rounded="pill" class="px-6" @click="deleteItem" :loading="deleting">Delete</v-btn>
+              <!-- TAB 2: CURRICULUM & MODULES -->
+              <div v-else-if="modalTab === 'curriculum'" class="modal-tab-content">
+                <div class="form-group mb-4">
+                  <label class="form-label">Executive Overview / Full Description</label>
+                  <textarea v-model="editedItem.full_description" rows="4" placeholder="Comprehensive detail narrative..." class="modal-textarea"></textarea>
+                </div>
+
+                <div class="list-editor-wrap mb-4">
+                  <div class="list-editor-head">
+                    <label class="form-label">Key Learning Modules</label>
+                    <button type="button" class="btn-add-sm" @click="addModule"><i class="mdi mdi-plus"></i> Add Module</button>
+                  </div>
+                  <div v-for="(m, idx) in editedItem.key_modules" :key="idx" class="list-editor-row mb-2">
+                    <input v-model="editedItem.key_modules[idx]" type="text" placeholder="Module Title (e.g. Module 1: Hazard Analysis)" class="modal-input" />
+                    <button type="button" class="btn-del-icon" @click="removeModule(idx)"><i class="mdi mdi-close"></i></button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB 3: AUDIENCE & BENEFITS -->
+              <div v-else-if="modalTab === 'audience'" class="modal-tab-content">
+                <div class="list-editor-wrap mb-4">
+                  <div class="list-editor-head">
+                    <label class="form-label">Who Should Attend</label>
+                    <button type="button" class="btn-add-sm" @click="addAttendee"><i class="mdi mdi-plus"></i> Add Target Role</button>
+                  </div>
+                  <div v-for="(att, idx) in editedItem.who_should_attend" :key="idx" class="list-editor-row mb-2">
+                    <input v-model="editedItem.who_should_attend[idx]" type="text" placeholder="Target Role (e.g. Food Safety Managers)" class="modal-input" />
+                    <button type="button" class="btn-del-icon" @click="removeAttendee(idx)"><i class="mdi mdi-close"></i></button>
+                  </div>
+                </div>
+
+                <div class="list-editor-wrap mb-4">
+                  <div class="list-editor-head">
+                    <label class="form-label">Key Benefits</label>
+                    <button type="button" class="btn-add-sm" @click="addBenefit"><i class="mdi mdi-plus"></i> Add Benefit</button>
+                  </div>
+                  <div v-for="(b, idx) in editedItem.benefits" :key="idx" class="list-editor-row mb-2">
+                    <input v-model="editedItem.benefits[idx]" type="text" placeholder="Benefit (e.g. GFSI Alignment)" class="modal-input" />
+                    <button type="button" class="btn-del-icon" @click="removeBenefit(idx)"><i class="mdi mdi-close"></i></button>
+                  </div>
+                </div>
+
+                <div class="list-editor-wrap mb-4">
+                  <div class="list-editor-head">
+                    <label class="form-label">Prerequisites</label>
+                    <button type="button" class="btn-add-sm" @click="addPrereq"><i class="mdi mdi-plus"></i> Add Prerequisite</button>
+                  </div>
+                  <div v-for="(p, idx) in editedItem.prerequisites" :key="idx" class="list-editor-row mb-2">
+                    <input v-model="editedItem.prerequisites[idx]" type="text" placeholder="Prerequisite (e.g. Basic food hygiene)" class="modal-input" />
+                    <button type="button" class="btn-del-icon" @click="removePrereq(idx)"><i class="mdi mdi-close"></i></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button class="btn-glass" @click="closeDialog">Cancel</button>
+              <button class="btn-red" :disabled="saving" @click="saveItem">
+                {{ saving ? 'Saving...' : (editedItem.id ? 'Update Qualification' : 'Save Qualification') }}
+              </button>
+            </div>
+          </div>
         </div>
-      </v-card>
-    </v-dialog>
-  </v-container>
+      </Transition>
+    </Teleport>
+
+    <!-- Delete Confirmation Modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="deleteDialog" class="modal-overlay" @click.self="deleteDialog = false">
+          <div class="modal-card modal-sm text-center pa-6">
+            <i class="mdi mdi-alert-circle-outline text-red text-5xl mb-2"></i>
+            <h3 class="font-weight-bold text-slate-900 text-xl mb-2">Delete Qualification?</h3>
+            <p class="text-slate-500 text-sm mb-6">
+              Are you sure you want to delete <strong>{{ itemToDelete?.name }}</strong>?
+            </p>
+            <div class="modal-footer-center">
+              <button class="btn-glass" @click="deleteDialog = false">Cancel</button>
+              <button class="btn-red" :disabled="deleting" @click="deleteItem">
+                {{ deleting ? 'Deleting...' : 'Confirm Delete' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -470,21 +334,10 @@ const error = ref<string | null>(null);
 
 const searchQuery = ref('');
 const categoryFilter = ref('All Categories');
-const tab = ref('basic');
-
-const headers = [
-  { title: 'Qualification & Tag', key: 'name', sortable: false },
-  { title: 'Category & Level', key: 'category', sortable: false },
-  { title: 'Duration & Validity', key: 'duration', sortable: false },
-  { title: 'Status', key: 'is_active', sortable: false, width: '100px' },
-  { title: 'Order', key: 'order_index', sortable: false, width: '130px' },
-  { title: 'Actions', key: 'actions', sortable: false, align: 'end' as const, width: '140px' }
-];
+const modalTab = ref('basic');
 
 const dialog = ref(false);
 const deleteDialog = ref(false);
-const valid = ref(false);
-const form = ref();
 
 const defaultItem = {
   id: null,
@@ -495,9 +348,9 @@ const defaultItem = {
   full_description: '',
   category: 'Food Safety',
   level: 'Advanced',
-  duration: '5 Days (40 Hours)',
+  duration: '35 Hours Self-Paced + Exam',
   assessment_type: 'Online Examination',
-  validity: 'Lifetime',
+  validity: '3 Years International Recognition',
   prerequisites: [] as string[],
   key_modules: [] as string[],
   who_should_attend: [] as string[],
@@ -548,26 +401,13 @@ const autoGenerateSlug = () => {
   if (!editedItem.value.id && editedItem.value.name) {
     editedItem.value.slug = editedItem.value.name
       .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-');
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
   }
 };
 
-const addModule = () => editedItem.value.key_modules.push('');
-const removeModule = (idx: number) => editedItem.value.key_modules.splice(idx, 1);
-
-const addAudience = () => editedItem.value.who_should_attend.push('');
-const removeAudience = (idx: number) => editedItem.value.who_should_attend.splice(idx, 1);
-
-const addBenefit = () => editedItem.value.benefits.push('');
-const removeBenefit = (idx: number) => editedItem.value.benefits.splice(idx, 1);
-
-const addPrereq = () => editedItem.value.prerequisites.push('');
-const removePrereq = (idx: number) => editedItem.value.prerequisites.splice(idx, 1);
-
 const openDialog = (item?: any) => {
-  tab.value = 'basic';
+  modalTab.value = 'basic';
   if (item) {
     editedItem.value = {
       ...item,
@@ -577,54 +417,80 @@ const openDialog = (item?: any) => {
       benefits: Array.isArray(item.benefits) ? [...item.benefits] : []
     };
   } else {
-    editedItem.value = {
-      ...defaultItem,
-      prerequisites: [],
-      key_modules: [],
-      who_should_attend: [],
-      benefits: [],
-      order_index: qualifications.value.length
-    };
+    editedItem.value = { ...defaultItem, order_index: qualifications.value.length + 1 };
   }
   dialog.value = true;
 };
 
 const closeDialog = () => {
   dialog.value = false;
-  setTimeout(() => {
-    editedItem.value = { ...defaultItem };
-    if (form.value) form.value.resetValidation();
-  }, 300);
+  editedItem.value = { ...defaultItem };
 };
 
-const saveItem = async () => {
-  const { valid: isValid } = await form.value.validate();
-  if (!isValid) return;
+const addModule = () => editedItem.value.key_modules.push('');
+const removeModule = (i: number) => editedItem.value.key_modules.splice(i, 1);
 
+const addAttendee = () => editedItem.value.who_should_attend.push('');
+const removeAttendee = (i: number) => editedItem.value.who_should_attend.splice(i, 1);
+
+const addBenefit = () => editedItem.value.benefits.push('');
+const removeBenefit = (i: number) => editedItem.value.benefits.splice(i, 1);
+
+const addPrereq = () => editedItem.value.prerequisites.push('');
+const removePrereq = (i: number) => editedItem.value.prerequisites.splice(i, 1);
+
+const saveItem = async () => {
+  if (!editedItem.value.name || !editedItem.value.slug) {
+    error.value = 'Name and slug are required.';
+    return;
+  }
   saving.value = true;
   error.value = null;
 
-  // Clean empty strings from arrays
-  const payload = {
-    ...editedItem.value,
-    key_modules: editedItem.value.key_modules.filter(s => s && s.trim()),
-    who_should_attend: editedItem.value.who_should_attend.filter(s => s && s.trim()),
-    benefits: editedItem.value.benefits.filter(s => s && s.trim()),
-    prerequisites: editedItem.value.prerequisites.filter(s => s && s.trim())
-  };
-
   try {
+    const payload = {
+      ...editedItem.value,
+      key_modules: editedItem.value.key_modules.filter((m) => m.trim()),
+      who_should_attend: editedItem.value.who_should_attend.filter((a) => a.trim()),
+      benefits: editedItem.value.benefits.filter((b) => b.trim()),
+      prerequisites: editedItem.value.prerequisites.filter((p) => p.trim())
+    };
+
     if (editedItem.value.id) {
       await api.put(`/admin/qualifications/${editedItem.value.id}`, payload);
     } else {
       await api.post('/admin/qualifications', payload);
     }
-    await fetchQualifications();
+
     closeDialog();
+    await fetchQualifications();
   } catch (err: any) {
-    error.value = err.message || 'Failed to save qualification';
+    error.value = err.response?.data?.message || err.message || 'Failed to save qualification';
   } finally {
     saving.value = false;
+  }
+};
+
+const toggleActive = async (item: any) => {
+  try {
+    await api.patch(`/admin/qualifications/${item.id}/active`, {
+      is_active: !item.is_active
+    });
+    item.is_active = !item.is_active;
+  } catch (err: any) {
+    error.value = err.message || 'Failed to update status';
+  }
+};
+
+const changeOrder = async (item: any, delta: number) => {
+  const newOrder = Math.max(0, (item.order_index || 0) + delta);
+  try {
+    await api.patch(`/admin/qualifications/${item.id}/reorder`, {
+      order_index: newOrder
+    });
+    await fetchQualifications();
+  } catch (err: any) {
+    error.value = err.message || 'Failed to reorder';
   }
 };
 
@@ -638,60 +504,412 @@ const deleteItem = async () => {
   deleting.value = true;
   try {
     await api.delete(`/admin/qualifications/${itemToDelete.value.id}`);
-    await fetchQualifications();
     deleteDialog.value = false;
+    itemToDelete.value = null;
+    await fetchQualifications();
   } catch (err: any) {
     error.value = err.message || 'Failed to delete qualification';
   } finally {
     deleting.value = false;
   }
 };
-
-const toggleActive = async (item: any) => {
-  try {
-    await api.patch(`/admin/qualifications/${item.id}/toggle-active`);
-  } catch (err) {
-    console.error(err);
-    fetchQualifications();
-  }
-};
-
-const moveUp = (index: number) => {
-  if (index === 0) return;
-  const temp = qualifications.value[index];
-  qualifications.value[index] = qualifications.value[index - 1];
-  qualifications.value[index - 1] = temp;
-  updateOrder();
-};
-
-const moveDown = (index: number) => {
-  if (index === qualifications.value.length - 1) return;
-  const temp = qualifications.value[index];
-  qualifications.value[index] = qualifications.value[index + 1];
-  qualifications.value[index + 1] = temp;
-  updateOrder();
-};
-
-const updateOrder = async () => {
-  for (let i = 0; i < qualifications.value.length; i++) {
-    qualifications.value[i].order_index = i;
-    try {
-      await api.put(`/admin/qualifications/${qualifications.value[i].id}`, qualifications.value[i]);
-    } catch (e) {
-      console.error(e);
-    }
-  }
-};
 </script>
 
 <style scoped>
-.border-surface {
-  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+.gsfin-admin-page {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  background: #FAFAFD;
+  color: #0F172A;
+  min-height: 100vh;
+  padding: 32px 36px;
+  box-sizing: border-box;
 }
-.border-bottom {
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+
+.admin-wrap {
+  max-width: 1300px;
+  margin: 0 auto;
 }
-.border-top {
-  border-top: 1px solid rgba(226, 232, 240, 0.8);
+
+.admin-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
 }
+
+.eyebrow-red {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #E31B23;
+}
+
+.admin-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.admin-subtitle {
+  font-size: 0.92rem;
+  color: #64748B;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-red {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #E31B23;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.86rem;
+  box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.btn-red:hover {
+  background: #C4131B;
+  transform: translateY(-1px);
+}
+
+.btn-glass {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #F1F5F9;
+  color: #334155;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.86rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.btn-glass:hover {
+  background: #E2E8F0;
+}
+
+.error-banner {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #DC2626;
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.close-alert-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #DC2626;
+  cursor: pointer;
+}
+
+.panel-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+  overflow: hidden;
+}
+
+.panel-card-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: #FAFAFD;
+}
+
+.panel-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  color: #94A3B8;
+  font-size: 1.1rem;
+}
+
+.table-search-input {
+  padding: 9px 14px 9px 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #FFFFFF;
+  font-size: 0.86rem;
+  color: #0F172A;
+  outline: none;
+  width: 260px;
+}
+.table-search-input:focus { border-color: #E31B23; }
+
+.table-select-filter {
+  padding: 9px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #FFFFFF;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #0F172A;
+  outline: none;
+  cursor: pointer;
+}
+
+.total-count-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748B;
+}
+
+.table-responsive { width: 100%; overflow-x: auto; }
+
+.gsfin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.gsfin-table th {
+  padding: 14px 20px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748B;
+  background: #F8FAFC;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.gsfin-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  color: #334155;
+  vertical-align: middle;
+}
+
+.gsfin-table tbody tr:hover { background: rgba(248, 250, 252, 0.8); }
+
+.qual-cell-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.qual-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #F1F5F9;
+  flex-shrink: 0;
+}
+.qual-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.qual-name { font-weight: 800; color: #0F172A; }
+.qual-sub { font-size: 0.78rem; line-height: 1.3; max-width: 300px; }
+
+.badge-chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.chip-green { background: rgba(16, 185, 129, 0.1); color: #059669; }
+.chip-slate { background: rgba(100, 116, 139, 0.1); color: #64748B; }
+.chip-red-sm { background: rgba(227, 27, 35, 0.1); color: #E31B23; font-size: 0.68rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; display: inline-block; }
+
+.order-adjust-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+}
+.order-btns { display: flex; flex-direction: column; }
+.order-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #64748B;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+.order-btn:hover { color: #E31B23; }
+
+.actions-cell { display: flex; align-items: center; gap: 8px; }
+
+.btn-table-action {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-edit { background: #F1F5F9; color: #334155; }
+.btn-edit:hover { background: #E31B23; color: #FFFFFF; }
+.btn-danger { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+.btn-danger:hover { background: #DC2626; color: #FFFFFF; }
+
+/* Modal & Tabs */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 540px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+  overflow: hidden;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+.modal-lg { max-width: 720px; }
+.modal-sm { max-width: 400px; }
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-header h3 { font-size: 1.2rem; font-weight: 800; color: #0F172A; margin: 0; }
+.modal-close-btn { background: #F1F5F9; border: none; width: 32px; height: 32px; border-radius: 50%; color: #64748B; cursor: pointer; }
+
+.modal-tabs-bar {
+  display: flex;
+  background: #FAFAFD;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 4px 16px;
+  gap: 6px;
+}
+.modal-tab-btn {
+  background: none;
+  border: none;
+  padding: 10px 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #64748B;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.modal-tab-btn.active {
+  color: #E31B23;
+  border-bottom-color: #E31B23;
+}
+
+.modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 0.8rem; font-weight: 700; color: #334155; }
+.modal-input, .modal-select, .modal-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #F8FAFC;
+  font-size: 0.9rem;
+  color: #0F172A;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.modal-input:focus, .modal-select:focus, .modal-textarea:focus { border-color: #E31B23; background: #FFFFFF; }
+
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.list-editor-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.btn-add-sm {
+  background: rgba(227, 27, 35, 0.1);
+  color: #E31B23;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.list-editor-row { display: flex; align-items: center; gap: 8px; }
+.btn-del-icon { background: none; border: none; color: #DC2626; cursor: pointer; font-size: 1.1rem; }
+
+.modal-footer {
+  padding: 16px 24px;
+  background: #FAFAFD;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.modal-footer-center { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.25s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+.spinner-sm-red {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(227, 27, 35, 0.2);
+  border-top-color: #E31B23;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>

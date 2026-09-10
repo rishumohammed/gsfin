@@ -1,127 +1,205 @@
 <template>
-  <v-container fluid class="py-8 px-6 bg-grey-lighten-4 min-vh-100">
-    <!-- Sub-Center Header & Wallet Quick Bar -->
-    <v-row class="mb-6 align-center">
-      <v-col cols="12" md="7">
-        <div class="d-flex align-center gap-4">
-          <div class="rounded-circle bg-teal-darken-2 d-flex align-center justify-center elevation-2" style="width: 48px; height: 48px; min-width: 48px;">
-            <v-icon icon="mdi-school" size="28" color="white"></v-icon>
-          </div>
-          <div>
-            <h1 class="text-h4 font-weight-bold text-slate-900 mb-1">
-              Sub-Center Administration Portal
-            </h1>
-            <p class="text-subtitle-1 text-grey-darken-1 mb-0">
-              Student Registration • Token Wallet • Batch Exam Management • Retries & Dedicated Links
-            </p>
-          </div>
-        </div>
-      </v-col>
-
-      <!-- Token Wallet Card -->
-      <v-col cols="12" md="5">
-        <v-card class="pa-4 rounded-xl elevation-2 bg-gradient-teal border-0">
-          <div class="d-flex justify-space-between align-center">
+  <div class="subcenter-dashboard min-h-screen pb-12" style="background-color: #FAFAFD;">
+    <!-- Page Header & Quick Wallet Bar -->
+    <div class="bg-white border-b border-slate-200/80 shadow-xs mb-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div class="flex items-center gap-4">
+            <div class="w-13 h-13 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white shadow-md shadow-red-500/20">
+              <v-icon icon="mdi-shield-home" size="28" color="white"></v-icon>
+            </div>
             <div>
-              <div class="text-caption font-weight-bold text-uppercase text-white opacity-80">Token Wallet Balance</div>
-              <div class="d-flex align-baseline gap-2 mt-1">
-                <span class="text-h3 font-weight-black text-white">{{ wallet.totalRemaining || 0 }}</span>
-                <span class="text-subtitle-2 text-white font-weight-medium">Tokens Available</span>
+              <div class="flex items-center gap-2 mb-1">
+                <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+                  Sub-Center Administration
+                </h1>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200">
+                  Partner Portal
+                </span>
               </div>
-              <div class="text-caption text-white opacity-90 mt-1">
-                Purchased: {{ wallet.totalPurchased || 0 }} • Consumed: {{ wallet.totalUsed || 0 }}
+              <p class="text-xs sm:text-sm text-slate-500 font-medium">
+                Student Registrations • Exam Batches • Token Wallet • Retry Links & Certificates
+              </p>
+            </div>
+          </div>
+
+          <!-- Token Wallet Card Header Summary -->
+          <div class="flex items-center gap-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white p-4 sm:p-5 rounded-2xl shadow-lg border border-slate-800 min-w-[320px] justify-between">
+            <div>
+              <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Token Wallet Balance</div>
+              <div class="flex items-baseline gap-2 mt-0.5">
+                <span class="text-3xl font-black text-white">{{ wallet.totalRemaining || 0 }}</span>
+                <span class="text-xs font-semibold text-slate-300">Tokens Available</span>
+              </div>
+              <div class="text-[11px] text-slate-400 mt-1">
+                Purchased: <strong class="text-white">{{ wallet.totalPurchased || 0 }}</strong> • Used: <strong class="text-white">{{ wallet.totalUsed || 0 }}</strong>
               </div>
             </div>
-            <v-btn color="amber-darken-2" size="large" variant="elevated" class="font-weight-bold" prepend-icon="mdi-cart-plus" @click="showStoreModal = true">
+            <v-btn
+              color="#E31B23"
+              size="medium"
+              class="font-bold text-white text-none rounded-xl shadow-md hover:bg-red-700"
+              prepend-icon="mdi-cart-plus"
+              @click="showStoreModal = true"
+            >
               Buy Tokens
             </v-btn>
           </div>
-        </v-card>
-      </v-col>
-    </v-row>
+        </div>
+      </div>
+    </div>
 
-    <!-- Sub-Center Navigation Tabs -->
-    <v-card class="elevation-1 rounded-lg mb-6">
-      <v-tabs v-model="activeTab" color="teal-darken-2" align-tabs="start" class="border-b">
-        <v-tab value="batches" class="text-none text-body-1 font-weight-bold py-3">
-          <v-icon start icon="mdi-subtitles-outline"></v-icon>
-          Batches & Exam Enrollments
-        </v-tab>
-        <v-tab value="students" class="text-none text-body-1 font-weight-bold py-3">
-          <v-icon start icon="mdi-account-group"></v-icon>
-          Student Directory
-        </v-tab>
-        <v-tab value="wallet" class="text-none text-body-1 font-weight-bold py-3">
-          <v-icon start icon="mdi-wallet-outline"></v-icon>
-          Wallet & Store History
-        </v-tab>
-      </v-tabs>
+    <!-- Main Content Container -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-      <v-card-text class="pa-6">
-        <v-window v-model="activeTab">
-          
+      <!-- Navigation Tabs Container -->
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden mb-8">
+        <!-- Sub-Center Custom Light Tab Bar -->
+        <div class="flex border-b border-slate-200/80 bg-slate-50/60 px-4 pt-3 gap-2 overflow-x-auto">
+          <button
+            @click="activeTab = 'batches'"
+            :class="[
+              'px-5 py-3 text-sm font-bold rounded-t-xl transition-all duration-200 flex items-center gap-2 whitespace-nowrap border-b-2',
+              activeTab === 'batches'
+                ? 'bg-white text-red-600 border-red-600 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 border-transparent hover:bg-slate-100/60'
+            ]"
+          >
+            <v-icon icon="mdi-subtitles-outline" size="18" :color="activeTab === 'batches' ? '#E31B23' : '#64748B'"></v-icon>
+            Batches & Enrollments
+            <span class="ml-1 px-2 py-0.5 text-xs rounded-full bg-slate-100 text-slate-700 font-semibold">
+              {{ batches.length }}
+            </span>
+          </button>
+
+          <button
+            @click="activeTab = 'students'"
+            :class="[
+              'px-5 py-3 text-sm font-bold rounded-t-xl transition-all duration-200 flex items-center gap-2 whitespace-nowrap border-b-2',
+              activeTab === 'students'
+                ? 'bg-white text-red-600 border-red-600 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 border-transparent hover:bg-slate-100/60'
+            ]"
+          >
+            <v-icon icon="mdi-account-group" size="18" :color="activeTab === 'students' ? '#E31B23' : '#64748B'"></v-icon>
+            Student Directory
+            <span class="ml-1 px-2 py-0.5 text-xs rounded-full bg-slate-100 text-slate-700 font-semibold">
+              {{ students.length }}
+            </span>
+          </button>
+
+          <button
+            @click="activeTab = 'wallet'"
+            :class="[
+              'px-5 py-3 text-sm font-bold rounded-t-xl transition-all duration-200 flex items-center gap-2 whitespace-nowrap border-b-2',
+              activeTab === 'wallet'
+                ? 'bg-white text-red-600 border-red-600 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 border-transparent hover:bg-slate-100/60'
+            ]"
+          >
+            <v-icon icon="mdi-wallet-outline" size="18" :color="activeTab === 'wallet' ? '#E31B23' : '#64748B'"></v-icon>
+            Wallet Audit & Store
+          </button>
+        </div>
+
+        <div class="p-6">
           <!-- TAB 1: BATCHES & EXAM ENROLLMENTS -->
-          <v-window-item value="batches">
-            <div class="d-flex justify-space-between align-center mb-4">
+          <div v-if="activeTab === 'batches'">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <div>
-                <h3 class="text-h6 font-weight-bold">Exam Batches</h3>
-                <p class="text-body-2 text-grey">Create batches to enroll your students in main authority certification exams.</p>
+                <h2 class="text-lg font-bold text-slate-900">Exam Batches & Enrollments</h2>
+                <p class="text-xs sm:text-sm text-slate-500">
+                  Create exam batches to assign candidates for certification exams using your token wallet.
+                </p>
               </div>
-              <v-btn color="teal-darken-2" prepend-icon="mdi-plus" size="large" @click="openCreateBatchModal">
+              <v-btn
+                color="#E31B23"
+                size="large"
+                class="font-bold text-white text-none rounded-xl shadow-md hover:bg-red-700"
+                prepend-icon="mdi-plus"
+                @click="openCreateBatchModal"
+              >
                 Create Exam Batch
               </v-btn>
             </div>
 
-            <v-card variant="outlined" class="rounded-lg border mb-6">
+            <!-- Batches Table Card -->
+            <div class="border border-slate-200/80 rounded-2xl overflow-hidden bg-white shadow-xs mb-8">
               <v-data-table
                 :headers="batchHeaders"
                 :items="batches"
                 :loading="loadingBatches"
-                class="elevation-0"
+                class="elevation-0 gsfin-table"
               >
                 <template v-slot:no-data>
-                  <div class="text-center py-10 px-4">
-                    <div class="rounded-circle bg-teal-50 d-inline-flex align-center justify-center mb-3 pa-4">
-                      <v-icon size="40" color="teal-darken-2">mdi-clipboard-text-outline</v-icon>
+                  <div class="text-center py-12 px-4">
+                    <div class="w-16 h-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4 border border-red-100 shadow-xs">
+                      <v-icon size="36" color="#E31B23">mdi-clipboard-text-outline</v-icon>
                     </div>
-                    <div class="text-subtitle-1 font-weight-bold text-slate-800">No Batches Created Yet</div>
-                    <div class="text-caption text-slate-500 max-w-xs mx-auto mb-4">
-                      Create your first student exam batch to spend tokens and enroll students.
-                    </div>
-                    <v-btn color="teal-darken-2" size="small" prepend-icon="mdi-plus" @click="showAddBatchModal = true">
-                      Create New Batch
+                    <h3 class="text-base font-bold text-slate-900">No Exam Batches Created</h3>
+                    <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-4">
+                      Create your first student exam batch to spend tokens and enroll candidates for certification exams.
+                    </p>
+                    <v-btn
+                      color="#E31B23"
+                      size="small"
+                      class="font-bold text-white text-none rounded-lg"
+                      prepend-icon="mdi-plus"
+                      @click="openCreateBatchModal"
+                    >
+                      Create Batch
                     </v-btn>
                   </div>
                 </template>
+
+                <template v-slot:item.exam_name="{ item }: any">
+                  <div class="font-bold text-slate-900 py-2">{{ item.exam_name }}</div>
+                </template>
+
                 <template v-slot:item.status="{ item }: any">
-                  <v-chip :color="getBatchStatusColor(item.status)" size="small" variant="flat" class="text-uppercase font-weight-bold">
+                  <span
+                    :class="[
+                      'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider',
+                      item.status === 'open' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                      item.status === 'cancelled' ? 'bg-red-50 text-red-700 border border-red-200' :
+                      'bg-slate-100 text-slate-700 border border-slate-200'
+                    ]"
+                  >
                     {{ item.status }}
-                  </v-chip>
+                  </span>
                 </template>
+
                 <template v-slot:item.student_count="{ item }: any">
-                  <v-chip size="small" color="info" variant="tonal">
-                    {{ item.student_count || 0 }} Students
-                  </v-chip>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-800">
+                    {{ item.student_count || 0 }} Candidates
+                  </span>
                 </template>
+
+                <template v-slot:item.opens_at="{ item }: any">
+                  <span class="text-xs text-slate-600 font-medium">{{ formatDate(item.opens_at) }}</span>
+                </template>
+
+                <template v-slot:item.closes_at="{ item }: any">
+                  <span class="text-xs text-slate-600 font-medium">{{ formatDate(item.closes_at) }}</span>
+                </template>
+
                 <template v-slot:item.actions="{ item }: any">
-                  <div class="d-flex gap-2">
-                    <v-btn size="small" color="teal-darken-2" variant="tonal" @click="viewBatchDetails(item)">
+                  <div class="flex items-center gap-2 py-1">
+                    <v-btn
+                      size="small"
+                      variant="outlined"
+                      color="slate"
+                      class="text-none font-bold rounded-lg text-slate-700 border-slate-300"
+                      @click="viewBatchDetails(item)"
+                    >
                       View Assignments
                     </v-btn>
                     <v-btn
                       v-if="item.status === 'open'"
                       size="small"
-                      color="warning"
                       variant="tonal"
-                      @click="openEditBatchModal(item)"
-                    >
-                      Edit
-                    </v-btn>
-                    <v-btn
-                      v-if="item.status === 'open'"
-                      size="small"
                       color="error"
-                      variant="tonal"
+                      class="text-none font-bold rounded-lg"
                       @click="cancelBatch(item)"
                     >
                       Cancel
@@ -129,288 +207,474 @@
                   </div>
                 </template>
               </v-data-table>
-            </v-card>
+            </div>
 
             <!-- BATCH ASSIGNMENT DETAILS VIEW (WHEN SELECTED) -->
-            <v-card v-if="selectedBatch" variant="outlined" class="rounded-lg border pa-4 bg-white">
-              <div class="d-flex justify-space-between align-center mb-4">
+            <div v-if="selectedBatch" class="border border-red-200 rounded-2xl p-6 bg-red-50/20 shadow-sm transition-all duration-300">
+              <div class="flex items-center justify-between mb-6 pb-4 border-b border-red-100">
                 <div>
-                  <h3 class="text-h6 font-weight-bold text-teal-darken-3">
-                    Batch Details: {{ selectedBatch.exam_name }}
-                  </h3>
-                  <span class="text-caption text-grey">Batch ID: {{ selectedBatch.id }}</span>
+                  <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800">Selected Batch</span>
+                    <h3 class="text-lg font-bold text-slate-900">
+                      {{ selectedBatch.exam_name }}
+                    </h3>
+                  </div>
+                  <p class="text-xs text-slate-500 mt-0.5">Batch ID: <code class="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200">{{ selectedBatch.id }}</code></p>
                 </div>
-                <v-btn icon="mdi-close" variant="text" size="small" @click="selectedBatch = null"></v-btn>
+                <button @click="selectedBatch = null" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors">
+                  <v-icon icon="mdi-close" size="18"></v-icon>
+                </button>
               </div>
 
-              <v-data-table
-                :headers="assignmentHeaders"
-                :items="batchAssignments"
-                :loading="loadingAssignments"
-                class="elevation-0"
-              >
-                <template v-slot:item.attempts="{ item }: any">
-                  <v-chip size="small" :color="item.attempts_used >= item.max_attempts ? 'error' : 'info'" variant="tonal">
-                    {{ item.attempts_used }} / {{ item.max_attempts }}
-                  </v-chip>
-                </template>
-                <template v-slot:item.status="{ item }: any">
-                  <v-chip :color="getAssignmentStatusColor(item.status)" size="small" variant="flat" class="text-uppercase font-weight-bold">
-                    {{ item.status }}
-                  </v-chip>
-                  <v-chip v-if="item.is_retry_link" size="x-small" color="purple" variant="outlined" class="ms-1">
-                    Dedicated Link
-                  </v-chip>
-                </template>
-                <template v-slot:item.actions="{ item }: any">
-                  <div class="d-flex gap-2">
-                    <!-- Manual Technical Retry -->
-                    <v-btn
-                      v-if="item.attempts_used < item.max_attempts && ['not_started', 'in_progress', 'failed'].includes(item.status)"
-                      size="small"
-                      color="warning"
-                      variant="flat"
-                      prepend-icon="mdi-restart"
-                      @click="grantTechnicalRetry(item)"
+              <div class="bg-white rounded-xl border border-slate-200/80 overflow-hidden shadow-xs">
+                <v-data-table
+                  :headers="assignmentHeaders"
+                  :items="batchAssignments"
+                  :loading="loadingAssignments"
+                  class="elevation-0 gsfin-table"
+                >
+                  <template v-slot:item.student_name="{ item }: any">
+                    <div class="font-bold text-slate-900">{{ item.student_name }}</div>
+                  </template>
+                  <template v-slot:item.student_email="{ item }: any">
+                    <div class="text-xs text-slate-600 font-mono">{{ item.student_email }}</div>
+                  </template>
+                  <template v-slot:item.attempts="{ item }: any">
+                    <span
+                      :class="[
+                        'inline-flex items-center px-2 py-0.5 rounded text-xs font-bold',
+                        item.attempts_used >= item.max_attempts ? 'bg-red-50 text-red-700' : 'bg-slate-100 text-slate-700'
+                      ]"
                     >
-                      Grant Tech Retry
-                    </v-btn>
+                      {{ item.attempts_used }} / {{ item.max_attempts }}
+                    </span>
+                  </template>
+                  <template v-slot:item.status="{ item }: any">
+                    <div class="flex items-center gap-1.5">
+                      <span
+                        :class="[
+                          'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider',
+                          item.status === 'passed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                          item.status === 'failed' ? 'bg-red-50 text-red-700 border border-red-200' :
+                          item.status === 'in_progress' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                          'bg-slate-100 text-slate-700 border border-slate-200'
+                        ]"
+                      >
+                        {{ item.status }}
+                      </span>
+                      <span v-if="item.is_retry_link" class="px-2 py-0.5 text-[10px] font-bold rounded bg-purple-50 text-purple-700 border border-purple-200">
+                        Dedicated Link
+                      </span>
+                    </div>
+                  </template>
+                  <template v-slot:item.actions="{ item }: any">
+                    <div class="flex items-center gap-2 py-1">
+                      <!-- Manual Technical Retry -->
+                      <v-btn
+                        v-if="item.attempts_used < item.max_attempts && ['not_started', 'in_progress', 'failed'].includes(item.status)"
+                        size="small"
+                        color="#D97706"
+                        class="text-none font-bold text-white rounded-lg shadow-xs"
+                        prepend-icon="mdi-restart"
+                        @click="grantTechnicalRetry(item)"
+                      >
+                        Grant Tech Retry
+                      </v-btn>
 
-                    <!-- Dedicated Single-Student Retry Link (for failed assignments) -->
-                    <v-btn
-                      v-if="item.status === 'failed'"
-                      size="small"
-                      color="purple-darken-1"
-                      variant="flat"
-                      prepend-icon="mdi-link-plus"
-                      @click="openRetryLinkModal(item)"
-                    >
-                      Create Retry Link
-                    </v-btn>
+                      <!-- Dedicated Single-Student Retry Link (for failed assignments) -->
+                      <v-btn
+                        v-if="item.status === 'failed'"
+                        size="small"
+                        color="#7C3AED"
+                        class="text-none font-bold text-white rounded-lg shadow-xs"
+                        prepend-icon="mdi-link-plus"
+                        @click="openRetryLinkModal(item)"
+                      >
+                        Create Retry Link
+                      </v-btn>
 
-                    <!-- Uniform Certificate Download -->
-                    <v-btn
-                      v-if="item.status === 'passed' && item.certificate_url"
-                      size="small"
-                      color="success"
-                      variant="tonal"
-                      prepend-icon="mdi-certificate"
-                      :href="item.certificate_url"
-                      target="_blank"
-                    >
-                      Certificate
-                    </v-btn>
-                  </div>
-                </template>
-              </v-data-table>
-            </v-card>
-          </v-window-item>
+                      <!-- Uniform Certificate Download -->
+                      <v-btn
+                        v-if="item.status === 'passed' && item.certificate_url"
+                        size="small"
+                        color="#10B981"
+                        class="text-none font-bold text-white rounded-lg shadow-xs"
+                        prepend-icon="mdi-certificate"
+                        :href="item.certificate_url"
+                        target="_blank"
+                      >
+                        Certificate
+                      </v-btn>
+                    </div>
+                  </template>
+                </v-data-table>
+              </div>
+            </div>
+          </div>
 
           <!-- TAB 2: STUDENT DIRECTORY -->
-          <v-window-item value="students">
-            <div class="d-flex justify-space-between align-center mb-4">
+          <div v-if="activeTab === 'students'">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <div>
-                <h3 class="text-h6 font-weight-bold">Registered Students</h3>
-                <p class="text-body-2 text-grey">Students registered specifically under your sub-center.</p>
+                <h2 class="text-lg font-bold text-slate-900">Registered Students</h2>
+                <p class="text-xs sm:text-sm text-slate-500">
+                  Directory of candidate students registered under your sub-center.
+                </p>
               </div>
-              <v-btn color="teal-darken-2" prepend-icon="mdi-account-plus" size="large" @click="showAddStudentModal = true">
+              <v-btn
+                color="#E31B23"
+                size="large"
+                class="font-bold text-white text-none rounded-xl shadow-md hover:bg-red-700"
+                prepend-icon="mdi-account-plus"
+                @click="showAddStudentModal = true"
+              >
                 Register Student
               </v-btn>
             </div>
 
-            <v-card variant="outlined" class="rounded-lg border">
+            <div class="border border-slate-200/80 rounded-2xl overflow-hidden bg-white shadow-xs">
               <v-data-table
                 :headers="studentHeaders"
                 :items="students"
                 :loading="loadingStudents"
-                class="elevation-0"
+                class="elevation-0 gsfin-table"
               >
+                <template v-slot:item.name="{ item }: any">
+                  <div class="flex items-center gap-3 py-2">
+                    <div class="w-8 h-8 rounded-full bg-red-100 text-red-700 font-bold flex items-center justify-center text-xs">
+                      {{ item.name ? item.name.charAt(0).toUpperCase() : 'S' }}
+                    </div>
+                    <span class="font-bold text-slate-900">{{ item.name }}</span>
+                  </div>
+                </template>
+                <template v-slot:item.email="{ item }: any">
+                  <span class="text-xs text-slate-600 font-mono">{{ item.email }}</span>
+                </template>
+                <template v-slot:item.phone="{ item }: any">
+                  <span class="text-xs text-slate-600 font-medium">{{ item.phone || '-' }}</span>
+                </template>
                 <template v-slot:item.created_at="{ item }: any">
-                  {{ formatDate(item.created_at) }}
+                  <span class="text-xs text-slate-500 font-medium">{{ formatDate(item.created_at) }}</span>
                 </template>
               </v-data-table>
-            </v-card>
-          </v-window-item>
+            </div>
+          </div>
 
           <!-- TAB 3: WALLET & STORE HISTORY -->
-          <v-window-item value="wallet">
-            <div class="d-flex justify-space-between align-center mb-4">
+          <div v-if="activeTab === 'wallet'">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <div>
-                <h3 class="text-h6 font-weight-bold">Token Wallet & Store</h3>
-                <p class="text-body-2 text-grey">Purchase token packages and view your wallet audit log.</p>
+                <h2 class="text-lg font-bold text-slate-900">Token Wallet & Store</h2>
+                <p class="text-xs sm:text-sm text-slate-500">
+                  Purchase token packages and view your wallet audit log.
+                </p>
               </div>
-              <v-btn color="amber-darken-2" prepend-icon="mdi-cart-plus" size="large" @click="showStoreModal = true">
+              <v-btn
+                color="#E31B23"
+                size="large"
+                class="font-bold text-white text-none rounded-xl shadow-md hover:bg-red-700"
+                prepend-icon="mdi-cart-plus"
+                @click="showStoreModal = true"
+              >
                 Buy Token Packages
               </v-btn>
             </div>
 
-            <v-card variant="outlined" class="rounded-lg border">
-              <v-card-title class="pa-4 bg-grey-lighten-4 border-b font-weight-bold text-subtitle-1">
+            <div class="border border-slate-200/80 rounded-2xl overflow-hidden bg-white shadow-xs">
+              <div class="px-6 py-4 bg-slate-50 border-b border-slate-200/80 font-bold text-slate-900 text-sm">
                 Transaction Audit Trail
-              </v-card-title>
+              </div>
               <v-data-table
                 :headers="txHeaders"
                 :items="transactions"
                 :loading="loadingTransactions"
-                class="elevation-0"
+                class="elevation-0 gsfin-table"
               >
                 <template v-slot:item.type="{ item }: any">
-                  <v-chip :color="getTxTypeColor(item.type)" size="small" variant="flat" class="text-uppercase font-weight-bold">
+                  <span
+                    :class="[
+                      'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider',
+                      item.type === 'purchase' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                      item.type === 'consume' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                      'bg-purple-50 text-purple-700 border border-purple-200'
+                    ]"
+                  >
                     {{ item.type }}
-                  </v-chip>
+                  </span>
                 </template>
                 <template v-slot:item.token_count="{ item }: any">
-                  <span :class="item.token_count > 0 ? 'text-success font-weight-bold' : 'text-error font-weight-bold'">
+                  <span :class="item.token_count > 0 ? 'text-emerald-600 font-black' : 'text-red-600 font-black'">
                     {{ item.token_count > 0 ? '+' : '' }}{{ item.token_count }}
                   </span>
                 </template>
+                <template v-slot:item.package_name="{ item }: any">
+                  <span class="text-xs text-slate-700 font-semibold">{{ item.package_name || 'System / Batch Refund' }}</span>
+                </template>
                 <template v-slot:item.created_at="{ item }: any">
-                  {{ formatDate(item.created_at) }}
+                  <span class="text-xs text-slate-500 font-medium">{{ formatDate(item.created_at) }}</span>
                 </template>
               </v-data-table>
-            </v-card>
-          </v-window-item>
-
-        </v-window>
-      </v-card-text>
-    </v-card>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- MODALS -->
 
     <!-- Token Store Modal -->
-    <v-dialog v-model="showStoreModal" max-width="650">
-      <v-card class="pa-4 rounded-xl">
-        <v-card-title class="text-h6 font-weight-bold">Purchase Token Packages</v-card-title>
-        <v-card-text>
-          <v-row class="mt-2">
-            <v-col v-for="pkg in availablePackages" :key="pkg.id" cols="12" sm="4">
-              <v-card variant="outlined" class="pa-4 rounded-lg text-center h-100 d-flex flex-column justify-space-between border-teal">
-                <div>
-                  <div class="text-subtitle-1 font-weight-bold text-teal-darken-3">{{ pkg.name }}</div>
-                  <div class="text-h4 font-weight-black my-2 text-amber-darken-3">{{ pkg.token_count }}</div>
-                  <div class="text-caption text-grey">Tokens</div>
-                  <div class="text-h6 font-weight-bold text-success mt-3">${{ Number(pkg.price).toFixed(2) }}</div>
-                </div>
-                <v-btn color="teal-darken-2" class="mt-4 font-weight-bold" variant="flat" block @click="buyTokenPackage(pkg.id)" :loading="buyingPkg">
-                  Purchase
-                </v-btn>
-              </v-card>
-            </v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="showStoreModal = false">Close</v-btn>
-        </v-card-actions>
-      </v-card>
+    <v-dialog v-model="showStoreModal" max-width="700">
+      <div class="bg-white rounded-3xl p-6 shadow-2xl border border-slate-200/80">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-200/80">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
+              <v-icon icon="mdi-cart-plus" color="#E31B23" size="24"></v-icon>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Purchase Token Packages</h3>
+              <p class="text-xs text-slate-500">Tokens are spent when enrolling candidates in exam batches</p>
+            </div>
+          </div>
+          <button @click="showStoreModal = false" class="text-slate-400 hover:text-slate-600">
+            <v-icon icon="mdi-close" size="20"></v-icon>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div
+            v-for="pkg in availablePackages"
+            :key="pkg.id"
+            class="border border-slate-200/80 rounded-2xl p-5 text-center flex flex-col justify-between hover:border-red-500 transition-colors bg-slate-50/50"
+          >
+            <div>
+              <div class="text-sm font-bold text-slate-900">{{ pkg.name }}</div>
+              <div class="text-3xl font-black text-red-600 my-2">{{ pkg.token_count }}</div>
+              <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Tokens</div>
+              <div class="text-xl font-bold text-slate-900 mt-3">${{ Number(pkg.price).toFixed(2) }}</div>
+            </div>
+            <v-btn
+              color="#E31B23"
+              class="mt-4 font-bold text-white text-none rounded-xl"
+              variant="flat"
+              block
+              @click="buyTokenPackage(pkg.id)"
+              :loading="buyingPkg"
+            >
+              Purchase
+            </v-btn>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-2">
+          <v-btn variant="text" class="text-none font-bold text-slate-600" @click="showStoreModal = false">Close</v-btn>
+        </div>
+      </div>
     </v-dialog>
 
     <!-- Register Student Modal -->
     <v-dialog v-model="showAddStudentModal" max-width="500">
-      <v-card class="pa-4 rounded-xl">
-        <v-card-title class="text-h6 font-weight-bold">Register Student</v-card-title>
-        <v-card-text>
-          <v-form>
-            <v-text-field v-model="studentForm.name" label="Student Full Name" required variant="outlined" class="mb-2"></v-text-field>
-            <v-text-field v-model="studentForm.email" label="Email Address" type="email" required variant="outlined" class="mb-2"></v-text-field>
-            <v-text-field v-model="studentForm.phone" label="Phone Number" variant="outlined"></v-text-field>
-          </v-form>
-        </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="showAddStudentModal = false">Cancel</v-btn>
-          <v-btn color="teal-darken-2" variant="flat" :loading="savingStudent" @click="registerStudent">Register</v-btn>
-        </v-card-actions>
-      </v-card>
+      <div class="bg-white rounded-3xl p-6 shadow-2xl border border-slate-200/80">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-200/80">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
+              <v-icon icon="mdi-account-plus" color="#E31B23" size="24"></v-icon>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Register Student</h3>
+              <p class="text-xs text-slate-500">Register candidate student for exam batch enrollment</p>
+            </div>
+          </div>
+          <button @click="showAddStudentModal = false" class="text-slate-400 hover:text-slate-600">
+            <v-icon icon="mdi-close" size="20"></v-icon>
+          </button>
+        </div>
+
+        <form @submit.prevent="registerStudent" class="space-y-4">
+          <v-text-field
+            v-model="studentForm.name"
+            label="Student Full Name *"
+            required
+            variant="outlined"
+            density="compact"
+            class="rounded-lg"
+          ></v-text-field>
+
+          <v-text-field
+            v-model="studentForm.email"
+            label="Email Address *"
+            type="email"
+            required
+            variant="outlined"
+            density="compact"
+            class="rounded-lg"
+          ></v-text-field>
+
+          <v-text-field
+            v-model="studentForm.phone"
+            label="Phone Number (Optional)"
+            variant="outlined"
+            density="compact"
+            class="rounded-lg"
+          ></v-text-field>
+
+          <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <v-btn variant="text" class="text-none font-bold text-slate-600" @click="showAddStudentModal = false">Cancel</v-btn>
+            <v-btn
+              color="#E31B23"
+              class="font-bold text-white text-none rounded-xl"
+              :loading="savingStudent"
+              type="submit"
+            >
+              Register Candidate
+            </v-btn>
+          </div>
+        </form>
+      </div>
     </v-dialog>
 
     <!-- Create Batch Modal -->
     <v-dialog v-model="showCreateBatchModal" max-width="650">
-      <v-card class="pa-4 rounded-xl">
-        <v-card-title class="text-h6 font-weight-bold">Create Exam Batch</v-card-title>
-        <v-card-text>
-          <!-- Shortfall Warning Banner -->
-          <v-alert
-            v-if="batchShortfall > 0"
-            type="warning"
-            variant="tonal"
-            class="mb-4 rounded-lg"
-          >
-            <div class="d-flex justify-space-between align-center">
-              <div>
-                <strong>Insufficient Token Balance!</strong><br />
-                Selected Students: {{ batchForm.student_ids.length }} | Available Tokens: {{ wallet.totalRemaining }}<br />
-                Shortfall: <strong>{{ batchShortfall }} tokens</strong>
-              </div>
-              <v-btn color="amber-darken-3" size="small" variant="flat" @click="showStoreModal = true">Buy Tokens</v-btn>
+      <div class="bg-white rounded-3xl p-6 shadow-2xl border border-slate-200/80">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-200/80">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
+              <v-icon icon="mdi-plus" color="#E31B23" size="24"></v-icon>
             </div>
-          </v-alert>
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Create Exam Batch</h3>
+              <p class="text-xs text-slate-500">1 candidate enrollment consumes 1 token</p>
+            </div>
+          </div>
+          <button @click="showCreateBatchModal = false" class="text-slate-400 hover:text-slate-600">
+            <v-icon icon="mdi-close" size="20"></v-icon>
+          </button>
+        </div>
 
-          <v-form>
-            <v-select
-              v-model="batchForm.exam_id"
-              :items="exams"
-              item-title="name"
-              item-value="id"
-              label="Select Certification Exam"
-              variant="outlined"
-              class="mb-2"
-            ></v-select>
-
-            <v-select
-              v-model="batchForm.student_ids"
-              :items="students"
-              item-title="name"
-              item-value="id"
-              label="Select Students for Enrollment"
-              multiple
-              chips
-              variant="outlined"
-              class="mb-2"
-            ></v-select>
-
-            <v-row>
-              <v-col cols="6">
-                <v-text-field v-model="batchForm.opens_at" label="Opens At" type="datetime-local" variant="outlined"></v-text-field>
-              </v-col>
-              <v-col cols="6">
-                <v-text-field v-model="batchForm.closes_at" label="Closes At (Fixed Window)" type="datetime-local" variant="outlined"></v-text-field>
-              </v-col>
-            </v-row>
-          </v-form>
-        </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="showCreateBatchModal = false">Cancel</v-btn>
+        <!-- Shortfall Warning Banner -->
+        <div
+          v-if="batchShortfall > 0"
+          class="p-4 mb-5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center justify-between gap-4"
+        >
+          <div>
+            <div class="font-bold text-sm">Insufficient Token Balance!</div>
+            <div class="text-xs mt-0.5">
+              Selected: <strong>{{ batchForm.student_ids.length }}</strong> | Available: <strong>{{ wallet.totalRemaining }}</strong> | Shortfall: <strong class="text-red-600">{{ batchShortfall }} tokens</strong>
+            </div>
+          </div>
           <v-btn
-            color="teal-darken-2"
-            variant="flat"
-            :disabled="batchShortfall > 0 || batchForm.student_ids.length === 0 || !batchForm.exam_id"
-            :loading="savingBatch"
-            @click="submitCreateBatch"
+            color="#D97706"
+            size="small"
+            class="text-none font-bold text-white rounded-lg"
+            @click="showStoreModal = true"
           >
-            Submit & Spend Tokens
+            Buy Tokens
           </v-btn>
-        </v-card-actions>
-      </v-card>
+        </div>
+
+        <form @submit.prevent="submitCreateBatch" class="space-y-4">
+          <v-select
+            v-model="batchForm.exam_id"
+            :items="exams"
+            item-title="name"
+            item-value="id"
+            label="Select Certification Exam *"
+            variant="outlined"
+            density="compact"
+            class="rounded-lg"
+          ></v-select>
+
+          <v-select
+            v-model="batchForm.student_ids"
+            :items="students"
+            item-title="name"
+            item-value="id"
+            label="Select Students for Enrollment *"
+            multiple
+            chips
+            variant="outlined"
+            density="compact"
+            class="rounded-lg"
+          ></v-select>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <v-text-field
+              v-model="batchForm.opens_at"
+              label="Opens At"
+              type="datetime-local"
+              variant="outlined"
+              density="compact"
+            ></v-text-field>
+
+            <v-text-field
+              v-model="batchForm.closes_at"
+              label="Closes At (Fixed Window)"
+              type="datetime-local"
+              variant="outlined"
+              density="compact"
+            ></v-text-field>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <v-btn variant="text" class="text-none font-bold text-slate-600" @click="showCreateBatchModal = false">Cancel</v-btn>
+            <v-btn
+              color="#E31B23"
+              class="font-bold text-white text-none rounded-xl"
+              :disabled="batchShortfall > 0 || batchForm.student_ids.length === 0 || !batchForm.exam_id"
+              :loading="savingBatch"
+              type="submit"
+            >
+              Submit & Spend Tokens
+            </v-btn>
+          </div>
+        </form>
+      </div>
     </v-dialog>
 
     <!-- Create Dedicated Single-Student Retry Link Modal -->
     <v-dialog v-model="showRetryLinkModal" max-width="500">
-      <v-card class="pa-4 rounded-xl">
-        <v-card-title class="text-h6 font-weight-bold">Create Single-Student Retry Link</v-card-title>
-        <v-card-text>
-          <p class="text-body-2 text-grey mb-4">
-            Generates a dedicated single-student retry link tied to the original batch. Consumes <strong>1 token</strong> from your wallet.
-          </p>
-          <v-text-field v-model="retryLinkExpiresAt" label="Link Expiration Date/Time (Optional)" type="datetime-local" variant="outlined"></v-text-field>
-        </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="showRetryLinkModal = false">Cancel</v-btn>
-          <v-btn color="purple-darken-1" variant="flat" :loading="creatingRetryLink" @click="submitDedicatedRetryLink">
+      <div class="bg-white rounded-3xl p-6 shadow-2xl border border-slate-200/80">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-200/80">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+              <v-icon icon="mdi-link-plus" color="#7C3AED" size="24"></v-icon>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Create Dedicated Retry Link</h3>
+              <p class="text-xs text-slate-500">Consumes 1 token from wallet</p>
+            </div>
+          </div>
+          <button @click="showRetryLinkModal = false" class="text-slate-400 hover:text-slate-600">
+            <v-icon icon="mdi-close" size="20"></v-icon>
+          </button>
+        </div>
+
+        <p class="text-xs text-slate-600 mb-4">
+          Generates a dedicated single-student retry link tied to the original batch for candidate retry.
+        </p>
+
+        <v-text-field
+          v-model="retryLinkExpiresAt"
+          label="Link Expiration Date/Time (Optional)"
+          type="datetime-local"
+          variant="outlined"
+          density="compact"
+          class="mb-4"
+        ></v-text-field>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <v-btn variant="text" class="text-none font-bold text-slate-600" @click="showRetryLinkModal = false">Cancel</v-btn>
+          <v-btn
+            color="#7C3AED"
+            class="font-bold text-white text-none rounded-xl"
+            :loading="creatingRetryLink"
+            @click="submitDedicatedRetryLink"
+          >
             Generate Link & Spend 1 Token
           </v-btn>
-        </v-card-actions>
-      </v-card>
+        </div>
+      </div>
     </v-dialog>
-  </v-container>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -689,40 +953,6 @@ async function submitDedicatedRetryLink() {
   }
 }
 
-function openEditBatchModal(batch: any) {
-  alert('Use batch assignment controls or edit form to adjust student enrollments.');
-}
-
-// Helpers
-function getBatchStatusColor(status: string) {
-  switch (status) {
-    case 'open': return 'success';
-    case 'closed': return 'grey';
-    case 'cancelled': return 'error';
-    default: return 'info';
-  }
-}
-
-function getAssignmentStatusColor(status: string) {
-  switch (status) {
-    case 'passed': return 'success';
-    case 'failed': return 'error';
-    case 'in_progress': return 'warning';
-    case 'not_started': return 'info';
-    default: return 'grey';
-  }
-}
-
-function getTxTypeColor(type: string) {
-  switch (type) {
-    case 'purchase': return 'success';
-    case 'consume': return 'warning';
-    case 'refund_unused': return 'purple';
-    case 'refund_edit_removal': return 'info';
-    default: return 'grey';
-  }
-}
-
 function formatDate(dateStr: string) {
   if (!dateStr) return '-';
   return new Date(dateStr).toLocaleString();
@@ -736,10 +966,18 @@ definePageMeta({
 </script>
 
 <style scoped>
-.bg-gradient-teal {
-  background: linear-gradient(135deg, #0d9488 0%, #115e59 100%);
+.gsfin-table :deep(th) {
+  font-weight: 700 !important;
+  color: #0F172A !important;
+  background-color: #F8FAFC !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border-bottom: 1px solid #E2E8F0 !important;
 }
-.border-teal {
-  border-color: #0d9488 !important;
+.gsfin-table :deep(td) {
+  border-bottom: 1px solid #F1F5F9 !important;
+  font-size: 0.875rem !important;
 }
 </style>
+
