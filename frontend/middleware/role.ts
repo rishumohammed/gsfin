@@ -6,21 +6,10 @@ export default defineNuxtRouteMiddleware((to, from) => {
 
   const adminRoles = ['super_admin', 'main_admin', 'sub_center_staff', 'sub_admin', 'lms_user', 'placement_coordinator', 'finance_staff'];
 
-  if (to.path === '/dashboard') {
-    if (role === 'main_admin') return navigateTo('/admin/multi-tenant');
+  if (to.path === '/dashboard' || to.path === '/dashboard/admin') {
+    if (role === 'super_admin' || role === 'main_admin') return navigateTo('/admin/multi-tenant');
     if (role === 'sub_center_staff') return navigateTo('/sub-center');
-    if (role === 'super_admin' || role === 'sub_admin') return navigateTo('/dashboard/admin');
-    
-    switch (role) {
-      case 'crm_agent': return navigateTo('/dashboard/crm');
-      case 'tutor': return navigateTo('/dashboard/tutor');
-      case 'student': return navigateTo('/dashboard/student');
-      case 'employer': return navigateTo('/dashboard/employer');
-      case 'lms_user': return navigateTo('/dashboard/lms');
-      case 'placement_coordinator': return navigateTo('/dashboard/admin/placements');
-      case 'finance_staff': return navigateTo('/dashboard/admin/finance');
-      default: return navigateTo('/login');
-    }
+    return navigateTo('/admin/multi-tenant');
   }
 
   // Block department roles from accessing the main admin overview dashboard
