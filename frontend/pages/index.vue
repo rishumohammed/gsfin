@@ -2,48 +2,7 @@
   <div class="gsfin-page">
 
     <!-- ═══ NAVBAR ═══ -->
-    <header class="gsfin-nav" :class="{ 'gsfin-nav--scrolled': scrolled }">
-      <div class="nav-wrap">
-        <NuxtLink to="/" class="nav-logo">
-          <img :src="fullLogoUrl || '/logo.webp'" alt="GSFIN" class="nav-logo-img" />
-        </NuxtLink>
-
-        <nav class="nav-links">
-          <a href="#certifications" class="nav-link" @click.prevent="scrollTo('certifications')">Certifications</a>
-          <a href="#why-gsfin" class="nav-link" @click.prevent="scrollTo('why-gsfin')">For Training Centers</a>
-          <a href="#why-gsfin" class="nav-link" @click.prevent="scrollTo('why-gsfin')">Why GSFIN</a>
-          <a href="#how-it-works" class="nav-link" @click.prevent="scrollTo('how-it-works')">Resources</a>
-          <a href="#contact" class="nav-link" @click.prevent="scrollTo('contact')">Contact</a>
-        </nav>
-
-        <div class="nav-right">
-          <button class="nav-search-btn" aria-label="Search">
-            <i class="mdi mdi-magnify"></i>
-          </button>
-          <button class="nav-cta-btn" @click="openPartnerModal()">
-            Partner with GSFIN <i class="mdi mdi-arrow-right"></i>
-          </button>
-          <button class="nav-hamburger" @click="mobileMenu = !mobileMenu" aria-label="Toggle menu">
-            <span :class="{ 'open': mobileMenu }"></span>
-            <span :class="{ 'open': mobileMenu }"></span>
-            <span :class="{ 'open': mobileMenu }"></span>
-          </button>
-        </div>
-      </div>
-
-      <div class="nav-drawer" :class="{ 'nav-drawer--open': mobileMenu }">
-        <a href="#certifications" class="nav-drawer-link" @click.prevent="mobileMenu=false; scrollTo('certifications')">Certifications</a>
-        <a href="#why-gsfin"      class="nav-drawer-link" @click.prevent="mobileMenu=false; scrollTo('why-gsfin')">For Training Centers</a>
-        <a href="#why-gsfin"      class="nav-drawer-link" @click.prevent="mobileMenu=false; scrollTo('why-gsfin')">Why GSFIN</a>
-        <a href="#how-it-works"   class="nav-drawer-link" @click.prevent="mobileMenu=false; scrollTo('how-it-works')">Resources</a>
-        <a href="#contact"        class="nav-drawer-link" @click.prevent="mobileMenu=false; scrollTo('contact')">Contact</a>
-        <div class="nav-drawer-cta-wrap">
-          <button class="nav-cta-btn w-full justify-center" @click="mobileMenu=false; openPartnerModal()">
-            Partner with GSFIN <i class="mdi mdi-arrow-right"></i>
-          </button>
-        </div>
-      </div>
-    </header>
+    <PublicNavbar @open-partner-modal="openPartnerModal()" />
 
     <!-- ═══ HERO ═══ -->
     <section class="hero">

@@ -157,7 +157,7 @@ INSERT IGNORE INTO exams (id, name, description, duration_minutes, max_attempts,
 -- 15. Pre-seed Demo Main Admin User & Demo Sub-Center Organization
 -- Main Admin: mainadmin@certification.org / Password123!
 INSERT IGNORE INTO users (id, role, org_id, name, email, password_hash, status) VALUES
-('u-main-admin-01', 'main_admin', NULL, 'Authority Chief Administrator', 'mainadmin@certification.org', '$2b$10$AtvXYfyvA.c7quqTRrrL0OcFjiC688pp7BqQkVF9itclLgPwu5VGW', 'active');
+('u-main-admin-01', 'main_admin', NULL, 'Authority Chief Administrator', 'mainadmin@certification.org', '$2b$10$mQDSYjJO4N9Vi8VOjRKliexBtGzZz846W39Zs6GaRexBQ8Leve6aO', 'active');
 
 -- Sub-center Org: Apex Testing Center
 INSERT IGNORE INTO organizations (id, name, contact_email, contact_phone, status) VALUES
@@ -165,4 +165,4 @@ INSERT IGNORE INTO organizations (id, name, contact_email, contact_phone, status
 
 -- Sub-center Staff User: staff@apexcenter.com / Password123!
 INSERT IGNORE INTO users (id, role, org_id, name, email, password_hash, status) VALUES
-('u-apex-staff-01', 'sub_center_staff', 'org-apex-01', 'Apex Center Administrator', 'staff@apexcenter.com', '$2b$10$AtvXYfyvA.c7quqTRrrL0OcFjiC688pp7BqQkVF9itclLgPwu5VGW', 'active');
+('u-apex-staff-01', 'sub_center_staff', 'org-apex-01', 'Apex Center Administrator', 'staff@apexcenter.com', '$2b$10$mQDSYjJO4N9Vi8VOjRKliexBtGzZz846W39Zs6GaRexBQ8Leve6aO', 'active');

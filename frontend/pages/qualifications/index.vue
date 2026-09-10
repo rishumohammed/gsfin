@@ -1,27 +1,7 @@
 <template>
   <div class="gsfin-page">
     <!-- ═══ NAVBAR ═══ -->
-    <header class="gsfin-nav" :class="{ 'gsfin-nav--scrolled': scrolled }">
-      <div class="nav-wrap">
-        <NuxtLink to="/" class="nav-logo">
-          <img :src="fullLogoUrl || '/logo.webp'" alt="GSFIN" class="nav-logo-img" />
-        </NuxtLink>
-
-        <nav class="nav-links">
-          <NuxtLink to="/qualifications" class="nav-link nav-link--active">Qualifications</NuxtLink>
-          <NuxtLink to="/#why-gsfin" class="nav-link">For Training Centers</NuxtLink>
-          <NuxtLink to="/#why-gsfin" class="nav-link">Why GSFIN</NuxtLink>
-          <NuxtLink to="/#how-it-works" class="nav-link">Resources</NuxtLink>
-          <NuxtLink to="/#contact" class="nav-link">Contact</NuxtLink>
-        </nav>
-
-        <div class="nav-right">
-          <button class="nav-cta-btn" @click="openPartnerModal()">
-            Partner with GSFIN <i class="mdi mdi-arrow-right"></i>
-          </button>
-        </div>
-      </div>
-    </header>
+    <PublicNavbar @open-partner-modal="openPartnerModal()" />
 
     <!-- ═══ HERO ═══ -->
     <section class="qual-catalog-hero">
