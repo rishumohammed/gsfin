@@ -18,25 +18,26 @@ export const useNavStore = defineStore('nav', {
     isCollapsed: false,
     navItems: [
       // MAIN
-      { label: 'Dashboard', icon: 'mdi-view-dashboard-outline', route: '/admin/multi-tenant', roles: ['super_admin', 'main_admin', 'sub_admin'] },
+      { label: 'Dashboard', icon: 'mdi-view-dashboard-outline', route: '/admin/multi-tenant?tab=overview', roles: ['super_admin', 'main_admin', 'sub_admin'] },
       
-      // SUB-CENTER MANAGEMENT
-      { label: 'Sub-Center Accounts', icon: 'mdi-office-building', route: '/admin/multi-tenant?tab=subcenters', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'SUB-CENTER MANAGEMENT' },
-      { label: 'Live Batches Feed', icon: 'mdi-view-dashboard', route: '/admin/multi-tenant?tab=overview', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'SUB-CENTER MANAGEMENT' },
+      // PARTNER MANAGEMENT
+      { label: 'Partner Centers', icon: 'mdi-office-building', route: '/admin/multi-tenant?tab=subcenters', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'PARTNER MANAGEMENT' },
+      { label: 'Live Batches', icon: 'mdi-layers-triple-outline', route: '/admin/multi-tenant?tab=batches', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'PARTNER MANAGEMENT' },
 
-      // EXAM CATALOG
-      { label: 'Certification Exam Catalog', icon: 'mdi-file-certificate', route: '/admin/multi-tenant?tab=exams', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAM CATALOG' },
-      { label: 'Qualifications Catalog', icon: 'mdi-certificate-outline', route: '/dashboard/admin/qualifications', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAM CATALOG' },
+      // EXAMS & CERTIFICATION
+      { label: 'Exam Portal', icon: 'mdi-clipboard-text-outline', route: '/dashboard/admin/public-exams', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAMS & CERTIFICATION' },
+      { label: 'AI Proctoring', icon: 'mdi-security', route: '/dashboard/admin/proctoring', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAMS & CERTIFICATION' },
+      { label: 'Qualifications', icon: 'mdi-certificate-outline', route: '/dashboard/admin/qualifications', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAMS & CERTIFICATION' },
 
       // TOKEN MANAGEMENT
-      { label: 'Token Packages Catalog', icon: 'mdi-package-variant-closed', route: '/admin/multi-tenant?tab=packages', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'TOKEN MANAGEMENT' },
-      { label: 'Token Audit Trail', icon: 'mdi-history', route: '/admin/multi-tenant?tab=audit', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'TOKEN MANAGEMENT' },
+      { label: 'Token Packages', icon: 'mdi-package-variant-closed', route: '/admin/multi-tenant?tab=packages', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'TOKEN MANAGEMENT' },
+      { label: 'Token History', icon: 'mdi-history', route: '/admin/multi-tenant?tab=audit', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'TOKEN MANAGEMENT' },
 
-      // SUB-CENTER PORTAL (FOR SUB-CENTER STAFF)
-      { label: 'Sub-Center Portal', icon: 'mdi-school', route: '/sub-center', roles: ['sub_center_staff'], section: 'SUB-CENTER PORTAL' },
+      // PARTNER PORTAL
+      { label: 'Partner Portal', icon: 'mdi-school', route: '/sub-center', roles: ['sub_center_staff'], section: 'PARTNER PORTAL' },
 
       // SETTINGS
-      { label: 'Manage FAQs', icon: 'mdi-frequently-asked-questions', route: '/dashboard/admin/faqs', roles: ['super_admin', 'main_admin'], section: 'SETTINGS' },
+      { label: 'FAQs', icon: 'mdi-frequently-asked-questions', route: '/dashboard/admin/faqs', roles: ['super_admin', 'main_admin'], section: 'SETTINGS' },
       { label: 'System Users', icon: 'mdi-account-group', route: '/dashboard/admin/settings/system-users', roles: ['super_admin', 'main_admin'], section: 'SETTINGS' },
       { label: 'Profile', icon: 'mdi-account-outline', route: '/dashboard/profile', roles: ['super_admin', 'main_admin', 'sub_center_staff', 'sub_admin'], section: 'SETTINGS' },
       { label: 'Logout', icon: 'mdi-logout', action: 'logout', roles: ['super_admin', 'main_admin', 'sub_center_staff', 'sub_admin'], section: 'SETTINGS' },

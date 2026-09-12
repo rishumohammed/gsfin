@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref } from 'vue';
 import { useApi } from '@/composables/useApi';
 
 export const useProctoring = () => {
@@ -8,21 +8,29 @@ export const useProctoring = () => {
   const isFullscreen = ref(false);
   const isDevToolsOpen = ref(false);
   
-  // Violations
-  const tabSwitchCount = ref(0);
-  const maxTabSwitches = 3;
+  // Violations & Warning counter
+  const violationCount = ref(0);
+  const maxProctoringWarnings = ref(3);
   const violationWarning = ref<{ show: boolean, message: string }>({ show: false, message: '' });
   
   const proctoringConfig = ref<any>({});
-  let captureScreenshotCallback: (() => Promise<string | null>) | null = null;
+  let captureScreenshotCallback: ((type: string) => Promise<string | null>) | null = null;
   let submitCallback: ((reason: string) => void) | null = null;
   let devToolsInterval: NodeJS.Timeout;
   let authHeaders: any = {};
 
-  const initProctoring = (id: string, onSubmit: (reason: string) => void, config: any = {}, captureScreenshotFn?: () => Promise<string | null>, customHeaders?: any) => {
+  const initProctoring = (
+    id: string,
+    onSubmit: (reason: string) => void,
+    config: any = {},
+    captureScreenshotFn?: (type: string) => Promise<string | null>,
+    customHeaders?: any
+  ) => {
     attemptId.value = id;
     submitCallback = onSubmit;
     proctoringConfig.value = config;
+    maxProctoringWarnings.value = config.max_proctoring_warnings || config.max_warnings || 3;
+
     if (captureScreenshotFn) {
       captureScreenshotCallback = captureScreenshotFn;
     }
@@ -40,7 +48,7 @@ export const useProctoring = () => {
     document.addEventListener('paste', preventDefaultAction);
     document.addEventListener('keydown', handleKeydown);
 
-    // DevTools detection loop
+    // DevTools detection loop every 1000ms
     devToolsInterval = setInterval(detectDevTools, 1000);
     
     // Initial Fullscreen check
@@ -66,9 +74,9 @@ export const useProctoring = () => {
   const logEvent = async (type: string, metadata: any = {}) => {
     if (!attemptId.value) return;
     try {
-      // Auto-capture screenshot on violation if option enabled
-      if (proctoringConfig.value?.capture_on_violation && captureScreenshotCallback) {
-        const screenshotUrl = await captureScreenshotCallback();
+      // Auto-capture screenshot on violation
+      if (captureScreenshotCallback) {
+        const screenshotUrl = await captureScreenshotCallback(type);
         if (screenshotUrl) {
           metadata.screenshot = screenshotUrl;
         }
@@ -104,28 +112,27 @@ export const useProctoring = () => {
 
   const handleVisibilityChange = () => {
     if (document.visibilityState === 'hidden') {
-      handleViolation('tab_switch');
+      handleViolation('tab_switch', 'You switched browser tabs. Please stay on the exam tab.');
     }
   };
 
   const handleWindowBlur = () => {
-    // Window blur is another strong indicator of leaving the exam
     if (document.visibilityState !== 'hidden') {
-      handleViolation('window_blur');
+      handleViolation('window_blur', 'Window focus lost. Please click back inside the exam window.');
     }
   };
 
-  const handleViolation = (type: string) => {
-    tabSwitchCount.value++;
-    logEvent(type, { count: tabSwitchCount.value });
+  const handleViolation = (type: string, customMsg?: string) => {
+    violationCount.value++;
+    logEvent(type, { count: violationCount.value });
 
-    if (tabSwitchCount.value >= maxTabSwitches) {
-      const msg = 'You have exceeded the maximum allowed tab switches. Your exam is being automatically submitted.';
+    if (violationCount.value >= maxProctoringWarnings.value) {
+      const msg = 'Security violation threshold reached. Your exam is being automatically submitted.';
       violationWarning.value = { show: true, message: msg };
       speakWarning(msg);
       if (submitCallback) submitCallback('tab_switch_limit_exceeded');
     } else {
-      const msg = `Warning ${tabSwitchCount.value} out of ${maxTabSwitches}: Please do not leave the exam window. Doing so again may result in auto-submission.`;
+      const msg = customMsg || `Warning ${violationCount.value} of ${maxProctoringWarnings.value}: Please adhere strictly to proctoring guidelines.`;
       violationWarning.value = { show: true, message: msg };
       speakWarning(msg);
     }
@@ -133,9 +140,9 @@ export const useProctoring = () => {
 
   const handleFullscreenChange = () => {
     checkFullscreen();
-    if (!isFullscreen.value) {
+    if (!isFullscreen.value && proctoringConfig.value?.enforce_fullscreen !== false) {
       logEvent('fullscreen_exit');
-      const msg = 'You have exited fullscreen mode. You must return to fullscreen to continue the exam.';
+      const msg = 'Fullscreen mode exited. You must return to full screen to continue your exam.';
       violationWarning.value = { show: true, message: msg };
       speakWarning(msg);
     }
@@ -161,7 +168,6 @@ export const useProctoring = () => {
   };
 
   const handleKeydown = (e: KeyboardEvent) => {
-    // Block common DevTools / Save shortcuts
     if (
       e.key === 'F12' ||
       (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) ||
@@ -171,6 +177,7 @@ export const useProctoring = () => {
     ) {
       e.preventDefault();
       logEvent('forbidden_shortcut', { key: e.key });
+      speakWarning('Shortcut blocked by proctoring lock.');
     }
   };
 
@@ -181,6 +188,7 @@ export const useProctoring = () => {
     if ((widthThreshold || heightThreshold) && !isDevToolsOpen.value) {
       isDevToolsOpen.value = true;
       logEvent('devtools_open');
+      handleViolation('devtools_open', 'Developer tools detected. Please close console immediately.');
     } else if (!widthThreshold && !heightThreshold && isDevToolsOpen.value) {
       isDevToolsOpen.value = false;
     }
@@ -188,7 +196,7 @@ export const useProctoring = () => {
 
   const dismissWarning = () => {
     violationWarning.value.show = false;
-    if (!isFullscreen.value) {
+    if (!isFullscreen.value && proctoringConfig.value?.enforce_fullscreen !== false) {
       requestFullscreen().catch(e => console.warn('Could not re-enter fullscreen:', e));
     }
   };
@@ -198,10 +206,12 @@ export const useProctoring = () => {
     cleanupProctoring,
     requestFullscreen,
     logEvent,
+    handleViolation,
     dismissWarning,
     speakWarning,
     isFullscreen,
     violationWarning,
-    tabSwitchCount
+    violationCount,
+    maxProctoringWarnings
   };
 };

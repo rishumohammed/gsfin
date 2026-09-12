@@ -329,7 +329,18 @@ const setupCamera = async () => {
   }
 };
 
-const onVideoReady = (videoEl: HTMLVideoElement) => {
+const onVideoReady = async (videoEl: HTMLVideoElement) => {
+  // 1. Register selfie baseline & upload reference selfie image
+  try {
+    const vector = await faceDetection.registerSelfieBaseline(videoEl);
+    if (vector) {
+      await recorder.uploadReferenceSelfie(attemptId.value, vector);
+    }
+  } catch (err) {
+    console.warn('Reference selfie capture notice:', err);
+  }
+
+  // 2. Start face detection & object detection loops
   faceDetection.startDetection(
     videoEl, 
     proctoring.logEvent, 

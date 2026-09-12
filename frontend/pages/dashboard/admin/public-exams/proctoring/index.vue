@@ -126,7 +126,7 @@
         </template>
 
         <template v-slot:item.actions="{ item }">
-          <div class="d-flex gap-2 justify-end">
+          <div class="action-btn-group">
             <v-btn
               variant="tonal"
               color="primary"

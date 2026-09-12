@@ -578,8 +578,8 @@ const proctoringConfig = computed(() => {
     capture_on_violation: true,
     face_missing_alert: true,
     multiple_faces_alert: true,
-    record_full_video: true,
-    face_missing_threshold: 5
+    record_full_video: false,
+    face_missing_threshold: 3
   };
 });
 
@@ -603,7 +603,18 @@ async function setupCamera() {
   }
 }
 
-function onVideoReady(videoEl: HTMLVideoElement) {
+async function onVideoReady(videoEl: HTMLVideoElement) {
+  // 1. Register selfie baseline & upload reference selfie image
+  try {
+    const vector = await faceDetection.registerSelfieBaseline(videoEl);
+    if (vector) {
+      await recorder.uploadReferenceSelfie(attemptId.value, vector, authHeaders());
+    }
+  } catch (err) {
+    console.warn('Reference selfie capture notice:', err);
+  }
+
+  // 2. Start face & object detection loops
   faceDetection.startDetection(
     videoEl, 
     proctoring.logEvent, 

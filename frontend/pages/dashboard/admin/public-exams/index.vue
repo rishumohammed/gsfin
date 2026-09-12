@@ -1,184 +1,282 @@
 <template>
-  <v-container fluid class="py-8 px-6 bg-grey-lighten-4 min-vh-100">
-    <!-- Header -->
-    <div class="d-flex align-center justify-space-between mb-8 flex-wrap gap-4">
-      <div>
-        <h1 class="text-h4 font-weight-bold text-slate-900 tracking-tight mb-1">All Public Exams</h1>
-        <p class="text-secondary mb-0">Manage visitor entrance exams, change publish workflows, and duplicate exam sessions.</p>
-      </div>
-      <div class="d-flex gap-3">
-        <v-btn
-          variant="outlined"
-          color="primary"
-          rounded="lg"
-          height="42"
-          class="text-none font-weight-bold px-5"
-          to="/dashboard/admin/public-exams/categories"
-        >
-          Manage Categories
-        </v-btn>
-        <v-btn
-          color="primary"
-          rounded="lg"
-          elevation="0"
-          height="42"
-          class="text-none font-weight-bold px-5"
-          prepend-icon="mdi-plus"
-          to="/dashboard/admin/public-exams/create"
-        >
-          Create Public Exam
-        </v-btn>
+  <div class="exam-portal-page min-h-screen pb-12" style="background-color: #FAFAFD;">
+    <!-- Page Header -->
+    <div class="bg-white border-b border-slate-200/80 shadow-xs mb-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="d-flex align-center justify-space-between flex-wrap gap-4">
+          <div class="d-flex align-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-600 to-red-700 d-flex align-center justify-center text-white shadow-md shrink-0">
+              <v-icon icon="mdi-clipboard-text-outline" size="26" color="white"></v-icon>
+            </div>
+            <div>
+              <div class="d-flex align-center gap-2 mb-1 flex-wrap">
+                <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+                  Certification Exam Portal
+                </h1>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-500 font-medium">
+                Create and manage certification exams, set passing criteria, manage question pools & publish workflows.
+              </p>
+            </div>
+          </div>
+
+          <div class="d-flex align-center gap-3 shrink-0">
+            <v-btn
+              variant="outlined"
+              color="slate"
+              class="text-none font-bold rounded-xl border-slate-300 text-slate-700 me-3 mr-3"
+              to="/dashboard/admin/public-exams/categories"
+            >
+              Categories
+            </v-btn>
+            <v-btn
+              color="#E31B23"
+              size="large"
+              class="font-bold text-white text-none rounded-xl shadow-md hover:bg-red-700"
+              prepend-icon="mdi-plus"
+              to="/dashboard/admin/public-exams/create"
+            >
+              Create Exam
+            </v-btn>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Search & Filters -->
-    <v-card variant="outlined" class="pa-4 mb-6 rounded-xl border-surface bg-white">
-      <v-row align="center" no-gutters class="gap-4 flex-wrap">
-        <v-col cols="12" md="4" class="pa-0">
-          <v-text-field
-            v-model="search"
-            placeholder="Search exams by name..."
-            prepend-inner-icon="mdi-magnify"
-            hide-details
-            clearable
-            density="compact"
-            variant="outlined"
-            rounded="lg"
-          ></v-text-field>
-        </v-col>
-        <v-col cols="12" md="3" class="pa-0">
-          <v-select
-            v-model="categoryFilter"
-            :items="categories"
-            item-title="name"
-            item-value="id"
-            label="Filter by Category"
-            hide-details
-            density="compact"
-            variant="outlined"
-            rounded="lg"
-          ></v-select>
-        </v-col>
-        <v-col cols="12" md="2" class="pa-0">
-          <v-select
-            v-model="statusFilter"
-            :items="['All', 'draft', 'review', 'published', 'archived']"
-            label="Filter by Status"
-            hide-details
-            density="compact"
-            variant="outlined"
-            rounded="lg"
-            class="text-capitalize"
-          ></v-select>
-        </v-col>
-      </v-row>
-    </v-card>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Search & Filters Card -->
+      <div class="filter-card">
+        <v-row dense align="center">
+          <!-- Search Field -->
+          <v-col cols="12" md="6">
+            <div class="filter-field-wrap">
+              <label class="filter-field-label">Search Exam</label>
+              <div class="search-input-box">
+                <v-icon icon="mdi-magnify" size="20" class="search-icon-inside"></v-icon>
+                <input
+                  v-model="search"
+                  type="text"
+                  placeholder="Search exams by name or category..."
+                  class="gsfin-input"
+                />
+              </div>
+            </div>
+          </v-col>
 
-    <!-- Table -->
-    <v-card variant="outlined" class="rounded-xl border-surface bg-white overflow-hidden">
-      <div v-if="loading" class="pa-12 text-center">
-        <v-progress-circular indeterminate color="primary" size="48"></v-progress-circular>
-        <div class="mt-4 text-grey font-weight-bold">Loading public exams...</div>
+          <!-- Category Select -->
+          <v-col cols="12" md="3">
+            <div class="filter-field-wrap">
+              <label class="filter-field-label">Category</label>
+              <div class="select-input-box">
+                <select v-model="categoryFilter" class="gsfin-select">
+                  <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+                </select>
+                <v-icon icon="mdi-chevron-down" size="18" class="select-chevron-inside"></v-icon>
+              </div>
+            </div>
+          </v-col>
+
+          <!-- Status Select -->
+          <v-col cols="12" md="3">
+            <div class="filter-field-wrap">
+              <label class="filter-field-label">Status</label>
+              <div class="select-input-box">
+                <select v-model="statusFilter" class="gsfin-select capitalize">
+                  <option value="All">All Statuses</option>
+                  <option value="draft">Draft</option>
+                  <option value="review">Under Review</option>
+                  <option value="published">Published</option>
+                  <option value="archived">Archived</option>
+                </select>
+                <v-icon icon="mdi-chevron-down" size="18" class="select-chevron-inside"></v-icon>
+              </div>
+            </div>
+          </v-col>
+        </v-row>
       </div>
 
-      <v-data-table
-        v-else
-        :headers="headers"
-        :items="filteredExams"
-        class="bg-transparent custom-table clean-table"
-      >
-        <!-- Exam Details Column -->
-        <template v-slot:item.name="{ item }">
-          <div class="py-3">
-            <div class="font-weight-bold text-dark text-subtitle-2 mb-1">{{ item.name }}</div>
-            <div class="d-flex align-center gap-2">
-              <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-bold">
-                {{ item.category_name }}
-              </v-chip>
-            </div>
-          </div>
-        </template>
+      <!-- Main Exams Table Card -->
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div v-if="loading" class="p-12 text-center">
+          <v-progress-circular indeterminate color="#E31B23" size="48"></v-progress-circular>
+          <div class="mt-4 text-xs font-bold text-slate-500">Loading certification exams...</div>
+        </div>
 
-        <!-- Configuration Column -->
-        <template v-slot:item.settings="{ item }">
-          <div class="py-3">
-            <div class="font-weight-bold text-dark">{{ item.question_count }} <span class="text-secondary font-weight-regular text-caption">Qs</span></div>
-            <div class="text-caption text-secondary mt-1">
-              {{ item.duration_minutes }} min &bull; {{ item.passing_marks }} ({{ item.pass_percentage }}%) Pass
-            </div>
-          </div>
-        </template>
-
-        <!-- Status Column -->
-        <template v-slot:item.status="{ item }">
-          <div class="d-flex flex-column align-center gap-1 py-2">
-            <v-chip
-              size="small"
-              :color="getStatusColor(item.status)"
-              variant="flat"
-              class="text-white font-weight-black text-uppercase"
-            >
-              {{ item.status }}
-            </v-chip>
-            <v-chip
-              size="x-small"
-              :color="item.registration_status === 'open' ? 'teal' : 'error'"
-              variant="tonal"
-              class="font-weight-bold text-uppercase"
-            >
-              <v-icon start size="10">{{ item.registration_status === 'open' ? 'mdi-lock-open-outline' : 'mdi-lock-outline' }}</v-icon>
-              {{ item.registration_status === 'open' ? 'Open' : 'Closed' }}
-            </v-chip>
-          </div>
-        </template>
-
-        <!-- Engagement Column -->
-        <template v-slot:item.engagement="{ item }">
-          <div class="py-3 text-center">
-            <div class="font-weight-bold text-dark">{{ item.candidate_count }} <span class="text-secondary font-weight-regular text-caption">Candidates</span></div>
-            <div class="text-caption text-secondary mt-1">{{ item.attempts_count }} Attempts</div>
-          </div>
-        </template>
-
-        <!-- Created Date Column -->
-        <template v-slot:item.created_at="{ item }">
-          <span class="text-body-2 text-secondary">{{ formatDate(item.created_at) }}</span>
-        </template>
-
-        <!-- Actions Column -->
-        <template v-slot:item.actions="{ item }">
-          <div class="d-flex justify-end py-2 px-2">
-            <div class="d-flex flex-column gap-1">
-                <!-- First Row of Actions -->
-              <div class="d-flex gap-1">
-                <!-- Manage Questions -->
-                <v-btn icon="mdi-database-outline" variant="tonal" size="small" color="blue-grey" :to="`/dashboard/admin/public-exams/questions?examId=${item.id}`" title="Manage Questions" />
-                <!-- Registration Form -->
-                <v-btn icon="mdi-link-variant" variant="tonal" size="small" color="teal" :to="`/public-exams/${item.slug}/register`" target="_blank" title="Registration Form" />
-                <!-- Candidates -->
-                <v-btn icon="mdi-account-group-outline" variant="tonal" size="small" color="purple" :to="`/dashboard/admin/public-exams/${item.id}/candidates`" title="Candidates" />
-                <!-- Certificates -->
-                <v-btn icon="mdi-certificate-outline" variant="tonal" size="small" color="deep-purple" :to="`/dashboard/admin/public-exams/${item.id}/certificates`" title="Generated Certificates" />
-                <!-- Analytics -->
-                <v-btn icon="mdi-chart-bar" variant="tonal" size="small" color="primary" :to="`/dashboard/admin/public-exams/${item.id}/analytics`" title="Results & Analytics" />
-                <!-- Share / Copy Link Modal -->
-                <v-btn icon="mdi-share-variant" variant="tonal" size="small" color="info" @click="openShareDialog(item)" title="Share Exam Link" />
+        <v-data-table
+          v-else
+          :headers="headers"
+          :items="filteredExams"
+          class="elevation-0 gsfin-exam-table"
+        >
+          <!-- Custom Empty State -->
+          <template v-slot:no-data>
+            <div class="py-16 text-center px-4">
+              <div class="empty-state-icon-box">
+                <v-icon icon="mdi-clipboard-text-off-outline" size="32" color="#E31B23"></v-icon>
               </div>
-              
-              <!-- Second Row of Actions -->
-              <div class="d-flex gap-1">
-                <!-- Edit -->
-                <v-btn icon="mdi-pencil-outline" variant="tonal" size="small" color="indigo" :to="`/dashboard/admin/public-exams/create?id=${item.id}`" title="Edit Exam Settings" />
+              <h3 class="text-base font-black text-slate-900 mb-1">No Certification Exams Found</h3>
+              <p class="text-xs text-slate-500 max-w-md mx-auto mb-6">
+                There are no certification exams matching your current filter criteria. Create your first exam to get started.
+              </p>
+              <v-btn
+                color="#E31B23"
+                class="font-bold text-white text-none rounded-xl shadow-md"
+                prepend-icon="mdi-plus"
+                to="/dashboard/admin/public-exams/create"
+              >
+                Create Exam
+              </v-btn>
+            </div>
+          </template>
+
+          <!-- Exam Details Column -->
+          <template v-slot:item.name="{ item }">
+            <div class="py-3">
+              <div class="font-black text-slate-900 text-sm mb-1">{{ item.name }}</div>
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200">
+                  {{ item.category_name || 'General Certification' }}
+                </span>
+              </div>
+            </div>
+          </template>
+
+          <!-- Configuration Column -->
+          <template v-slot:item.settings="{ item }">
+            <div class="py-3">
+              <div class="font-bold text-slate-900 text-xs">{{ item.question_count || 0 }} Questions</div>
+              <div class="text-xs text-slate-500 mt-0.5">
+                {{ item.duration_minutes }} Mins • Pass Score: <strong class="text-slate-800">{{ item.passing_marks }} ({{ item.pass_percentage }}%)</strong>
+              </div>
+            </div>
+          </template>
+
+          <!-- Status Column -->
+          <template v-slot:item.status="{ item }">
+            <div class="flex flex-col items-center gap-1.5 py-2">
+              <span
+                :class="[
+                  'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-wider',
+                  item.status === 'published' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                  item.status === 'draft' ? 'bg-slate-100 text-slate-700 border border-slate-200' :
+                  item.status === 'review' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                  'bg-red-50 text-red-700 border border-red-200'
+                ]"
+              >
+                {{ item.status }}
+              </span>
+              <span
+                :class="[
+                  'inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase',
+                  item.registration_status === 'open' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                ]"
+              >
+                <v-icon size="10" :icon="item.registration_status === 'open' ? 'mdi-lock-open-outline' : 'mdi-lock-outline'"></v-icon>
+                {{ item.registration_status === 'open' ? 'Reg Open' : 'Reg Closed' }}
+              </span>
+            </div>
+          </template>
+
+          <!-- Engagement Column -->
+          <template v-slot:item.engagement="{ item }">
+            <div class="py-3 text-center">
+              <div class="font-bold text-slate-900 text-xs">{{ item.candidate_count || 0 }} Candidates</div>
+              <div class="text-[11px] text-slate-500 font-medium mt-0.5">{{ item.attempts_count || 0 }} Attempts</div>
+            </div>
+          </template>
+
+          <!-- Created Date Column -->
+          <template v-slot:item.created_at="{ item }">
+            <span class="text-xs text-slate-500 font-medium">{{ formatDate(item.created_at) }}</span>
+          </template>
+
+          <!-- Actions Column -->
+          <template v-slot:item.actions="{ item }">
+            <div class="d-flex flex-column gap-1-5 py-2 px-1">
+              <div class="action-btn-group">
+                <!-- Manage Questions -->
+                <v-btn
+                  icon="mdi-database-outline"
+                  variant="outlined"
+                  size="x-small"
+                  color="#E31B23"
+                  class="rounded-lg"
+                  :to="`/dashboard/admin/public-exams/questions?examId=${item.id}`"
+                  title="Question Bank"
+                />
+                <!-- Registration Link -->
+                <v-btn
+                  icon="mdi-link-variant"
+                  variant="outlined"
+                  size="x-small"
+                  color="teal"
+                  class="rounded-lg"
+                  :to="`/public-exams/${item.slug}/register`"
+                  target="_blank"
+                  title="Candidate Reg Link"
+                />
+                <!-- Candidates -->
+                <v-btn
+                  icon="mdi-account-group-outline"
+                  variant="outlined"
+                  size="x-small"
+                  color="purple"
+                  class="rounded-lg"
+                  :to="`/dashboard/admin/public-exams/${item.id}/candidates`"
+                  title="Enrolled Candidates"
+                />
+                <!-- Certificates -->
+                <v-btn
+                  icon="mdi-certificate-outline"
+                  variant="outlined"
+                  size="x-small"
+                  color="indigo"
+                  class="rounded-lg"
+                  :to="`/dashboard/admin/public-exams/${item.id}/certificates`"
+                  title="Issued Certificates"
+                />
+                <!-- Share Link Dialog -->
+                <v-btn
+                  icon="mdi-share-variant"
+                  variant="outlined"
+                  size="x-small"
+                  color="slate"
+                  class="rounded-lg"
+                  @click="openShareDialog(item)"
+                  title="Share Exam Link"
+                />
+              </div>
+
+              <div class="action-btn-group">
+                <!-- Edit Exam -->
+                <v-btn
+                  icon="mdi-pencil-outline"
+                  variant="outlined"
+                  size="x-small"
+                  color="slate"
+                  class="rounded-lg"
+                  :to="`/dashboard/admin/public-exams/create?id=${item.id}`"
+                  title="Edit Exam Settings"
+                />
                 <!-- Duplicate -->
-                <v-btn icon="mdi-content-copy" variant="tonal" size="small" color="warning" @click="duplicateExam(item.id)" title="Duplicate Exam" />
-                
-                <!-- Publish / Unpublish Workflow Toggle -->
+                <v-btn
+                  icon="mdi-content-copy"
+                  variant="outlined"
+                  size="x-small"
+                  color="amber"
+                  class="rounded-lg"
+                  @click="duplicateExam(item.id)"
+                  title="Duplicate Exam"
+                />
+
+                <!-- Publish / Unpublish Toggle -->
                 <v-btn
                   v-if="item.status !== 'published'"
                   icon="mdi-rocket-launch-outline"
-                  variant="tonal"
-                  size="small"
-                  color="success"
+                  variant="flat"
+                  size="x-small"
+                  color="#10B981"
+                  class="rounded-lg text-white"
                   @click="changeStatus(item.id, 'published')"
                   title="Publish Exam"
                 />
@@ -186,10 +284,11 @@
                   v-else
                   icon="mdi-pause-circle-outline"
                   variant="tonal"
-                  size="small"
-                  color="grey-darken-2"
+                  size="x-small"
+                  color="slate"
+                  class="rounded-lg"
                   @click="changeStatus(item.id, 'draft')"
-                  title="Unpublish (Set to Draft)"
+                  title="Set to Draft"
                 />
 
                 <!-- Stop / Open Registration -->
@@ -197,8 +296,9 @@
                   v-if="item.registration_status !== 'closed'"
                   icon="mdi-stop-circle-outline"
                   variant="tonal"
-                  size="small"
+                  size="x-small"
                   color="error"
+                  class="rounded-lg"
                   @click="confirmStopRegistration(item)"
                   title="Stop Registration"
                 />
@@ -206,66 +306,89 @@
                   v-else
                   icon="mdi-lock-open-outline"
                   variant="tonal"
-                  size="small"
+                  size="x-small"
                   color="teal"
+                  class="rounded-lg"
                   @click="toggleRegistrationStatus(item.id, 'open')"
                   title="Open Registration"
                 />
 
                 <!-- Delete -->
-                <v-btn icon="mdi-delete-outline" variant="tonal" size="small" color="error" @click="confirmDelete(item)" title="Delete Exam" />
+                <v-btn
+                  icon="mdi-delete-outline"
+                  variant="tonal"
+                  size="x-small"
+                  color="error"
+                  class="rounded-lg"
+                  @click="confirmDelete(item)"
+                  title="Delete Exam"
+                />
               </div>
             </div>
-          </div>
-        </template>
-      </v-data-table>
-    </v-card>
+          </template>
+        </v-data-table>
+      </div>
+    </div>
 
     <!-- Delete Confirmation Dialog -->
-    <v-dialog v-model="deleteDialog" max-width="400">
-      <v-card class="pa-6 rounded-xl">
-        <h3 class="text-h6 font-weight-bold mb-3 text-dark">Delete Public Exam?</h3>
-        <p class="text-body-2 text-secondary mb-6">
-          Are you sure you want to delete "{{ targetExam?.name }}"? This will permanently delete the exam, all questions, guest attempts, and results. This action is irreversible.
+    <v-dialog v-model="deleteDialog" max-width="440">
+      <div class="bg-white rounded-3xl p-6 shadow-2xl border border-slate-200/80">
+        <h3 class="text-lg font-bold text-slate-900 mb-2">Delete Certification Exam?</h3>
+        <p class="text-xs text-slate-600 mb-6">
+          Are you sure you want to delete <strong>"{{ targetExam?.name }}"</strong>? This action will permanently remove questions, candidate attempts, and generated certificate records.
         </p>
-        <div class="d-flex justify-end gap-2">
-          <v-btn variant="text" color="grey" @click="deleteDialog = false">Cancel</v-btn>
-          <v-btn color="error" rounded="lg" class="text-capitalize font-weight-bold" :loading="deleting" @click="deleteExam">Delete</v-btn>
+        <div class="flex justify-end gap-3">
+          <v-btn variant="text" class="text-none font-bold text-slate-600" @click="deleteDialog = false">Cancel</v-btn>
+          <v-btn
+            color="#E31B23"
+            class="font-bold text-white text-none rounded-xl"
+            :loading="deleting"
+            @click="deleteExam"
+          >
+            Delete Exam
+          </v-btn>
         </div>
-      </v-card>
+      </div>
     </v-dialog>
 
     <!-- Stop Registration Confirmation Dialog -->
     <v-dialog v-model="stopRegistrationDialog" max-width="440">
-      <v-card class="pa-6 rounded-xl">
-        <div class="d-flex align-center gap-3 mb-4">
-          <v-icon size="36" color="error">mdi-stop-circle-outline</v-icon>
-          <h3 class="text-h6 font-weight-bold text-dark">Stop Registrations?</h3>
+      <div class="bg-white rounded-3xl p-6 shadow-2xl border border-slate-200/80">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
+            <v-icon icon="mdi-stop-circle-outline" color="#E31B23" size="24"></v-icon>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900">Close Candidate Registrations?</h3>
         </div>
-        <p class="text-body-2 text-secondary mb-2">
-          Stop registrations for <strong>{{ targetStopExam?.name }}</strong>?
+        <p class="text-xs text-slate-600 mb-6">
+          Close registrations for <strong>{{ targetStopExam?.name }}</strong>? New candidates will no longer be able to register. You can reopen registrations at any time.
         </p>
-        <p class="text-body-2 text-secondary mb-6">
-          New candidates will no longer be able to register. Existing registrations will remain valid.
-          You can reopen registrations at any time.
-        </p>
-        <div class="d-flex justify-end gap-2">
-          <v-btn variant="text" color="grey" @click="stopRegistrationDialog = false">Cancel</v-btn>
-          <v-btn color="error" rounded="lg" class="text-capitalize font-weight-bold text-white" :loading="togglingReg" @click="doStopRegistration">Confirm – Stop Registration</v-btn>
+        <div class="flex justify-end gap-3">
+          <v-btn variant="text" class="text-none font-bold text-slate-600" @click="stopRegistrationDialog = false">Cancel</v-btn>
+          <v-btn
+            color="#E31B23"
+            class="font-bold text-white text-none rounded-xl"
+            :loading="togglingReg"
+            @click="doStopRegistration"
+          >
+            Close Registrations
+          </v-btn>
         </div>
-      </v-card>
+      </div>
     </v-dialog>
 
     <!-- Share Link Dialog -->
     <v-dialog v-model="shareDialog" max-width="500">
-      <v-card class="pa-6 rounded-xl">
-        <div class="d-flex align-center justify-space-between mb-4">
-          <h3 class="text-h6 font-weight-bold text-dark">Share Exam Link</h3>
-          <v-btn icon="mdi-close" variant="text" size="small" @click="shareDialog = false"></v-btn>
+      <div class="bg-white rounded-3xl p-6 shadow-2xl border border-slate-200/80">
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+          <h3 class="text-lg font-bold text-slate-900">Share Exam Registration Link</h3>
+          <button @click="shareDialog = false" class="text-slate-400 hover:text-slate-600">
+            <v-icon icon="mdi-close" size="20"></v-icon>
+          </button>
         </div>
-        
-        <p class="text-body-2 text-secondary mb-4">
-          Share this link with your candidates so they can access the "{{ targetExam?.name }}" exam.
+
+        <p class="text-xs text-slate-600 mb-4">
+          Share this direct link with candidate applicants for <strong>"{{ targetExam?.name }}"</strong>.
         </p>
 
         <v-text-field
@@ -273,35 +396,43 @@
           v-model="shareUrl"
           variant="outlined"
           density="compact"
-          color="primary"
-          class="mb-4"
+          class="mb-4 rounded-xl"
           hide-details
         >
           <template v-slot:append-inner>
-            <v-btn variant="text" color="primary" class="font-weight-bold text-capitalize" size="small" @click="executeCopy">
-              Copy
+            <v-btn variant="text" color="#E31B23" class="font-bold text-none" size="small" @click="executeCopy">
+              Copy Link
             </v-btn>
           </template>
         </v-text-field>
 
-        <v-divider class="mb-4 opacity-10"></v-divider>
-
-        <div class="d-flex justify-center gap-3">
-          <v-btn color="#25D366" class="text-white text-none font-weight-bold" rounded="lg" prepend-icon="mdi-whatsapp" :href="'https://wa.me/?text=' + encodeURIComponent('Take this exam: ' + shareUrl)" target="_blank">
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <v-btn
+            color="#25D366"
+            class="text-white text-none font-bold rounded-xl"
+            prepend-icon="mdi-whatsapp"
+            :href="'https://wa.me/?text=' + encodeURIComponent('Take this certification exam: ' + shareUrl)"
+            target="_blank"
+          >
             WhatsApp
           </v-btn>
-          <v-btn color="primary" class="text-none font-weight-bold" rounded="lg" prepend-icon="mdi-email-outline" :href="'mailto:?subject=Exam Invitation&body=' + encodeURIComponent('Please take this exam by clicking the link below:\n\n' + shareUrl)">
-            Email
+          <v-btn
+            color="#E31B23"
+            class="text-white text-none font-bold rounded-xl"
+            prepend-icon="mdi-email-outline"
+            :href="'mailto:?subject=Certification Exam Invitation&body=' + encodeURIComponent('Please access your certification exam using the following link:\n\n' + shareUrl)"
+          >
+            Email Link
           </v-btn>
         </div>
-      </v-card>
+      </div>
     </v-dialog>
 
     <!-- Snackbar -->
     <v-snackbar v-model="snackbar" :color="snackbarColor" rounded="lg">
       {{ snackbarText }}
     </v-snackbar>
-  </v-container>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -311,7 +442,7 @@ import { useApi } from '@/composables/useApi';
 definePageMeta({
   layout: 'dashboard',
   middleware: ['auth', 'role'],
-  role: ['super_admin', 'sub_admin', 'lms_user']
+  role: ['super_admin', 'main_admin', 'sub_admin', 'lms_user']
 });
 
 const api = useApi();
@@ -452,14 +583,6 @@ async function deleteExam() {
   }
 }
 
-function getStatusColor(status: string) {
-  if (status === 'published') return 'success';
-  if (status === 'draft') return 'grey';
-  if (status === 'review') return 'warning';
-  if (status === 'archived') return 'error';
-  return 'grey';
-}
-
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
@@ -489,18 +612,123 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.border-surface {
-  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+.authority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 12px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  background-color: #FEF2F2;
+  color: #B91C1C;
+  border: 1px solid #FCA5A5;
 }
-.text-dark { color: #1e293b; }
-.gap-2 { gap: 8px; }
-.gap-4 { gap: 16px; }
 
-.custom-table :deep(th) {
+.filter-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.filter-field-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.filter-field-label {
+  font-size: 0.72rem;
+  font-weight: 800;
   text-transform: uppercase;
-  font-size: 11px !important;
-  font-weight: 800 !important;
-  color: #475569 !important;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
+  color: #64748B;
+  display: block;
+}
+
+.search-input-box, .select-input-box {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon-inside {
+  position: absolute;
+  left: 12px;
+  color: #94A3B8;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.select-chevron-inside {
+  position: absolute;
+  right: 12px;
+  color: #94A3B8;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.gsfin-input {
+  width: 100% !important;
+  height: 44px !important;
+  padding: 10px 14px 10px 40px !important;
+  border-radius: 12px !important;
+  border: 1px solid #CBD5E1 !important;
+  background-color: #F8FAFC !important;
+  font-size: 0.88rem !important;
+  color: #0F172A !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
+}
+
+.gsfin-input:focus {
+  border-color: #E31B23 !important;
+  background-color: #FFFFFF !important;
+  box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.12) !important;
+}
+
+.gsfin-select {
+  width: 100% !important;
+  height: 44px !important;
+  padding: 10px 36px 10px 14px !important;
+  border-radius: 12px !important;
+  border: 1px solid #CBD5E1 !important;
+  background-color: #F8FAFC !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  color: #0F172A !important;
+  outline: none !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.gsfin-select:focus {
+  border-color: #E31B23 !important;
+  background-color: #FFFFFF !important;
+  box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.12) !important;
+}
+
+.gsfin-exam-table :deep(th) {
+  font-weight: 700 !important;
+  color: #0F172A !important;
+  background-color: #F8FAFC !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+.gsfin-exam-table :deep(td) {
+  border-bottom: 1px solid #F1F5F9 !important;
+  font-size: 0.875rem !important;
 }
 </style>
+

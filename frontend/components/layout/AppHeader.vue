@@ -25,7 +25,7 @@
       </div>
 
       <div class="header-actions d-flex align-center">
-        <v-btn variant="flat" color="primary" class="mr-4 d-none d-sm-flex text-none font-weight-bold" rounded="lg" size="small" href="/" target="_blank">
+        <v-btn variant="flat" color="#E31B23" class="mr-4 d-none d-sm-flex text-none font-weight-bold text-white shadow-xs" rounded="lg" size="small" href="/" target="_blank">
           <v-icon icon="mdi-open-in-new" start size="16"></v-icon>
           View Website
         </v-btn>
@@ -40,17 +40,16 @@
 
         <v-menu location="bottom end" offset="10" transition="slide-y-transition">
           <template v-slot:activator="{ props }">
-            <v-avatar size="32" class="user-pill-avatar" v-bind="props">
-              <span class="text-caption font-weight-bold">{{ userInitials }}</span>
+            <v-avatar size="36" class="user-pill-avatar" v-bind="props">
+              <span class="text-caption font-weight-bold text-red-700">{{ userInitials }}</span>
             </v-avatar>
           </template>
           
-          <v-card width="220" rounded="xl" class="mt-2 shadow-apple overflow-hidden">
-            <div class="pa-4 bg-grey-lighten-4">
-              <div class="text-subtitle-2 font-weight-black">{{ authStore.user?.name }}</div>
-              <div class="text-caption text-secondary uppercase font-weight-bold">{{ authStore.userRole }}</div>
+          <v-card width="240" rounded="xl" class="mt-2 border border-slate-200/80 shadow-lg overflow-hidden">
+            <div class="pa-4 bg-slate-50 border-b border-slate-100">
+              <div class="text-subtitle-2 font-weight-black text-slate-900">{{ authStore.user?.name }}</div>
+              <div class="text-caption text-red-600 uppercase font-weight-bold">{{ authStore.userRole }}</div>
             </div>
-            <v-divider opacity="0.05"></v-divider>
             <v-list density="compact" class="pa-1">
               <v-list-item link :to="profileLink" prepend-icon="mdi-account-circle-outline">
                 <v-list-item-title class="text-caption font-weight-bold">My Profile</v-list-item-title>
@@ -58,9 +57,9 @@
               <v-list-item link :to="settingsLink" prepend-icon="mdi-cog-outline">
                 <v-list-item-title class="text-caption font-weight-bold">Settings</v-list-item-title>
               </v-list-item>
-              <v-divider class="my-1" opacity="0.05"></v-divider>
+              <v-divider class="my-1" opacity="0.1"></v-divider>
               <v-list-item link color="error" @click="handleLogout" prepend-icon="mdi-logout">
-                <v-list-item-title class="text-caption font-weight-bold">Logout</v-list-item-title>
+                <v-list-item-title class="text-caption font-weight-bold text-red-600">Logout</v-list-item-title>
               </v-list-item>
             </v-list>
           </v-card>

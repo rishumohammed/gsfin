@@ -54,7 +54,7 @@
         </template>
 
         <template v-slot:item.actions="{ item }">
-          <div class="d-flex justify-end gap-2 py-2 px-2">
+          <div class="action-btn-group py-2 px-2">
             <!-- View / Download PDF -->
             <v-btn icon="mdi-open-in-new" variant="tonal" size="small" color="info" :href="getMediaUrl(item.pdf_url)" target="_blank" title="View Certificate" />
             

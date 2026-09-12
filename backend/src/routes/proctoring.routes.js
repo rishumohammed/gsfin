@@ -45,6 +45,24 @@ const screenshotStorage = multer.diskStorage({
 });
 const uploadScreenshot = multer({ storage: screenshotStorage });
 
+// Setup Multer for saving reference selfie baseline
+const selfieStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const attemptId = req.body.attempt_id;
+    if (!attemptId) return cb(new Error('attempt_id is required in the body BEFORE the file field'));
+    const __filename = new URL(import.meta.url).pathname;
+    let __dirname = path.dirname(__filename);
+    if (process.platform === 'win32' && __dirname.startsWith('/')) __dirname = __dirname.substring(1);
+    const dir = path.join(__dirname, '../../uploads/selfies', attemptId);
+    fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `reference-selfie.jpg`);
+  }
+});
+const uploadSelfie = multer({ storage: selfieStorage });
+
 // POST /api/proctoring/events
 router.post('/events', authenticateAnyJWT, async (req, res) => {
   try {
@@ -84,10 +102,32 @@ router.post('/violation-screenshot', authenticateAnyJWT, uploadScreenshot.single
   }
 });
 
+// POST /api/proctoring/reference-selfie
+router.post('/reference-selfie', authenticateAnyJWT, uploadSelfie.single('image'), async (req, res) => {
+  try {
+    const { attempt_id, baseline_vector } = req.body;
+    if (!attempt_id) {
+      return res.status(400).json({ message: 'attempt_id is required' });
+    }
+    const selfieUrl = req.file ? `/uploads/selfies/${attempt_id}/${req.file.filename}` : null;
+    let parsedVector = null;
+    if (baseline_vector) {
+      try {
+        parsedVector = typeof baseline_vector === 'string' ? JSON.parse(baseline_vector) : baseline_vector;
+      } catch (e) {}
+    }
+
+    const result = await proctoringService.saveReferenceSelfie(attempt_id, selfieUrl, parsedVector);
+    res.json({ message: 'Reference selfie saved successfully', selfieUrl, result });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // ────────────────────────────────────────────────────────────────────────────────
 // ADMIN ROUTES
 // ────────────────────────────────────────────────────────────────────────────────
-const isAdminOrTutor = authorizeRoles('super_admin', 'lms_user', 'tutor');
+const isAdminOrTutor = authorizeRoles('super_admin', 'main_admin', 'lms_user', 'tutor');
 
 // GET /api/proctoring/admin/attempts
 router.get('/admin/attempts', authenticateJWT, isAdminOrTutor, async (req, res) => {
@@ -119,12 +159,35 @@ router.get('/admin/public-violations', authenticateJWT, isAdminOrTutor, async (r
   }
 });
 
-// GET /api/proctoring/admin/:attemptId (Note: mount point in app.js may vary, but let's keep it clean here)
+// GET /api/proctoring/admin/:attemptId
 router.get('/admin/:attemptId', authenticateJWT, isAdminOrTutor, async (req, res) => {
   try {
+    const details = await proctoringService.getAttemptDetails(req.params.attemptId);
     const events = await proctoringService.getEventsForAttempt(req.params.attemptId);
     const recordings = await proctoringService.getRecordingsForAttempt(req.params.attemptId);
-    res.json({ events, recordings });
+    const screenshots = await proctoringService.getScreenshotsForAttempt(req.params.attemptId);
+    res.json({ details, events, recordings, screenshots });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/proctoring/admin/:attemptId/approve-certificate
+router.post('/admin/:attemptId/approve-certificate', authenticateJWT, isAdminOrTutor, async (req, res) => {
+  try {
+    const result = await proctoringService.approveCertificate(req.params.attemptId);
+    res.json({ message: 'Certificate approved and issued', ...result });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/proctoring/admin/:attemptId/flag-attempt
+router.post('/admin/:attemptId/flag-attempt', authenticateJWT, isAdminOrTutor, async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const result = await proctoringService.flagAttempt(req.params.attemptId, reason);
+    res.json({ message: 'Attempt flagged', ...result });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

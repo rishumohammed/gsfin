@@ -27,24 +27,24 @@ export const useObjectDetection = () => {
   const startDetection = (videoElement: HTMLVideoElement, logEventCallback: (type: string, meta?: any) => void, warningCallback: (msg: string) => void) => {
     if (!model.value) return;
 
-    // Run every 1 second
+    // Run every 800ms
     detectionInterval = setInterval(async () => {
       if (videoElement.readyState === 4 && model.value) {
         try {
           const predictions = await model.value.detect(videoElement);
           
-          const hasCellPhone = predictions.some(p => p.class === 'cell phone' && p.score > 0.6);
+          const phonePrediction = predictions.find(p => p.class === 'cell phone' && p.score > 0.5);
           
-          if (hasCellPhone) {
+          if (phonePrediction) {
             cellPhoneCounter++;
-            if (cellPhoneCounter >= 2) { // Need 2 consecutive hits to avoid false positives
-              cellPhoneCounter = 0;
-              logEventCallback('mobile_phone_detected', { object: 'cell phone' });
+            if (cellPhoneCounter >= 1) {
+              logEventCallback('mobile_phone_detected', { object: 'cell phone', score: phonePrediction.score.toFixed(2) });
               
-              if (Date.now() - lastWarningTime.value > 15000) {
-                warningCallback('Mobile phone detected. Please put away all devices.');
+              if (Date.now() - lastWarningTime.value > 5000) {
+                warningCallback('Mobile phone detected! Please put away all secondary devices.');
                 lastWarningTime.value = Date.now();
               }
+              cellPhoneCounter = 0;
             }
           } else {
             cellPhoneCounter = 0;
@@ -53,7 +53,7 @@ export const useObjectDetection = () => {
           console.warn('Object estimation error', e);
         }
       }
-    }, 1000);
+    }, 800);
   };
 
   const stopDetection = () => {

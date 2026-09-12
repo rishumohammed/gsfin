@@ -1,65 +1,65 @@
 <template>
-  <v-container fluid class="pa-6">
-    <!-- Header -->
-    <div class="d-flex align-center justify-space-between mb-8 flex-wrap gap-4">
-      <div>
-        <h1 class="text-h4 font-weight-bold mb-1">Question Bank</h1>
-        <p class="text-subtitle-2 text-secondary">Manage exam questions, set marking schemes, and bulk import questions using CSV or JSON.</p>
+  <div class="questions-page min-h-screen pb-16" style="background-color: #FAFAFD;">
+    <!-- Page Header -->
+    <div class="bg-white border-b border-slate-200/80 shadow-xs mb-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="d-flex align-center justify-space-between flex-wrap gap-4">
+          <div class="d-flex align-center gap-4">
+            <v-btn
+              to="/dashboard/admin/public-exams"
+              icon="mdi-arrow-left"
+              variant="outlined"
+              color="slate"
+              size="small"
+              class="rounded-xl border-slate-300"
+              title="Back to All Exams"
+            />
+            <div>
+              <div class="d-flex align-center gap-2 mb-1 flex-wrap">
+                <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+                  Question Bank Manager
+                </h1>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-500 font-medium">
+                Manage exam questions, set marking schemes, options explanations, and bulk import using CSV/JSON formats.
+              </p>
+            </div>
+          </div>
+
+          <div class="d-flex align-center gap-2 flex-wrap" v-if="selectedExamId">
+            <v-btn
+              variant="outlined"
+              color="slate"
+              class="text-none font-bold rounded-xl border-slate-300 text-slate-700"
+              prepend-icon="mdi-code-json"
+              @click="openImportSection('json')"
+            >
+              Bulk JSON
+            </v-btn>
+            <v-btn
+              variant="outlined"
+              color="slate"
+              class="text-none font-bold rounded-xl border-slate-300 text-slate-700"
+              prepend-icon="mdi-file-delimited-outline"
+              @click="openImportSection('csv')"
+            >
+              Bulk CSV
+            </v-btn>
+            <v-btn
+              color="#E31B23"
+              size="large"
+              class="font-bold text-white text-none rounded-xl shadow-md hover:bg-red-700"
+              prepend-icon="mdi-plus"
+              @click="openQuestionDialog()"
+            >
+              Add Question
+            </v-btn>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Quick Navigation Links (Admin Submenu) -->
-    <!-- Removed to act as a child page of the specific exam -->
-
-    <!-- Exam Title & Action Controls -->
-    <v-card class="pa-6 border rounded-xl mb-6" flat>
-      <v-row align="center">
-        <v-col cols="12" md="5">
-          <div v-if="selectedExam" class="d-flex align-center gap-3">
-            <v-btn icon="mdi-arrow-left" variant="tonal" size="small" color="secondary" to="/dashboard/admin/public-exams" title="Back to Exams" class="mr-2"></v-btn>
-            <div>
-              <div class="text-caption text-secondary font-weight-bold text-uppercase">Managing Questions For</div>
-              <h2 class="text-h6 font-weight-black text-dark">{{ selectedExam.name }}</h2>
-            </div>
-          </div>
-          <div v-else>
-            <v-btn to="/dashboard/admin/public-exams" variant="tonal" color="primary" rounded="lg">
-              <v-icon start>mdi-arrow-left</v-icon> Return to Exams
-            </v-btn>
-          </div>
-        </v-col>
-        <v-col cols="12" md="7" class="d-flex justify-md-end gap-2 flex-wrap" v-if="selectedExamId">
-          <!-- Import Toggle Buttons -->
-          <v-btn
-            variant="outlined"
-            color="indigo"
-            rounded="lg"
-            prepend-icon="mdi-file-import-outline"
-            @click="openImportSection('json')"
-          >
-            Bulk JSON
-          </v-btn>
-          <v-btn
-            variant="outlined"
-            color="indigo"
-            rounded="lg"
-            prepend-icon="mdi-file-delimited-outline"
-            @click="openImportSection('csv')"
-          >
-            Bulk CSV
-          </v-btn>
-          <v-btn
-            color="primary"
-            rounded="lg"
-            prepend-icon="mdi-plus"
-            elevation="0"
-            @click="openQuestionDialog()"
-          >
-            Add Question
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-card>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
     <!-- Bulk Import Section (JSON / CSV) -->
     <v-expand-transition>
@@ -94,7 +94,7 @@
               <code>Type,Question,Options,Correct Answer,Explanation,Marks,Difficulty<br/>"mcq","Which is a prime number?","2|4|6|8","2","2 is the only even prime.",4,"Easy"</code>
             </p>
             <div class="d-flex gap-2 mb-4">
-              <v-btn color="primary" variant="outlined" class="text-none py-6 flex-grow-1" style="border-style: dashed" @click="$refs.csvFileInput.click()">
+              <v-btn color="primary" variant="outlined" class="text-none py-6 flex-grow-1" style="border-style: dashed" @click="triggerCsvSelect">
                 <v-icon left size="24" class="mr-2">mdi-cloud-upload</v-icon> Click to Select CSV File
               </v-btn>
               <v-btn color="info" variant="tonal" class="text-none py-6" @click="downloadSampleCsv">
@@ -159,16 +159,20 @@
 
     <!-- Empty State -->
     <v-card v-else-if="selectedExamId && filteredQuestions.length === 0" class="text-center py-16 border rounded-xl" flat>
-      <v-icon size="64" color="grey-lighten-1" class="mb-3">mdi-database-alert-outline</v-icon>
+      <div class="empty-state-icon-box">
+        <v-icon size="32" color="#E31B23">mdi-database-alert-outline</v-icon>
+      </div>
       <h3 class="text-h6 font-weight-bold mb-2">No Questions Found</h3>
       <p class="text-body-2 text-secondary mb-4">No questions match your filter criteria or there are no questions in this exam yet.</p>
     </v-card>
 
     <div v-else-if="!selectedExamId" class="text-center py-16 border rounded-xl bg-white" flat>
-      <v-icon size="64" color="primary" class="mb-3">mdi-database-search-outline</v-icon>
+      <div class="empty-state-icon-box">
+        <v-icon size="32" color="#E31B23">mdi-database-search-outline</v-icon>
+      </div>
       <h3 class="text-h6 font-weight-bold mb-2">No Exam Selected</h3>
       <p class="text-body-2 text-secondary mb-4">You must select an exam from the All Exams list to manage its questions.</p>
-      <v-btn to="/dashboard/admin/public-exams" color="primary" rounded="lg" class="text-capitalize font-weight-bold">
+      <v-btn to="/dashboard/admin/public-exams" color="#E31B23" rounded="lg" class="text-capitalize text-white font-weight-bold">
         Go to All Exams
       </v-btn>
     </div>
@@ -196,7 +200,7 @@
           </div>
 
           <!-- Question Controls -->
-          <div class="d-flex gap-1">
+          <div class="action-btn-group">
             <v-btn icon variant="tonal" color="warning" size="small" class="rounded-lg" @click="duplicateQuestion(q)" title="Duplicate Question">
               <v-icon size="18">mdi-content-copy</v-icon>
             </v-btn>
@@ -399,7 +403,8 @@
         </div>
       </v-card>
     </v-dialog>
-  </v-container>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -430,10 +435,16 @@ const difficultyFilter = ref('All Difficulties');
 const importOpen = ref(false);
 const importMode = ref<'json' | 'csv'>('json');
 const importJsonText = ref('');
-const csvFileInput = ref(null);
+const csvFileInput = ref<HTMLInputElement | null>(null);
 const selectedCsvFileName = ref('');
 const parsedCsvData = ref<any[]>([]);
 const importing = ref(false);
+
+function triggerCsvSelect() {
+  if (csvFileInput.value) {
+    csvFileInput.value.click();
+  }
+}
 
 // Question Dialog State
 const questionDialog = ref(false);

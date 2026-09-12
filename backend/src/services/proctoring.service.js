@@ -18,14 +18,16 @@ class ProctoringService {
       'SELECT * FROM proctoring_events WHERE attempt_id = ? ORDER BY created_at ASC',
       [attemptId]
     );
-    return events;
+    return events.map(e => ({
+      ...e,
+      metadata_json: typeof e.metadata_json === 'string' ? JSON.parse(e.metadata_json || '{}') : (e.metadata_json || {})
+    }));
   }
 
   async getRecordingsForAttempt(attemptId) {
     const dir = path.join(process.cwd(), 'uploads', 'recordings', attemptId);
     try {
       const files = await fs.readdir(dir);
-      // Sort files numerically by chunk index (e.g., chunk-0.webm, chunk-1.webm)
       const webmFiles = files
         .filter(f => f.endsWith('.webm'))
         .sort((a, b) => {
@@ -40,16 +42,124 @@ class ProctoringService {
       }));
     } catch (err) {
       if (err.code === 'ENOENT') {
-        return []; // No recordings yet
+        return [];
       }
       throw err;
     }
   }
 
+  async getScreenshotsForAttempt(attemptId) {
+    const dir = path.join(process.cwd(), 'uploads', 'screenshots', attemptId);
+    try {
+      const files = await fs.readdir(dir);
+      const imageFiles = files
+        .filter(f => f.endsWith('.jpg') || f.endsWith('.png'))
+        .sort();
+
+      return imageFiles.map(filename => ({
+        url: `/uploads/screenshots/${attemptId}/${filename}`,
+        filename
+      }));
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        return [];
+      }
+      throw err;
+    }
+  }
+
+  async saveReferenceSelfie(attemptId, selfieUrl, baselineVector = null) {
+    const vectorJson = baselineVector ? JSON.stringify(baselineVector) : null;
+    
+    // Try updating exam_attempts first
+    const [res1] = await pool.query(
+      'UPDATE exam_attempts SET reference_selfie_url = ?, baseline_vector = ? WHERE id = ?',
+      [selfieUrl, vectorJson, attemptId]
+    );
+
+    // Try updating public_exam_attempts
+    const [res2] = await pool.query(
+      'UPDATE public_exam_attempts SET reference_selfie_url = ?, baseline_vector = ? WHERE id = ?',
+      [selfieUrl, vectorJson, attemptId]
+    );
+
+    return { success: res1.affectedRows > 0 || res2.affectedRows > 0, selfieUrl };
+  }
+
+  async getAttemptDetails(attemptId) {
+    // Try fetching from public_exam_attempts first
+    const [publicAttempts] = await pool.query(
+      `SELECT ea.*, e.name as exam_title, e.enable_proctoring, e.max_proctoring_warnings,
+              COALESCE(c.name, ea.guest_name) as candidate_name, COALESCE(c.email, ea.guest_email) as candidate_email
+       FROM public_exam_attempts ea
+       JOIN public_exams e ON ea.exam_id = e.id
+       LEFT JOIN public_exam_candidates c ON ea.candidate_id = c.id
+       WHERE ea.id = ?`,
+      [attemptId]
+    );
+
+    if (publicAttempts.length > 0) {
+      return { type: 'public', ...publicAttempts[0] };
+    }
+
+    // Otherwise try exam_attempts
+    const [standardAttempts] = await pool.query(
+      `SELECT ea.*, e.title as exam_title, e.proctoring_enabled as enable_proctoring, e.max_proctoring_warnings,
+              u.name as candidate_name, u.email as candidate_email
+       FROM exam_attempts ea
+       JOIN exams e ON ea.exam_id = e.id
+       JOIN users u ON ea.student_id = u.id
+       WHERE ea.id = ?`,
+      [attemptId]
+    );
+
+    if (standardAttempts.length > 0) {
+      return { type: 'standard', ...standardAttempts[0] };
+    }
+
+    return null;
+  }
+
+  async approveCertificate(attemptId) {
+    // 1. Update proctoring_status in DB
+    await pool.query('UPDATE public_exam_attempts SET proctoring_status = "approved" WHERE id = ?', [attemptId]);
+    await pool.query('UPDATE exam_attempts SET proctoring_status = "approved" WHERE id = ?', [attemptId]);
+
+    // 2. Issue Certificate if passed
+    const details = await this.getAttemptDetails(attemptId);
+    if (details && (details.passed || details.status === 'passed' || details.status === 'completed')) {
+      if (details.type === 'public') {
+        const certId = uuidv4();
+        await pool.query(
+          `INSERT IGNORE INTO public_exam_issued_certificates (id, candidate_id, exam_id, candidate_name, created_at)
+           VALUES (?, ?, ?, ?, NOW())`,
+          [certId, details.candidate_id || details.id, details.exam_id, details.candidate_name]
+        );
+      } else {
+        const certId = uuidv4();
+        await pool.query(
+          `INSERT IGNORE INTO certificates (id, assignment_id, issued_at)
+           VALUES (?, ?, NOW())`,
+          [certId, details.id]
+        );
+      }
+    }
+
+    return { success: true, proctoring_status: 'approved' };
+  }
+
+  async flagAttempt(attemptId, reason = 'Flagged by administrator') {
+    await pool.query('UPDATE public_exam_attempts SET proctoring_status = "flagged" WHERE id = ?', [attemptId]);
+    await pool.query('UPDATE exam_attempts SET proctoring_status = "flagged" WHERE id = ?', [attemptId]);
+    
+    await this.logEvent(attemptId, 'flagged_by_admin', { reason });
+    return { success: true, proctoring_status: 'flagged' };
+  }
+
   async getAttemptsWithViolations(userId, role) {
     let query = `
       SELECT 
-        ea.id, ea.student_id, ea.exam_id, ea.status, ea.submitted_at,
+        ea.id, ea.student_id, ea.exam_id, ea.status, ea.submitted_at, ea.proctoring_status, ea.reference_selfie_url,
         u.name as student_name, u.email as student_email,
         e.title as exam_title,
         COUNT(pe.id) as violation_count
@@ -67,7 +177,7 @@ class ProctoringService {
     }
     
     query += `
-      GROUP BY ea.id, ea.student_id, ea.exam_id, ea.status, ea.submitted_at, u.name, u.email, e.title
+      GROUP BY ea.id, ea.student_id, ea.exam_id, ea.status, ea.submitted_at, ea.proctoring_status, ea.reference_selfie_url, u.name, u.email, e.title
       ORDER BY ea.submitted_at DESC
     `;
     const [attempts] = await pool.query(query, params);
@@ -78,7 +188,7 @@ class ProctoringService {
     let query = `
       SELECT 
         pe.id as event_id, pe.type as violation_type, pe.metadata_json, pe.created_at as timestamp,
-        ea.id as attempt_id, ea.student_id, ea.exam_id, ea.status as attempt_status,
+        ea.id as attempt_id, ea.student_id, ea.exam_id, ea.status as attempt_status, ea.proctoring_status, ea.reference_selfie_url,
         ea.submitted_at, ea.started_at as attempt_started_at,
         u.name as student_name, u.id as uid,
         e.title as exam_title, e.id as eid,
@@ -98,16 +208,15 @@ class ProctoringService {
     query += ` ORDER BY c.title ASC, u.name ASC, ea.started_at DESC, pe.created_at DESC`;
     const [rows] = await pool.query(query, params);
 
-    // Course -> Student -> Attempt -> violations
     const coursesMap = new Map();
     let totalViolations = 0;
     let highSeverityViolations = 0;
     const studentsFlaggedSet = new Set();
-    const attemptsSet = new Set(); // for counting unique exams monitored
+    const attemptsSet = new Set();
 
     const getSeverity = (type) => {
-      const high = ['multiple_faces', 'face_absent', 'devtools_open', 'phone_detected', 'suspicious_object', 'camera_disabled', 'microphone_disabled'];
-      const medium = ['tab_switch', 'window_blur', 'fullscreen_exit', 'looking_away'];
+      const high = ['proxy_mismatch', 'multiple_faces', 'face_absent', 'devtools_open', 'mobile_phone_detected', 'phone_detected', 'suspicious_object', 'camera_disabled', 'microphone_disabled'];
+      const medium = ['tab_switch', 'window_blur', 'fullscreen_exit', 'gaze_deviation', 'looking_away'];
       if (high.includes(type)) return 'High';
       if (medium.includes(type)) return 'Medium';
       return 'Low';
@@ -118,7 +227,6 @@ class ProctoringService {
       const studentKey = `${row.cid}_${row.uid}`;
       const attemptKey = row.attempt_id;
 
-      // --- Course level ---
       if (!coursesMap.has(courseKey)) {
         coursesMap.set(courseKey, {
           id: courseKey,
@@ -128,7 +236,6 @@ class ProctoringService {
       }
       const courseGroup = coursesMap.get(courseKey);
 
-      // --- Student level ---
       if (!courseGroup.students.has(studentKey)) {
         courseGroup.students.set(studentKey, {
           id: row.uid,
@@ -138,7 +245,6 @@ class ProctoringService {
       }
       const studentGroup = courseGroup.students.get(studentKey);
 
-      // --- Attempt level ---
       if (!studentGroup.attempts.has(attemptKey)) {
         attemptsSet.add(row.exam_id);
         studentGroup.attempts.set(attemptKey, {
@@ -148,6 +254,8 @@ class ProctoringService {
           started_at: row.attempt_started_at,
           submitted_at: row.submitted_at,
           status: row.attempt_status,
+          proctoring_status: row.proctoring_status || 'pending_review',
+          reference_selfie_url: row.reference_selfie_url,
           violations: [],
           violationCount: 0,
           highSeverityCount: 0
@@ -155,7 +263,6 @@ class ProctoringService {
       }
       const attemptGroup = studentGroup.attempts.get(attemptKey);
 
-      // --- Violation / event level ---
       if (row.event_id) {
         const severity = getSeverity(row.violation_type);
         totalViolations++;
@@ -186,7 +293,6 @@ class ProctoringService {
           screenshot_url
         });
       } else {
-        // Attempt with no violations at all
         if (attemptGroup.violations.length === 0) {
           attemptGroup.violations.push({
             id: row.attempt_id + '_clean',
@@ -201,7 +307,6 @@ class ProctoringService {
       }
     });
 
-    // Serialize Maps to arrays
     const courses = Array.from(coursesMap.values()).map(course => ({
       ...course,
       students: Array.from(course.students.values()).map(student => ({
@@ -225,7 +330,7 @@ class ProctoringService {
     let query = `
       SELECT 
         pe.id as event_id, pe.type as violation_type, pe.metadata_json, pe.created_at as timestamp,
-        ea.id as attempt_id, ea.exam_id, ea.status as attempt_status,
+        ea.id as attempt_id, ea.exam_id, ea.status as attempt_status, ea.proctoring_status, ea.reference_selfie_url,
         ea.submitted_at, ea.started_at as attempt_started_at,
         COALESCE(c.name, ea.guest_name) as candidate_name, 
         COALESCE(ea.candidate_id, ea.id) as cid,
@@ -240,7 +345,6 @@ class ProctoringService {
     query += ` ORDER BY e.name ASC, c.name ASC, ea.started_at DESC, pe.created_at DESC`;
     const [rows] = await pool.query(query, params);
 
-    // Exam -> Candidate -> Attempt -> violations
     const examsMap = new Map();
     let totalViolations = 0;
     let highSeverityViolations = 0;
@@ -248,8 +352,8 @@ class ProctoringService {
     const attemptsSet = new Set();
 
     const getSeverity = (type) => {
-      const high = ['multiple_faces', 'face_absent', 'devtools_open', 'phone_detected', 'suspicious_object', 'camera_disabled', 'microphone_disabled'];
-      const medium = ['tab_switch', 'window_blur', 'fullscreen_exit', 'looking_away'];
+      const high = ['proxy_mismatch', 'multiple_faces', 'face_absent', 'devtools_open', 'mobile_phone_detected', 'phone_detected', 'suspicious_object', 'camera_disabled', 'microphone_disabled'];
+      const medium = ['tab_switch', 'window_blur', 'fullscreen_exit', 'gaze_deviation', 'looking_away'];
       if (high.includes(type)) return 'High';
       if (medium.includes(type)) return 'Medium';
       return 'Low';
@@ -260,7 +364,6 @@ class ProctoringService {
       const candidateKey = `${row.eid}_${row.cid}`;
       const attemptKey = row.attempt_id;
 
-      // --- Exam level ---
       if (!examsMap.has(examKey)) {
         examsMap.set(examKey, {
           id: examKey,
@@ -270,7 +373,6 @@ class ProctoringService {
       }
       const examGroup = examsMap.get(examKey);
 
-      // --- Candidate level ---
       if (!examGroup.candidates.has(candidateKey)) {
         examGroup.candidates.set(candidateKey, {
           id: row.cid,
@@ -280,7 +382,6 @@ class ProctoringService {
       }
       const candidateGroup = examGroup.candidates.get(candidateKey);
 
-      // --- Attempt level ---
       if (!candidateGroup.attempts.has(attemptKey)) {
         attemptsSet.add(row.attempt_id);
         candidateGroup.attempts.set(attemptKey, {
@@ -290,6 +391,8 @@ class ProctoringService {
           started_at: row.attempt_started_at,
           submitted_at: row.submitted_at,
           status: row.attempt_status,
+          proctoring_status: row.proctoring_status || 'pending_review',
+          reference_selfie_url: row.reference_selfie_url,
           violations: [],
           violationCount: 0,
           highSeverityCount: 0
@@ -297,7 +400,6 @@ class ProctoringService {
       }
       const attemptGroup = candidateGroup.attempts.get(attemptKey);
 
-      // --- Violation / event level ---
       if (row.event_id) {
         const severity = getSeverity(row.violation_type);
         totalViolations++;
@@ -363,22 +465,31 @@ class ProctoringService {
 
   async clearViolations(attemptId) {
     await pool.query(
-      "DELETE FROM proctoring_events WHERE attempt_id = ? AND type IN ('tab_switch', 'fullscreen_exit', 'devtools_open', 'multiple_faces', 'face_absent')",
+      "DELETE FROM proctoring_events WHERE attempt_id = ? AND type IN ('tab_switch', 'window_blur', 'fullscreen_exit', 'devtools_open', 'multiple_faces', 'face_absent', 'gaze_deviation', 'mobile_phone_detected', 'proxy_mismatch')",
       [attemptId]
     );
-    // Also reset attempt status if it was auto-submitted due to violations
-    // This allows admin to give them another chance, though more logic might be needed
     return { success: true };
   }
 
   async deleteAttemptLogs(attemptId) {
     await pool.query('DELETE FROM proctoring_events WHERE attempt_id = ?', [attemptId]);
-    const dir = path.join(process.cwd(), 'uploads', 'recordings', attemptId);
+    
+    // Delete recordings
+    const recDir = path.join(process.cwd(), 'uploads', 'recordings', attemptId);
     try {
-      await fs.rm(dir, { recursive: true, force: true });
+      await fs.rm(recDir, { recursive: true, force: true });
     } catch (err) {
       console.error(`Failed to delete recording directory for attempt ${attemptId}:`, err.message);
     }
+
+    // Delete screenshots
+    const shotDir = path.join(process.cwd(), 'uploads', 'screenshots', attemptId);
+    try {
+      await fs.rm(shotDir, { recursive: true, force: true });
+    } catch (err) {
+      console.error(`Failed to delete screenshot directory for attempt ${attemptId}:`, err.message);
+    }
+
     return { success: true };
   }
 

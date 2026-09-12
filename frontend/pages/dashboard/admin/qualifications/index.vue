@@ -5,7 +5,6 @@
       <!-- ═══ TOP HEADER ═══ -->
       <div class="admin-header-row">
         <div>
-          <div class="eyebrow-red">GSFIN CERTIFICATION FRAMEWORK</div>
           <h1 class="admin-title">Qualifications Management</h1>
           <p class="admin-subtitle">Manage global food safety &amp; quality certification standards, detail pages, and curricula.</p>
         </div>

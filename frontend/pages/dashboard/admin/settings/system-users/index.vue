@@ -5,7 +5,6 @@
       <!-- ═══ TOP HEADER ═══ -->
       <div class="admin-header-row">
         <div>
-          <div class="eyebrow-red">SYSTEM ADMINISTRATION</div>
           <h1 class="admin-title">System Users &amp; Access Control</h1>
           <p class="admin-subtitle">Manage internal staff accounts, administrative roles, and system permissions.</p>
         </div>

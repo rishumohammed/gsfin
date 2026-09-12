@@ -5,20 +5,19 @@
       <!-- ═══ TOP HEADER ═══ -->
       <div class="admin-header-row">
         <div>
-          <div class="eyebrow-red">GSFIN MAIN ADMIN PORTAL</div>
           <h1 class="admin-title">{{ currentTitle }}</h1>
-          <p class="admin-subtitle">Authority control hub for sub-center accounts, exam catalogs, token wallets, and live feed.</p>
+          <p class="admin-subtitle">Overview of partner centers, exams, token balances, and live batch activity.</p>
         </div>
 
         <div class="header-actions">
           <button v-if="activeTab === 'subcenters'" class="btn-red" @click="showAddOrgModal = true">
-            <i class="mdi mdi-plus"></i> Add Sub-Center
+            <i class="mdi mdi-plus"></i> Add Partner Center
           </button>
           <button v-if="activeTab === 'exams'" class="btn-red" @click="showAddExamModal = true">
-            <i class="mdi mdi-plus"></i> Create Catalog Exam
+            <i class="mdi mdi-plus"></i> Add Exam
           </button>
           <button v-if="activeTab === 'packages'" class="btn-red" @click="showAddPkgModal = true">
-            <i class="mdi mdi-plus"></i> Create Token Package
+            <i class="mdi mdi-plus"></i> Add Token Package
           </button>
 
           <div class="live-status-badge">
@@ -34,9 +33,9 @@
             <i class="mdi mdi-office-building text-indigo"></i>
           </div>
           <div class="metric-info">
-            <span class="metric-label">Sub-Centers</span>
+            <span class="metric-label">Partner Centers</span>
             <span class="metric-value">{{ overview.metrics.totalSubCenters || 0 }}</span>
-            <span class="metric-sub text-indigo">Active Partner Centers</span>
+            <span class="metric-sub text-indigo">Active Partners</span>
           </div>
         </div>
 
@@ -47,7 +46,7 @@
           <div class="metric-info">
             <span class="metric-label">Active Batches</span>
             <span class="metric-value">{{ overview.metrics.activeBatches || 0 }}</span>
-            <span class="metric-sub text-emerald">Live Running Sessions</span>
+            <span class="metric-sub text-emerald">Active Sessions</span>
           </div>
         </div>
 
@@ -58,7 +57,7 @@
           <div class="metric-info">
             <span class="metric-label">Tokens Issued</span>
             <span class="metric-value">{{ overview.metrics.totalTokensSold || 0 }}</span>
-            <span class="metric-sub text-amber">Issued to Wallets</span>
+            <span class="metric-sub text-amber">Total Issued</span>
           </div>
         </div>
 
@@ -69,28 +68,16 @@
           <div class="metric-info">
             <span class="metric-label">Tokens Consumed</span>
             <span class="metric-value">{{ overview.metrics.totalTokensConsumed || 0 }}</span>
-            <span class="metric-sub text-red">Exam Candidate Seats</span>
+            <span class="metric-sub text-red">Total Used</span>
           </div>
         </div>
       </div>
 
-      <!-- ═══ NAVIGATION TABS ═══ -->
-      <div class="admin-tabs-bar">
-        <button
-          v-for="tab in tabItems"
-          :key="tab.value"
-          class="tab-btn"
-          :class="{ 'tab-btn--active': activeTab === tab.value }"
-          @click="activeTab = tab.value"
-        >
-          <i :class="['mdi', tab.icon]"></i> {{ tab.label }}
-        </button>
-      </div>
 
       <!-- ═══ TAB CONTENT PANELS ═══ -->
 
       <!-- TAB 1: OVERVIEW & LIVE BATCHES -->
-      <div v-if="activeTab === 'overview'" class="tab-panel">
+      <div v-if="activeTab === 'overview' || activeTab === 'batches'" class="tab-panel">
         <div class="panel-card">
           <div class="panel-card-header">
             <div class="panel-title-wrap">
@@ -560,7 +547,8 @@ const route = useRoute();
 const activeTab = ref(route.query.tab ? String(route.query.tab) : 'overview');
 
 const tabItems = [
-  { label: 'Overview & Live Batches', value: 'overview', icon: 'mdi-view-dashboard-outline' },
+  { label: 'Dashboard Overview', value: 'overview', icon: 'mdi-view-dashboard-outline' },
+  { label: 'Live Batches', value: 'batches', icon: 'mdi-layers-triple-outline' },
   { label: 'Sub-Center Accounts', value: 'subcenters', icon: 'mdi-office-building' },
   { label: 'Exam Catalog', value: 'exams', icon: 'mdi-file-certificate' },
   { label: 'Token Packages', value: 'packages', icon: 'mdi-package-variant-closed' },
@@ -569,13 +557,14 @@ const tabItems = [
 
 const currentTitle = computed(() => {
   switch (activeTab.value) {
-    case 'subcenters': return 'Sub-Center Accounts';
-    case 'exams': return 'Certification Exam Catalog';
-    case 'packages': return 'Token Packages Catalog';
-    case 'audit': return 'Global Token Audit Trail';
+    case 'batches': return 'Live Batches';
+    case 'subcenters': return 'Partner Centers';
+    case 'exams': return 'Exams Catalog';
+    case 'packages': return 'Token Packages';
+    case 'audit': return 'Token History';
     case 'overview':
     default:
-      return 'Live Batches Feed';
+      return 'Dashboard';
   }
 });
 

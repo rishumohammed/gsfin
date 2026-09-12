@@ -5,7 +5,6 @@
       <!-- ═══ TOP HEADER ═══ -->
       <div class="admin-header-row">
         <div>
-          <div class="eyebrow-red">PLATFORM KNOWLEDGE BASE</div>
           <h1 class="admin-title">Manage FAQs</h1>
           <p class="admin-subtitle">Configure frequently asked questions and answers displayed across the GSFIN platform.</p>
         </div>
