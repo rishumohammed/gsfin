@@ -1,451 +1,440 @@
 <template>
-  <v-container fluid class="py-8 px-6 bg-grey-lighten-4 min-vh-100">
-    <div class="mb-8">
-      <h1 class="text-h4 font-weight-bold text-slate-900 tracking-tight mb-1">System Settings</h1>
-      <p class="text-secondary mb-0">Configure branding, integrations, and global parameters.</p>
-    </div>
+  <div class="gsfin-admin-page min-h-screen bg-slate-50/50 py-8 px-4 sm:px-8">
+    <div class="max-w-7xl mx-auto">
 
-    <div class="settings-layout shadow-sm">
-      <!-- Internal Sidebar -->
-      <div class="settings-sidebar pa-3">
-        <v-list v-model:selected="activeTab" mandatory class="settings-list pa-0">
-          <v-list-item 
-            v-for="tab in tabs" 
-            :key="tab.value" 
-            :value="tab.value" 
-            :prepend-icon="tab.icon" 
-            :title="tab.label"
-            rounded="lg"
-            class="mb-1 text-subtitle-2 font-weight-medium"
-          ></v-list-item>
-        </v-list>
+      <!-- ═══════════════════════════════════════════════════════════════════ -->
+      <!-- VIEW 1: CARD VIEW OVERVIEW HUB (DEFAULT WHEN NO CATEGORY SELECTED) -->
+      <!-- ═══════════════════════════════════════════════════════════════════ -->
+      <div v-if="!activeCategory" class="fade-in">
+        
+        <!-- Header Banner -->
+        <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-3 py-1 rounded-full bg-red-50 text-red-600 border border-red-100 text-xs font-black uppercase tracking-wider">
+                <i class="mdi mdi-cog-outline me-1"></i> CONTROL PANEL
+              </span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">System Settings</h1>
+            <p class="text-slate-500 text-sm mt-1">
+              Configure branding, homepage content, governance legal text, system users, integrations, and email dispatches.
+            </p>
+          </div>
+
+          <!-- Quick Search Filter Bar -->
+          <div class="relative w-full md:w-80">
+            <i class="mdi mdi-magnify absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none"></i>
+            <input
+              v-model="cardSearch"
+              type="text"
+              placeholder="Search setting modules..."
+              class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/10 transition shadow-2xs"
+            />
+          </div>
+        </div>
+
+        <!-- Cards Directory Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <div
+            v-for="card in filteredCards"
+            :key="card.id"
+            class="group bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs hover:shadow-md hover:border-red-200 transition-all duration-200 cursor-pointer flex flex-col justify-between"
+            @click="selectCategory(card)"
+          >
+            <div>
+              <!-- Top Row: Icon & Tag -->
+              <div class="flex items-center justify-between mb-4">
+                <div :class="['w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold border transition group-hover:scale-105', card.iconBg]">
+                  <i :class="`mdi ${card.icon}`"></i>
+                </div>
+                <span :class="['px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border', card.badgeColor]">
+                  {{ card.badge }}
+                </span>
+              </div>
+
+              <!-- Title & Description -->
+              <h3 class="text-lg font-bold text-slate-900 group-hover:text-red-600 transition-colors mb-2 flex items-center gap-1">
+                <span>{{ card.title }}</span>
+                <i class="mdi mdi-chevron-right text-slate-400 group-hover:text-red-600 group-hover:translate-x-1 transition-transform"></i>
+              </h3>
+              <p class="text-slate-500 text-xs sm:text-sm leading-relaxed mb-6">
+                {{ card.subtitle }}
+              </p>
+            </div>
+
+            <!-- Card Bottom Link -->
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-600 group-hover:text-red-600">
+              <span>Configure Module</span>
+              <i class="mdi mdi-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Main Content -->
-      <div class="settings-content pa-8">
-        <v-form @submit.prevent="save">
-          <!-- Branding Tab -->
-          <div v-if="activeTab[0] === 'branding'" class="fade-in">
-            <h2 class="text-h6 font-weight-bold mb-6">Branding & Identity</h2>
-            
-            <!-- Logo & Favicon Upload -->
-            <v-row class="mb-8">
-              <v-col cols="12" md="6">
-                <v-card variant="outlined" class="pa-4 rounded-xl d-flex flex-column align-center justify-center text-center">
-                  <div class="mb-3">
-                    <img v-if="form.app_logo" :src="baseUrl + form.app_logo" alt="Logo Preview" style="max-height: 60px; max-width: 100%; object-fit: contain;" />
-                    <v-icon v-else size="48" color="grey-lighten-1">mdi-image-outline</v-icon>
-                  </div>
-                  <div class="text-subtitle-2 font-weight-bold mb-1">Platform Logo</div>
-                  <div class="text-caption text-secondary mb-3">Recommended: 400x100px PNG/SVG</div>
-                  <v-file-input
-                    v-model="logoFile"
-                    accept="image/*"
-                    label="Upload new logo"
-                    variant="outlined"
-                    density="compact"
-                    prepend-icon=""
-                    prepend-inner-icon="mdi-camera"
-                    hide-details
-                    class="w-100"
-                    @change="uploadBranding"
-                  ></v-file-input>
-                </v-card>
-              </v-col>
+
+      <!-- ═══════════════════════════════════════════════════════════════════ -->
+      <!-- VIEW 2: INNER PAGE PANEL VIEW (WHEN A CATEGORY CARD IS SELECTED)   -->
+      <!-- ═══════════════════════════════════════════════════════════════════ -->
+      <div v-else class="fade-in">
+        
+        <!-- Breadcrumb & Top Bar -->
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+          <div class="flex items-center gap-3">
+            <button
+              @click="backToOverview"
+              class="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs"
+            >
+              <i class="mdi mdi-arrow-left text-base"></i>
+              <span>Back to All Settings</span>
+            </button>
+            <div class="h-5 w-px bg-slate-300 hidden sm:block"></div>
+            <div class="text-xs font-bold text-slate-500">
+              Settings <span class="mx-1.5 text-slate-400">/</span> <span class="text-slate-900">{{ currentCategoryObj?.title }}</span>
+            </div>
+          </div>
+
+          <!-- Quick Category Switcher Pills -->
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0 custom-scrollbar">
+            <button
+              v-for="c in settingsCards"
+              :key="c.id"
+              @click="selectCategory(c)"
+              :class="[
+                'px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition border',
+                activeCategory === c.id
+                  ? 'bg-red-600 text-white border-red-600 shadow-2xs'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+              ]"
+            >
+              <i :class="`mdi ${c.icon} me-1`"></i> {{ c.title.split(' ')[0] }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Inner Form Container -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 sm:p-10">
+          <v-form @submit.prevent="save">
+
+            <!-- 1. Branding & Identity Tab -->
+            <div v-if="activeCategory === 'branding'" class="fade-in">
+              <h2 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                <i class="mdi mdi-palette-outline text-red-600"></i> Branding &amp; Platform Identity
+              </h2>
               
-              <v-col cols="12" md="6">
-                <v-card variant="outlined" class="pa-4 rounded-xl d-flex flex-column align-center justify-center text-center">
-                  <div class="mb-3">
-                    <img v-if="form.app_favicon" :src="baseUrl + form.app_favicon" alt="Favicon Preview" style="max-height: 48px; max-width: 48px; border-radius: 8px; object-fit: cover;" />
-                    <v-icon v-else size="48" color="grey-lighten-1">mdi-web</v-icon>
-                  </div>
-                  <div class="text-subtitle-2 font-weight-bold mb-1">Favicon</div>
-                  <div class="text-caption text-secondary mb-3">Recommended: 64x64px ICO/PNG</div>
-                  <v-file-input
-                    v-model="faviconFile"
-                    accept="image/*,.ico"
-                    label="Upload new favicon"
-                    variant="outlined"
-                    density="compact"
-                    prepend-icon=""
-                    prepend-inner-icon="mdi-camera"
-                    hide-details
-                    class="w-100"
-                    @change="uploadBranding"
-                  ></v-file-input>
-                </v-card>
-              </v-col>
-            </v-row>
-
-            <v-divider class="mb-8"></v-divider>
-
-            <div class="fr2 mb-4">
-              <AppInput v-model="form.institute_name" label="Institution Name" placeholder="AEMS Academy" large />
-              <AppInput v-model="form.tagline" label="Tagline" placeholder="Learn the future" large />
-            </div>
-            <div class="fr2">
-              <AppInput v-model="form.brand_primary_color" label="Primary Color" type="color" large />
-              <AppInput v-model="form.brand_secondary_color" label="Secondary Color" type="color" large />
-            </div>
-
-          </div>
-
-          <!-- LMS Tab -->
-          <div v-if="activeTab[0] === 'lms'" class="fade-in">
-            <h2 class="text-h6 font-weight-bold mb-6">LMS Configuration</h2>
-            <div class="mb-2">
-              <v-combobox
-                v-model="form.course_languages"
-                label="Course Languages"
-                chips
-                multiple
-                clearable
-                variant="outlined"
-                hint="Type a language and press Enter to add it."
-                persistent-hint
-              ></v-combobox>
-            </div>
-            <div class="text-caption text-secondary mb-6">These languages will appear in the language dropdown when creating or editing a course.</div>
-          </div>
-
-          <!-- Email Tab -->
-          <div v-if="activeTab[0] === 'email'" class="fade-in">
-            <h2 class="text-h6 font-weight-bold mb-2">Email Settings (Resend REST API)</h2>
-            <p class="text-caption text-secondary mb-6">
-              Configure your Resend API credentials. Emails are dispatched via HTTPS REST API (Port 443), ensuring reliable delivery without SMTP port blocking.
-            </p>
-
-            <div class="pa-4 rounded-xl mb-6 text-body-2" style="background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;">
-              <div class="d-flex align-center gap-2 mb-1 font-weight-bold">
-                <v-icon icon="mdi-information-outline" size="18" color="primary" class="me-1"></v-icon>
-                Resend Configuration Guide
-              </div>
-              <div>
-                • Get your API Key from your <a href="https://resend.com/api-keys" target="_blank" class="text-primary font-weight-bold" style="text-decoration: underline;">Resend Dashboard</a>.
-              </div>
-              <div class="mt-1">
-                • For testing, you can use <code>onboarding@resend.dev</code> as the From Email. For production, add and verify your custom domain in Resend.
-              </div>
-            </div>
-
-            <div class="mb-4">
-              <AppInput
-                v-model="form.resend_api_key"
-                label="Resend API Key"
-                type="password"
-                placeholder="re_123456789..."
-                hint="Your Resend secret API key (starts with re_)"
-                persistent-hint
-                large
-              />
-            </div>
-
-            <div class="fr2 mb-6">
-              <AppInput
-                v-model="form.smtp_from_name"
-                label="From Name"
-                placeholder="Kefta Talent Hunt"
-                hint="Sender display name shown in email inboxes"
-                persistent-hint
-                large
-              />
-              <AppInput
-                v-model="form.smtp_from_email"
-                label="From Email Address"
-                placeholder="noreply@kefta.in"
-                hint="Must be verified on Resend (or onboarding@resend.dev for test)"
-                persistent-hint
-                large
-              />
-            </div>
-
-            <v-divider class="my-6" />
-
-            <div class="d-flex align-center justify-space-between flex-wrap gap-4">
-              <div>
-                <div class="text-subtitle-2 font-weight-bold">Test Email Delivery</div>
-                <div class="text-caption text-secondary">Send a test notification to verify your Resend credentials.</div>
-              </div>
-              <AppButton variant="g" icon="mdi-send-outline" :loading="testingEmail" @click="testEmail">
-                Send Test Email
-              </AppButton>
-            </div>
-          </div>
-
-          <!-- Contact Info Tab -->
-          <div v-if="activeTab[0] === 'contact'" class="fade-in">
-            <h2 class="text-h6 font-weight-bold mb-6">Contact Information</h2>
-            <div class="fr2 mb-4">
-              <AppInput v-model="form.contact_email" label="Contact Email" placeholder="contact@aems.local" large />
-              <AppInput v-model="form.contact_phone" label="Contact Phone" placeholder="+1234567890" large />
-            </div>
-            <div class="mb-6">
-              <AppInput v-model="form.contact_address" label="Institution Address" placeholder="123 AEMS Campus" large />
-            </div>
-          </div>
-
-
-          <!-- Payments Tab -->
-          <div v-if="activeTab[0] === 'payments'" class="fade-in">
-            <h2 class="text-h6 font-weight-bold mb-6">Payment Gateway (Razorpay)</h2>
-            <div class="mb-4">
-              <AppInput v-model="form.razorpay_key_id" label="Key ID" placeholder="rzp_live_..." large />
-            </div>
-            <div class="mb-4">
-              <AppInput v-model="form.razorpay_key_secret" label="Key Secret" type="password" placeholder="••••••••" large />
-            </div>
-            <div class="mb-6">
-              <AppInput v-model="form.razorpay_webhook_secret" label="Webhook Secret" type="password" placeholder="••••••••" large />
-            </div>
-
-            <v-divider class="my-6"></v-divider>
-
-            <h2 class="text-h6 font-weight-bold mb-6">Course Access Rules</h2>
-            <div class="mb-4">
-              <AppInput 
-                v-model="form.payment_allow_partial_access" 
-                label="Option A: Allow course access after partial payment" 
-                type="select" 
-                :options="[{label: 'Yes, allow access', value: 'true'}, {label: 'No, restrict until fully paid', value: 'false'}]" 
-                large 
-              />
-            </div>
-            <div class="mb-4">
-              <AppInput 
-                v-model="form.payment_restrict_certificate" 
-                label="Option B: Restrict certificate generation until fully paid" 
-                type="select" 
-                :options="[{label: 'Yes, restrict certificate', value: 'true'}, {label: 'No, allow certificate', value: 'false'}]" 
-                large 
-              />
-            </div>
-            <div class="mb-6">
-              <AppInput 
-                v-model="form.payment_restrict_exam" 
-                label="Option C: Restrict final exam until fully paid" 
-                type="select" 
-                :options="[{label: 'Yes, restrict exam', value: 'true'}, {label: 'No, allow exam', value: 'false'}]" 
-                large 
-              />
-            </div>
-          </div>
-
-          <!-- WhatsApp Tab -->
-          <div v-if="activeTab[0] === 'whatsapp'" class="fade-in">
-            <h2 class="text-h6 font-weight-bold mb-6">WhatsApp Cloud API</h2>
-            <div class="fr2 mb-4">
-              <AppInput v-model="form.whatsapp_app_id" label="App ID" placeholder="123456789" large />
-              <AppInput v-model="form.whatsapp_phone_number_id" label="Phone Number ID" placeholder="987654321" large />
-            </div>
-            <div class="mb-4">
-              <AppInput v-model="form.whatsapp_access_token" label="System Access Token" type="password" placeholder="EAAB..." large />
-            </div>
-            <div class="mb-6">
-              <AppInput v-model="form.whatsapp_verify_token" label="Webhook Verify Token" placeholder="my_token" large />
-            </div>
-          </div>
-
-          <!-- Organization & Legal Pages Tab -->
-          <div v-if="activeTab[0] === 'terms_privacy'" class="fade-in">
-            <h2 class="text-h6 font-weight-bold mb-2">Organization &amp; Legal Content Management</h2>
-            <p class="text-caption text-secondary mb-6">Manage dynamic text and policy parameters for all public governance and legal pages.</p>
-            
-            <!-- Section 1: Advisory Board & Panel -->
-            <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
-              <h3 class="text-subtitle-1 font-weight-bold mb-4 d-flex align-center gap-2">
-                <v-icon color="red-darken-1" size="20">mdi-shield-account-outline</v-icon>
-                Advisory Board &amp; Panel Page
-              </h3>
-              <div class="fr2 mb-4">
-                <AppInput v-model="form.advisory_board_title" label="Page Title" placeholder="Advisory Board & Panel" large />
-                <AppInput v-model="form.advisory_board_subtitle" label="Subtitle" placeholder="Independent international experts..." large />
-              </div>
-              <v-textarea v-model="form.advisory_board_content" label="Main Body Content (Overrides Default)" rows="5" variant="outlined" auto-grow placeholder="Enter custom overview content for the Advisory Board page..." />
-            </v-card>
-
-            <!-- Section 2: Global Standards Council -->
-            <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
-              <h3 class="text-subtitle-1 font-weight-bold mb-4 d-flex align-center gap-2">
-                <v-icon color="red-darken-1" size="20">mdi-earth</v-icon>
-                Global Standards Council Page
-              </h3>
-              <div class="fr2 mb-4">
-                <AppInput v-model="form.council_title" label="Page Title" placeholder="Global Standards Council" large />
-                <AppInput v-model="form.council_subtitle" label="Subtitle" placeholder="Formulating and benchmarking qualification standards..." large />
-              </div>
-              <v-textarea v-model="form.council_content" label="Main Body Content (Overrides Default)" rows="5" variant="outlined" auto-grow placeholder="Enter custom overview content for the Global Standards Council page..." />
-            </v-card>
-
-            <!-- Section 3: Cookie Preferences & Policy -->
-            <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
-              <h3 class="text-subtitle-1 font-weight-bold mb-4 d-flex align-center gap-2">
-                <v-icon color="red-darken-1" size="20">mdi-cookie-outline</v-icon>
-                Cookie Preferences Policy Text
-              </h3>
-              <v-textarea v-model="form.cookie_policy_content" label="Cookie Policy Notice Content" rows="4" variant="outlined" auto-grow placeholder="Enter details regarding cookie usage, cryptographic tokens, and telemetry..." />
-            </v-card>
-
-            <!-- Section 4: Terms of Service & Privacy Policy -->
-            <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
-              <h3 class="text-subtitle-1 font-weight-bold mb-4 d-flex align-center gap-2">
-                <v-icon color="red-darken-1" size="20">mdi-scale-balance</v-icon>
-                Terms of Service &amp; Privacy Policy
-              </h3>
-              <v-row>
+              <!-- Logo & Favicon Upload -->
+              <v-row class="mb-8">
                 <v-col cols="12" md="6">
-                  <v-textarea v-model="form.terms_content" label="Terms &amp; Conditions Content" rows="6" variant="outlined" auto-grow class="mb-3" placeholder="Enter terms content..." />
-                  <AppInput v-model="form.terms_version" label="Terms &amp; Conditions Version" placeholder="1.0" large />
+                  <v-card variant="outlined" class="pa-4 rounded-xl d-flex flex-column align-center justify-center text-center">
+                    <div class="mb-3">
+                      <img v-if="form.app_logo" :src="baseUrl + form.app_logo" alt="Logo Preview" style="max-height: 60px; max-width: 100%; object-fit: contain;" />
+                      <v-icon v-else size="48" color="grey-lighten-1">mdi-image-outline</v-icon>
+                    </div>
+                    <div class="text-subtitle-2 font-weight-bold mb-1">Platform Logo</div>
+                    <div class="text-caption text-secondary mb-3">Recommended: 400x100px PNG/SVG</div>
+                    <v-file-input
+                      v-model="logoFile"
+                      accept="image/*"
+                      label="Upload new logo"
+                      variant="outlined"
+                      density="compact"
+                      prepend-icon=""
+                      prepend-inner-icon="mdi-camera"
+                      hide-details
+                      class="w-100"
+                      @change="uploadBranding"
+                    ></v-file-input>
+                  </v-card>
                 </v-col>
+                
                 <v-col cols="12" md="6">
-                  <v-textarea v-model="form.privacy_content" label="Privacy Policy Content" rows="6" variant="outlined" auto-grow class="mb-3" placeholder="Enter privacy policy content..." />
-                  <AppInput v-model="form.privacy_version" label="Privacy Policy Version" placeholder="1.0" large />
+                  <v-card variant="outlined" class="pa-4 rounded-xl d-flex flex-column align-center justify-center text-center">
+                    <div class="mb-3">
+                      <img v-if="form.app_favicon" :src="baseUrl + form.app_favicon" alt="Favicon Preview" style="max-height: 48px; max-width: 48px; border-radius: 8px; object-fit: cover;" />
+                      <v-icon v-else size="48" color="grey-lighten-1">mdi-web</v-icon>
+                    </div>
+                    <div class="text-subtitle-2 font-weight-bold mb-1">Favicon</div>
+                    <div class="text-caption text-secondary mb-3">Recommended: 64x64px ICO/PNG</div>
+                    <v-file-input
+                      v-model="faviconFile"
+                      accept="image/*,.ico"
+                      label="Upload new favicon"
+                      variant="outlined"
+                      density="compact"
+                      prepend-icon=""
+                      prepend-inner-icon="mdi-camera"
+                      hide-details
+                      class="w-100"
+                      @change="uploadBranding"
+                    ></v-file-input>
+                  </v-card>
                 </v-col>
               </v-row>
-            </v-card>
 
-          </div>
+              <v-divider class="mb-8"></v-divider>
 
-          <!-- Social Platforms Tab -->
-          <div v-if="activeTab[0] === 'social'" class="fade-in">
-            <SocialPlatformsTab />
-          </div>
+              <div class="fr2 mb-4">
+                <AppInput v-model="form.institute_name" label="Institution Name" placeholder="GSFIN Authority" large />
+                <AppInput v-model="form.tagline" label="Tagline" placeholder="Safer Food. Stronger Tomorrow." large />
+              </div>
+              <div class="fr2">
+                <AppInput v-model="form.brand_primary_color" label="Primary Color" type="color" large />
+                <AppInput v-model="form.brand_secondary_color" label="Secondary Color" type="color" large />
+              </div>
+            </div>
 
-          <!-- Homepage Tab -->
-          <div v-if="activeTab[0] === 'homepage'" class="fade-in">
-            <h2 class="text-h6 font-weight-bold mb-2">Homepage Content & Settings</h2>
-            <p class="text-body-2 text-secondary mb-8">Manage the main text and images displayed on the public Talent Hunt homepage.</p>
+            <!-- 2. Homepage Content Tab -->
+            <div v-if="activeCategory === 'homepage'" class="fade-in">
+              <h2 class="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
+                <i class="mdi mdi-home-outline text-indigo-600"></i> Homepage Content &amp; Banner
+              </h2>
+              <p class="text-sm text-slate-500 mb-6">Manage hero section titles, about paragraphs, and public homepage images.</p>
 
-            <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
-              <h3 class="text-subtitle-1 font-weight-bold mb-4">Text Content</h3>
+              <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
+                <h3 class="text-subtitle-1 font-weight-bold mb-4">Text Content</h3>
+                
+                <div class="mb-4">
+                  <AppInput v-model="form.homepage_title" label="Main Title" placeholder="KEFTA National Food Tech Talent Hunt 2026" large />
+                </div>
+                <div class="mb-4">
+                  <v-textarea v-model="form.homepage_subtitle" label="Subtitle" placeholder="Discovering, motivating, and supporting emerging food science talents across the nation." variant="outlined" auto-grow rows="2" />
+                </div>
+                <div class="mb-4">
+                  <AppInput v-model="form.homepage_about_title" label="About Section Title" placeholder="About the Competition" large />
+                </div>
+                <div class="mb-4">
+                  <v-textarea v-model="form.homepage_about_description" label="About Section Description" placeholder="Enter paragraph text here..." variant="outlined" auto-grow rows="4" />
+                </div>
+                <div class="mb-4">
+                  <v-textarea v-model="form.homepage_bullets" label="About Section Bullets (One per line)" placeholder="Promote scientific temperament..." variant="outlined" auto-grow rows="4" />
+                </div>
+                <div class="mb-4">
+                  <AppInput v-model="form.homepage_footer_text" label="Footer Text" placeholder="All assessments will be conducted..." large />
+                </div>
+              </v-card>
+
+              <!-- Hero Image Upload -->
+              <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
+                <div class="d-flex align-center mb-4">
+                  <v-avatar color="primary" size="40" class="mr-3">
+                    <v-icon color="white" size="20">mdi-image-area</v-icon>
+                  </v-avatar>
+                  <div>
+                    <div class="text-subtitle-1 font-weight-bold">Hero Section Image</div>
+                    <div class="text-caption text-secondary">Shown on the right side of the main hero banner</div>
+                  </div>
+                </div>
+
+                <div v-if="form.homepage_hero_image" class="mb-4">
+                  <img
+                    :src="form.homepage_hero_image?.startsWith('/') ? (baseUrl + form.homepage_hero_image) : form.homepage_hero_image"
+                    alt="Hero Image Preview"
+                    style="width:100%; max-height:200px; object-fit:cover; border-radius:12px; border:1px solid rgba(0,0,0,0.08);"
+                  />
+                </div>
+                <div v-else class="mb-4 pa-6 rounded-xl d-flex align-center justify-center" style="background:#f8f9fc; border:1px dashed rgba(0,0,0,0.12); min-height:120px;">
+                  <div class="text-center text-secondary">
+                    <v-icon size="40" color="grey-lighten-2" class="mb-2">mdi-image-outline</v-icon>
+                    <div class="text-caption">No image set — using default</div>
+                  </div>
+                </div>
+
+                <v-row>
+                  <v-col cols="12" md="6">
+                    <v-file-input
+                      v-model="heroImageFile"
+                      accept="image/*"
+                      label="Upload new hero image"
+                      variant="outlined"
+                      density="compact"
+                      prepend-icon=""
+                      prepend-inner-icon="mdi-upload"
+                      hide-details
+                      class="mb-3"
+                    />
+                    <v-btn color="primary" variant="tonal" rounded="lg" size="small" :loading="saving" @click="uploadHomepageImages" class="text-none">
+                      <v-icon start>mdi-cloud-upload</v-icon> Upload Hero Image
+                    </v-btn>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <AppInput
+                      v-model="form.homepage_hero_image_url"
+                      label="Or paste image URL"
+                      placeholder="https://images.unsplash.com/..."
+                    />
+                  </v-col>
+                </v-row>
+              </v-card>
+            </div>
+
+            <!-- 3. Organization & Legal Tab -->
+            <div v-if="activeCategory === 'terms_privacy'" class="fade-in">
+              <h2 class="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
+                <i class="mdi mdi-shield-lock-outline text-emerald-600"></i> Organization &amp; Governance Content
+              </h2>
+              <p class="text-sm text-slate-500 mb-6">Manage dynamic text and policy parameters for all public governance pages.</p>
               
-              <div class="mb-4">
-                <AppInput v-model="form.homepage_title" label="Main Title" placeholder="KEFTA National Food Tech Talent Hunt 2026" large />
-              </div>
-              <div class="mb-4">
-                <v-textarea v-model="form.homepage_subtitle" label="Subtitle" placeholder="Discovering, motivating, and supporting emerging food science talents across the nation." variant="outlined" auto-grow rows="2" />
-              </div>
-              <div class="mb-4">
-                <AppInput v-model="form.homepage_about_title" label="About Section Title" placeholder="About the Competition" large />
-              </div>
-              <div class="mb-4">
-                <v-textarea v-model="form.homepage_about_description" label="About Section Description" placeholder="Enter paragraph text here..." variant="outlined" auto-grow rows="4" />
-              </div>
-              <div class="mb-4">
-                <v-textarea v-model="form.homepage_bullets" label="About Section Bullets (One per line)" placeholder="Promote scientific temperament..." variant="outlined" auto-grow rows="4" />
-              </div>
-              <div class="mb-4">
-                <AppInput v-model="form.homepage_footer_text" label="Footer Text" placeholder="All assessments will be conducted..." large />
-              </div>
-            </v-card>
+              <!-- Section 1: Advisory Board & Panel -->
+              <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
+                <h3 class="text-subtitle-1 font-weight-bold mb-4 d-flex align-center gap-2">
+                  <v-icon color="red-darken-1" size="20">mdi-shield-account-outline</v-icon>
+                  Advisory Board &amp; Panel Page
+                </h3>
+                <div class="fr2 mb-4">
+                  <AppInput v-model="form.advisory_board_title" label="Page Title" placeholder="Advisory Board & Panel" large />
+                  <AppInput v-model="form.advisory_board_subtitle" label="Subtitle" placeholder="Independent international experts..." large />
+                </div>
+                <v-textarea v-model="form.advisory_board_content" label="Main Body Content (Overrides Default)" rows="5" variant="outlined" auto-grow placeholder="Enter custom overview content for the Advisory Board page..." />
+              </v-card>
 
-            <!-- Hero Image -->
-            <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
-              <div class="d-flex align-center mb-4">
-                <v-avatar color="primary" size="40" class="mr-3">
-                  <v-icon color="white" size="20">mdi-image-area</v-icon>
-                </v-avatar>
+              <!-- Section 2: Global Standards Council -->
+              <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
+                <h3 class="text-subtitle-1 font-weight-bold mb-4 d-flex align-center gap-2">
+                  <v-icon color="red-darken-1" size="20">mdi-earth</v-icon>
+                  Global Standards Council Page
+                </h3>
+                <div class="fr2 mb-4">
+                  <AppInput v-model="form.council_title" label="Page Title" placeholder="Global Standards Council" large />
+                  <AppInput v-model="form.council_subtitle" label="Subtitle" placeholder="Formulating and benchmarking qualification standards..." large />
+                </div>
+                <v-textarea v-model="form.council_content" label="Main Body Content (Overrides Default)" rows="5" variant="outlined" auto-grow placeholder="Enter custom overview content for the Global Standards Council page..." />
+              </v-card>
+
+              <!-- Section 3: Cookie Preferences & Policy -->
+              <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
+                <h3 class="text-subtitle-1 font-weight-bold mb-4 d-flex align-center gap-2">
+                  <v-icon color="red-darken-1" size="20">mdi-cookie-outline</v-icon>
+                  Cookie Preferences Policy Text
+                </h3>
+                <v-textarea v-model="form.cookie_policy_content" label="Cookie Policy Notice Content" rows="4" variant="outlined" auto-grow placeholder="Enter details regarding cookie usage..." />
+              </v-card>
+
+              <!-- Section 4: Terms of Service & Privacy Policy -->
+              <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
+                <h3 class="text-subtitle-1 font-weight-bold mb-4 d-flex align-center gap-2">
+                  <v-icon color="red-darken-1" size="20">mdi-scale-balance</v-icon>
+                  Terms of Service &amp; Privacy Policy
+                </h3>
+                <v-row>
+                  <v-col cols="12" md="6">
+                    <v-textarea v-model="form.terms_content" label="Terms &amp; Conditions Content" rows="6" variant="outlined" auto-grow class="mb-3" placeholder="Enter terms content..." />
+                    <AppInput v-model="form.terms_version" label="Terms &amp; Conditions Version" placeholder="1.0" large />
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-textarea v-model="form.privacy_content" label="Privacy Policy Content" rows="6" variant="outlined" auto-grow class="mb-3" placeholder="Enter privacy policy content..." />
+                    <AppInput v-model="form.privacy_version" label="Privacy Policy Version" placeholder="1.0" large />
+                  </v-col>
+                </v-row>
+              </v-card>
+            </div>
+
+            <!-- 4. Contact Info Tab -->
+            <div v-if="activeCategory === 'contact'" class="fade-in">
+              <h2 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                <i class="mdi mdi-map-marker-outline text-amber-600"></i> Contact &amp; Institution Details
+              </h2>
+              <div class="fr2 mb-4">
+                <AppInput v-model="form.contact_email" label="Contact Email" placeholder="contact@gsfin.org" large />
+                <AppInput v-model="form.contact_phone" label="Contact Phone" placeholder="+44 20 7946 0912" large />
+              </div>
+              <div class="mb-6">
+                <AppInput v-model="form.contact_address" label="Institution Address" placeholder="123 International Standards Avenue, London, UK" large />
+              </div>
+            </div>
+
+            <!-- 5. Email (Resend) Tab -->
+            <div v-if="activeCategory === 'email'" class="fade-in">
+              <h2 class="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
+                <i class="mdi mdi-email-fast-outline text-blue-600"></i> Email Settings (Resend REST API)
+              </h2>
+              <p class="text-xs text-slate-500 mb-6">Configure credentials for email dispatches via HTTPS REST API (Port 443).</p>
+
+              <div class="pa-4 rounded-xl mb-6 text-body-2" style="background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;">
+                <div class="d-flex align-center gap-2 mb-1 font-weight-bold">
+                  <v-icon icon="mdi-information-outline" size="18" color="primary" class="me-1"></v-icon>
+                  Resend Configuration Guide
+                </div>
                 <div>
-                  <div class="text-subtitle-1 font-weight-bold">Hero Section Image</div>
-                  <div class="text-caption text-secondary">Shown on the right side of the main hero banner</div>
+                  • Get your API Key from your <a href="https://resend.com/api-keys" target="_blank" class="text-primary font-weight-bold" style="text-decoration: underline;">Resend Dashboard</a>.
                 </div>
               </div>
 
-              <!-- Preview -->
-              <div v-if="form.homepage_hero_image" class="mb-4">
-                <img
-                  :src="form.homepage_hero_image?.startsWith('/') ? (baseUrl + form.homepage_hero_image) : form.homepage_hero_image"
-                  alt="Hero Image Preview"
-                  style="width:100%; max-height:200px; object-fit:cover; border-radius:12px; border:1px solid rgba(0,0,0,0.08);"
+              <div class="mb-4">
+                <AppInput
+                  v-model="form.resend_api_key"
+                  label="Resend API Key"
+                  type="password"
+                  placeholder="re_123456789..."
+                  large
                 />
               </div>
-              <div v-else class="mb-4 pa-6 rounded-xl d-flex align-center justify-center" style="background:#f8f9fc; border:1px dashed rgba(0,0,0,0.12); min-height:120px;">
-                <div class="text-center text-secondary">
-                  <v-icon size="40" color="grey-lighten-2" class="mb-2">mdi-image-outline</v-icon>
-                  <div class="text-caption">No image set — using default</div>
-                </div>
+
+              <div class="fr2 mb-6">
+                <AppInput
+                  v-model="form.smtp_from_name"
+                  label="From Name"
+                  placeholder="GSFIN International Authority"
+                  large
+                />
+                <AppInput
+                  v-model="form.smtp_from_email"
+                  label="From Email Address"
+                  placeholder="noreply@gsfin.org"
+                  large
+                />
               </div>
 
-              <v-row>
-                <v-col cols="12" md="6">
-                  <v-file-input
-                    v-model="heroImageFile"
-                    accept="image/*"
-                    label="Upload new hero image"
-                    variant="outlined"
-                    density="compact"
-                    prepend-icon=""
-                    prepend-inner-icon="mdi-upload"
-                    hide-details
-                    class="mb-3"
-                  />
-                  <v-btn color="primary" variant="tonal" rounded="lg" size="small" :loading="saving" @click="uploadHomepageImages" class="text-none">
-                    <v-icon start>mdi-cloud-upload</v-icon> Upload Hero Image
-                  </v-btn>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <AppInput
-                    v-model="form.homepage_hero_image_url"
-                    label="Or paste image URL"
-                    placeholder="https://images.unsplash.com/..."
-                  />
-                  <div class="text-caption text-secondary mt-1">If set, URL takes priority over uploaded file.</div>
-                </v-col>
-              </v-row>
-            </v-card>
+              <v-divider class="my-6" />
 
-
-
-            <div class="d-flex justify-end gap-3 mt-8 pt-6 border-t">
-              <AppButton variant="g" size="lg" icon="mdi-refresh" @click="fetchData">Reset</AppButton>
-              <AppButton size="lg" icon="mdi-check" :loading="saving" @click="save">Save URL Settings</AppButton>
+              <div class="d-flex align-center justify-space-between flex-wrap gap-4">
+                <div>
+                  <div class="text-subtitle-2 font-weight-bold">Test Email Delivery</div>
+                  <div class="text-caption text-secondary">Send a test notification to verify your credentials.</div>
+                </div>
+                <AppButton variant="g" icon="mdi-send-outline" :loading="testingEmail" @click="testEmail">
+                  Send Test Email
+                </AppButton>
+              </div>
             </div>
-          </div>
 
-          <!-- Currencies Tab -->
-          <div v-if="activeTab[0] === 'currencies'" class="fade-in">
-            <CurrenciesTab />
-          </div>
+            <!-- 6. Email Templates Tab -->
+            <div v-if="activeCategory === 'email_templates'" class="fade-in">
+              <EmailTemplatesTab />
+            </div>
 
-          <!-- Certifications Tab -->
-          <div v-if="activeTab[0] === 'certifications'" class="fade-in">
-            <CertificationsTab />
-          </div>
+            <!-- 7. Talent Hunt Tab -->
+            <div v-if="activeCategory === 'talent_hunt'" class="fade-in">
+              <TalentHuntSettingsTab />
+            </div>
 
-          <!-- Email Templates Tab -->
-          <div v-if="activeTab[0] === 'email_templates'" class="fade-in">
-            <EmailTemplatesTab />
-          </div>
+            <!-- Bottom Action Controls -->
+            <div class="d-flex justify-end gap-3 mt-10 pt-6 border-t" v-if="activeCategory !== 'email_templates'">
+              <AppButton variant="g" size="lg" icon="mdi-refresh" @click="fetchData">
+                Reset Changes
+              </AppButton>
+              <AppButton type="submit" :loading="saving" size="lg" icon="mdi-check" @click.prevent="save">
+                Save All Settings
+              </AppButton>
+            </div>
 
-          <!-- Talent Hunt Tab -->
-          <div v-if="activeTab[0] === 'talent_hunt'" class="fade-in">
-            <TalentHuntSettingsTab />
-          </div>
+          </v-form>
+        </div>
 
-          <div class="d-flex justify-end gap-3 mt-12 pt-6 border-t" v-if="activeTab[0] !== 'social' && activeTab[0] !== 'currencies' && activeTab[0] !== 'homepage' && activeTab[0] !== 'certifications' && activeTab[0] !== 'email_templates'">
-            <AppButton variant="g" size="lg" icon="mdi-refresh" @click="fetchData">
-              Reset Changes
-            </AppButton>
-            <AppButton type="submit" :loading="saving" size="lg" icon="mdi-check" @click.prevent="save">
-              Save All Settings
-            </AppButton>
-          </div>
-        </v-form>
       </div>
+
     </div>
 
-    <!-- Snackbar for notifications -->
+    <!-- Notification Snackbar -->
     <v-snackbar v-model="snackbar" :color="snackbarColor" rounded="lg" timeout="3000">
       {{ snackbarMessage }}
     </v-snackbar>
-  </v-container>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useApi } from '@/composables/useApi';
-import SocialPlatformsTab from '@/components/admin/settings/SocialPlatformsTab.vue';
-import CurrenciesTab from '@/components/admin/settings/CurrenciesTab.vue';
-import CertificationsTab from '@/components/admin/settings/CertificationsTab.vue';
 import EmailTemplatesTab from '@/components/admin/settings/EmailTemplatesTab.vue';
 import TalentHuntSettingsTab from '@/components/admin/settings/TalentHuntSettingsTab.vue';
 import { provide } from 'vue';
@@ -453,40 +442,134 @@ import { provide } from 'vue';
 definePageMeta({
   layout: 'dashboard',
   middleware: ['auth', 'role'],
-  role: ['super_admin']
+  role: ['super_admin', 'main_admin']
 });
 
+const route = useRoute();
+const router = useRouter();
 const api = useApi();
 const config = useRuntimeConfig();
 const baseUrl = computed(() => config.public.apiBase.replace('/api', ''));
 
-const activeTab = ref(['branding']);
+const activeCategory = ref<string | null>(null);
+const cardSearch = ref('');
 const saving = ref(false);
 const testingEmail = ref(false);
-const regenerating = ref(false);
 const form = ref<any>({});
-provide('configForm', form); // Provide the form so child tabs can mutate it directly
+provide('configForm', form);
 
 const logoFile = ref(null);
 const faviconFile = ref(null);
 const heroImageFile = ref(null);
-const aboutImageFile = ref(null);
-const aboutpageWhoImageFile = ref(null);
 
 const snackbar = ref(false);
 const snackbarMessage = ref('');
 const snackbarColor = ref('success');
 
-const tabs = [
-  { label: 'Branding', value: 'branding', icon: 'mdi-palette-outline' },
-  { label: 'Homepage', value: 'homepage', icon: 'mdi-home-outline' },
-  { label: 'Contact Info', value: 'contact', icon: 'mdi-map-marker-outline' },
-  { label: 'Email (Resend)', value: 'email', icon: 'mdi-email-fast-outline' },
-  { label: 'Email Templates', value: 'email_templates', icon: 'mdi-email-edit-outline' },
-  { label: 'Organization & Legal', value: 'terms_privacy', icon: 'mdi-shield-lock-outline' },
-  { label: 'Talent Hunt', value: 'talent_hunt', icon: 'mdi-account-star-outline' }
+// 8 Settings Module Cards Grid Definition
+const settingsCards = [
+  {
+    id: 'branding',
+    title: 'Branding & Identity',
+    subtitle: 'Manage platform logos, favicons, primary/secondary brand colors, and institution details.',
+    icon: 'mdi-palette-outline',
+    iconBg: 'bg-red-50 text-red-600 border-red-200',
+    badge: 'Branding',
+    badgeColor: 'bg-red-50 text-red-600 border-red-200'
+  },
+  {
+    id: 'homepage',
+    title: 'Homepage & Hero',
+    subtitle: 'Customize public hero text, about section, bullet points, and banner images.',
+    icon: 'mdi-home-outline',
+    iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-200',
+    badge: 'Public Content',
+    badgeColor: 'bg-indigo-50 text-indigo-600 border-indigo-200'
+  },
+  {
+    id: 'terms_privacy',
+    title: 'Organization & Governance',
+    subtitle: 'Edit content for Advisory Board, Global Standards Council, Cookie Policy, Terms, and Privacy.',
+    icon: 'mdi-shield-lock-outline',
+    iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+    badge: 'Governance',
+    badgeColor: 'bg-emerald-50 text-emerald-600 border-emerald-200'
+  },
+  {
+    id: 'system_users',
+    title: 'System Users & Roles',
+    subtitle: 'Manage administrator accounts, team members, staff roles, and permissions.',
+    icon: 'mdi-account-group-outline',
+    iconBg: 'bg-purple-50 text-purple-600 border-purple-200',
+    badge: 'Access Control',
+    badgeColor: 'bg-purple-50 text-purple-600 border-purple-200',
+    isExternalRoute: '/dashboard/admin/settings/system-users'
+  },
+  {
+    id: 'contact',
+    title: 'Contact Information',
+    subtitle: 'Update institutional email addresses, phone numbers, and physical office locations.',
+    icon: 'mdi-map-marker-outline',
+    iconBg: 'bg-amber-50 text-amber-600 border-amber-200',
+    badge: 'Support',
+    badgeColor: 'bg-amber-50 text-amber-600 border-amber-200'
+  },
+  {
+    id: 'email',
+    title: 'Email Settings (Resend)',
+    subtitle: 'Configure Resend REST API keys, From Name, From Email, and dispatch test notifications.',
+    icon: 'mdi-email-fast-outline',
+    iconBg: 'bg-blue-50 text-blue-600 border-blue-200',
+    badge: 'Email Dispatch',
+    badgeColor: 'bg-blue-50 text-blue-600 border-blue-200'
+  },
+  {
+    id: 'email_templates',
+    title: 'Email Templates',
+    subtitle: 'Customize automated transactional email templates for registrations, exams, and credentials.',
+    icon: 'mdi-email-edit-outline',
+    iconBg: 'bg-teal-50 text-teal-600 border-teal-200',
+    badge: 'Templates',
+    badgeColor: 'bg-teal-50 text-teal-600 border-teal-200'
+  },
+  {
+    id: 'talent_hunt',
+    title: 'Talent Hunt Settings',
+    subtitle: 'Manage competition dropdown categories, degree levels, and registration parameters.',
+    icon: 'mdi-account-star-outline',
+    iconBg: 'bg-rose-50 text-rose-600 border-rose-200',
+    badge: 'Competition',
+    badgeColor: 'bg-rose-50 text-rose-600 border-rose-200'
+  }
 ];
 
+const filteredCards = computed(() => {
+  if (!cardSearch.value.trim()) return settingsCards;
+  const q = cardSearch.value.toLowerCase().trim();
+  return settingsCards.filter(c => 
+    c.title.toLowerCase().includes(q) || 
+    c.subtitle.toLowerCase().includes(q) ||
+    c.badge.toLowerCase().includes(q)
+  );
+});
+
+const currentCategoryObj = computed(() => {
+  return settingsCards.find(c => c.id === activeCategory.value);
+});
+
+const selectCategory = (card: any) => {
+  if (card.isExternalRoute) {
+    router.push(card.isExternalRoute);
+    return;
+  }
+  activeCategory.value = card.id;
+  router.replace({ query: { tab: card.id } });
+};
+
+const backToOverview = () => {
+  activeCategory.value = null;
+  router.replace({ query: {} });
+};
 
 const fetchData = async () => {
   try {
@@ -495,22 +578,6 @@ const fetchData = async () => {
     data.forEach((item: any) => {
       configMap[item.key] = item.value;
     });
-    if (configMap.course_languages && typeof configMap.course_languages === 'string') {
-      configMap.course_languages = configMap.course_languages.split(',').map((s: string) => s.trim()).filter(Boolean);
-    } else {
-      configMap.course_languages = configMap.course_languages || [];
-    }
-
-    const parseArray = (key: string) => {
-      if (configMap[key] && typeof configMap[key] === 'string') {
-        try { configMap[key] = JSON.parse(configMap[key]); }
-        catch (e) { configMap[key] = configMap[key].split(',').map((s: string) => s.trim()).filter(Boolean); }
-      } else {
-        configMap[key] = configMap[key] || [];
-      }
-    };
-    ['talent_hunt_categories', 'talent_hunt_levels_1', 'talent_hunt_degrees', 'talent_hunt_levels_3', 'talent_hunt_courses', 'talent_hunt_competitive'].forEach(parseArray);
-
     form.value = configMap;
   } catch (err) {
     console.error('Failed to fetch config');
@@ -519,13 +586,10 @@ const fetchData = async () => {
 
 const uploadBranding = async () => {
   if (!logoFile.value && !faviconFile.value) return;
-  
   saving.value = true;
   const formData = new FormData();
-  
   const logo = Array.isArray(logoFile.value) ? logoFile.value[0] : logoFile.value;
   const favicon = Array.isArray(faviconFile.value) ? faviconFile.value[0] : faviconFile.value;
-
   if (logo) formData.append('logo', logo);
   if (favicon) formData.append('favicon', favicon);
 
@@ -538,8 +602,6 @@ const uploadBranding = async () => {
     snackbarMessage.value = 'Branding assets uploaded successfully';
     snackbarColor.value = 'success';
     snackbar.value = true;
-    logoFile.value = null;
-    faviconFile.value = null;
   } catch (err) {
     snackbarMessage.value = 'Failed to upload images';
     snackbarColor.value = 'error';
@@ -550,34 +612,22 @@ const uploadBranding = async () => {
 };
 
 const uploadHomepageImages = async () => {
-  if (!heroImageFile.value && !aboutImageFile.value && !aboutpageWhoImageFile.value) return;
-
+  if (!heroImageFile.value) return;
   saving.value = true;
   const formData = new FormData();
-
   const hero = Array.isArray(heroImageFile.value) ? heroImageFile.value[0] : heroImageFile.value;
-  const about = Array.isArray(aboutImageFile.value) ? aboutImageFile.value[0] : aboutImageFile.value;
-  const aboutWho = Array.isArray(aboutpageWhoImageFile.value) ? aboutpageWhoImageFile.value[0] : aboutpageWhoImageFile.value;
-
   if (hero) formData.append('hero_image', hero);
-  if (about) formData.append('about_image', about);
-  if (aboutWho) formData.append('aboutpage_who_image', aboutWho);
 
   try {
     const { data } = await api.post('/admin/config/branding/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     if (data.updates.homepage_hero_image) form.value.homepage_hero_image = data.updates.homepage_hero_image;
-    if (data.updates.homepage_about_image) form.value.homepage_about_image = data.updates.homepage_about_image;
-    if (data.updates.aboutpage_who_image) form.value.aboutpage_who_image = data.updates.aboutpage_who_image;
-    snackbarMessage.value = 'Images uploaded successfully';
+    snackbarMessage.value = 'Homepage image uploaded successfully';
     snackbarColor.value = 'success';
     snackbar.value = true;
-    heroImageFile.value = null;
-    aboutImageFile.value = null;
-    aboutpageWhoImageFile.value = null;
   } catch (err) {
-    snackbarMessage.value = 'Failed to upload homepage images';
+    snackbarMessage.value = 'Failed to upload image';
     snackbarColor.value = 'error';
     snackbar.value = true;
   } finally {
@@ -588,25 +638,11 @@ const uploadHomepageImages = async () => {
 const save = async () => {
   saving.value = true;
   try {
-    const payload = { ...form.value };
-    if (Array.isArray(payload.course_languages)) {
-      payload.course_languages = payload.course_languages.join(',');
-    }
-    ['talent_hunt_categories', 'talent_hunt_levels_1', 'talent_hunt_degrees', 'talent_hunt_levels_3', 'talent_hunt_courses', 'talent_hunt_competitive'].forEach(key => {
-      if (Array.isArray(payload[key])) {
-        payload[key] = JSON.stringify(payload[key]);
-      }
-    });
-
-    await api.put('/admin/config', payload);
-    snackbarMessage.value = 'Settings saved successfully. Reloading to apply changes...';
+    await api.put('/admin/config', form.value);
+    snackbarMessage.value = 'Settings saved successfully!';
     snackbarColor.value = 'success';
     snackbar.value = true;
-    setTimeout(() => {
-      window.location.reload();
-    }, 1500);
   } catch (err) {
-    console.error('Failed to save config');
     snackbarMessage.value = 'Failed to save settings';
     snackbarColor.value = 'error';
     snackbar.value = true;
@@ -619,11 +655,11 @@ const testEmail = async () => {
   try {
     testingEmail.value = true;
     const { data } = await api.post('/admin/config/test-email');
-    snackbarMessage.value = data?.message || 'Test email dispatched successfully via Resend!';
+    snackbarMessage.value = data?.message || 'Test email dispatched successfully!';
     snackbarColor.value = 'success';
     snackbar.value = true;
   } catch (err: any) {
-    snackbarMessage.value = err.response?.data?.message || 'Failed to send test email. Please check your Resend API Key and verified domain.';
+    snackbarMessage.value = err.response?.data?.message || 'Failed to send test email.';
     snackbarColor.value = 'error';
     snackbar.value = true;
   } finally {
@@ -631,70 +667,32 @@ const testEmail = async () => {
   }
 };
 
-const regenerateInvoicePDFs = async () => {
-  regenerating.value = true;
-  try {
-    await api.post('/admin/config/invoices/regenerate-pdfs');
-    snackbarMessage.value = 'Invoice PDFs are being regenerated in the background.';
-    snackbarColor.value = 'success';
-    snackbar.value = true;
-  } catch (err) {
-    snackbarMessage.value = 'Failed to trigger PDF regeneration';
-    snackbarColor.value = 'error';
-    snackbar.value = true;
-  } finally {
-    regenerating.value = false;
-  }
-};
-
 onMounted(() => {
   fetchData();
+  if (route.query.tab) {
+    activeCategory.value = String(route.query.tab);
+  }
 });
+
+watch(
+  () => route.query.tab,
+  (newTab) => {
+    activeCategory.value = newTab ? String(newTab) : null;
+  }
+);
 </script>
 
 <style scoped>
-.settings-layout {
-  display: flex;
-  background: white;
-  border-radius: var(--radius-lg);
-  min-height: 600px;
-  overflow: hidden;
-  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+.gsfin-admin-page {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
 }
-
-.settings-sidebar {
-  width: 260px;
-  background: #f8fafc;
-  border-right: 1px solid rgba(226, 232, 240, 0.8);
-}
-
-.settings-content {
-  flex: 1;
-}
-
-.settings-list {
-  background: transparent !important;
-}
-
-:deep(.v-list-item--selected) {
-  background-color: #eff6ff !important;
-  color: #2563eb !important;
-  border: 1px solid #bfdbfe !important;
-  font-weight: 700 !important;
-}
-
-:deep(.v-list-item--selected .v-icon) {
-  color: #2563eb !important;
-}
-
 .fr2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.fade-in {
-  animation: fadeIn 0.3s ease-in-out;
-}
+@media (max-width: 640px) { .fr2 { grid-template-columns: 1fr; } }
+.fade-in { animation: fadeIn 0.25s ease-in-out; }
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-.border-t { border-top: 1px solid rgba(226, 232, 240, 0.8); }
+.custom-scrollbar::-webkit-scrollbar { height: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
 </style>

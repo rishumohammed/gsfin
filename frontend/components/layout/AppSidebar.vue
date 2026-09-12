@@ -178,6 +178,8 @@ watch(
 
 /* Nav Item Styling matching reference image */
 :deep(.gsfin-nav-item) {
+  position: relative !important;
+  overflow: hidden !important;
   min-height: 44px !important;
   border-radius: 12px !important;
   padding: 0 14px !important;
@@ -220,7 +222,18 @@ watch(
   background-color: #FFFFFF !important;
   color: #E31B23 !important;
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06) !important;
-  border-left: 3.5px solid #E31B23 !important;
+}
+
+:deep(.gsfin-nav-item-active::before) {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  background-color: #E31B23;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
 }
 
 :deep(.gsfin-nav-item-active .nav-title) {

@@ -37,9 +37,8 @@ export const useNavStore = defineStore('nav', {
       { label: 'Partner Portal', icon: 'mdi-school-outline', route: '/sub-center', roles: ['sub_center_staff'], section: 'PARTNER PORTAL' },
 
       // SETTINGS
+      { label: 'Settings', icon: 'mdi-cog-outline', route: '/dashboard/admin/settings', roles: ['super_admin', 'main_admin'], section: 'SETTINGS' },
       { label: 'FAQs', icon: 'mdi-help-circle-outline', route: '/dashboard/admin/faqs', roles: ['super_admin', 'main_admin'], section: 'SETTINGS' },
-      { label: 'System Users', icon: 'mdi-account-group-outline', route: '/dashboard/admin/settings/system-users', roles: ['super_admin', 'main_admin'], section: 'SETTINGS' },
-      { label: 'Profile', icon: 'mdi-account-outline', route: '/dashboard/profile', roles: ['super_admin', 'main_admin', 'sub_center_staff', 'sub_admin'], section: 'SETTINGS' },
       { label: 'Logout', icon: 'mdi-logout-variant', action: 'logout', roles: ['super_admin', 'main_admin', 'sub_center_staff', 'sub_admin'], section: 'SETTINGS' },
     ] as NavItem[]
   }),
