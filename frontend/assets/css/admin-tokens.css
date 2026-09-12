@@ -1,10 +1,16 @@
-/* Admin-specific CSS overrides */
+/* Admin-specific CSS overrides matching GSFIN Light Design & Reference Sidenav */
+
+.admin-shell .v-navigation-drawer {
+  background-color: #F5F5F8 !important;
+  border-right: 1px solid #E2E8F0 !important;
+}
 
 .admin-shell .v-navigation-drawer .v-list-item--active {
   background-color: #ffffff !important;
-  color: #007AFF !important;
+  color: #E31B23 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
 }
 
 .admin-shell .v-navigation-drawer .v-list-item--active .v-icon {
-  color: #007AFF !important;
+  color: #E31B23 !important;
 }

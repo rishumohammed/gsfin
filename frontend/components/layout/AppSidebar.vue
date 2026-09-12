@@ -151,7 +151,7 @@ watch(
 
 <style scoped>
 .sidebar-drawer {
-  background-color: #ffffff !important;
+  background-color: #F5F5F8 !important;
   border-right: 1px solid #E2E8F0 !important;
   z-index: 1000 !important;
   display: flex !important;
@@ -159,50 +159,15 @@ watch(
   height: 100vh !important;
 }
 
-.sidebar-brand-header {
-  border-bottom: 1px solid #F1F5F9;
-  height: 64px;
-  min-height: 64px;
-}
-
-.brand-badge {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #E31B23 0%, #B91C1C 100%);
-  box-shadow: 0 4px 12px rgba(227, 27, 35, 0.22);
-}
-
-.brand-title {
-  font-size: 0.95rem;
-  font-weight: 900;
-  color: #0F172A;
-  letter-spacing: -0.02em;
-}
-
-.role-pill {
-  font-size: 0.65rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  background-color: #FEF2F2;
-  color: #E31B23;
-  border: 1px solid #FCA5A5;
-  padding: 1px 6px;
-  border-radius: 4px;
-}
-
-.role-subtext {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #64748B;
-}
-
 .section-label {
-  font-size: 0.65rem;
+  font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #94A3B8;
+  color: #8E9AA8;
+  margin-top: 14px;
+  margin-bottom: 6px;
+  padding-left: 20px !important;
 }
 
 /* Nav Content */
@@ -211,52 +176,51 @@ watch(
   overflow-y: auto;
 }
 
-/* Nav Item Styling */
+/* Nav Item Styling matching reference image */
 :deep(.gsfin-nav-item) {
-  min-height: 42px !important;
+  min-height: 44px !important;
   border-radius: 12px !important;
-  padding: 0 10px !important;
+  padding: 0 14px !important;
   margin-bottom: 4px !important;
-  color: #475569 !important;
+  color: #526071 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 :deep(.gsfin-nav-item:hover) {
-  background-color: #FEF2F2 !important;
+  background-color: #FFFFFF !important;
   color: #0F172A !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
 }
 
 :deep(.gsfin-nav-item .icon-box) {
   width: 28px;
   height: 28px;
-  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #64748B;
   transition: all 0.2s ease;
-  margin-right: 10px;
+  margin-right: 12px;
 }
 
 :deep(.gsfin-nav-item:hover .icon-box) {
   color: #E31B23;
-  background-color: #FFFFFF;
 }
 
 :deep(.gsfin-nav-item .nav-title) {
-  font-size: 0.825rem !important;
+  font-size: 0.875rem !important;
   font-weight: 600 !important;
   color: inherit !important;
   line-height: 1.2 !important;
 }
 
-/* Active State */
+/* Active State matching reference styling */
 :deep(.gsfin-nav-item-active) {
   background-color: #FFFFFF !important;
   color: #E31B23 !important;
-  box-shadow: 0 4px 14px rgba(227, 27, 35, 0.1), 0 1px 3px rgba(15, 23, 42, 0.06) !important;
-  border: 1px solid #FEE2E2 !important;
-  border-left: 4px solid #E31B23 !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06) !important;
+  border-left: 3.5px solid #E31B23 !important;
 }
 
 :deep(.gsfin-nav-item-active .nav-title) {
@@ -266,21 +230,23 @@ watch(
 
 :deep(.gsfin-nav-item-active .icon-box) {
   color: #E31B23 !important;
-  background-color: #FEF2F2 !important;
 }
 
+/* Pill badge matching reference image (e.g. 323 red badge) */
 .nav-badge {
-  background-color: #E31B23;
+  background-color: #FF2D55;
   color: #FFFFFF;
-  font-size: 0.65rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 9999px;
+  padding: 2px 9px;
+  border-radius: 50px;
+  box-shadow: 0 2px 6px rgba(255, 45, 85, 0.25);
+  line-height: 1.3;
 }
 
 .sidebar-footer {
-  border-top: 1px solid #F1F5F9;
-  background-color: #FAFAFD;
+  border-top: 1px solid #E2E8F0;
+  background-color: #F5F5F8;
 }
 
 .user-avatar-circle {
