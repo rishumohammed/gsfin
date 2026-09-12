@@ -96,55 +96,8 @@
       </div>
     </main>
 
-    <!-- ═══ FOOTER ═══ -->
-    <footer class="gsfin-footer">
-      <div class="page-wrap footer-grid">
-        <div class="footer-col-brand">
-          <img :src="fullLogoUrl || '/logo.webp'" alt="GSFIN" class="footer-logo" />
-          <p class="footer-brand-desc">
-            Global Standards in Food &amp; Nutrition (GSFIN) is an international accreditation body setting standards in food safety and quality management.
-          </p>
-          <div class="footer-socials">
-            <a href="#" class="footer-soc"><i class="mdi mdi-linkedin"></i></a>
-            <a href="#" class="footer-soc"><i class="mdi mdi-twitter"></i></a>
-            <a href="#" class="footer-soc"><i class="mdi mdi-facebook"></i></a>
-          </div>
-        </div>
-
-        <div>
-          <h4 class="footer-col-h">Qualifications</h4>
-          <ul class="footer-links">
-            <li><NuxtLink to="/qualifications/codex-haccp">CODEX HACCP</NuxtLink></li>
-            <li><NuxtLink to="/qualifications/iso-22000">ISO 22000:2018</NuxtLink></li>
-            <li><NuxtLink to="/qualifications">All Standards</NuxtLink></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 class="footer-col-h">Organization</h4>
-          <ul class="footer-links">
-            <li><NuxtLink to="/#why-gsfin">Why GSFIN</NuxtLink></li>
-            <li><NuxtLink to="/#contact">Contact</NuxtLink></li>
-            <li><NuxtLink to="/dashboard">Center Login</NuxtLink></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 class="footer-col-h">Legal &amp; Compliance</h4>
-          <ul class="footer-links">
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">Terms of Standard</a></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="footer-bar">
-        <div class="page-wrap footer-bar-inner">
-          <div>&copy; {{ new Date().getFullYear() }} GSFIN. All Rights Reserved.</div>
-          <div class="footer-slogan">International Food Safety Qualification Framework</div>
-        </div>
-      </div>
-    </footer>
+    <!-- ═══ GLOBAL PRODUCT FOOTER ═══ -->
+    <PublicFooter />
   </div>
 </template>
 

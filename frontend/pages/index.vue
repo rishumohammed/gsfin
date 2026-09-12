@@ -224,70 +224,8 @@
       </div>
     </section>
 
-    <!-- ═══ FOOTER ═══ -->
-    <footer id="contact" class="gsfin-footer">
-      <div class="page-wrap footer-grid">
-        <!-- Brand -->
-        <div class="footer-brand">
-          <img :src="fullLogoUrl || '/logo.webp'" alt="GSFIN" class="footer-logo" />
-          <p class="footer-brand-desc">
-            Global Standards for Food Industries — an independent standards authority delivering world-class food safety qualifications through authorized partners worldwide.
-          </p>
-          <div class="footer-socials">
-            <a href="#" class="footer-soc" aria-label="LinkedIn"><i class="mdi mdi-linkedin"></i></a>
-            <a href="#" class="footer-soc" aria-label="YouTube"><i class="mdi mdi-youtube"></i></a>
-            <a href="#" class="footer-soc" aria-label="Instagram"><i class="mdi mdi-instagram"></i></a>
-            <a href="#" class="footer-soc" aria-label="Facebook"><i class="mdi mdi-facebook"></i></a>
-          </div>
-        </div>
-
-        <!-- Qualifications -->
-        <div class="footer-col">
-          <h4 class="footer-col-h">Qualifications</h4>
-          <ul class="footer-links">
-            <li><a href="#certifications" @click.prevent="scrollTo('certifications')">CODEX HACCP</a></li>
-            <li><a href="#certifications" @click.prevent="scrollTo('certifications')">ISO 22000:2018</a></li>
-            <li><a href="#certifications" @click.prevent="scrollTo('certifications')">Food Safety</a></li>
-            <li><a href="#certifications" @click.prevent="scrollTo('certifications')">Food Technology</a></li>
-            <li><a href="#certifications" @click.prevent="scrollTo('certifications')">BRCGS</a></li>
-            <li><a href="#certifications" @click.prevent="scrollTo('certifications')">FSSC 22000</a></li>
-            <li><a href="#certifications" @click.prevent="scrollTo('certifications')">GHP &amp; GMP</a></li>
-            <li><a href="#certifications" @click.prevent="scrollTo('certifications')">Food Microbiology</a></li>
-          </ul>
-        </div>
-
-        <!-- For Partners -->
-        <div class="footer-col">
-          <h4 class="footer-col-h">For Partners</h4>
-          <ul class="footer-links">
-            <li><a href="#" @click.prevent="openPartnerModal()">Become a Partner</a></li>
-            <li><NuxtLink to="/login">Partner Login</NuxtLink></li>
-            <li><a href="#how-it-works" @click.prevent="scrollTo('how-it-works')">Resources</a></li>
-            <li><a href="#why-gsfin" @click.prevent="scrollTo('why-gsfin')">Marketing Support</a></li>
-            <li><a href="#contact" @click.prevent="scrollTo('contact')">FAQs</a></li>
-          </ul>
-        </div>
-
-        <!-- About GSFIN -->
-        <div class="footer-col">
-          <h4 class="footer-col-h">About GSFIN</h4>
-          <ul class="footer-links">
-            <li><a href="#why-gsfin" @click.prevent="scrollTo('why-gsfin')">Our Mission</a></li>
-            <li><a href="#why-gsfin" @click.prevent="scrollTo('why-gsfin')">Why GSFIN</a></li>
-            <li><a href="#how-it-works" @click.prevent="scrollTo('how-it-works')">Our Process</a></li>
-            <li><a href="#certifications" @click.prevent="scrollTo('certifications')">Global Recognition</a></li>
-            <li><a href="#contact" @click.prevent="scrollTo('contact')">Contact</a></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="footer-bar">
-        <div class="page-wrap footer-bar-inner">
-          <span>© {{ currentYear }} GSFIN. All rights reserved.</span>
-          <span class="footer-slogan">Safer Food. Stronger Tomorrow.</span>
-        </div>
-      </div>
-    </footer>
+    <!-- ═══ GLOBAL PRODUCT FOOTER ═══ -->
+    <PublicFooter />
 
     <!-- ═══ PARTNER APPLICATION MODAL ═══ -->
     <Transition name="modal-fade">

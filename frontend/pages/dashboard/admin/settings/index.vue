@@ -245,20 +245,63 @@
             </div>
           </div>
 
-          <!-- Terms & Privacy Tab -->
+          <!-- Organization & Legal Pages Tab -->
           <div v-if="activeTab[0] === 'terms_privacy'" class="fade-in">
-            <h2 class="text-h6 font-weight-bold mb-6">Terms &amp; Privacy Configuration</h2>
+            <h2 class="text-h6 font-weight-bold mb-2">Organization &amp; Legal Content Management</h2>
+            <p class="text-caption text-secondary mb-6">Manage dynamic text and policy parameters for all public governance and legal pages.</p>
             
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-textarea v-model="form.terms_content" label="Terms &amp; Conditions Content" rows="8" variant="outlined" auto-grow class="mb-3" />
-                <AppInput v-model="form.terms_version" label="Terms &amp; Conditions Version" placeholder="1.0" large />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-textarea v-model="form.privacy_content" label="Privacy Policy Content" rows="8" variant="outlined" auto-grow class="mb-3" />
-                <AppInput v-model="form.privacy_version" label="Privacy Policy Version" placeholder="1.0" large />
-              </v-col>
-            </v-row>
+            <!-- Section 1: Advisory Board & Panel -->
+            <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
+              <h3 class="text-subtitle-1 font-weight-bold mb-4 d-flex align-center gap-2">
+                <v-icon color="red-darken-1" size="20">mdi-shield-account-outline</v-icon>
+                Advisory Board &amp; Panel Page
+              </h3>
+              <div class="fr2 mb-4">
+                <AppInput v-model="form.advisory_board_title" label="Page Title" placeholder="Advisory Board & Panel" large />
+                <AppInput v-model="form.advisory_board_subtitle" label="Subtitle" placeholder="Independent international experts..." large />
+              </div>
+              <v-textarea v-model="form.advisory_board_content" label="Main Body Content (Overrides Default)" rows="5" variant="outlined" auto-grow placeholder="Enter custom overview content for the Advisory Board page..." />
+            </v-card>
+
+            <!-- Section 2: Global Standards Council -->
+            <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
+              <h3 class="text-subtitle-1 font-weight-bold mb-4 d-flex align-center gap-2">
+                <v-icon color="red-darken-1" size="20">mdi-earth</v-icon>
+                Global Standards Council Page
+              </h3>
+              <div class="fr2 mb-4">
+                <AppInput v-model="form.council_title" label="Page Title" placeholder="Global Standards Council" large />
+                <AppInput v-model="form.council_subtitle" label="Subtitle" placeholder="Formulating and benchmarking qualification standards..." large />
+              </div>
+              <v-textarea v-model="form.council_content" label="Main Body Content (Overrides Default)" rows="5" variant="outlined" auto-grow placeholder="Enter custom overview content for the Global Standards Council page..." />
+            </v-card>
+
+            <!-- Section 3: Cookie Preferences & Policy -->
+            <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
+              <h3 class="text-subtitle-1 font-weight-bold mb-4 d-flex align-center gap-2">
+                <v-icon color="red-darken-1" size="20">mdi-cookie-outline</v-icon>
+                Cookie Preferences Policy Text
+              </h3>
+              <v-textarea v-model="form.cookie_policy_content" label="Cookie Policy Notice Content" rows="4" variant="outlined" auto-grow placeholder="Enter details regarding cookie usage, cryptographic tokens, and telemetry..." />
+            </v-card>
+
+            <!-- Section 4: Terms of Service & Privacy Policy -->
+            <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
+              <h3 class="text-subtitle-1 font-weight-bold mb-4 d-flex align-center gap-2">
+                <v-icon color="red-darken-1" size="20">mdi-scale-balance</v-icon>
+                Terms of Service &amp; Privacy Policy
+              </h3>
+              <v-row>
+                <v-col cols="12" md="6">
+                  <v-textarea v-model="form.terms_content" label="Terms &amp; Conditions Content" rows="6" variant="outlined" auto-grow class="mb-3" placeholder="Enter terms content..." />
+                  <AppInput v-model="form.terms_version" label="Terms &amp; Conditions Version" placeholder="1.0" large />
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-textarea v-model="form.privacy_content" label="Privacy Policy Content" rows="6" variant="outlined" auto-grow class="mb-3" placeholder="Enter privacy policy content..." />
+                  <AppInput v-model="form.privacy_version" label="Privacy Policy Version" placeholder="1.0" large />
+                </v-col>
+              </v-row>
+            </v-card>
 
           </div>
 
@@ -440,7 +483,7 @@ const tabs = [
   { label: 'Contact Info', value: 'contact', icon: 'mdi-map-marker-outline' },
   { label: 'Email (Resend)', value: 'email', icon: 'mdi-email-fast-outline' },
   { label: 'Email Templates', value: 'email_templates', icon: 'mdi-email-edit-outline' },
-  { label: 'Terms & Privacy', value: 'terms_privacy', icon: 'mdi-shield-lock-outline' },
+  { label: 'Organization & Legal', value: 'terms_privacy', icon: 'mdi-shield-lock-outline' },
   { label: 'Talent Hunt', value: 'talent_hunt', icon: 'mdi-account-star-outline' }
 ];
 

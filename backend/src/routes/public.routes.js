@@ -167,4 +167,38 @@ router.get('/qualifications/:slug', async (req, res) => {
   }
 });
 
+// GET /api/public/partners - List all active accredited partner training centers
+router.get('/partners', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        id, 
+        name, 
+        contact_email AS email, 
+        contact_phone AS phone,
+        status
+      FROM organizations
+      WHERE status = 'active'
+      ORDER BY name ASC
+    `);
+
+    const formatted = rows.map((org, index) => ({
+      id: org.id,
+      centerCode: `GSFIN-ATC-${101 + index}`,
+      name: org.name,
+      country: org.country || 'International',
+      city: org.city || 'Global Campus',
+      institutionType: org.institution_type || 'Authorized Training Center',
+      programs: parseJsonArray(org.programs || '["CODEX HACCP", "ISO 22000", "Food Safety"]'),
+      email: org.email,
+      phone: org.phone
+    }));
+
+    res.json(formatted);
+  } catch (error) {
+    console.error('Error fetching public partners:', error);
+    res.status(500).json({ error: 'Server error fetching partner centers' });
+  }
+});
+
 export default router;
