@@ -64,3 +64,30 @@ export const broadcastToCourse = async (courseId, { title, message, link, type =
     console.error('Error broadcasting notification:', error);
   }
 };
+
+export const broadcastToRole = async ({ role = 'all', type = 'info', title, message, link, emailNotify = false }) => {
+  try {
+    let query = 'SELECT id FROM users WHERE status = "active"';
+    let params = [];
+    if (role && role !== 'all') {
+      query += ' AND role = ?';
+      params.push(role);
+    }
+    const [users] = await pool.query(query, params);
+    for (const u of users) {
+      await createNotification({
+        userId: u.id,
+        type,
+        title,
+        message,
+        link,
+        emailNotify
+      });
+    }
+    return users.length;
+  } catch (error) {
+    console.error('Error broadcasting to role:', error);
+    throw error;
+  }
+};
+

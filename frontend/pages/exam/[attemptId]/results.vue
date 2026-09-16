@@ -24,7 +24,7 @@
           </div>
 
           <!-- Conditional Score/Results UI -->
-          <div v-if="(canGrade || (result.show_results != false && result.show_results != 0 && result.show_results !== '0'))" class="results-details-box bg-grey-lighten-4 rounded-xl pa-6 mb-6">
+          <div v-if="(canGrade || (result.show_results !== false && result.show_results !== 0))" class="results-details-box bg-grey-lighten-4 rounded-xl pa-6 mb-6">
             <div class="confetti-wrap" v-if="result.passed && !canGrade">
               <div v-for="i in 30" :key="i" class="confetti-piece" :style="confettiStyle(i)"></div>
             </div>
@@ -181,6 +181,7 @@ interface AttemptResult {
   total_marks: number;
   pass_percentage: number;
   pending_manual_review: boolean;
+  status?: string;
   cert_id?: string | number;
   show_results?: boolean | number;
   show_result_detail: boolean;
@@ -415,4 +416,10 @@ const downloadCertificate = async () => {
 
 .explanation { font-size: 13px; color: var(--muted); display: flex; align-items: flex-start; gap: 6px; margin-top: 12px; padding: 12px; background: rgba(245,158,11,0.05); border-radius: var(--radius-md); }
 .grade-row { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+@media (max-width: 600px) {
+  .results-content { margin-top: 16px !important; }
+  .results-content .v-card { padding: 20px 16px !important; }
+  .answer-block { min-width: 100%; }
+}
 </style>

@@ -22,6 +22,8 @@ import { authenticateJWT, authorizeRoles } from './middleware/auth.js';
 import { initSocket } from './socket/index.js';
 import adminSystemUsersRoutes from './routes/admin.system-users.routes.js';
 import adminEmailTemplatesRoutes from './routes/admin.email-templates.routes.js';
+import adminInquiriesRoutes from './routes/admin.inquiries.routes.js';
+import notificationRoutes from './routes/notifications.routes.js';
 import { initFollowupJob } from './jobs/followup-reminder.job.js';
 import { initExamRemindersJob } from './jobs/exam-reminders.job.js';
 import { initExamAutocompleteJob } from './jobs/exam-autocomplete.job.js';
@@ -98,6 +100,7 @@ app.use('/api/admin/qualifications', adminQualificationsRoutes);
 app.use('/api/proctoring', proctoringRoutes);
 app.use('/api/admin/system-users', adminSystemUsersRoutes);
 app.use('/api/admin/email-templates', adminEmailTemplatesRoutes);
+app.use('/api/admin/inquiries', adminInquiriesRoutes);
 
 // Multi-Tenant Certification Platform Routes
 app.use('/api/main-admin', mainAdminRoutes);
@@ -108,8 +111,9 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+app.use('/api/notifications', notificationRoutes);
+
 // Stubs for stripped CRM/LMS features to prevent 404s in frontend console
-app.get('/api/notifications', (req, res) => res.json([]));
 app.get('/api/dashboard/counts', (req, res) => res.json({ followups: 0, unreadMessages: 0, pendingApprovals: 0 }));
 
 const PORT = process.env.PORT || 5000;

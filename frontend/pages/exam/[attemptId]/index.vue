@@ -570,7 +570,6 @@ onUnmounted(() => {
 .exam-title { font-weight: 700; color: #e8eaf6; font-size: 15px; }
 .exam-progress { font-size: 12px; color: rgba(255,255,255,0.4); }
 .header-center { display: flex; justify-content: center; flex: 1; }
-.header-right {}
 
 .exam-body {
   display: flex;
@@ -612,5 +611,28 @@ onUnmounted(() => {
   border-top: 1px solid rgba(255,255,255,0.06);
   flex-shrink: 0;
   background: rgba(0,0,0,0.2);
+}
+
+/* ── Responsive Media Queries ──────────────────────── */
+@media (max-width: 768px) {
+  .checklist-screen { padding: 20px 12px; }
+  .checklist-card { padding: 24px 16px; border-radius: 16px; }
+  
+  .exam-header { padding: 10px 14px; gap: 8px; flex-wrap: wrap; }
+  .exam-title { font-size: 13px; }
+  
+  .exam-body { flex-direction: column-reverse; overflow-y: auto; }
+  .exam-left-panel {
+    width: 100%;
+    max-height: 140px;
+    border-right: none;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 12px 14px;
+    box-sizing: border-box;
+  }
+  
+  .exam-main { flex: 1; min-height: 0; }
+  .question-scroll { padding: 20px 16px; }
+  .exam-nav { padding: 12px 16px; gap: 8px; flex-wrap: wrap; justify-content: center; }
 }
 </style>

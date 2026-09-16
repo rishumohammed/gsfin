@@ -6,15 +6,12 @@ export default defineNuxtRouteMiddleware((to, from) => {
 
   const adminRoles = ['super_admin', 'main_admin', 'sub_center_staff', 'sub_admin', 'lms_user', 'placement_coordinator', 'finance_staff'];
 
-  if (to.path === '/dashboard' || to.path === '/dashboard/admin') {
-    if (role === 'super_admin' || role === 'main_admin') return navigateTo('/admin/multi-tenant');
+  if (to.path === '/dashboard') {
+    if (['super_admin', 'main_admin', 'sub_admin'].includes(role)) return navigateTo('/dashboard/admin');
     if (role === 'sub_center_staff') return navigateTo('/sub-center');
-    return navigateTo('/admin/multi-tenant');
-  }
-
-  // Block department roles from accessing the main admin overview dashboard
-  if (to.path === '/dashboard/admin' && !['super_admin', 'sub_admin'].includes(role)) {
-    return navigateTo('/dashboard'); // Will fall into the above switch
+    if (role === 'tutor') return navigateTo('/dashboard/tutor');
+    if (role === 'student') return navigateTo('/dashboard/student');
+    return navigateTo('/dashboard/admin');
   }
 
   // Check if route has metadata role restrictions

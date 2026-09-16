@@ -1,5 +1,5 @@
 <template>
-  <v-menu v-model="menu" :close-on-content-click="false" location="bottom end" offset="10">
+  <v-menu v-model="menu" :close-on-content-click="false" location="bottom end" offset="10" :scrim="false">
     <template v-slot:activator="{ props }">
       <v-btn icon v-bind="props" class="action-btn">
         <v-badge

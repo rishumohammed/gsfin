@@ -635,7 +635,7 @@ async function onVideoReady(videoEl: HTMLVideoElement) {
 }
 
 function initAdvancedProctoring() {
-  proctoring.initProctoring(attemptId.value, submitOnTimeout, proctoringConfig.value, () => recorder.captureScreenshot(attemptId.value, authHeaders()), authHeaders());
+  proctoring.initProctoring(attemptId.value, submitOnTimeout, proctoringConfig.value, () => recorder.captureScreenshot(attemptId.value, 'proctoring', authHeaders()), authHeaders());
   if (!recorder.isRecording.value) {
     recorder.startRecording(attemptId.value, proctoringConfig.value.record_full_video, authHeaders());
   }
@@ -962,5 +962,10 @@ function handleBeforeUnload(e: BeforeUnloadEvent) {
 
 .whitespace-pre {
   white-space: pre-line;
+}
+
+@media (max-width: 600px) {
+  .take-main { height: calc(100vh - 56px); }
+  .option-item { padding: 12px !important; }
 }
 </style>

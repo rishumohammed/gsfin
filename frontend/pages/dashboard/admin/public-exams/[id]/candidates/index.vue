@@ -575,7 +575,7 @@ function exportPDF() {
         <title>Candidates - ${examName}</title>
         <style>
           body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
             color: #333;
             margin: 20px;
           }

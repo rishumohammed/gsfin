@@ -18,14 +18,15 @@ export const useNavStore = defineStore('nav', {
     isCollapsed: false,
     navItems: [
       // MAIN
-      { label: 'Dashboard', icon: 'mdi-view-dashboard-outline', route: '/admin/multi-tenant?tab=overview', roles: ['super_admin', 'main_admin', 'sub_admin'] },
+      { label: 'Dashboard', icon: 'mdi-view-dashboard-outline', route: '/dashboard/admin', roles: ['super_admin', 'main_admin', 'sub_admin', 'sub_center_staff'] },
+      { label: 'Inquiries & Partner Leads', icon: 'mdi-email-outline', route: '/dashboard/admin/inquiries', roles: ['super_admin', 'main_admin', 'sub_admin'] },
       
       // PARTNER MANAGEMENT
-      { label: 'Partner Centers', icon: 'mdi-office-building-outline', route: '/admin/multi-tenant?tab=subcenters', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'PARTNER MANAGEMENT' },
-      { label: 'Live Batches', icon: 'mdi-layers-triple-outline', route: '/admin/multi-tenant?tab=batches', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'PARTNER MANAGEMENT' },
+      { label: 'Partner Management', icon: 'mdi-office-building-outline', route: '/admin/multi-tenant', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'PARTNER MANAGEMENT' },
 
       // EXAMS & CERTIFICATION
       { label: 'Exam Portal', icon: 'mdi-clipboard-text-outline', route: '/dashboard/admin/public-exams', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAMS & CERTIFICATION' },
+      { label: 'Certificates', icon: 'mdi-file-certificate-outline', route: '/dashboard/admin/certificates', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAMS & CERTIFICATION' },
       { label: 'AI Proctoring', icon: 'mdi-shield-check-outline', route: '/dashboard/admin/proctoring', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAMS & CERTIFICATION' },
       { label: 'Qualifications', icon: 'mdi-certificate-outline', route: '/dashboard/admin/qualifications', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAMS & CERTIFICATION' },
 
@@ -33,12 +34,18 @@ export const useNavStore = defineStore('nav', {
       { label: 'Token Packages', icon: 'mdi-package-variant-closed', route: '/admin/multi-tenant?tab=packages', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'TOKEN MANAGEMENT' },
       { label: 'Token History', icon: 'mdi-clock-outline', route: '/admin/multi-tenant?tab=audit', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'TOKEN MANAGEMENT' },
 
+      // REPORTS & ANALYTICS
+      { label: 'Reports & Analytics', icon: 'mdi-chart-bar', route: '/dashboard/admin/reports', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'REPORTS & ANALYTICS' },
+
       // PARTNER PORTAL
-      { label: 'Partner Portal', icon: 'mdi-school-outline', route: '/sub-center', roles: ['sub_center_staff'], section: 'PARTNER PORTAL' },
+      { label: 'Batches & Enrollments', icon: 'mdi-subtitles-outline', route: '/sub-center?tab=batches', roles: ['sub_center_staff', 'super_admin', 'main_admin'], section: 'PARTNER PORTAL' },
+      { label: 'Student Directory', icon: 'mdi-account-group-outline', route: '/sub-center?tab=students', roles: ['sub_center_staff', 'super_admin', 'main_admin'], section: 'PARTNER PORTAL' },
+      { label: 'Center Certificates', icon: 'mdi-file-certificate-outline', route: '/sub-center?tab=certificates', roles: ['sub_center_staff', 'super_admin', 'main_admin'], section: 'PARTNER PORTAL' },
+      { label: 'Wallet Audit & Store', icon: 'mdi-wallet-outline', route: '/sub-center?tab=wallet', roles: ['sub_center_staff', 'super_admin', 'main_admin'], section: 'PARTNER PORTAL' },
 
       // SETTINGS
+      { label: 'Profile & Settings', icon: 'mdi-cog-outline', route: '/sub-center?tab=profile', roles: ['sub_center_staff'], section: 'SETTINGS' },
       { label: 'Settings', icon: 'mdi-cog-outline', route: '/dashboard/admin/settings', roles: ['super_admin', 'main_admin'], section: 'SETTINGS' },
-      { label: 'FAQs', icon: 'mdi-help-circle-outline', route: '/dashboard/admin/faqs', roles: ['super_admin', 'main_admin'], section: 'SETTINGS' },
       { label: 'Logout', icon: 'mdi-logout-variant', action: 'logout', roles: ['super_admin', 'main_admin', 'sub_center_staff', 'sub_admin'], section: 'SETTINGS' },
     ] as NavItem[]
   }),
@@ -52,16 +59,9 @@ export const useNavStore = defineStore('nav', {
         .map(item => {
           // Dynamically point "Dashboard" to the role-specific landing page
           if (item.label === 'Dashboard') {
-            let roleRoute = '/admin/multi-tenant';
-            if (role === 'sub_center_staff') roleRoute = '/sub-center';
+            let roleRoute = '/dashboard/admin';
+            if (role === 'sub_center_staff') roleRoute = '/sub-center?tab=dashboard';
             return { ...item, route: roleRoute };
-          }
-
-          // Dynamically point "Profile" to the role-specific profile page
-          if (item.label === 'Profile' && item.route === '/dashboard/profile') {
-            let profileRoute = '/dashboard/admin/settings';
-            if (role === 'sub_center_staff') profileRoute = '/sub-center';
-            return { ...item, route: profileRoute };
           }
 
           return item;

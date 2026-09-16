@@ -556,7 +556,7 @@ definePageMeta({
   border-radius: 50%;
 }
 .dashboard-page {
-  font-family: 'Figtree', sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
   background-color: #f8fafc !important;
 }
  

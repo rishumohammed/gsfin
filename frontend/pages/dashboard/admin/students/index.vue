@@ -243,12 +243,12 @@ const printCredentials = () => {
         <head>
           <title>Student Credentials</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 40px; line-height: 1.6; }
+            body { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; padding: 40px; line-height: 1.6; }
             .card { border: 1px solid #ccc; padding: 20px; border-radius: 8px; max-width: 400px; }
             h2 { margin-top: 0; color: #333; }
             .label { font-size: 12px; color: #666; text-transform: uppercase; }
             .value { font-size: 16px; font-weight: bold; margin-bottom: 15px; }
-            .password { font-family: monospace; font-size: 20px; letter-spacing: 2px; }
+            .password { font-family: 'JetBrains Mono', monospace; font-size: 20px; letter-spacing: 2px; }
           </style>
         </head>
         <body>

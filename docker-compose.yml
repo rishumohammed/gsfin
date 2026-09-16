@@ -1,0 +1,139 @@
+services:
+  # ── 1. MySQL 8.0 Database ──
+  mysql:
+    image: mysql:8.0
+    container_name: gsfin_mysql
+    restart: unless-stopped
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --max_connections=200
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-gsfin_root_secure_password}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-gsfin_db}
+      MYSQL_USER: ${MYSQL_USER:-gsfin_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-gsfin_user_password}
+    volumes:
+      # Dedicated persistent database volume
+      - gsfin_mysql_data:/var/lib/mysql
+    networks:
+      - gsfin_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-gsfin_root_secure_password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ── 2. Redis Cache & Session Store ──
+  redis:
+    image: redis:7-alpine
+    container_name: gsfin_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      # Dedicated persistent Redis data volume
+      - gsfin_redis_data:/data
+    networks:
+      - gsfin_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ── 3. Express Backend API & Examination Engine ──
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: gsfin_backend
+    restart: unless-stopped
+    environment:
+      PORT: 5000
+      NODE_ENV: ${NODE_ENV:-production}
+      APP_URL: ${APP_URL:-http://localhost/api}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${MYSQL_USER:-gsfin_user}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-gsfin_user_password}
+      DB_NAME: ${MYSQL_DATABASE:-gsfin_db}
+      USE_MOCK_REDIS: ${USE_MOCK_REDIS:-false}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-gsfin_jwt_access_secret_production_key}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-gsfin_jwt_refresh_secret_production_key}
+      PUBLIC_EXAM_JWT_SECRET: ${PUBLIC_EXAM_JWT_SECRET:-gsfin_public_exam_secret_production}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM: ${RESEND_FROM:-noreply@gsfin.org}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-Global Standards for Food Industries (GSFIN)}
+    volumes:
+      # Dedicated persistent volume for certificates, uploaded documents & proctoring media
+      - gsfin_uploads_data:/app/uploads
+    networks:
+      - gsfin_network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ── 4. Nuxt 3 Frontend Web App ──
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-/api}
+        RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+    container_name: gsfin_frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+      HOST: 0.0.0.0
+    networks:
+      - gsfin_network
+    depends_on:
+      - backend
+
+  # ── 5. Nginx Reverse Proxy ──
+  nginx:
+    image: nginx:1.26-alpine
+    container_name: gsfin_nginx
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - gsfin_uploads_data:/app/uploads:ro
+      - gsfin_nginx_logs:/var/log/nginx
+    networks:
+      - gsfin_network
+    depends_on:
+      - backend
+      - frontend
+
+# ── Isolated Persistent Volumes ──
+volumes:
+  gsfin_mysql_data:
+    name: gsfin_mysql_data
+    driver: local
+  gsfin_uploads_data:
+    name: gsfin_uploads_data
+    driver: local
+  gsfin_redis_data:
+    name: gsfin_redis_data
+    driver: local
+  gsfin_nginx_logs:
+    name: gsfin_nginx_logs
+    driver: local
+
+# ── Dedicated Container Network ──
+networks:
+  gsfin_network:
+    name: gsfin_network
+    driver: bridge

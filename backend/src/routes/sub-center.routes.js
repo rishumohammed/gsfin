@@ -254,4 +254,75 @@ router.post('/assignments/:id/retry-link', async (req, res) => {
   }
 });
 
+// ─── 6. Center Certificates & Student Verifications ──────────────────────────
+
+router.get('/certificates', async (req, res) => {
+  const orgId = getOrgId(req);
+  try {
+    const [certificates] = await pool.query(
+      `SELECT c.id, c.certificate_number, c.issue_date, c.pdf_url, c.verification_url,
+              s.name as student_name, s.email as student_email,
+              e.name as exam_name, b.id as batch_id
+       FROM certificates c
+       JOIN exam_assignments ea ON c.assignment_id = ea.id
+       JOIN students s ON ea.student_id = s.id
+       JOIN batches b ON ea.batch_id = b.id
+       JOIN exams e ON b.exam_id = e.id
+       WHERE b.org_id = ?
+       ORDER BY c.issue_date DESC`,
+      [orgId]
+    );
+    res.json(certificates);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ─── 7. Sub-Center Profile & Settings Details ───────────────────────────────
+
+router.get('/profile', async (req, res) => {
+  const orgId = getOrgId(req);
+  try {
+    const [orgs] = await pool.query(`SELECT * FROM organizations WHERE id = ?`, [orgId]);
+    const [user] = await pool.query(
+      `SELECT id, name, email, role, phone, created_at FROM users WHERE id = ?`,
+      [req.user.id]
+    );
+    res.json({
+      user: user[0] || req.user,
+      organization: orgs[0] || { id: orgId, name: 'Authorized Sub-Center' }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.put('/profile', async (req, res) => {
+  const orgId = getOrgId(req);
+  const { name, phone, organization_name } = req.body;
+
+  try {
+    if (name) {
+      await pool.query(`UPDATE users SET name = ?, phone = ? WHERE id = ?`, [name, phone || null, req.user.id]);
+    }
+    if (organization_name && orgId) {
+      await pool.query(`UPDATE organizations SET name = ? WHERE id = ?`, [organization_name, orgId]);
+    }
+
+    const [orgs] = await pool.query(`SELECT * FROM organizations WHERE id = ?`, [orgId]);
+    const [user] = await pool.query(
+      `SELECT id, name, email, role, phone, created_at FROM users WHERE id = ?`,
+      [req.user.id]
+    );
+
+    res.json({
+      message: 'Profile updated successfully.',
+      user: user[0] || req.user,
+      organization: orgs[0] || { id: orgId, name: organization_name || 'Authorized Sub-Center' }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;

@@ -59,7 +59,6 @@
               <tr>
                 <th>Qualification Standard</th>
                 <th>Category &amp; Level</th>
-                <th>Duration &amp; Validity</th>
                 <th>Status</th>
                 <th>Display Order</th>
                 <th>Actions</th>
@@ -67,12 +66,12 @@
             </thead>
             <tbody>
               <tr v-if="loading">
-                <td colspan="6" class="text-center py-8 text-slate-500">
+                <td colspan="5" class="text-center py-8 text-slate-500">
                   <span class="spinner-sm-red"></span> Loading Qualifications...
                 </td>
               </tr>
               <tr v-else-if="filteredQualifications.length === 0">
-                <td colspan="6" class="text-center py-8 text-slate-500">
+                <td colspan="5" class="text-center py-8 text-slate-500">
                   <i class="mdi mdi-certificate-outline text-3xl block mb-2 text-slate-400"></i>
                   No Qualifications Found
                 </td>
@@ -95,10 +94,6 @@
                   <div class="text-slate-500 text-xs">{{ q.level }}</div>
                 </td>
                 <td>
-                  <div><i class="mdi mdi-clock-outline text-slate-400"></i> {{ q.duration }}</div>
-                  <div class="text-slate-500 text-xs"><i class="mdi mdi-shield-check-outline text-slate-400"></i> {{ q.validity }}</div>
-                </td>
-                <td>
                   <button
                     class="badge-chip cursor-pointer border-0"
                     :class="q.is_active ? 'chip-green' : 'chip-slate'"
@@ -118,10 +113,13 @@
                 </td>
                 <td>
                   <div class="actions-cell">
-                    <button class="btn-table-action btn-edit" @click="openDialog(q)">
+                    <NuxtLink :to="`/dashboard/admin/qualifications/${q.id}`" class="btn-table-action btn-view" title="View Qualification Specification Details">
+                      <i class="mdi mdi-eye-outline"></i> View
+                    </NuxtLink>
+                    <button class="btn-table-action btn-edit" title="Edit Qualification" @click="openDialog(q)">
                       <i class="mdi mdi-pencil"></i> Edit
                     </button>
-                    <button class="btn-table-action btn-danger" @click="confirmDelete(q)">
+                    <button class="btn-table-action btn-danger" title="Delete Qualification" @click="confirmDelete(q)">
                       <i class="mdi mdi-trash-can-outline"></i>
                     </button>
                   </div>
@@ -133,6 +131,108 @@
       </div>
 
     </div>
+
+    <!-- ═══ VIEW QUALIFICATION DETAIL MODAL ═══ -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="viewDialog" class="modal-overlay" @click.self="viewDialog = false">
+          <div class="modal-card modal-lg">
+            <div class="modal-header">
+              <div class="qual-detail-header-flex">
+                <div class="qual-thumb-lg">
+                  <img :src="itemToView?.image_url || '/hero-bk.png'" :alt="itemToView?.name" />
+                </div>
+                <div>
+                  <h3 class="modal-title-text">{{ itemToView?.name }}</h3>
+                  <div class="text-xs text-slate-500 font-mono">Slug: {{ itemToView?.slug }}</div>
+                </div>
+              </div>
+              <button class="modal-close-btn" @click="viewDialog = false"><i class="mdi mdi-close"></i></button>
+            </div>
+
+            <div class="modal-body space-y-6">
+              <div class="kpi-meta-grid">
+                <div class="meta-box">
+                  <span class="meta-label">Category</span>
+                  <span class="meta-val">{{ itemToView?.category }}</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-label">Level</span>
+                  <span class="meta-val">{{ itemToView?.level }}</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-label">Duration</span>
+                  <span class="meta-val">{{ itemToView?.duration }}</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-label">Validity</span>
+                  <span class="meta-val">{{ itemToView?.validity }}</span>
+                </div>
+              </div>
+
+              <div v-if="itemToView?.subtitle">
+                <h4 class="section-subhead">Subtitle / Tagline</h4>
+                <p class="text-slate-700 text-sm font-semibold mb-0">{{ itemToView.subtitle }}</p>
+              </div>
+
+              <div>
+                <h4 class="section-subhead">Executive Overview &amp; Description</h4>
+                <p class="text-slate-600 text-sm leading-relaxed whitespace-pre-line">{{ itemToView?.full_description || itemToView?.short_description || 'No detailed overview available.' }}</p>
+              </div>
+
+              <div v-if="itemToView?.key_modules && itemToView.key_modules.length > 0">
+                <h4 class="section-subhead">Key Learning Modules ({{ itemToView.key_modules.length }})</h4>
+                <ul class="detail-list">
+                  <li v-for="(m, idx) in itemToView.key_modules" :key="idx">
+                    <i class="mdi mdi-check-circle text-red mr-2"></i> {{ m }}
+                  </li>
+                </ul>
+              </div>
+
+              <div v-if="itemToView?.who_should_attend && itemToView.who_should_attend.length > 0">
+                <h4 class="section-subhead">Target Audience / Who Should Attend</h4>
+                <div class="badge-flex">
+                  <span v-for="(a, idx) in itemToView.who_should_attend" :key="idx" class="audience-badge">
+                    <i class="mdi mdi-account-group-outline mr-1"></i> {{ a }}
+                  </span>
+                </div>
+              </div>
+
+              <div v-if="itemToView?.benefits && itemToView.benefits.length > 0">
+                <h4 class="section-subhead">Key Qualification Benefits</h4>
+                <ul class="detail-list">
+                  <li v-for="(b, idx) in itemToView.benefits" :key="idx">
+                    <i class="mdi mdi-star-outline text-amber-500 mr-2"></i> {{ b }}
+                  </li>
+                </ul>
+              </div>
+
+              <div v-if="itemToView?.prerequisites && itemToView.prerequisites.length > 0">
+                <h4 class="section-subhead">Prerequisites</h4>
+                <ul class="detail-list">
+                  <li v-for="(p, idx) in itemToView.prerequisites" :key="idx">
+                    <i class="mdi mdi-shield-outline text-indigo-500 mr-2"></i> {{ p }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="modal-footer flex justify-between">
+              <NuxtLink :to="`/qualifications/${itemToView?.slug}`" target="_blank" class="btn-glass">
+                <i class="mdi mdi-open-in-new"></i> Open Public Catalog Page
+              </NuxtLink>
+
+              <div class="flex items-center gap-2">
+                <button class="btn-glass" @click="viewDialog = false">Close</button>
+                <button class="btn-red" @click="switchToEdit">
+                  <i class="mdi mdi-pencil-outline"></i> Edit Standard
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- ═══ ADD / EDIT QUALIFICATION MODAL ═══ -->
     <Teleport to="body">
@@ -337,6 +437,8 @@ const modalTab = ref('basic');
 
 const dialog = ref(false);
 const deleteDialog = ref(false);
+const viewDialog = ref(false);
+const itemToView = ref<any>(null);
 
 const defaultItem = {
   id: null,
@@ -363,6 +465,17 @@ const defaultItem = {
 
 const editedItem = ref({ ...defaultItem });
 const itemToDelete = ref<any>(null);
+
+const openViewModal = (item: any) => {
+  itemToView.value = item;
+  viewDialog.value = true;
+};
+
+const switchToEdit = () => {
+  const item = itemToView.value;
+  viewDialog.value = false;
+  openDialog(item);
+};
 
 const filteredQualifications = computed(() => {
   return qualifications.value.filter((q) => {
@@ -392,8 +505,16 @@ const fetchQualifications = async () => {
   }
 };
 
-onMounted(() => {
-  fetchQualifications();
+const route = useRoute();
+
+onMounted(async () => {
+  await fetchQualifications();
+  if (route.query.edit) {
+    const target = qualifications.value.find(q => String(q.id) === String(route.query.edit));
+    if (target) {
+      openDialog(target);
+    }
+  }
 });
 
 const autoGenerateSlug = () => {
@@ -421,9 +542,14 @@ const openDialog = (item?: any) => {
   dialog.value = true;
 };
 
+const router = useRouter();
+
 const closeDialog = () => {
   dialog.value = false;
   editedItem.value = { ...defaultItem };
+  if (route.query.edit) {
+    router.replace({ path: '/dashboard/admin/qualifications' });
+  }
 };
 
 const addModule = () => editedItem.value.key_modules.push('');
@@ -792,8 +918,28 @@ const deleteItem = async () => {
 }
 .btn-edit { background: #F1F5F9; color: #334155; }
 .btn-edit:hover { background: #E31B23; color: #FFFFFF; }
+.btn-view { background: rgba(59, 130, 246, 0.1); color: #2563EB; }
+.btn-view:hover { background: #2563EB; color: #FFFFFF; }
 .btn-danger { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
 .btn-danger:hover { background: #DC2626; color: #FFFFFF; }
+
+.qual-detail-header-flex { display: flex; align-items: center; gap: 14px; }
+.qual-thumb-lg { width: 48px; height: 48px; border-radius: 12px; overflow: hidden; background: #F1F5F9; flex-shrink: 0; }
+.qual-thumb-lg img { width: 100%; height: 100%; object-fit: cover; }
+.modal-title-text { font-size: 1.25rem; font-weight: 800; color: #0F172A; margin: 0; }
+
+.kpi-meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+@media (max-width: 640px) { .kpi-meta-grid { grid-template-columns: repeat(2, 1fr); } }
+.meta-box { background: #F8FAFC; border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; }
+.meta-label { font-size: 0.68rem; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; }
+.meta-val { font-size: 0.88rem; font-weight: 800; color: #0F172A; margin-top: 2px; }
+
+.section-subhead { font-size: 0.84rem; font-weight: 800; color: #0F172A; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; border-left: 3px solid #E31B23; padding-left: 8px; }
+.detail-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.detail-list li { font-size: 0.88rem; color: #334155; display: flex; align-items: center; }
+
+.badge-flex { display: flex; flex-wrap: wrap; gap: 8px; }
+.audience-badge { padding: 6px 14px; border-radius: 50px; background: rgba(15, 23, 42, 0.06); color: #1E293B; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; }
 
 /* Modal & Tabs */
 .modal-overlay {

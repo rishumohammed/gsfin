@@ -63,18 +63,45 @@ body {
   box-shadow: var(--shadow-card) !important;
   border-radius: var(--border-radius-card) !important;
   border: 1px solid var(--color-border) !important;
+  background: #FFFFFF !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* For explicit frosted glass cards */
+.v-card.card-frosted,
+.card-frosted {
   background: var(--surface-frosted) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
 }
 
-/* Cards that intentionally use a solid colour (e.g. primary CTA) */
+/* Cards that intentionally use a solid color (e.g. primary CTA) */
 .v-card.v-card--color,
 .v-card[style*="background"],
 .v-card.bg-primary,
 .v-card.bg-white {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+}
+
+/* Root overlay container and scrim must stay transparent */
+.v-overlay,
+.v-overlay-container,
+.v-overlay__scrim {
+  background: transparent !important;
+}
+
+/* Dropdown menu content cards and floating panels get solid white cards */
+.v-overlay__content > .v-card,
+.v-overlay__content > .v-list,
+.v-menu .v-card,
+.v-menu .v-list,
+.user-dropdown-card {
+  background: #FFFFFF !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12) !important;
 }
 
 .v-navigation-drawer {

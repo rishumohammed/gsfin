@@ -5,7 +5,7 @@ import { authenticateJWT, authorizeRoles } from '../middleware/auth.js';
 const router = express.Router();
 
 router.use(authenticateJWT);
-router.use(authorizeRoles('super_admin', 'admin'));
+router.use(authorizeRoles('super_admin', 'main_admin', 'admin', 'sub_admin'));
 
 // Helper to safely serialize array/object fields to JSON string for MySQL
 const stringifyJson = (val) => {

@@ -38,28 +38,40 @@
           <v-icon icon="mdi-help-circle-outline" size="20"></v-icon>
         </v-btn>
 
-        <v-menu location="bottom end" offset="10" transition="slide-y-transition">
+        <v-menu location="bottom end" offset="10" transition="slide-y-transition" :scrim="false">
           <template v-slot:activator="{ props }">
             <v-avatar size="36" class="user-pill-avatar" v-bind="props">
               <span class="text-caption font-weight-bold text-red-700">{{ userInitials }}</span>
             </v-avatar>
           </template>
           
-          <v-card width="240" rounded="xl" class="mt-2 border border-slate-200/80 shadow-lg overflow-hidden">
-            <div class="pa-4 bg-slate-50 border-b border-slate-100">
-              <div class="text-subtitle-2 font-weight-black text-slate-900">{{ authStore.user?.name }}</div>
-              <div class="text-caption text-red-600 uppercase font-weight-bold">{{ authStore.userRole }}</div>
+          <v-card width="250" rounded="xl" class="mt-2 border border-slate-200/80 shadow-xl overflow-hidden bg-white user-dropdown-card">
+            <div class="pa-4 bg-slate-50/80 border-b border-slate-100">
+              <div class="text-sm font-bold text-slate-900 leading-tight mb-0.5">{{ authStore.user?.name || 'User Account' }}</div>
+              <div class="text-[11px] font-bold text-red-600 uppercase tracking-wider">{{ authStore.userRole }}</div>
             </div>
-            <v-list density="compact" class="pa-1">
-              <v-list-item link :to="profileLink" prepend-icon="mdi-account-circle-outline">
-                <v-list-item-title class="text-caption font-weight-bold">My Profile</v-list-item-title>
+            <v-list density="compact" class="pa-1.5 bg-white">
+              <v-list-item link :to="profileLink" class="rounded-lg py-2">
+                <template v-slot:prepend>
+                  <v-icon icon="mdi-account-circle-outline" size="18" color="slate-600" class="mr-3"></v-icon>
+                </template>
+                <v-list-item-title class="text-xs font-semibold text-slate-800">My Profile</v-list-item-title>
               </v-list-item>
-              <v-list-item link :to="settingsLink" prepend-icon="mdi-cog-outline">
-                <v-list-item-title class="text-caption font-weight-bold">Settings</v-list-item-title>
+
+              <v-list-item link :to="settingsLink" class="rounded-lg py-2">
+                <template v-slot:prepend>
+                  <v-icon icon="mdi-cog-outline" size="18" color="slate-600" class="mr-3"></v-icon>
+                </template>
+                <v-list-item-title class="text-xs font-semibold text-slate-800">Settings</v-list-item-title>
               </v-list-item>
-              <v-divider class="my-1" opacity="0.1"></v-divider>
-              <v-list-item link color="error" @click="handleLogout" prepend-icon="mdi-logout">
-                <v-list-item-title class="text-caption font-weight-bold text-red-600">Logout</v-list-item-title>
+
+              <v-divider class="my-1" opacity="0.12"></v-divider>
+
+              <v-list-item link @click="handleLogout" class="rounded-lg py-2">
+                <template v-slot:prepend>
+                  <v-icon icon="mdi-logout" size="18" color="red-600" class="mr-3"></v-icon>
+                </template>
+                <v-list-item-title class="text-xs font-bold text-red-600">Logout</v-list-item-title>
               </v-list-item>
             </v-list>
           </v-card>
@@ -223,5 +235,18 @@ const handleSearch = () => {
   color: #1d1d1f;
   cursor: pointer;
   border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.user-dropdown-card {
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif !important;
+}
+
+.user-dropdown-card :deep(.v-list-item-title) {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif !important;
+  font-size: 0.8125rem !important;
+  letter-spacing: normal !important;
 }
 </style>

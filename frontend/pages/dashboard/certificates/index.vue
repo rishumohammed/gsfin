@@ -1,137 +1,168 @@
 <template>
-  <v-container fluid class="pa-6">
-    <div class="d-flex justify-space-between align-center mb-8">
-      <div>
-        <h1 class="text-h4 font-weight-bold mb-1">{{ pageTitle }}</h1>
-        <p class="text-subtitle-1 text-medium-emphasis mb-6">{{ pageSubtitle }}</p>
+  <div class="gsfin-admin-page">
+    <div class="admin-wrap">
+
+      <!-- ═══ TOP HEADER ROW ═══ -->
+      <div class="admin-header-row">
+        <div>
+          <div class="eyebrow-chip mb-1">
+            <i class="mdi mdi-certificate-outline"></i> CREDENTIAL PORTAL
+          </div>
+          <h1 class="admin-title">{{ pageTitle }}</h1>
+          <p class="admin-subtitle">{{ pageSubtitle }}</p>
+        </div>
+
+        <div v-if="userRole !== 'student'" class="header-actions">
+          <button class="btn-red" @click="showIssueModal = true">
+            <i class="mdi mdi-plus"></i> Issue Certificate
+          </button>
+        </div>
       </div>
-      <AppButton v-if="userRole !== 'student'" icon="mdi-certificate-outline" @click="showIssueModal = true">
-        Issue Certificate
-      </AppButton>
-    </div>
 
-    <IssueCertificateModal v-model="showIssueModal" @issued="fetchData" />
-    <ExternalCertificateModal v-model="showExternalModal" :certificate="selectedExternalCert" @saved="fetchExternalData" />
+      <!-- Modal Container -->
+      <IssueCertificateModal v-model="showIssueModal" @issued="fetchData" />
+      <ExternalCertificateModal v-model="showExternalModal" :certificate="selectedExternalCert" @saved="fetchExternalData" />
 
-    <div v-if="userRole === 'student'" class="mb-6">
-      <v-tabs v-model="activeTab" color="primary" class="bg-white rounded-lg border">
-        <v-tab value="internal" class="text-capitalize font-weight-bold">Platform Certificates</v-tab>
-        <v-tab value="external" class="text-capitalize font-weight-bold">External Certificates</v-tab>
-      </v-tabs>
-    </div>
+      <!-- ═══ STUDENT TAB SWITCHER ═══ -->
+      <div v-if="userRole === 'student'" class="tab-switcher-row mb-6">
+        <button
+          :class="['tab-pill-btn', activeTab === 'internal' ? 'active' : '']"
+          @click="activeTab = 'internal'"
+        >
+          <i class="mdi mdi-shield-check-outline"></i> Platform Credentials
+        </button>
+        <button
+          :class="['tab-pill-btn', activeTab === 'external' ? 'active' : '']"
+          @click="activeTab = 'external'"
+        >
+          <i class="mdi mdi-file-document-outline"></i> External Certifications
+        </button>
+      </div>
 
-    <v-window v-model="activeTab" class="bg-transparent" style="overflow: visible;">
-      <v-window-item value="internal">
-        <div class="apple-table-card">
-          <div v-if="loading" class="pa-12 text-center">
-            <v-progress-circular indeterminate color="primary"></v-progress-circular>
+      <!-- ═══ PLATFORM CERTIFICATES TAB ═══ -->
+      <div v-if="activeTab === 'internal'" class="panel-card">
+        <div v-if="loading" class="text-center py-12 text-slate-500 font-medium">
+          <span class="spinner-sm-red"></span> Loading credentials...
+        </div>
+
+        <div v-else-if="certificates.length === 0" class="empty-state">
+          <i class="mdi mdi-certificate-outline text-5xl text-slate-300 mb-3"></i>
+          <h3 class="font-bold text-slate-800 text-lg">No Certificates Found</h3>
+          <p class="text-slate-500 text-sm max-w-md mt-1">{{ emptyStateText }}</p>
+        </div>
+
+        <div v-else class="table-responsive">
+          <table class="gsfin-table">
+            <thead>
+              <tr>
+                <th>Certificate Details</th>
+                <th>Qualification / Course</th>
+                <th>Date Issued</th>
+                <th>Status</th>
+                <th class="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in certificates" :key="item.cert_number">
+                <td>
+                  <div class="flex items-center gap-3">
+                    <div class="cert-avatar-badge">
+                      <i class="mdi mdi-file-certificate text-red"></i>
+                    </div>
+                    <div>
+                      <div class="font-bold text-slate-900 text-sm">{{ item.student_name || authStore.user?.name }}</div>
+                      <div class="text-xs text-slate-400 font-mono">ID: {{ item.cert_number }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="font-bold text-slate-800 text-sm">{{ item.course_title }}</div>
+                </td>
+                <td class="text-slate-500 font-medium text-xs whitespace-nowrap">
+                  {{ formatDate(item.issued_at) }}
+                </td>
+                <td>
+                  <span :class="['chip-pill', item.status === 'revoked' ? 'chip-red' : 'chip-green']">
+                    {{ item.status || 'active' }}
+                  </span>
+                </td>
+                <td class="text-right">
+                  <div class="action-btn-group">
+                    <button class="btn-icon-action btn-icon-view" title="Download PDF" @click="downloadCertificate(item)">
+                      <i class="mdi mdi-download"></i>
+                    </button>
+                    <button class="btn-icon-action btn-icon-whatsapp" title="Share via WhatsApp" @click="shareOnWhatsApp(item)">
+                      <i class="mdi mdi-whatsapp"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ EXTERNAL CERTIFICATES TAB ═══ -->
+      <div v-else-if="activeTab === 'external'" class="space-y-6">
+        <div class="flex items-center justify-between gap-4 mb-4">
+          <h2 class="font-bold text-slate-900 text-lg">My Verified External Credentials</h2>
+          <button class="btn-red" @click="openAddExternalModal">
+            <i class="mdi mdi-plus"></i> Add External Certificate
+          </button>
+        </div>
+
+        <div v-if="loadingExternal" class="panel-card text-center py-12 text-slate-500 font-medium">
+          <span class="spinner-sm-red"></span> Loading external certifications...
+        </div>
+
+        <div v-else-if="externalCertificates.length === 0" class="panel-card empty-state">
+          <i class="mdi mdi-certificate-outline text-5xl text-slate-300 mb-3"></i>
+          <h3 class="font-bold text-slate-800 text-lg">No External Credentials</h3>
+          <p class="text-slate-500 text-sm max-w-md mt-1">You have not uploaded any external certifications yet.</p>
+        </div>
+
+        <div v-else class="external-grid">
+          <div v-for="cert in externalCertificates" :key="cert.id" class="external-card">
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <h4 class="font-bold text-slate-900 text-base leading-snug line-clamp-2">{{ cert.certificate_name }}</h4>
+                <div class="text-slate-500 font-medium text-xs mt-1">{{ cert.issuer }}</div>
+              </div>
+              <div class="dropdown-actions">
+                <button class="btn-icon-sm" title="Edit Certificate" @click="editExternalCert(cert)">
+                  <i class="mdi mdi-pencil-outline"></i>
+                </button>
+                <button class="btn-icon-sm text-red" title="Delete Certificate" @click="deleteExternalCert(cert.id)">
+                  <i class="mdi mdi-trash-can-outline"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="text-xs text-slate-400 font-medium mb-3">
+              Issued: {{ formatDate(cert.issue_date) }}
+              <span v-if="cert.expiry_date"> &bull; Expires: {{ formatDate(cert.expiry_date) }}</span>
+            </div>
+
+            <div v-if="cert.skills && getSkillsList(cert.skills).length > 0" class="skills-flex mb-4">
+              <span v-for="skill in getSkillsList(cert.skills)" :key="skill" class="skill-tag">
+                {{ skill }}
+              </span>
+            </div>
+
+            <div class="card-footer-btns">
+              <a v-if="cert.file_url" :href="`${api.defaults.baseURL?.replace('/api', '') || ''}${cert.file_url}`" target="_blank" class="btn-glass-sm flex-1 text-center">
+                View Document
+              </a>
+              <a v-if="cert.verification_url" :href="cert.verification_url" target="_blank" class="btn-glass-sm flex-1 text-center">
+                Verify Link
+              </a>
+            </div>
           </div>
-          <div v-else-if="certificates.length === 0" class="pa-12 text-center">
-            <v-icon size="64" color="grey-lighten-2">mdi-certificate-outline</v-icon>
-            <h3 class="text-h6 mt-4">No certificates found</h3>
-            <p class="text-secondary">{{ emptyStateText }}</p>
-          </div>
-          <AppTable
-            v-else
-            :headers="headers"
-            :items="certificates"
-          >
-            <template #item.student_name="{ item }">
-              <div class="d-flex align-center py-2">
-                <v-avatar size="32" class="mr-3 av-sq">
-                  <v-img :src="`https://ui-avatars.com/api/?name=${item.student_name || authStore.user?.name}&background=007AFF&color=fff`"></v-img>
-                </v-avatar>
-                <div>
-                  <div class="user-name">{{ item.student_name || authStore.user?.name }}</div>
-                  <div class="text-caption text-secondary">No: {{ item.cert_number }}</div>
-                </div>
-              </div>
-</template>
-            
-            <template #item.issued_at="{ item }">
-              <div class="font-weight-medium">{{ formatDate(item.issued_at) }}</div>
-            </template>
-
-            <template #item.status="{ item }">
-              <Badge :color="item.status === 'active' ? 'green' : 'red'">{{ item.status.toUpperCase() }}</Badge>
-            </template>
-
-            <template #item.actions="{ item }">
-              <div class="d-flex justify-end gap-1">
-                <AppButton size="xs" variant="g" icon="mdi-download" @click="downloadCertificate(item)">Download</AppButton>
-                <AppButton size="xs" variant="g" icon="mdi-whatsapp" @click="shareOnWhatsApp(item)"></AppButton>
-              </div>
-            </template>
-          </AppTable>
         </div>
-      </v-window-item>
+      </div>
 
-      <v-window-item value="external">
-        <div class="d-flex justify-space-between align-center mb-6">
-          <h2 class="text-h6 font-weight-bold">My External Certificates</h2>
-          <v-btn color="primary" rounded="lg" prepend-icon="mdi-plus" class="text-capitalize font-weight-bold" @click="openAddExternalModal">
-            Add Certificate
-          </v-btn>
-        </div>
-
-        <div v-if="loadingExternal" class="pa-12 text-center">
-          <v-progress-circular indeterminate color="primary"></v-progress-circular>
-        </div>
-        <div v-else-if="externalCertificates.length === 0" class="pa-12 text-center bg-white rounded-xl border">
-          <v-icon size="64" color="grey-lighten-2">mdi-certificate-outline</v-icon>
-          <h3 class="text-h6 mt-4">No external certificates</h3>
-          <p class="text-secondary">You have not added any external certifications yet.</p>
-        </div>
-        <v-row v-else dense>
-          <v-col v-for="cert in externalCertificates" :key="cert.id" cols="12" md="6" lg="4">
-            <v-card class="rounded-xl border pa-4 h-100 d-flex flex-column" flat>
-              <div class="d-flex align-start justify-space-between mb-2">
-                <div>
-                  <div class="font-weight-bold text-subtitle-1 line-clamp-2">{{ cert.certificate_name }}</div>
-                  <div class="text-body-2 text-secondary">{{ cert.issuer }}</div>
-                </div>
-                <v-menu>
-                  <template v-slot:activator="{ props }">
-                    <v-btn icon="mdi-dots-vertical" variant="text" size="small" v-bind="props"></v-btn>
-                  </template>
-                  <v-list class="pa-1" rounded="lg" elevation="3">
-                    <v-list-item @click="editExternalCert(cert)" class="rounded-lg mb-1" density="compact">
-                      <v-list-item-title class="text-body-2"><v-icon size="small" class="mr-2">mdi-pencil</v-icon> Edit</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item @click="deleteExternalCert(cert.id)" class="rounded-lg text-error" density="compact">
-                      <v-list-item-title class="text-body-2"><v-icon size="small" color="error" class="mr-2">mdi-delete</v-icon> Delete</v-list-item-title>
-                    </v-list-item>
-                  </v-list>
-                </v-menu>
-              </div>
-              
-              <div class="text-caption text-grey-darken-1 mb-3">
-                Issued: {{ formatDate(cert.issue_date) }}
-                <span v-if="cert.expiry_date"> &bull; Expires: {{ formatDate(cert.expiry_date) }}</span>
-              </div>
-              
-              <div class="mb-3 d-flex flex-wrap gap-1" v-if="cert.skills && getSkillsList(cert.skills).length > 0">
-                <v-chip v-for="skill in getSkillsList(cert.skills)" :key="skill" size="x-small" color="primary-lighten-4" class="text-primary font-weight-bold">
-                  {{ skill }}
-                </v-chip>
-              </div>
-
-              <v-spacer></v-spacer>
-
-              <div class="d-flex gap-2 mt-auto pt-3 border-t">
-                <v-btn v-if="cert.file_url" variant="tonal" color="primary" size="small" class="text-capitalize flex-1-1-100" rounded="lg" :href="`${api.defaults.baseURL?.replace('/api', '') || ''}${cert.file_url}`" target="_blank">
-                  View File
-                </v-btn>
-                <v-btn v-if="cert.verification_url" variant="outlined" color="primary" size="small" class="text-capitalize flex-1-1-100" rounded="lg" :href="cert.verification_url" target="_blank">
-                  Verify Link
-                </v-btn>
-              </div>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-window-item>
-    </v-window>
-  </v-container>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -145,7 +176,7 @@ import ExternalCertificateModal from '@/components/certificates/ExternalCertific
 definePageMeta({
   layout: 'dashboard',
   middleware: ['auth', 'role'],
-  role: ['super_admin', 'lms_user', 'tutor', 'student']
+  role: ['super_admin', 'main_admin', 'sub_admin', 'lms_user', 'tutor', 'student']
 });
 
 const authStore = useAuthStore();
@@ -161,18 +192,10 @@ const selectedExternalCert = ref<any>(null);
 const externalCertificates = ref<any[]>([]);
 const loadingExternal = ref(false);
 
-const headers = [
-  { title: 'Certificate', key: 'student_name' },
-  { title: 'Course', key: 'course_title' },
-  { title: 'Issued On', key: 'issued_at' },
-  { title: 'Status', key: 'status' },
-  { title: '', key: 'actions', align: 'end' }
-];
-
 const pageTitle = computed(() => userRole.value === 'student' ? 'My Certificates' : 'Issued Certificates');
-const pageSubtitle = computed(() => userRole.value === 'student' ? 'View and download your earned certifications.' : 'Manage and verify all certificates issued by the system.');
+const pageSubtitle = computed(() => userRole.value === 'student' ? 'View and download your earned qualifications and credentials.' : 'Manage and verify all certificates issued across the network.');
 const emptyStateText = computed(() => userRole.value === 'student' 
-  ? 'Complete a course and pass the exam to earn your certificate.' 
+  ? 'Complete a qualification course and pass the exam to earn your verifiable certificate.' 
   : 'No certificates have been issued in the system yet.'
 );
 
@@ -181,7 +204,7 @@ const fetchData = async () => {
   try {
     const endpoint = userRole.value === 'student' ? '/certs/my-certificates' : '/certs/admin';
     const res = await api.get(endpoint);
-    certificates.value = res.data || res;
+    certificates.value = res.data || res || [];
   } catch (error) {
     console.error('Failed to fetch certificates:', error);
   } finally {
@@ -194,7 +217,7 @@ const fetchExternalData = async () => {
   loadingExternal.value = true;
   try {
     const res = await api.get('/certs/external');
-    externalCertificates.value = res.data || res;
+    externalCertificates.value = res.data || res || [];
   } catch (error) {
     console.error('Failed to fetch external certificates:', error);
   } finally {
@@ -249,18 +272,13 @@ const downloadCertificate = (cert: any) => {
     });
 };
 
-const shareOnLinkedIn = (cert: any) => {
-  const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.origin + '/verify?id=' + cert.cert_number)}`;
-  window.open(url, '_blank');
-};
-
 const shareOnWhatsApp = (cert: any) => {
-  const text = `I'm proud to share my certificate for ${cert.course_title} from AEMS Academy! Verify here: ${window.location.origin}/verify?id=${cert.cert_number}`;
+  const text = `I'm proud to share my qualification certificate for ${cert.course_title} from GSFIN! Verify here: ${window.location.origin}/verify?id=${cert.cert_number}`;
   const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
   window.open(url, '_blank');
 };
 
-const formatDate = (date: string) => dayjs(date).format('MMM D, YYYY');
+const formatDate = (date: string) => date ? dayjs(date).format('MMM D, YYYY') : 'N/A';
 
 onMounted(() => {
   fetchData();
@@ -269,22 +287,201 @@ onMounted(() => {
 </script>
 
 <style scoped>
-
-
-.apple-table-card {
-  background: white;
-  border-radius: var(--radius-lg);
-  
-  overflow: hidden;
-  border: 1px solid var(--border);
+.gsfin-admin-page {
+  padding: 40px 48px;
+  background: #FAFAFD;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+.admin-wrap {
+  max-width: 1440px;
+  margin: 0 auto;
 }
 
-.user-name {
+.admin-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.eyebrow-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #E31B23;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-title {
+  font-size: 1.95rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+}
+
+.admin-subtitle {
+  font-size: 0.94rem;
+  color: #64748B;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.btn-red {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #E31B23;
+  color: #FFFFFF;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 14px;
   font-weight: 700;
-  color: var(--g7);
+  font-size: 0.88rem;
+  box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.btn-red:hover {
+  background: #C4131B;
+  transform: translateY(-1px);
 }
 
-.av-sq {
-  border-radius: 10px !important;
+.tab-switcher-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #FFFFFF;
+  padding: 6px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  width: fit-content;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.02);
 }
+
+.tab-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #64748B;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.tab-pill-btn.active {
+  background: #E31B23;
+  color: #FFFFFF;
+  box-shadow: 0 2px 10px rgba(227, 27, 35, 0.2);
+}
+
+.panel-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
+  overflow: hidden;
+}
+
+.empty-state {
+  padding: 64px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Tables */
+.table-responsive { overflow-x: auto; }
+.gsfin-table { width: 100%; border-collapse: collapse; text-align: left; }
+.gsfin-table th { background: #F8FAFC; padding: 18px 24px; font-size: 0.74rem; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid rgba(15, 23, 42, 0.08); white-space: nowrap; }
+.gsfin-table td { padding: 20px 24px; font-size: 0.9rem; color: #334155; border-bottom: 1px solid rgba(15, 23, 42, 0.06); vertical-align: middle; }
+
+.cert-avatar-badge {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: rgba(227, 27, 35, 0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem; flex-shrink: 0;
+}
+
+.chip-pill { padding: 6px 14px; border-radius: 50px; font-size: 0.74rem; font-weight: 800; text-transform: uppercase; display: inline-block; }
+.chip-green { background: rgba(16, 185, 129, 0.1); color: #059669; }
+.chip-red { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+
+.action-btn-group { display: inline-flex; align-items: center; gap: 8px; }
+.btn-icon-action {
+  width: 36px; height: 36px; border-radius: 10px; border: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; cursor: pointer; transition: all 0.18s ease;
+}
+.btn-icon-view { background: rgba(59, 130, 246, 0.1); color: #2563EB; }
+.btn-icon-view:hover { background: #2563EB; color: #FFFFFF; }
+.btn-icon-whatsapp { background: rgba(34, 197, 94, 0.1); color: #16A34A; }
+.btn-icon-whatsapp:hover { background: #16A34A; color: #FFFFFF; }
+
+.external-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+}
+
+.external-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+.btn-icon-sm {
+  width: 32px; height: 32px; border-radius: 8px; border: none;
+  background: #F1F5F9; color: #475569;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.15s ease;
+}
+.btn-icon-sm:hover { background: #E2E8F0; color: #0F172A; }
+.btn-icon-sm.text-red:hover { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
+
+.dropdown-actions { display: flex; align-items: center; gap: 6px; }
+
+.skills-flex { display: flex; flex-wrap: wrap; gap: 6px; }
+.skill-tag {
+  padding: 4px 10px; border-radius: 6px;
+  font-size: 0.72rem; font-weight: 700;
+  background: rgba(227, 27, 35, 0.08); color: #E31B23;
+}
+
+.card-footer-btns { display: flex; gap: 10px; margin-top: auto; padding-top: 8px; }
+.btn-glass-sm {
+  padding: 8px 14px; border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12); background: #FFFFFF;
+  color: #334155; font-size: 0.8rem; font-weight: 700;
+  text-decoration: none; transition: all 0.18s;
+}
+.btn-glass-sm:hover { background: #F8FAFC; color: #E31B23; border-color: rgba(227, 27, 35, 0.3); }
+
+.text-red { color: #E31B23; }
+.spinner-sm-red {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(227, 27, 35, 0.2); border-top-color: #E31B23;
+  border-radius: 50%; animation: spin 0.75s linear infinite; display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>

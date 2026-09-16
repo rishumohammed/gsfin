@@ -1,71 +1,69 @@
 <template>
-  <div class="gsfin-admin-page min-h-screen bg-slate-50/50 py-8 px-4 sm:px-8">
-    <div class="max-w-7xl mx-auto">
+  <div class="gsfin-admin-page">
+    <div class="settings-wrap">
 
       <!-- ═══════════════════════════════════════════════════════════════════ -->
       <!-- VIEW 1: CARD VIEW OVERVIEW HUB (DEFAULT WHEN NO CATEGORY SELECTED) -->
       <!-- ═══════════════════════════════════════════════════════════════════ -->
       <div v-if="!activeCategory" class="fade-in">
         
-        <!-- Header Banner -->
-        <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <!-- Header Row -->
+        <div class="settings-header-row">
           <div>
-            <div class="flex items-center gap-2 mb-1">
-              <span class="px-3 py-1 rounded-full bg-red-50 text-red-600 border border-red-100 text-xs font-black uppercase tracking-wider">
-                <i class="mdi mdi-cog-outline me-1"></i> CONTROL PANEL
-              </span>
+            <div class="control-panel-chip">
+              <i class="mdi mdi-cog-outline"></i> CONTROL PANEL
             </div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">System Settings</h1>
-            <p class="text-slate-500 text-sm mt-1">
+            <h1 class="settings-title">System Settings</h1>
+            <p class="settings-subtitle">
               Configure branding, homepage content, governance legal text, system users, integrations, and email dispatches.
             </p>
           </div>
 
           <!-- Quick Search Filter Bar -->
-          <div class="relative w-full md:w-80">
-            <i class="mdi mdi-magnify absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none"></i>
+          <div class="search-input-wrap">
+            <i class="mdi mdi-magnify search-icon"></i>
             <input
               v-model="cardSearch"
               type="text"
               placeholder="Search setting modules..."
-              class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/10 transition shadow-2xs"
+              class="settings-search-input"
             />
           </div>
         </div>
 
         <!-- Cards Directory Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <div class="settings-cards-grid">
           <div
             v-for="card in filteredCards"
             :key="card.id"
-            class="group bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs hover:shadow-md hover:border-red-200 transition-all duration-200 cursor-pointer flex flex-col justify-between"
+            class="settings-card group"
             @click="selectCategory(card)"
           >
-            <div>
+            <div class="card-content-top">
               <!-- Top Row: Icon & Tag -->
-              <div class="flex items-center justify-between mb-4">
-                <div :class="['w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold border transition group-hover:scale-105', card.iconBg]">
+              <div class="card-header-row">
+                <div :class="['card-icon-box', card.iconClass]">
                   <i :class="`mdi ${card.icon}`"></i>
                 </div>
-                <span :class="['px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border', card.badgeColor]">
+                <span :class="['card-badge-pill', card.badgeClass]">
                   {{ card.badge }}
                 </span>
               </div>
 
               <!-- Title & Description -->
-              <h3 class="text-lg font-bold text-slate-900 group-hover:text-red-600 transition-colors mb-2 flex items-center gap-1">
+              <h3 class="card-title">
                 <span>{{ card.title }}</span>
-                <i class="mdi mdi-chevron-right text-slate-400 group-hover:text-red-600 group-hover:translate-x-1 transition-transform"></i>
+                <i class="mdi mdi-chevron-right card-arrow"></i>
               </h3>
-              <p class="text-slate-500 text-xs sm:text-sm leading-relaxed mb-6">
+              <p class="card-subtitle">
                 {{ card.subtitle }}
               </p>
             </div>
 
             <!-- Card Bottom Link -->
-            <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-600 group-hover:text-red-600">
+            <div class="card-footer-bar">
               <span>Configure Module</span>
-              <i class="mdi mdi-arrow-right group-hover:translate-x-1 transition-transform"></i>
+              <i class="mdi mdi-arrow-right card-footer-arrow"></i>
             </div>
           </div>
         </div>
@@ -78,48 +76,40 @@
       <!-- ═══════════════════════════════════════════════════════════════════ -->
       <div v-else class="fade-in">
         
-        <!-- Breadcrumb & Top Bar -->
-        <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
-          <div class="flex items-center gap-3">
-            <button
-              @click="backToOverview"
-              class="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs"
-            >
-              <i class="mdi mdi-arrow-left text-base"></i>
+        <!-- Breadcrumb & Top Navigation Bar -->
+        <div class="inner-header-bar">
+          <div class="breadcrumb-row">
+            <button class="btn-back" @click="backToOverview">
+              <i class="mdi mdi-arrow-left"></i>
               <span>Back to All Settings</span>
             </button>
-            <div class="h-5 w-px bg-slate-300 hidden sm:block"></div>
-            <div class="text-xs font-bold text-slate-500">
-              Settings <span class="mx-1.5 text-slate-400">/</span> <span class="text-slate-900">{{ currentCategoryObj?.title }}</span>
+            <div class="breadcrumb-divider"></div>
+            <div class="breadcrumb-text">
+              Settings <span class="bc-slash">/</span> <span class="bc-current">{{ currentCategoryObj?.title }}</span>
             </div>
           </div>
 
           <!-- Quick Category Switcher Pills -->
-          <div class="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0 custom-scrollbar">
+          <div class="category-pills-row custom-scrollbar">
             <button
               v-for="c in settingsCards"
               :key="c.id"
               @click="selectCategory(c)"
-              :class="[
-                'px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition border',
-                activeCategory === c.id
-                  ? 'bg-red-600 text-white border-red-600 shadow-2xs'
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-              ]"
+              :class="['pill-btn', { 'pill-btn--active': activeCategory === c.id }]"
             >
-              <i :class="`mdi ${c.icon} me-1`"></i> {{ c.title.split(' ')[0] }}
+              <i :class="`mdi ${c.icon}`"></i> {{ c.title.split(' ')[0] }}
             </button>
           </div>
         </div>
 
-        <!-- Inner Form Container -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 sm:p-10">
+        <!-- Inner Form Container Card -->
+        <div class="inner-form-card">
           <v-form @submit.prevent="save">
 
             <!-- 1. Branding & Identity Tab -->
             <div v-if="activeCategory === 'branding'" class="fade-in">
-              <h2 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                <i class="mdi mdi-palette-outline text-red-600"></i> Branding &amp; Platform Identity
+              <h2 class="form-section-title">
+                <i class="mdi mdi-palette-outline text-red"></i> Branding &amp; Platform Identity
               </h2>
               
               <!-- Logo & Favicon Upload -->
@@ -185,10 +175,10 @@
 
             <!-- 2. Homepage Content Tab -->
             <div v-if="activeCategory === 'homepage'" class="fade-in">
-              <h2 class="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
-                <i class="mdi mdi-home-outline text-indigo-600"></i> Homepage Content &amp; Banner
+              <h2 class="form-section-title">
+                <i class="mdi mdi-home-outline text-indigo"></i> Homepage Content &amp; Banner
               </h2>
-              <p class="text-sm text-slate-500 mb-6">Manage hero section titles, about paragraphs, and public homepage images.</p>
+              <p class="form-section-subtitle">Manage hero section titles, about paragraphs, and public homepage images.</p>
 
               <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
                 <h3 class="text-subtitle-1 font-weight-bold mb-4">Text Content</h3>
@@ -269,10 +259,10 @@
 
             <!-- 3. Organization & Legal Tab -->
             <div v-if="activeCategory === 'terms_privacy'" class="fade-in">
-              <h2 class="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
-                <i class="mdi mdi-shield-lock-outline text-emerald-600"></i> Organization &amp; Governance Content
+              <h2 class="form-section-title">
+                <i class="mdi mdi-shield-lock-outline text-emerald"></i> Organization &amp; Governance Content
               </h2>
-              <p class="text-sm text-slate-500 mb-6">Manage dynamic text and policy parameters for all public governance pages.</p>
+              <p class="form-section-subtitle">Manage dynamic text and policy parameters for all public governance pages.</p>
               
               <!-- Section 1: Advisory Board & Panel -->
               <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
@@ -330,8 +320,8 @@
 
             <!-- 4. Contact Info Tab -->
             <div v-if="activeCategory === 'contact'" class="fade-in">
-              <h2 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                <i class="mdi mdi-map-marker-outline text-amber-600"></i> Contact &amp; Institution Details
+              <h2 class="form-section-title">
+                <i class="mdi mdi-map-marker-outline text-amber"></i> Contact &amp; Institution Details
               </h2>
               <div class="fr2 mb-4">
                 <AppInput v-model="form.contact_email" label="Contact Email" placeholder="contact@gsfin.org" large />
@@ -344,18 +334,17 @@
 
             <!-- 5. Email (Resend) Tab -->
             <div v-if="activeCategory === 'email'" class="fade-in">
-              <h2 class="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
-                <i class="mdi mdi-email-fast-outline text-blue-600"></i> Email Settings (Resend REST API)
+              <h2 class="form-section-title">
+                <i class="mdi mdi-email-fast-outline text-blue"></i> Email Settings (Resend REST API)
               </h2>
-              <p class="text-xs text-slate-500 mb-6">Configure credentials for email dispatches via HTTPS REST API (Port 443).</p>
+              <p class="form-section-subtitle">Configure credentials for email dispatches via HTTPS REST API (Port 443).</p>
 
-              <div class="pa-4 rounded-xl mb-6 text-body-2" style="background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;">
-                <div class="d-flex align-center gap-2 mb-1 font-weight-bold">
-                  <v-icon icon="mdi-information-outline" size="18" color="primary" class="me-1"></v-icon>
-                  Resend Configuration Guide
+              <div class="info-callout mb-6">
+                <div class="info-callout-title">
+                  <i class="mdi mdi-information-outline me-1"></i> Resend Configuration Guide
                 </div>
-                <div>
-                  • Get your API Key from your <a href="https://resend.com/api-keys" target="_blank" class="text-primary font-weight-bold" style="text-decoration: underline;">Resend Dashboard</a>.
+                <div class="info-callout-body">
+                  • Get your API Key from your <a href="https://resend.com/api-keys" target="_blank" class="info-link">Resend Dashboard</a>.
                 </div>
               </div>
 
@@ -391,9 +380,9 @@
                   <div class="text-subtitle-2 font-weight-bold">Test Email Delivery</div>
                   <div class="text-caption text-secondary">Send a test notification to verify your credentials.</div>
                 </div>
-                <AppButton variant="g" icon="mdi-send-outline" :loading="testingEmail" @click="testEmail">
-                  Send Test Email
-                </AppButton>
+                <button type="button" class="btn-glass" :disabled="testingEmail" @click="testEmail">
+                  <i :class="['mdi', testingEmail ? 'mdi-loading spin-icon' : 'mdi-send-outline']"></i> Send Test Email
+                </button>
               </div>
             </div>
 
@@ -408,13 +397,13 @@
             </div>
 
             <!-- Bottom Action Controls -->
-            <div class="d-flex justify-end gap-3 mt-10 pt-6 border-t" v-if="activeCategory !== 'email_templates'">
-              <AppButton variant="g" size="lg" icon="mdi-refresh" @click="fetchData">
-                Reset Changes
-              </AppButton>
-              <AppButton type="submit" :loading="saving" size="lg" icon="mdi-check" @click.prevent="save">
-                Save All Settings
-              </AppButton>
+            <div class="form-bottom-actions" v-if="activeCategory !== 'email_templates'">
+              <button type="button" class="btn-glass" @click="fetchData">
+                <i class="mdi mdi-refresh"></i> Reset Changes
+              </button>
+              <button type="submit" class="btn-red" :disabled="saving" @click.prevent="save">
+                <i :class="['mdi', saving ? 'mdi-loading spin-icon' : 'mdi-check']"></i> {{ saving ? 'Saving...' : 'Save All Settings' }}
+              </button>
             </div>
 
           </v-form>
@@ -432,12 +421,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useApi } from '@/composables/useApi';
 import EmailTemplatesTab from '@/components/admin/settings/EmailTemplatesTab.vue';
 import TalentHuntSettingsTab from '@/components/admin/settings/TalentHuntSettingsTab.vue';
-import { provide } from 'vue';
 
 definePageMeta({
   layout: 'dashboard',
@@ -473,36 +461,36 @@ const settingsCards = [
     title: 'Branding & Identity',
     subtitle: 'Manage platform logos, favicons, primary/secondary brand colors, and institution details.',
     icon: 'mdi-palette-outline',
-    iconBg: 'bg-red-50 text-red-600 border-red-200',
+    iconClass: 'card-icon-red',
     badge: 'Branding',
-    badgeColor: 'bg-red-50 text-red-600 border-red-200'
+    badgeClass: 'badge-red'
   },
   {
     id: 'homepage',
     title: 'Homepage & Hero',
     subtitle: 'Customize public hero text, about section, bullet points, and banner images.',
     icon: 'mdi-home-outline',
-    iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-200',
+    iconClass: 'card-icon-indigo',
     badge: 'Public Content',
-    badgeColor: 'bg-indigo-50 text-indigo-600 border-indigo-200'
+    badgeClass: 'badge-indigo'
   },
   {
     id: 'terms_privacy',
     title: 'Organization & Governance',
     subtitle: 'Edit content for Advisory Board, Global Standards Council, Cookie Policy, Terms, and Privacy.',
     icon: 'mdi-shield-lock-outline',
-    iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+    iconClass: 'card-icon-emerald',
     badge: 'Governance',
-    badgeColor: 'bg-emerald-50 text-emerald-600 border-emerald-200'
+    badgeClass: 'badge-emerald'
   },
   {
     id: 'system_users',
     title: 'System Users & Roles',
     subtitle: 'Manage administrator accounts, team members, staff roles, and permissions.',
     icon: 'mdi-account-group-outline',
-    iconBg: 'bg-purple-50 text-purple-600 border-purple-200',
+    iconClass: 'card-icon-purple',
     badge: 'Access Control',
-    badgeColor: 'bg-purple-50 text-purple-600 border-purple-200',
+    badgeClass: 'badge-purple',
     isExternalRoute: '/dashboard/admin/settings/system-users'
   },
   {
@@ -510,36 +498,46 @@ const settingsCards = [
     title: 'Contact Information',
     subtitle: 'Update institutional email addresses, phone numbers, and physical office locations.',
     icon: 'mdi-map-marker-outline',
-    iconBg: 'bg-amber-50 text-amber-600 border-amber-200',
+    iconClass: 'card-icon-amber',
     badge: 'Support',
-    badgeColor: 'bg-amber-50 text-amber-600 border-amber-200'
+    badgeClass: 'badge-amber'
   },
   {
     id: 'email',
     title: 'Email Settings (Resend)',
     subtitle: 'Configure Resend REST API keys, From Name, From Email, and dispatch test notifications.',
     icon: 'mdi-email-fast-outline',
-    iconBg: 'bg-blue-50 text-blue-600 border-blue-200',
+    iconClass: 'card-icon-blue',
     badge: 'Email Dispatch',
-    badgeColor: 'bg-blue-50 text-blue-600 border-blue-200'
+    badgeClass: 'badge-blue'
   },
   {
     id: 'email_templates',
     title: 'Email Templates',
     subtitle: 'Customize automated transactional email templates for registrations, exams, and credentials.',
     icon: 'mdi-email-edit-outline',
-    iconBg: 'bg-teal-50 text-teal-600 border-teal-200',
+    iconClass: 'card-icon-teal',
     badge: 'Templates',
-    badgeColor: 'bg-teal-50 text-teal-600 border-teal-200'
+    badgeClass: 'badge-teal'
   },
   {
     id: 'talent_hunt',
     title: 'Talent Hunt Settings',
     subtitle: 'Manage competition dropdown categories, degree levels, and registration parameters.',
     icon: 'mdi-account-star-outline',
-    iconBg: 'bg-rose-50 text-rose-600 border-rose-200',
+    iconClass: 'card-icon-rose',
     badge: 'Competition',
-    badgeColor: 'bg-rose-50 text-rose-600 border-rose-200'
+    badgeClass: 'badge-rose'
+  },
+  {
+    id: 'faqs',
+    title: 'FAQ Management',
+    subtitle: 'Create, edit, reorder, and publish frequently asked questions for public and candidate help centers.',
+    icon: 'mdi-help-circle-outline',
+    iconClass: 'card-icon-cyan',
+    badge: 'Help Center',
+    badgeClass: 'badge-cyan',
+    isExternalRoute: '/dashboard/admin/faqs'
   }
 ];
 
@@ -684,15 +682,421 @@ watch(
 
 <style scoped>
 .gsfin-admin-page {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  background: #FAFAFD;
+  color: #0F172A;
+  min-height: 100vh;
+  padding: 32px 36px;
+  box-sizing: border-box;
 }
-.fr2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.settings-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* Header Row */
+.settings-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.control-panel-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(227, 27, 35, 0.08);
+  color: #E31B23;
+  border: 1px solid rgba(227, 27, 35, 0.18);
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.settings-title {
+  font-size: 1.95rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+}
+
+.settings-subtitle {
+  font-size: 0.9rem;
+  color: #64748B;
+  margin: 0;
+  max-width: 680px;
+}
+
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  color: #94A3B8;
+  font-size: 1.1rem;
+  pointer-events: none;
+}
+
+.settings-search-input {
+  padding: 10px 14px 10px 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #FFFFFF;
+  font-size: 0.88rem;
+  color: #0F172A;
+  outline: none;
+  width: 280px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.02);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.settings-search-input:focus {
+  border-color: #E31B23;
+  box-shadow: 0 4px 12px rgba(227, 27, 35, 0.12);
+}
+
+/* Settings Cards Grid */
+.settings-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+@media (max-width: 1080px) { .settings-cards-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .settings-cards-grid { grid-template-columns: 1fr; } }
+
+.settings-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.02);
+  cursor: pointer;
+  transition: all 0.22s ease;
+}
+.settings-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(227, 27, 35, 0.3);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+}
+
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.card-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  border: 1px solid transparent;
+  transition: transform 0.2s ease;
+}
+.settings-card:hover .card-icon-box {
+  transform: scale(1.05);
+}
+
+.card-icon-red { background: rgba(227, 27, 35, 0.08); color: #E31B23; border-color: rgba(227, 27, 35, 0.15); }
+.card-icon-indigo { background: rgba(79, 70, 229, 0.08); color: #4F46E5; border-color: rgba(79, 70, 229, 0.15); }
+.card-icon-emerald { background: rgba(16, 185, 129, 0.08); color: #059669; border-color: rgba(16, 185, 129, 0.15); }
+.card-icon-purple { background: rgba(147, 51, 234, 0.08); color: #9333EA; border-color: rgba(147, 51, 234, 0.15); }
+.card-icon-amber { background: rgba(245, 158, 11, 0.08); color: #D97706; border-color: rgba(245, 158, 11, 0.15); }
+.card-icon-blue { background: rgba(37, 99, 235, 0.08); color: #2563EB; border-color: rgba(37, 99, 235, 0.15); }
+.card-icon-teal { background: rgba(13, 148, 136, 0.08); color: #0D9488; border-color: rgba(13, 148, 136, 0.15); }
+.card-icon-rose { background: rgba(225, 29, 72, 0.08); color: #E11D48; border-color: rgba(225, 29, 72, 0.15); }
+.card-icon-cyan { background: rgba(6, 182, 212, 0.08); color: #0891B2; border-color: rgba(6, 182, 212, 0.15); }
+
+.card-badge-pill {
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: 1px solid transparent;
+}
+.badge-red { background: rgba(227, 27, 35, 0.08); color: #E31B23; border-color: rgba(227, 27, 35, 0.15); }
+.badge-indigo { background: rgba(79, 70, 229, 0.08); color: #4F46E5; border-color: rgba(79, 70, 229, 0.15); }
+.badge-emerald { background: rgba(16, 185, 129, 0.08); color: #059669; border-color: rgba(16, 185, 129, 0.15); }
+.badge-purple { background: rgba(147, 51, 234, 0.08); color: #9333EA; border-color: rgba(147, 51, 234, 0.15); }
+.badge-amber { background: rgba(245, 158, 11, 0.08); color: #D97706; border-color: rgba(245, 158, 11, 0.15); }
+.badge-blue { background: rgba(37, 99, 235, 0.08); color: #2563EB; border-color: rgba(37, 99, 235, 0.15); }
+.badge-teal { background: rgba(13, 148, 136, 0.08); color: #0D9488; border-color: rgba(13, 148, 136, 0.15); }
+.badge-rose { background: rgba(225, 29, 72, 0.08); color: #E11D48; border-color: rgba(225, 29, 72, 0.15); }
+.badge-cyan { background: rgba(6, 182, 212, 0.08); color: #0891B2; border-color: rgba(6, 182, 212, 0.15); }
+
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: color 0.2s ease;
+}
+.settings-card:hover .card-title {
+  color: #E31B23;
+}
+.card-arrow {
+  font-size: 1.2rem;
+  color: #94A3B8;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.settings-card:hover .card-arrow {
+  color: #E31B23;
+  transform: translateX(3px);
+}
+
+.card-subtitle {
+  font-size: 0.84rem;
+  color: #64748B;
+  line-height: 1.55;
+  margin: 0 0 20px 0;
+}
+
+.card-footer-bar {
+  padding-top: 14px;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748B;
+  transition: color 0.2s ease;
+}
+.settings-card:hover .card-footer-bar {
+  color: #E31B23;
+}
+.card-footer-arrow {
+  transition: transform 0.2s ease;
+}
+.settings-card:hover .card-footer-arrow {
+  transform: translateX(3px);
+}
+
+/* Inner Page Panel View */
+.inner-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  flex-wrap: wrap;
+}
+
+.breadcrumb-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);
+  transition: all 0.2s ease;
+}
+.btn-back:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+.breadcrumb-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(15, 23, 42, 0.15);
+}
+
+.breadcrumb-text {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #64748B;
+}
+.bc-slash { margin: 0 6px; color: #94A3B8; }
+.bc-current { color: #0F172A; }
+
+.category-pills-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  max-width: 100%;
+  padding-bottom: 4px;
+}
+
+.pill-btn {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748B;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+.pill-btn:hover {
+  background: #F8FAFC;
+  color: #0F172A;
+}
+.pill-btn--active {
+  background: #E31B23 !important;
+  color: #FFFFFF !important;
+  border-color: #E31B23 !important;
+  box-shadow: 0 2px 8px rgba(227, 27, 35, 0.25);
+}
+
+.inner-form-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  padding: 32px 36px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.02);
+}
+
+.form-section-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.form-section-subtitle {
+  font-size: 0.88rem;
+  color: #64748B;
+  margin: 0 0 24px 0;
+}
+
+.text-red { color: #E31B23; }
+.text-indigo { color: #4F46E5; }
+.text-emerald { color: #059669; }
+.text-amber { color: #D97706; }
+.text-blue { color: #2563EB; }
+
+.info-callout {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 14px;
+  padding: 16px 20px;
+  color: #1E40AF;
+  font-size: 0.88rem;
+}
+.info-callout-title {
+  font-weight: 800;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+}
+.info-callout-body {
+  font-weight: 500;
+}
+.info-link {
+  color: #2563EB;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.form-bottom-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.btn-red {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #E31B23;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.btn-red:hover {
+  background: #C4131B;
+  transform: translateY(-1px);
+}
+
+.btn-glass {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #F1F5F9;
+  color: #334155;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-glass:hover {
+  background: #E2E8F0;
+}
+
+.fr2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
 @media (max-width: 640px) { .fr2 { grid-template-columns: 1fr; } }
+
 .fade-in { animation: fadeIn 0.25s ease-in-out; }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.spin-icon { animation: spin 0.75s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
 .custom-scrollbar::-webkit-scrollbar { height: 4px; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
 </style>

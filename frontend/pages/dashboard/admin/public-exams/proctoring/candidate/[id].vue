@@ -202,7 +202,7 @@ const getStatusColor = (status: string) => {
 .text-dark { color: #1e293b; }
 
 .font-mono {
-  font-family: 'Fira Code', 'Courier New', monospace;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 11px;
 }
 

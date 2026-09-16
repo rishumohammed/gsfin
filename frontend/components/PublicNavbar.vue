@@ -262,73 +262,87 @@
     </div>
 
     <!-- ═══ FLOATING QUICK CONTACT MODAL ═══ -->
-    <Transition name="fade">
-      <div v-if="showContactModal" class="modal-overlay" @click.self="showContactModal = false">
-        <div class="modal-card-box">
-          <button class="modal-close-btn" @click="showContactModal = false" aria-label="Close Contact Modal">
-            <i class="mdi mdi-close"></i>
-          </button>
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showContactModal" class="modal-overlay" @click.self="showContactModal = false">
+          <div class="modal-card">
+            
+            <div class="modal-header">
+              <div class="flex items-center gap-3">
+                <div class="header-icon-box">
+                  <i class="mdi mdi-email-fast-outline"></i>
+                </div>
+                <div>
+                  <span class="eyebrow-chip">QUICK INQUIRY</span>
+                  <h3 class="modal-title">Contact GSFIN</h3>
+                </div>
+              </div>
 
-          <div v-if="contactSuccess" class="p-8 text-center">
-            <div class="success-icon-circle mx-auto mb-3">
-              <i class="mdi mdi-check"></i>
-            </div>
-            <h3 class="text-2xl font-black text-slate-900 mb-2">Message Sent!</h3>
-            <p class="text-slate-600 text-sm mb-6 max-w-sm mx-auto">
-              Thank you for contacting GSFIN. Our support team will get back to you within 24 hours.
-            </p>
-            <button class="btn-red px-6 py-2.5 rounded-xl text-sm font-bold" @click="showContactModal = false; contactSuccess = false">
-              Done
-            </button>
-          </div>
-
-          <div v-else class="p-6 sm:p-8">
-            <span class="eyebrow-red text-xs font-black uppercase tracking-wider mb-1 block">QUICK INQUIRY</span>
-            <h3 class="text-xl sm:text-2xl font-black text-slate-900">Contact GSFIN</h3>
-            <p class="text-xs sm:text-sm text-slate-500 mt-1 mb-6">
-              Have questions about qualifications, partner accreditation, or certificate verification? Leave us a message.
-            </p>
-
-            <div v-if="contactError" class="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2">
-              <i class="mdi mdi-alert-circle"></i>
-              <span>{{ contactError }}</span>
+              <button class="modal-close-btn" @click="showContactModal = false" aria-label="Close Contact Modal">
+                <i class="mdi mdi-close"></i>
+              </button>
             </div>
 
-            <form @submit.prevent="submitQuickContact" class="space-y-4">
-              <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Your Full Name *</label>
-                <input v-model="contactForm.name" type="text" placeholder="e.g. Sarah Jenkins" class="form-input-box" required />
+            <div v-if="contactSuccess" class="p-8 text-center">
+              <div class="success-icon-circle mx-auto mb-3">
+                <i class="mdi mdi-check"></i>
+              </div>
+              <h3 class="text-xl font-extrabold text-slate-900 mb-2">Message Sent!</h3>
+              <p class="text-slate-600 text-sm mb-6 max-w-sm mx-auto">
+                Thank you for contacting GSFIN. Our support team will get back to you within 24 hours.
+              </p>
+              <button class="btn-red px-6 py-2.5 rounded-xl text-sm font-bold" @click="showContactModal = false; contactSuccess = false">
+                Done
+              </button>
+            </div>
+
+            <div v-else class="modal-body space-y-4">
+              <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
+                Have questions about qualifications, partner accreditation, or certificate verification? Leave us a message.
+              </p>
+
+              <div v-if="contactError" class="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2 mb-3">
+                <i class="mdi mdi-alert-circle"></i>
+                <span>{{ contactError }}</span>
               </div>
 
-              <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Email Address *</label>
-                <input v-model="contactForm.email" type="email" placeholder="sarah@example.com" class="form-input-box" required />
-              </div>
+              <form @submit.prevent="submitQuickContact" class="space-y-4">
+                <div>
+                  <label class="form-label-xs">Your Full Name *</label>
+                  <input v-model="contactForm.name" type="text" placeholder="e.g. Sarah Jenkins" class="modal-input-field" required />
+                </div>
 
-              <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Phone / WhatsApp</label>
-                <input v-model="contactForm.phone" type="tel" placeholder="+44 7911 123456" class="form-input-box" />
-              </div>
+                <div>
+                  <label class="form-label-xs">Email Address *</label>
+                  <input v-model="contactForm.email" type="email" placeholder="sarah@example.com" class="modal-input-field" required />
+                </div>
 
-              <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Message *</label>
-                <textarea v-model="contactForm.message" rows="3" placeholder="Tell us how we can help you..." class="form-textarea-box" required></textarea>
-              </div>
+                <div>
+                  <label class="form-label-xs">Phone / WhatsApp</label>
+                  <input v-model="contactForm.phone" type="tel" placeholder="+44 7911 123456" class="modal-input-field" />
+                </div>
 
-              <div class="pt-2 flex items-center justify-end gap-3">
-                <button type="button" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50" @click="showContactModal = false">
-                  Cancel
-                </button>
-                <button type="submit" class="btn-red px-6 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2" :disabled="contactSubmitting">
-                  <span v-if="contactSubmitting" class="spinner-sm-white"></span>
-                  <span>{{ contactSubmitting ? 'Sending...' : 'Send Message' }}</span>
-                </button>
-              </div>
-            </form>
+                <div>
+                  <label class="form-label-xs">Message *</label>
+                  <textarea v-model="contactForm.message" rows="3" placeholder="Tell us how we can help you..." class="modal-textarea-field" required></textarea>
+                </div>
+
+                <div class="pt-2 flex items-center justify-end gap-3">
+                  <button type="button" class="btn-glass text-sm" @click="showContactModal = false">
+                    Cancel
+                  </button>
+                  <button type="submit" class="btn-red text-sm flex items-center gap-2" :disabled="contactSubmitting">
+                    <span v-if="contactSubmitting" class="spinner-sm-white"></span>
+                    <span>{{ contactSubmitting ? 'Sending...' : 'Send Message' }}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
           </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
 
   </div>
 </template>
@@ -1073,4 +1087,161 @@ onUnmounted(() => {
 .fade-slide-leave-to .mobile-nav-drawer {
   transform: translateX(100%);
 }
+
+/* Quick Contact Modal Styling */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  box-sizing: border-box;
+}
+
+.modal-card {
+  background: #FFFFFF;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100vh - 48px);
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  animation: modalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  background: #FFFFFF;
+}
+
+.header-icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(227, 27, 35, 0.1);
+  color: #E31B23;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.eyebrow-chip {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #E31B23;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.modal-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.modal-close-btn {
+  background: #F1F5F9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #64748B;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.modal-close-btn:hover {
+  background: rgba(227, 27, 35, 0.1);
+  color: #E31B23;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.form-label-xs {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #475569;
+  margin-bottom: 4px;
+}
+
+.modal-input-field, .modal-textarea-field {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #F8FAFC;
+  font-size: 0.88rem;
+  color: #0F172A;
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.modal-input-field:focus, .modal-textarea-field:focus {
+  background: #FFFFFF;
+  border-color: #E31B23;
+  box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.1);
+}
+
+.btn-glass {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  color: #334155;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-glass:hover { background: #F8FAFC; color: #E31B23; border-color: rgba(227, 27, 35, 0.3); }
+
+.btn-red {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #E31B23;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.btn-red:hover { background: #C4131B; transform: translateY(-1px); }
 </style>

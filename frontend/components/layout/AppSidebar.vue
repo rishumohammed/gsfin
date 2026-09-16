@@ -56,23 +56,6 @@
       </div>
     </div>
 
-    <!-- Sidebar Bottom User Quick Strip -->
-    <div v-if="!navStore.isCollapsed && authStore.user" class="sidebar-footer p-4 border-t">
-      <div class="d-flex align-center justify-space-between">
-        <div class="d-flex align-center gap-3">
-          <div class="user-avatar-circle">
-            {{ userInitials }}
-          </div>
-          <div class="d-flex flex-column text-truncate" style="max-width: 140px;">
-            <span class="user-name text-truncate">{{ authStore.user.name }}</span>
-            <span class="user-email text-truncate">{{ authStore.user.email }}</span>
-          </div>
-        </div>
-        <v-btn icon variant="text" size="small" color="grey-darken-1" @click="authStore.logout()" title="Sign Out">
-          <v-icon icon="mdi-logout" size="18"></v-icon>
-        </v-btn>
-      </div>
-    </div>
   </v-navigation-drawer>
 </template>
 
@@ -106,19 +89,30 @@ const userInitials = computed(() => {
 const isItemActive = (item: any) => {
   if (!item.route) return false;
 
-  if (item.route.includes('?')) {
-    return route.fullPath === item.route;
+  const fullPath = route.fullPath;
+  const currentPath = route.path;
+  const targetRoute = item.route;
+
+  // Exact query route match (e.g. /sub-center?tab=batches vs /sub-center?tab=students)
+  if (targetRoute.includes('?')) {
+    return fullPath === targetRoute;
   }
 
-  if (route.fullPath.includes('?') && route.path === item.route.split('?')[0]) {
-    return false;
+  // If current URL has a query string (e.g. /sub-center?tab=batches), check if another nav item matches this exact query route
+  if (fullPath.includes('?')) {
+    const hasQueryMatch = navStore.filteredNavItems.some(i => i.route === fullPath);
+    if (hasQueryMatch) return false;
   }
 
-  if (item.route === '/dashboard' || item.route === '/') {
-    return route.path === item.route;
+  const basePath = targetRoute.split('?')[0];
+
+  // Root landing routes match path exactly
+  const rootLandingRoutes = ['/dashboard/admin', '/dashboard', '/sub-center', '/'];
+  if (rootLandingRoutes.includes(basePath)) {
+    return currentPath === basePath;
   }
 
-  return route.path === item.route || route.path.startsWith(item.route + '/');
+  return currentPath === basePath || currentPath.startsWith(basePath + '/');
 };
 
 const handleItemClick = (item: any) => {
@@ -151,7 +145,7 @@ watch(
 
 <style scoped>
 .sidebar-drawer {
-  background-color: #F5F5F8 !important;
+  background-color: #FFFFFF !important;
   border-right: 1px solid #E2E8F0 !important;
   z-index: 1000 !important;
   display: flex !important;
@@ -190,9 +184,8 @@ watch(
 }
 
 :deep(.gsfin-nav-item:hover) {
-  background-color: #FFFFFF !important;
+  background-color: #F8FAFC !important;
   color: #0F172A !important;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
 }
 
 :deep(.gsfin-nav-item .icon-box) {
@@ -219,9 +212,9 @@ watch(
 
 /* Active State matching reference styling */
 :deep(.gsfin-nav-item-active) {
-  background-color: #FFFFFF !important;
+  background-color: #FEF2F2 !important;
   color: #E31B23 !important;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06) !important;
+  box-shadow: 0 2px 8px rgba(227, 27, 35, 0.08) !important;
 }
 
 :deep(.gsfin-nav-item-active::before) {
@@ -259,7 +252,7 @@ watch(
 
 .sidebar-footer {
   border-top: 1px solid #E2E8F0;
-  background-color: #F5F5F8;
+  background-color: #FFFFFF;
 }
 
 .user-avatar-circle {

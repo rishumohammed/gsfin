@@ -5,6 +5,9 @@
       <!-- ═══ TOP HEADER ═══ -->
       <div class="admin-header-row">
         <div>
+          <NuxtLink to="/dashboard/admin/settings" class="btn-back-link mb-2">
+            <i class="mdi mdi-arrow-left"></i> Back to Settings
+          </NuxtLink>
           <h1 class="admin-title">Manage FAQs</h1>
           <p class="admin-subtitle">Configure frequently asked questions and answers displayed across the GSFIN platform.</p>
         </div>
@@ -508,6 +511,26 @@ const moveDown = (index: number) => {
   font-size: 0.9rem; color: #0F172A; outline: none; font-family: inherit; box-sizing: border-box;
 }
 .modal-input:focus, .modal-textarea:focus { border-color: #E31B23; background: #FFFFFF; }
+
+.btn-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.btn-back-link:hover {
+  background: #F1F5F9;
+  color: #E31B23;
+  border-color: rgba(227, 27, 35, 0.3);
+}
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.25s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }

@@ -74,6 +74,6 @@
   --sp-24: 96px;    /* section py (hero / feature) */
 
   /* Typography tokens */
-  --font: 'Figtree', system-ui, -apple-system, sans-serif;
+  --font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, monospace;
 }

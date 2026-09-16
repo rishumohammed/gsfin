@@ -1,0 +1,17 @@
+.git
+.gitignore
+.agents
+*.md
+!certification-platform-schema.md
+node_modules
+**/node_modules
+**/.nuxt
+**/.output
+**/dist
+**/*.log
+**/uploads/*
+!**/uploads/.gitkeep
+**/scratch
+.env
+backend/.env
+frontend/.env

@@ -6,20 +6,10 @@
       <div class="admin-header-row">
         <div>
           <h1 class="admin-title">{{ currentTitle }}</h1>
-          <p class="admin-subtitle">Overview of partner centers, exams, token balances, and live batch activity.</p>
+          <p class="admin-subtitle">Unified management of partner centers, exam catalog, token balances, and live batch activity.</p>
         </div>
 
         <div class="header-actions">
-          <button v-if="activeTab === 'subcenters'" class="btn-red" @click="showAddOrgModal = true">
-            <i class="mdi mdi-plus"></i> Add Partner Center
-          </button>
-          <button v-if="activeTab === 'exams'" class="btn-red" @click="showAddExamModal = true">
-            <i class="mdi mdi-plus"></i> Add Exam
-          </button>
-          <button v-if="activeTab === 'packages'" class="btn-red" @click="showAddPkgModal = true">
-            <i class="mdi mdi-plus"></i> Add Token Package
-          </button>
-
           <div class="live-status-badge">
             <span class="pulse-dot"></span> Live Hub
           </div>
@@ -28,7 +18,7 @@
 
       <!-- ═══ METRICS CARDS ROW ═══ -->
       <div class="metrics-grid">
-        <div class="metric-card">
+        <div class="metric-card" @click="switchTab('subcenters')">
           <div class="metric-icon-box bg-indigo-light">
             <i class="mdi mdi-office-building text-indigo"></i>
           </div>
@@ -39,7 +29,7 @@
           </div>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-card" @click="switchTab('batches')">
           <div class="metric-icon-box bg-emerald-light">
             <i class="mdi mdi-layers-triple text-emerald"></i>
           </div>
@@ -50,7 +40,7 @@
           </div>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-card" @click="switchTab('packages')">
           <div class="metric-icon-box bg-amber-light">
             <i class="mdi mdi-ticket-confirmation text-amber"></i>
           </div>
@@ -61,7 +51,7 @@
           </div>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-card" @click="switchTab('audit')">
           <div class="metric-icon-box bg-red-light">
             <i class="mdi mdi-ticket-percent text-red"></i>
           </div>
@@ -76,13 +66,13 @@
 
       <!-- ═══ TAB CONTENT PANELS ═══ -->
 
-      <!-- TAB 1: OVERVIEW & LIVE BATCHES -->
+      <!-- TAB 1 & 2: OVERVIEW & LIVE BATCHES -->
       <div v-if="activeTab === 'overview' || activeTab === 'batches'" class="tab-panel">
         <div class="panel-card">
           <div class="panel-card-header">
             <div class="panel-title-wrap">
               <i class="mdi mdi-cube-outline panel-icon"></i>
-              <h3>Live Sub-Center Batches Feed</h3>
+              <h3>Live Partner Center Batches Feed</h3>
             </div>
 
             <div class="panel-filter-row">
@@ -103,7 +93,7 @@
                 <option value="created">Created</option>
               </select>
 
-              <button class="btn-icon-refresh" @click="fetchOverview" :disabled="loadingOverview">
+              <button class="btn-icon-refresh" title="Refresh Live Feed" @click="fetchOverview" :disabled="loadingOverview">
                 <i :class="['mdi', 'mdi-refresh', { 'spin-icon': loadingOverview }]"></i>
               </button>
             </div>
@@ -113,7 +103,7 @@
             <table class="gsfin-table">
               <thead>
                 <tr>
-                  <th>Sub-Center</th>
+                  <th>Partner Center</th>
                   <th>Exam Title</th>
                   <th>Status</th>
                   <th>Student Metrics</th>
@@ -133,7 +123,7 @@
                   </td>
                 </tr>
                 <tr v-for="b in filteredBatches" :key="b.id">
-                  <td class="font-weight-bold text-slate-900">{{ b.org_name || 'Sub-Center' }}</td>
+                  <td class="font-weight-bold text-slate-900">{{ b.org_name || 'Partner Center' }}</td>
                   <td>{{ b.exam_name || b.exam_title || 'Certification Exam' }}</td>
                   <td>
                     <span :class="['badge-chip', getBatchStatusClass(b.status)]">
@@ -156,70 +146,120 @@
         </div>
       </div>
 
-      <!-- TAB 2: SUB-CENTER ACCOUNTS MANAGEMENT -->
+      <!-- TAB 3: PARTNER CENTERS MANAGEMENT (FULL CRUD) -->
       <div v-else-if="activeTab === 'subcenters'" class="tab-panel">
         <div class="panel-card">
           <div class="panel-card-header">
-            <div class="search-input-wrap">
-              <i class="mdi mdi-magnify search-icon"></i>
-              <input
-                v-model="orgSearch"
-                type="text"
-                placeholder="Search sub-center name or email..."
-                class="table-search-input"
-              />
+            <div class="panel-title-wrap">
+              <i class="mdi mdi-office-building panel-icon"></i>
+              <h3>Partner Centers Directory</h3>
             </div>
 
-            <select v-model="orgStatusFilter" class="table-select-filter">
-              <option value="all">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-            </select>
+            <div class="panel-filter-row">
+              <div class="search-input-wrap">
+                <i class="mdi mdi-magnify search-icon"></i>
+                <input
+                  v-model="orgSearch"
+                  type="text"
+                  placeholder="Search partner name, email or city..."
+                  class="table-search-input"
+                />
+              </div>
+
+              <select v-model="orgStatusFilter" class="table-select-filter">
+                <option value="all">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+              </select>
+
+              <button class="btn-red btn-sm" @click="openAddOrgModal">
+                <i class="mdi mdi-plus"></i> Add Partner Center
+              </button>
+            </div>
           </div>
 
           <div class="table-responsive">
             <table class="gsfin-table">
               <thead>
                 <tr>
-                  <th>Sub-Center Name</th>
-                  <th>Contact Email</th>
-                  <th>Contact Phone</th>
-                  <th>Status</th>
+                  <th>Partner Center</th>
+                  <th>Location</th>
+                  <th>Contact Information</th>
+                  <th>Approved Programs</th>
                   <th>Wallet Tokens</th>
-                  <th>Actions</th>
+                  <th>Status</th>
+                  <th class="text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-if="loadingOrgs">
-                  <td colspan="6" class="text-center py-6 text-slate-500">
-                    <span class="spinner-sm-red"></span> Loading Accounts...
+                  <td colspan="7" class="text-center py-6 text-slate-500">
+                    <span class="spinner-sm-red"></span> Loading Partner Centers...
                   </td>
                 </tr>
                 <tr v-else-if="filteredOrganizations.length === 0">
-                  <td colspan="6" class="text-center py-8 text-slate-500">No Sub-Centers Found</td>
+                  <td colspan="7" class="text-center py-8 text-slate-500">No Partner Centers Found</td>
                 </tr>
                 <tr v-for="org in filteredOrganizations" :key="org.id">
-                  <td class="font-weight-bold text-slate-900">{{ org.name }}</td>
-                  <td>{{ org.contact_email }}</td>
-                  <td>{{ org.contact_phone || '-' }}</td>
+                  <td>
+                    <NuxtLink :to="`/admin/multi-tenant/${org.id}`" class="partner-title-cell text-decoration-none group">
+                      <div class="partner-icon-avatar group-hover:bg-red-50 transition">
+                        <i class="mdi mdi-domain"></i>
+                      </div>
+                      <div>
+                        <div class="font-bold text-slate-900 group-hover:text-red transition text-sm leading-snug">{{ org.name }}</div>
+                        <div class="text-xs text-slate-400 font-medium mt-0.5">{{ org.institution_type || 'Authorized Training Center' }}</div>
+                      </div>
+                    </NuxtLink>
+                  </td>
+                  <td>
+                    <div class="text-slate-900 font-semibold text-sm whitespace-nowrap">{{ org.city || 'Dubai' }}, {{ org.country || 'UAE' }}</div>
+                  </td>
+                  <td>
+                    <div class="text-slate-900 font-medium text-xs flex items-center gap-1.5 mb-1 whitespace-nowrap">
+                      <i class="mdi mdi-email-outline text-slate-400"></i> {{ org.contact_email }}
+                    </div>
+                    <div v-if="org.contact_phone" class="text-xs text-slate-500 flex items-center gap-1.5 whitespace-nowrap">
+                      <i class="mdi mdi-phone-outline text-slate-400"></i> {{ org.contact_phone }}
+                    </div>
+                  </td>
+                  <td>
+                    <div class="programs-badges-wrap">
+                      <span v-for="(prog, idx) in parsePrograms(org.programs)" :key="idx" class="badge-program-tag">
+                        {{ prog }}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge-token-count whitespace-nowrap">
+                      <i class="mdi mdi-ticket-confirmation"></i> {{ org.tokens_remaining || org.token_balance || 0 }} Tokens
+                    </span>
+                  </td>
                   <td>
                     <span :class="['badge-chip', org.status === 'active' ? 'chip-green' : 'chip-amber']">
                       {{ org.status }}
                     </span>
                   </td>
-                  <td>
-                    <span class="badge-token-count">
-                      <i class="mdi mdi-ticket-confirmation"></i> {{ org.token_balance || 0 }} Tokens
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      class="btn-table-action"
-                      :class="org.status === 'active' ? 'btn-warn' : 'btn-success'"
-                      @click="toggleOrgStatus(org)"
-                    >
-                      {{ org.status === 'active' ? 'Suspend' : 'Activate' }}
-                    </button>
+                  <td class="text-right">
+                    <div class="action-btn-group">
+                      <NuxtLink :to="`/admin/multi-tenant/${org.id}`" class="btn-icon-action btn-icon-view" title="View Partner Details">
+                        <i class="mdi mdi-eye-outline"></i>
+                      </NuxtLink>
+                      <button class="btn-icon-action btn-icon-edit" title="Edit Partner Center" @click="editOrg(org)">
+                        <i class="mdi mdi-pencil"></i>
+                      </button>
+                      <button
+                        class="btn-icon-action"
+                        :class="org.status === 'active' ? 'btn-icon-warn' : 'btn-icon-success'"
+                        :title="org.status === 'active' ? 'Suspend Access' : 'Activate Access'"
+                        @click="toggleOrgStatus(org)"
+                      >
+                        <i :class="['mdi', org.status === 'active' ? 'mdi-pause-circle-outline' : 'mdi-play-circle-outline']"></i>
+                      </button>
+                      <button class="btn-icon-action btn-icon-delete" title="Delete Partner Center" @click="deleteOrg(org)">
+                        <i class="mdi mdi-trash-can-outline"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -228,18 +268,29 @@
         </div>
       </div>
 
-      <!-- TAB 3: EXAM CATALOG -->
+      <!-- TAB 4: EXAM CATALOG -->
       <div v-else-if="activeTab === 'exams'" class="tab-panel">
         <div class="panel-card">
           <div class="panel-card-header">
-            <div class="search-input-wrap">
-              <i class="mdi mdi-magnify search-icon"></i>
-              <input
-                v-model="examSearch"
-                type="text"
-                placeholder="Search catalog exams..."
-                class="table-search-input"
-              />
+            <div class="panel-title-wrap">
+              <i class="mdi mdi-file-certificate panel-icon"></i>
+              <h3>Exams Catalog</h3>
+            </div>
+
+            <div class="panel-filter-row">
+              <div class="search-input-wrap">
+                <i class="mdi mdi-magnify search-icon"></i>
+                <input
+                  v-model="examSearch"
+                  type="text"
+                  placeholder="Search catalog exams..."
+                  class="table-search-input"
+                />
+              </div>
+
+              <button class="btn-red btn-sm" @click="openAddExamModal">
+                <i class="mdi mdi-plus"></i> Add Exam
+              </button>
             </div>
           </div>
 
@@ -247,11 +298,11 @@
             <table class="gsfin-table">
               <thead>
                 <tr>
-                  <th>Exam Name</th>
+                  <th>Exam Title</th>
                   <th>Duration (Mins)</th>
                   <th>Max Attempts Cap</th>
                   <th>Status</th>
-                  <th>Actions</th>
+                  <th class="text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -272,7 +323,7 @@
                       {{ exam.status }}
                     </span>
                   </td>
-                  <td>
+                  <td class="text-right">
                     <button class="btn-table-action btn-edit" @click="editExam(exam)">
                       <i class="mdi mdi-pencil"></i> Edit
                     </button>
@@ -284,18 +335,29 @@
         </div>
       </div>
 
-      <!-- TAB 4: TOKEN PACKAGES CATALOG -->
+      <!-- TAB 5: TOKEN PACKAGES CATALOG -->
       <div v-else-if="activeTab === 'packages'" class="tab-panel">
         <div class="panel-card">
           <div class="panel-card-header">
-            <div class="search-input-wrap">
-              <i class="mdi mdi-magnify search-icon"></i>
-              <input
-                v-model="pkgSearch"
-                type="text"
-                placeholder="Search token packages..."
-                class="table-search-input"
-              />
+            <div class="panel-title-wrap">
+              <i class="mdi mdi-package-variant-closed panel-icon"></i>
+              <h3>Token Packages Catalog</h3>
+            </div>
+
+            <div class="panel-filter-row">
+              <div class="search-input-wrap">
+                <i class="mdi mdi-magnify search-icon"></i>
+                <input
+                  v-model="pkgSearch"
+                  type="text"
+                  placeholder="Search token packages..."
+                  class="table-search-input"
+                />
+              </div>
+
+              <button class="btn-red btn-sm" @click="showAddPkgModal = true">
+                <i class="mdi mdi-plus"></i> Add Package
+              </button>
             </div>
           </div>
 
@@ -307,7 +369,7 @@
                   <th>Token Count</th>
                   <th>Price</th>
                   <th>Status</th>
-                  <th>Actions</th>
+                  <th class="text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -332,7 +394,7 @@
                       {{ pkg.status }}
                     </span>
                   </td>
-                  <td>
+                  <td class="text-right">
                     <button
                       class="btn-table-action"
                       :class="pkg.status === 'active' ? 'btn-warn' : 'btn-success'"
@@ -348,33 +410,40 @@
         </div>
       </div>
 
-      <!-- TAB 5: TOKEN AUDIT TRAIL -->
+      <!-- TAB 6: TOKEN AUDIT TRAIL -->
       <div v-else-if="activeTab === 'audit'" class="tab-panel">
         <div class="panel-card">
           <div class="panel-card-header">
-            <div class="search-input-wrap">
-              <i class="mdi mdi-magnify search-icon"></i>
-              <input
-                v-model="auditSearch"
-                type="text"
-                placeholder="Search sub-center or transaction type..."
-                class="table-search-input"
-              />
+            <div class="panel-title-wrap">
+              <i class="mdi mdi-history panel-icon"></i>
+              <h3>Token Audit Trail</h3>
             </div>
 
-            <select v-model="auditTypeFilter" class="table-select-filter">
-              <option value="all">All Types</option>
-              <option value="purchase">Purchase</option>
-              <option value="consumption">Consumption</option>
-              <option value="refund">Refund</option>
-            </select>
+            <div class="panel-filter-row">
+              <div class="search-input-wrap">
+                <i class="mdi mdi-magnify search-icon"></i>
+                <input
+                  v-model="auditSearch"
+                  type="text"
+                  placeholder="Search partner or transaction type..."
+                  class="table-search-input"
+                />
+              </div>
+
+              <select v-model="auditTypeFilter" class="table-select-filter">
+                <option value="all">All Types</option>
+                <option value="purchase">Purchase</option>
+                <option value="consumption">Consumption</option>
+                <option value="refund">Refund</option>
+              </select>
+            </div>
           </div>
 
           <div class="table-responsive">
             <table class="gsfin-table">
               <thead>
                 <tr>
-                  <th>Sub-Center</th>
+                  <th>Partner Center</th>
                   <th>Transaction Type</th>
                   <th>Token Count</th>
                   <th>Package</th>
@@ -391,7 +460,7 @@
                   <td colspan="5" class="text-center py-8 text-slate-500">No Transactions Recorded</td>
                 </tr>
                 <tr v-for="tx in filteredAuditTransactions" :key="tx.id">
-                  <td class="font-weight-bold text-slate-900">{{ tx.org_name || 'Sub-Center' }}</td>
+                  <td class="font-weight-bold text-slate-900">{{ tx.org_name || 'Partner Center' }}</td>
                   <td>
                     <span :class="['badge-chip', getTxTypeClass(tx.type)]">
                       {{ tx.type }}
@@ -413,33 +482,82 @@
 
     <!-- ═══ MODALS ═══ -->
 
-    <!-- Create Sub-Center Modal -->
+    <!-- Create / Edit Partner Center Modal -->
     <Teleport to="body">
       <Transition name="fade">
         <div v-if="showAddOrgModal" class="modal-overlay" @click.self="showAddOrgModal = false">
-          <div class="modal-card">
+          <div class="modal-card modal-card-lg">
             <div class="modal-header">
-              <h3>Create New Sub-Center</h3>
+              <h3>{{ editingOrg ? 'Edit Partner Center' : 'Add New Partner Center' }}</h3>
               <button class="modal-close-btn" @click="showAddOrgModal = false"><i class="mdi mdi-close"></i></button>
             </div>
             <div class="modal-body">
-              <div class="form-group mb-3">
-                <label class="form-label">Sub-Center Name</label>
-                <input v-model="newOrg.name" type="text" placeholder="Apex Testing Center" class="modal-input" />
+              <div class="form-row-2 mb-3">
+                <div class="form-group">
+                  <label class="form-label">Partner Center Name *</label>
+                  <input v-model="orgForm.name" type="text" placeholder="e.g. Apex Food Safety Institute" class="modal-input" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Contact Email *</label>
+                  <input v-model="orgForm.contact_email" type="email" placeholder="contact@apexcenter.com" class="modal-input" />
+                </div>
               </div>
-              <div class="form-group mb-3">
-                <label class="form-label">Contact Email</label>
-                <input v-model="newOrg.contact_email" type="email" placeholder="contact@apexcenter.com" class="modal-input" />
+
+              <div class="form-row-2 mb-3">
+                <div class="form-group">
+                  <label class="form-label">Contact Phone</label>
+                  <input v-model="orgForm.contact_phone" type="text" placeholder="+971 4 123 4567" class="modal-input" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Institution Type</label>
+                  <select v-model="orgForm.institution_type" class="modal-select">
+                    <option value="Authorized Training Center">Authorized Training Center</option>
+                    <option value="University / College">University / College</option>
+                    <option value="Vocational Institute">Vocational Institute</option>
+                    <option value="Corporate Partner">Corporate Partner</option>
+                    <option value="Independent Exam Center">Independent Exam Center</option>
+                  </select>
+                </div>
               </div>
+
+              <div class="form-row-2 mb-3">
+                <div class="form-group">
+                  <label class="form-label">Country</label>
+                  <input v-model="orgForm.country" type="text" placeholder="e.g. United Arab Emirates" class="modal-input" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">City / Region</label>
+                  <input v-model="orgForm.city" type="text" placeholder="e.g. Dubai" class="modal-input" />
+                </div>
+              </div>
+
               <div class="form-group mb-3">
-                <label class="form-label">Contact Phone</label>
-                <input v-model="newOrg.contact_phone" type="text" placeholder="+1-555-0199" class="modal-input" />
+                <label class="form-label">Approved Training Programs</label>
+                <div class="checkbox-grid">
+                  <label v-for="prog in availablePrograms" :key="prog" class="checkbox-label">
+                    <input
+                      type="checkbox"
+                      :value="prog"
+                      v-model="orgForm.programs"
+                    />
+                    <span>{{ prog }}</span>
+                  </label>
+                </div>
+              </div>
+
+              <div v-if="editingOrg" class="form-group mb-3">
+                <label class="form-label">Account Status</label>
+                <select v-model="orgForm.status" class="modal-select">
+                  <option value="active">Active</option>
+                  <option value="suspended">Suspended</option>
+                </select>
               </div>
             </div>
+
             <div class="modal-footer">
               <button class="btn-glass" @click="showAddOrgModal = false">Cancel</button>
-              <button class="btn-red" :disabled="savingOrg" @click="createOrganization">
-                {{ savingOrg ? 'Creating...' : 'Create Sub-Center' }}
+              <button class="btn-red" :disabled="savingOrg" @click="saveOrganization">
+                {{ savingOrg ? 'Saving...' : (editingOrg ? 'Update Partner' : 'Create Partner Center') }}
               </button>
             </div>
           </div>
@@ -536,6 +654,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useApi } from '@/composables/useApi';
+import { useRoute, useRouter } from 'vue-router';
 
 definePageMeta({
   layout: 'dashboard',
@@ -544,15 +663,26 @@ definePageMeta({
 
 const api = useApi();
 const route = useRoute();
-const activeTab = ref(route.query.tab ? String(route.query.tab) : 'overview');
+const router = useRouter();
+
+const activeTab = ref(route.query.tab ? String(route.query.tab) : 'subcenters');
 
 const tabItems = [
   { label: 'Dashboard Overview', value: 'overview', icon: 'mdi-view-dashboard-outline' },
   { label: 'Live Batches', value: 'batches', icon: 'mdi-layers-triple-outline' },
-  { label: 'Sub-Center Accounts', value: 'subcenters', icon: 'mdi-office-building' },
+  { label: 'Partner Centers', value: 'subcenters', icon: 'mdi-office-building' },
   { label: 'Exam Catalog', value: 'exams', icon: 'mdi-file-certificate' },
   { label: 'Token Packages', value: 'packages', icon: 'mdi-package-variant-closed' },
   { label: 'Token Audit Trail', value: 'audit', icon: 'mdi-history' }
+];
+
+const availablePrograms = [
+  'CODEX HACCP',
+  'ISO 22000 Food Safety',
+  'Food Safety Manager',
+  'Halal Audit Certification',
+  'BRCGS Global Standard',
+  'FSSC 22000 Lead Auditor'
 ];
 
 const currentTitle = computed(() => {
@@ -564,9 +694,14 @@ const currentTitle = computed(() => {
     case 'audit': return 'Token History';
     case 'overview':
     default:
-      return 'Dashboard';
+      return 'Partner Management';
   }
 });
+
+function switchTab(val: string) {
+  activeTab.value = val;
+  router.push({ query: { ...route.query, tab: val } });
+}
 
 watch(() => route.query.tab, (newTab) => {
   if (newTab) activeTab.value = String(newTab);
@@ -576,12 +711,23 @@ watch(() => route.query.tab, (newTab) => {
 const overview = ref<any>({ metrics: {}, recentBatches: [] });
 const loadingOverview = ref(false);
 
-// Organizations state
+// Organizations state & CRUD
 const organizations = ref<any[]>([]);
 const loadingOrgs = ref(false);
 const showAddOrgModal = ref(false);
 const savingOrg = ref(false);
-const newOrg = ref({ name: '', contact_email: '', contact_phone: '' });
+const editingOrg = ref<any>(null);
+
+const orgForm = ref({
+  name: '',
+  contact_email: '',
+  contact_phone: '',
+  country: 'United Arab Emirates',
+  city: 'Dubai',
+  institution_type: 'Authorized Training Center',
+  programs: ['CODEX HACCP', 'ISO 22000 Food Safety'],
+  status: 'active'
+});
 
 // Exams state
 const exams = ref<any[]>([]);
@@ -638,7 +784,9 @@ const filteredOrganizations = computed(() => {
     const q = orgSearch.value.toLowerCase();
     list = list.filter((o: any) =>
       (o.name || '').toLowerCase().includes(q) ||
-      (o.contact_email || '').toLowerCase().includes(q)
+      (o.contact_email || '').toLowerCase().includes(q) ||
+      (o.city || '').toLowerCase().includes(q) ||
+      (o.country || '').toLowerCase().includes(q)
     );
   }
   return list;
@@ -723,18 +871,65 @@ async function fetchOrganizations() {
   }
 }
 
-async function createOrganization() {
-  if (!newOrg.value.name || !newOrg.value.contact_email) return;
+function openAddOrgModal() {
+  editingOrg.value = null;
+  orgForm.value = {
+    name: '',
+    contact_email: '',
+    contact_phone: '',
+    country: 'United Arab Emirates',
+    city: 'Dubai',
+    institution_type: 'Authorized Training Center',
+    programs: ['CODEX HACCP', 'ISO 22000 Food Safety'],
+    status: 'active'
+  };
+  showAddOrgModal.value = true;
+}
+
+function editOrg(org: any) {
+  editingOrg.value = org;
+  orgForm.value = {
+    name: org.name || '',
+    contact_email: org.contact_email || '',
+    contact_phone: org.contact_phone || '',
+    country: org.country || 'United Arab Emirates',
+    city: org.city || 'Dubai',
+    institution_type: org.institution_type || 'Authorized Training Center',
+    programs: parsePrograms(org.programs),
+    status: org.status || 'active'
+  };
+  showAddOrgModal.value = true;
+}
+
+async function saveOrganization() {
+  if (!orgForm.value.name || !orgForm.value.contact_email) {
+    alert('Please enter Partner Center name and contact email.');
+    return;
+  }
   savingOrg.value = true;
   try {
-    await api.post('/main-admin/organizations', newOrg.value);
+    if (editingOrg.value) {
+      await api.put(`/main-admin/organizations/${editingOrg.value.id}`, orgForm.value);
+    } else {
+      await api.post('/main-admin/organizations', orgForm.value);
+    }
     showAddOrgModal.value = false;
-    newOrg.value = { name: '', contact_email: '', contact_phone: '' };
+    editingOrg.value = null;
     fetchOrganizations();
   } catch (err: any) {
-    alert(err.response?.data?.message || err.message || 'Failed to create organization');
+    alert(err.response?.data?.message || err.message || 'Failed to save partner center');
   } finally {
     savingOrg.value = false;
+  }
+}
+
+async function deleteOrg(org: any) {
+  if (!confirm(`Are you sure you want to delete "${org.name}"? This action cannot be undone.`)) return;
+  try {
+    await api.delete(`/main-admin/organizations/${org.id}`);
+    fetchOrganizations();
+  } catch (err: any) {
+    alert(err.response?.data?.message || err.message || 'Failed to delete partner center');
   }
 }
 
@@ -748,6 +943,20 @@ async function toggleOrgStatus(item: any) {
   }
 }
 
+function parsePrograms(programsVal: any): string[] {
+  if (!programsVal) return ['CODEX HACCP'];
+  if (Array.isArray(programsVal)) return programsVal;
+  try {
+    const parsed = JSON.parse(programsVal);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    // If comma separated string
+    return String(programsVal).split(',').map(s => s.trim());
+  }
+  return ['CODEX HACCP'];
+}
+
+// Exam Catalog Methods
 async function fetchExams() {
   loadingExams.value = true;
   try {
@@ -758,6 +967,12 @@ async function fetchExams() {
   } finally {
     loadingExams.value = false;
   }
+}
+
+function openAddExamModal() {
+  editingExam.value = null;
+  examForm.value = { name: '', description: '', duration_minutes: 60, max_attempts: 1, status: 'active' };
+  showAddExamModal.value = true;
 }
 
 function editExam(exam: any) {
@@ -792,6 +1007,7 @@ async function saveExam() {
   }
 }
 
+// Token Package Methods
 async function fetchPackages() {
   loadingPackages.value = true;
   try {
@@ -829,10 +1045,11 @@ async function togglePkgStatus(item: any) {
   }
 }
 
+// Audit Methods
 async function fetchAudit() {
   loadingAudit.value = true;
   try {
-    const { data } = await api.get('/main-admin/token-audit');
+    const { data } = await api.get('/main-admin/audit-transactions');
     auditTransactions.value = data;
   } catch (err) {
     console.error(err);
@@ -873,12 +1090,12 @@ function getTxTypeClass(type: string) {
   background: #FAFAFD;
   color: #0F172A;
   min-height: 100vh;
-  padding: 32px 36px;
+  padding: 40px 48px;
   box-sizing: border-box;
 }
 
 .admin-wrap {
-  max-width: 1300px;
+  max-width: 1440px;
   margin: 0 auto;
 }
 
@@ -886,29 +1103,21 @@ function getTxTypeClass(type: string) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 28px;
+  gap: 24px;
+  margin-bottom: 32px;
   flex-wrap: wrap;
 }
 
-.eyebrow-red {
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #E31B23;
-}
-
 .admin-title {
-  font-size: 2rem;
+  font-size: 1.95rem;
   font-weight: 800;
   color: #0F172A;
-  margin: 4px 0;
+  margin: 0 0 6px 0;
   letter-spacing: -0.02em;
 }
 
 .admin-subtitle {
-  font-size: 0.92rem;
+  font-size: 0.94rem;
   color: #64748B;
   margin: 0;
 }
@@ -916,20 +1125,20 @@ function getTxTypeClass(type: string) {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .btn-red {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: #E31B23;
   color: #FFFFFF;
   border: none;
-  padding: 10px 20px;
-  border-radius: 12px;
+  padding: 12px 22px;
+  border-radius: 14px;
   font-weight: 700;
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
   transition: all 0.2s ease;
   cursor: pointer;
@@ -938,18 +1147,23 @@ function getTxTypeClass(type: string) {
   background: #C4131B;
   transform: translateY(-1px);
 }
+.btn-sm {
+  padding: 10px 18px;
+  font-size: 0.84rem;
+  border-radius: 12px;
+}
 
 .btn-glass {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: #F1F5F9;
   color: #334155;
   border: 1px solid rgba(15, 23, 42, 0.1);
-  padding: 10px 20px;
-  border-radius: 12px;
+  padding: 12px 22px;
+  border-radius: 14px;
   font-weight: 600;
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -960,12 +1174,12 @@ function getTxTypeClass(type: string) {
 .live-status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: rgba(16, 185, 129, 0.1);
   color: #059669;
-  padding: 6px 14px;
+  padding: 8px 18px;
   border-radius: 50px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -988,8 +1202,8 @@ function getTxTypeClass(type: string) {
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 28px;
+  gap: 24px;
+  margin-bottom: 36px;
 }
 @media (max-width: 1024px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 600px) { .metrics-grid { grid-template-columns: 1fr; } }
@@ -998,11 +1212,17 @@ function getTxTypeClass(type: string) {
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 20px;
-  padding: 24px;
+  padding: 24px 28px;
   display: flex;
   align-items: center;
-  gap: 18px;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+  gap: 20px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.02);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
 .metric-icon-box {
@@ -1012,7 +1232,7 @@ function getTxTypeClass(type: string) {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
+  font-size: 1.55rem;
   flex-shrink: 0;
 }
 
@@ -1039,11 +1259,11 @@ function getTxTypeClass(type: string) {
 }
 
 .metric-value {
-  font-size: 1.8rem;
+  font-size: 1.75rem;
   font-weight: 900;
   color: #0F172A;
   line-height: 1.2;
-  margin: 2px 0;
+  margin: 4px 0 2px 0;
 }
 
 .metric-sub {
@@ -1051,61 +1271,23 @@ function getTxTypeClass(type: string) {
   font-weight: 700;
 }
 
-/* Tabs Bar */
-.admin-tabs-bar {
-  display: flex;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 16px;
-  padding: 6px;
-  margin-bottom: 24px;
-  overflow-x: auto;
-}
-
-.tab-btn {
-  background: none;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 12px;
-  font-size: 0.86rem;
-  font-weight: 700;
-  color: #64748B;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-
-.tab-btn:hover {
-  color: #0F172A;
-  background: rgba(15, 23, 42, 0.04);
-}
-
-.tab-btn--active {
-  background: #FFFFFF !important;
-  color: #E31B23 !important;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
-}
 
 /* Panel & Card */
 .panel-card {
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 20px;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
   overflow: hidden;
 }
 
 .panel-card-header {
-  padding: 20px 24px;
+  padding: 24px 32px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 20px;
   flex-wrap: wrap;
   background: #FAFAFD;
 }
@@ -1116,11 +1298,11 @@ function getTxTypeClass(type: string) {
   gap: 10px;
 }
 .panel-icon {
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   color: #E31B23;
 }
 .panel-title-wrap h3 {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: #0F172A;
   margin: 0;
@@ -1130,6 +1312,7 @@ function getTxTypeClass(type: string) {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .search-input-wrap {
@@ -1146,14 +1329,14 @@ function getTxTypeClass(type: string) {
 }
 
 .table-search-input {
-  padding: 9px 14px 9px 40px;
-  border-radius: 12px;
+  padding: 8px 14px 8px 40px;
+  border-radius: 10px;
   border: 1px solid rgba(15, 23, 42, 0.12);
   background: #FFFFFF;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   color: #0F172A;
   outline: none;
-  width: 240px;
+  width: 250px;
   transition: border-color 0.2s;
 }
 .table-search-input:focus {
@@ -1161,11 +1344,11 @@ function getTxTypeClass(type: string) {
 }
 
 .table-select-filter {
-  padding: 9px 14px;
-  border-radius: 12px;
+  padding: 8px 14px;
+  border-radius: 10px;
   border: 1px solid rgba(15, 23, 42, 0.12);
   background: #FFFFFF;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   font-weight: 700;
   color: #0F172A;
   outline: none;
@@ -1203,11 +1386,11 @@ function getTxTypeClass(type: string) {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
 }
 
 .gsfin-table th {
-  padding: 14px 20px;
+  padding: 16px 24px;
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -1215,17 +1398,56 @@ function getTxTypeClass(type: string) {
   color: #64748B;
   background: #F8FAFC;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  white-space: nowrap;
 }
 
 .gsfin-table td {
-  padding: 16px 20px;
+  padding: 18px 24px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
   color: #334155;
   vertical-align: middle;
 }
 
 .gsfin-table tbody tr:hover {
-  background: rgba(248, 250, 252, 0.8);
+  background: rgba(248, 250, 252, 0.9);
+}
+
+.partner-title-cell {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 220px;
+}
+
+.partner-icon-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(227, 27, 35, 0.08);
+  color: #E31B23;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.programs-badges-wrap {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 150px;
+  max-width: 260px;
+}
+
+.badge-program-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: #F1F5F9;
+  color: #475569;
+  padding: 2px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
 }
 
 /* Badges & Chips */
@@ -1270,7 +1492,41 @@ function getTxTypeClass(type: string) {
   border-radius: 6px;
 }
 
-/* Action Buttons */
+/* Action Buttons & Icon Action Group */
+.action-btn-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-icon-action {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn-icon-view { background: rgba(59, 130, 246, 0.1); color: #2563EB; text-decoration: none; }
+.btn-icon-view:hover { background: #2563EB; color: #FFFFFF; }
+
+.btn-icon-edit { background: #F1F5F9; color: #475569; }
+.btn-icon-edit:hover { background: #E2E8F0; color: #0F172A; }
+
+.btn-icon-warn { background: rgba(245, 158, 11, 0.1); color: #D97706; }
+.btn-icon-warn:hover { background: #D97706; color: #FFFFFF; }
+
+.btn-icon-success { background: rgba(16, 185, 129, 0.1); color: #059669; }
+.btn-icon-success:hover { background: #059669; color: #FFFFFF; }
+
+.btn-icon-delete { background: rgba(227, 27, 35, 0.08); color: #E31B23; }
+.btn-icon-delete:hover { background: #E31B23; color: #FFFFFF; }
+
 .btn-table-action {
   padding: 6px 14px;
   border-radius: 8px;
@@ -1307,9 +1563,12 @@ function getTxTypeClass(type: string) {
   background: #FFFFFF;
   border-radius: 20px;
   width: 100%;
-  max-width: 500px;
+  max-width: 520px;
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
   overflow: hidden;
+}
+.modal-card-lg {
+  max-width: 680px;
 }
 
 .modal-header {
@@ -1318,9 +1577,10 @@ function getTxTypeClass(type: string) {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background: #FAFAFD;
 }
 .modal-header h3 {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: #0F172A;
   margin: 0;
@@ -1333,10 +1593,19 @@ function getTxTypeClass(type: string) {
   border-radius: 50%;
   color: #64748B;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-close-btn:hover {
+  background: #E2E8F0;
+  color: #0F172A;
 }
 
 .modal-body {
   padding: 24px;
+  max-height: 75vh;
+  overflow-y: auto;
 }
 
 .form-group {
@@ -1355,7 +1624,7 @@ function getTxTypeClass(type: string) {
   border-radius: 10px;
   border: 1px solid rgba(15, 23, 42, 0.12);
   background: #F8FAFC;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: #0F172A;
   outline: none;
   font-family: inherit;
@@ -1366,11 +1635,38 @@ function getTxTypeClass(type: string) {
   background: #FFFFFF;
 }
 
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  background: #F8FAFC;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  padding: 14px;
+  border-radius: 12px;
+}
+@media (max-width: 500px) { .checkbox-grid { grid-template-columns: 1fr; } }
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.84rem;
+  color: #334155;
+  font-weight: 600;
+  cursor: pointer;
+}
+.checkbox-label input[type="checkbox"] {
+  accent-color: #E31B23;
+  width: 16px;
+  height: 16px;
+}
+
 .form-row-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
+@media (max-width: 550px) { .form-row-2 { grid-template-columns: 1fr; } }
 
 .modal-footer {
   padding: 16px 24px;
