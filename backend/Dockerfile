@@ -10,12 +10,12 @@ RUN apk add --no-cache libc6-compat netcat-openbsd
 WORKDIR /shared
 COPY shared/package*.json ./
 COPY shared/ ./
-RUN npm install --omit=dev
+RUN npm install --omit=dev --legacy-peer-deps
 
 # Setup backend workspace
 WORKDIR /app
 COPY backend/package*.json ./
-RUN npm install --omit=dev
+RUN npm install --omit=dev --legacy-peer-deps
 
 # Copy backend source code and entrypoint
 COPY backend/ ./

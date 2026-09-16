@@ -12,12 +12,12 @@ RUN apk add --no-cache python3 make g++ libc6-compat
 WORKDIR /shared
 COPY shared/package*.json ./
 COPY shared/ ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Build frontend
 WORKDIR /app
 COPY frontend/package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 COPY frontend/ ./
 
@@ -28,7 +28,8 @@ ARG RAZORPAY_KEY_ID=
 ENV NODE_ENV=production \
     NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE} \
     RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID} \
-    NITRO_PRESET=node-server
+    NITRO_PRESET=node-server \
+    NODE_OPTIONS="--max-old-space-size=1536"
 
 RUN npm run build
 
