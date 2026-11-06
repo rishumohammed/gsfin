@@ -5,11 +5,7 @@
       <!-- Header Row -->
       <div class="admin-header-row">
         <div>
-          <div class="eyebrow-chip mb-1">
-            <i class="mdi mdi-bell-ring-outline"></i> SYSTEM &amp; PLATFORM ALERTS
-          </div>
           <h1 class="admin-title">Notifications</h1>
-          <p class="admin-subtitle">Stay updated with real-time exam, qualification, and certificate alerts.</p>
         </div>
 
         <div class="header-actions">
@@ -31,7 +27,7 @@
       <!-- Empty State -->
       <div v-else-if="notifications.length === 0" class="panel-card pa-12 text-center">
         <i class="mdi mdi-bell-off-outline text-5xl text-slate-300 mb-3"></i>
-        <h3 class="font-bold text-slate-900 text-lg">No Notifications Yet</h3>
+        <h3 class="font-semibold text-slate-900 text-lg">No Notifications Yet</h3>
         <p class="text-slate-500 text-sm max-w-sm mx-auto mt-1 mb-6">
           When exam reminders, certificate issues, or system alerts occur, they will appear here in real time.
         </p>
@@ -211,7 +207,7 @@ onUnmounted(() => {
 
 <style scoped>
 .gsfin-admin-page {
-  padding: 40px 48px;
+  padding: 24px 32px;
   background: #FAFAFD;
   min-height: 100vh;
   box-sizing: border-box;
@@ -226,7 +222,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
@@ -235,7 +231,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
   font-size: 0.74rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #E31B23;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -243,7 +239,7 @@ onUnmounted(() => {
 
 .admin-title {
   font-size: 1.95rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0;
   letter-spacing: -0.02em;
@@ -270,7 +266,7 @@ onUnmounted(() => {
   border: none;
   padding: 10px 20px;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.88rem;
   box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
   transition: all 0.2s ease;
@@ -287,7 +283,7 @@ onUnmounted(() => {
   border: 1px solid rgba(15, 23, 42, 0.12);
   padding: 10px 20px;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.88rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -346,7 +342,7 @@ onUnmounted(() => {
 
 .notif-content { flex: 1; }
 .notif-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.notif-title { font-size: 0.95rem; font-weight: 800; color: #0F172A; }
+.notif-title { font-size: 0.95rem; font-weight: 600; color: #0F172A; }
 .notif-time { font-size: 0.74rem; font-weight: 600; color: #94A3B8; }
 .notif-msg { font-size: 0.88rem; color: #475569; margin: 4px 0 0 0; line-height: 1.45; }
 
@@ -355,7 +351,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 4px;
   font-size: 0.74rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #E31B23;
   margin-top: 8px;
 }
@@ -370,7 +366,7 @@ onUnmounted(() => {
   padding: 2px 8px;
   border-radius: 50px;
   font-size: 0.68rem;
-  font-weight: 800;
+  font-weight: 600;
   background: rgba(227, 27, 35, 0.1);
   color: #E31B23;
   text-transform: uppercase;

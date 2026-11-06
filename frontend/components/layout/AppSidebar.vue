@@ -9,7 +9,7 @@
   >
 
     <!-- Navigation Content -->
-    <div class="nav-content custom-scrollbar py-3">
+    <div class="nav-content custom-scrollbar pt-3 pb-12">
       <div v-for="section in navStore.sections" :key="section" class="nav-section mb-4">
         <v-fade-transition>
           <div v-if="!navStore.isCollapsed && section" class="section-label px-6 mb-2">
@@ -48,7 +48,7 @@
                 location="right"
                 offset="12"
               >
-                <span class="font-bold text-xs">{{ item.label }}</span>
+                <span class="font-semibold text-xs">{{ item.label }}</span>
               </v-tooltip>
             </client-only>
           </v-list-item>
@@ -95,7 +95,11 @@ const isItemActive = (item: any) => {
 
   // Exact query route match (e.g. /sub-center?tab=batches vs /sub-center?tab=students)
   if (targetRoute.includes('?')) {
-    return fullPath === targetRoute;
+    if (fullPath === targetRoute) return true;
+    if (targetRoute === '/sub-center?tab=students' && currentPath.startsWith('/sub-center/students')) {
+      return true;
+    }
+    return false;
   }
 
   // If current URL has a query string (e.g. /sub-center?tab=batches), check if another nav item matches this exact query route
@@ -112,7 +116,22 @@ const isItemActive = (item: any) => {
     return currentPath === basePath;
   }
 
-  return currentPath === basePath || currentPath.startsWith(basePath + '/');
+  // Exact match
+  if (currentPath === basePath) {
+    return true;
+  }
+
+  // Subpath prefix match: only activate if no other more specific nav item matches
+  if (currentPath.startsWith(basePath + '/')) {
+    const hasMoreSpecificMatch = navStore.filteredNavItems.some(i => {
+      if (!i.route || i.route === item.route || i.route.includes('?')) return false;
+      const otherBase = i.route.split('?')[0];
+      return (currentPath === otherBase || currentPath.startsWith(otherBase + '/')) && otherBase.length > basePath.length;
+    });
+    return !hasMoreSpecificMatch;
+  }
+
+  return false;
 };
 
 const handleItemClick = (item: any) => {
@@ -150,12 +169,21 @@ watch(
   z-index: 1000 !important;
   display: flex !important;
   flex-direction: column !important;
-  height: 100vh !important;
+  height: calc(100vh - var(--v-layout-top, 56px)) !important;
+  max-height: calc(100vh - var(--v-layout-top, 56px)) !important;
+  bottom: 0 !important;
+}
+
+:deep(.v-navigation-drawer__content) {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  overflow: hidden !important;
 }
 
 .section-label {
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #8E9AA8;
@@ -168,6 +196,12 @@ watch(
 .nav-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 48px !important;
+}
+
+.nav-section:last-child {
+  margin-bottom: 24px !important;
 }
 
 /* Nav Item Styling matching reference image */
@@ -230,7 +264,7 @@ watch(
 }
 
 :deep(.gsfin-nav-item-active .nav-title) {
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   color: #E31B23 !important;
 }
 
@@ -243,7 +277,7 @@ watch(
   background-color: #FF2D55;
   color: #FFFFFF;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   padding: 2px 9px;
   border-radius: 50px;
   box-shadow: 0 2px 6px rgba(255, 45, 85, 0.25);
@@ -262,7 +296,7 @@ watch(
   background-color: #FEF2F2;
   color: #E31B23;
   border: 1px solid #FCA5A5;
-  font-weight: 900;
+  font-weight: 600;
   font-size: 0.75rem;
   display: flex;
   align-items: center;
@@ -271,7 +305,7 @@ watch(
 
 .user-name {
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #0F172A;
 }
 

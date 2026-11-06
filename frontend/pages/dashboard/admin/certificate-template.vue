@@ -5,11 +5,7 @@
       <!-- ═══ TOP HEADER ROW ═══ -->
       <div class="admin-header-row">
         <div>
-          <div class="eyebrow-chip mb-1">
-            <i class="mdi mdi-palette-outline"></i> CREDENTIAL TEMPLATE ENGINE
-          </div>
           <h1 class="admin-title">Certificate Template Configuration</h1>
-          <p class="admin-subtitle">Customize signatory credentials, title designations, and live preview layout.</p>
         </div>
 
         <div class="header-actions">
@@ -176,7 +172,7 @@ const saveConfig = async () => {
 
 <style scoped>
 .gsfin-admin-page {
-  padding: 40px 48px;
+  padding: 24px 32px;
   background: #FAFAFD;
   min-height: 100vh;
   box-sizing: border-box;
@@ -191,7 +187,7 @@ const saveConfig = async () => {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
@@ -200,7 +196,7 @@ const saveConfig = async () => {
   align-items: center;
   gap: 6px;
   font-size: 0.74rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #E31B23;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -208,7 +204,7 @@ const saveConfig = async () => {
 
 .admin-title {
   font-size: 1.95rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0 0 6px 0;
   letter-spacing: -0.02em;
@@ -236,7 +232,7 @@ const saveConfig = async () => {
   border: none;
   padding: 12px 22px;
   border-radius: 14px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.88rem;
   box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
   transition: all 0.2s ease;
@@ -257,7 +253,7 @@ const saveConfig = async () => {
   border: 1px solid rgba(15, 23, 42, 0.12);
   padding: 12px 22px;
   border-radius: 14px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.88rem;
   text-decoration: none;
   cursor: pointer;
@@ -293,7 +289,7 @@ const saveConfig = async () => {
 
 .panel-title {
   font-size: 1.1rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0;
 }
@@ -308,7 +304,7 @@ const saveConfig = async () => {
 .text-emerald { color: #059669; }
 
 .form-group { display: flex; flex-direction: column; }
-.form-label { font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 8px; }
+.form-label { font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 8px; }
 
 .form-input {
   width: 100%;
@@ -328,7 +324,7 @@ const saveConfig = async () => {
   padding: 4px 12px;
   border-radius: 50px;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
   background: rgba(16, 185, 129, 0.1);
   color: #059669;
 }
@@ -348,7 +344,7 @@ const saveConfig = async () => {
   right: 32px;
   padding: 14px 24px;
   border-radius: 16px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.88rem;
   display: flex;
   align-items: center;

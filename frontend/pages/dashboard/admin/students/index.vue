@@ -247,7 +247,7 @@ const printCredentials = () => {
             .card { border: 1px solid #ccc; padding: 20px; border-radius: 8px; max-width: 400px; }
             h2 { margin-top: 0; color: #333; }
             .label { font-size: 12px; color: #666; text-transform: uppercase; }
-            .value { font-size: 16px; font-weight: bold; margin-bottom: 15px; }
+            .value { font-size: 16px; font-weight: 600; margin-bottom: 15px; }
             .password { font-family: 'JetBrains Mono', monospace; font-size: 20px; letter-spacing: 2px; }
           </style>
         </head>
@@ -404,14 +404,14 @@ const statusColor = (status: string) => {
 
 :deep(.v-data-table-header th) {
   font-size: 11px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.4px !important;
   color: var(--g4) !important;
 }
 
 .user-name {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--g7);
   line-height: 1.2;
 }

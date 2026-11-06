@@ -33,7 +33,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Get all config
-router.get('/', authenticateJWT, authorizeRoles('super_admin'), async (req, res) => {
+router.get('/', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   try {
     const config = await ConfigService.getAll();
     res.json(config);
@@ -43,7 +43,7 @@ router.get('/', authenticateJWT, authorizeRoles('super_admin'), async (req, res)
 });
 
 // Update multiple config keys
-router.put('/', authenticateJWT, authorizeRoles('super_admin'), async (req, res) => {
+router.put('/', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   try {
     const configMap = req.body;
     await ConfigService.updateMultiple(configMap);
@@ -59,7 +59,7 @@ router.put('/', authenticateJWT, authorizeRoles('super_admin'), async (req, res)
 // Manually regenerate all invoice PDFs (Removed)
 
 // Test Email Config
-router.post('/test-email', authenticateJWT, authorizeRoles('super_admin'), async (req, res) => {
+router.post('/test-email', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
     try {
       const { email } = req.body || {};
       const targetEmail = email || req.user.email;
@@ -85,7 +85,7 @@ router.post('/test-email', authenticateJWT, authorizeRoles('super_admin'), async
 });
 
 // Upload Branding Assets (logo, favicon, hero images)
-router.post('/branding/upload', authenticateJWT, authorizeRoles('super_admin'), upload.fields([
+router.post('/branding/upload', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), upload.fields([
   { name: 'logo', maxCount: 1 },
   { name: 'favicon', maxCount: 1 },
   { name: 'hero_image', maxCount: 1 },
@@ -138,7 +138,7 @@ router.post('/branding/upload', authenticateJWT, authorizeRoles('super_admin'), 
 // --- Dynamic Social Platforms Management ---
 
 // Get all social platforms
-router.get('/social-platforms', authenticateJWT, authorizeRoles('super_admin'), async (req, res) => {
+router.get('/social-platforms', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   try {
     const [platforms] = await pool.query('SELECT * FROM social_platforms ORDER BY created_at ASC');
     res.json(platforms);
@@ -148,7 +148,7 @@ router.get('/social-platforms', authenticateJWT, authorizeRoles('super_admin'), 
 });
 
 // Create new social platform
-router.post('/social-platforms', authenticateJWT, authorizeRoles('super_admin'), async (req, res) => {
+router.post('/social-platforms', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   try {
     const { name, icon, color, url, is_active } = req.body;
     const id = uuidv4();
@@ -164,7 +164,7 @@ router.post('/social-platforms', authenticateJWT, authorizeRoles('super_admin'),
 });
 
 // Update social platform
-router.put('/social-platforms/:id', authenticateJWT, authorizeRoles('super_admin'), async (req, res) => {
+router.put('/social-platforms/:id', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, icon, color, url, is_active } = req.body;
@@ -180,7 +180,7 @@ router.put('/social-platforms/:id', authenticateJWT, authorizeRoles('super_admin
 });
 
 // Delete social platform
-router.delete('/social-platforms/:id', authenticateJWT, authorizeRoles('super_admin'), async (req, res) => {
+router.delete('/social-platforms/:id', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -192,7 +192,7 @@ router.delete('/social-platforms/:id', authenticateJWT, authorizeRoles('super_ad
 });
 
 // GET /api/admin/config/terms-privacy-acceptances
-router.get('/terms-privacy-acceptances', authenticateJWT, authorizeRoles('super_admin'), async (req, res) => {
+router.get('/terms-privacy-acceptances', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT tpa.*, c.name as candidate_name, c.email as candidate_email, e.name as exam_name

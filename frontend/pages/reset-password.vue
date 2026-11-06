@@ -1,16 +1,12 @@
 <template>
   <div class="login-page">
     <div class="login-card-wrap">
-      <NuxtLink to="/" class="login-brand" style="text-decoration: none;">
-        <img v-if="appLogo" :src="baseUrl + appLogo" :alt="instituteName" style="max-height: 40px; max-width: 160px; object-fit: contain;" />
-        <template v-else>
-          <span class="brand-icon">◈</span>
-          <span class="brand-name">{{ instituteName || 'Brixify' }}</span>
-        </template>
-      </NuxtLink>
-
       <div class="login-card">
         <div class="login-card-header">
+          <NuxtLink to="/" class="login-brand" style="text-decoration: none;">
+            <img v-if="appLogo" :src="baseUrl + appLogo" :alt="instituteName || 'GSFIN'" style="max-height: 52px; max-width: 220px; object-fit: contain;" />
+            <img v-else src="/logo.webp" alt="GSFIN" style="max-height: 52px; max-width: 220px; object-fit: contain;" />
+          </NuxtLink>
           <h1 class="login-title">New Password</h1>
           <p class="login-sub">Create a strong password for your account</p>
         </div>
@@ -152,7 +148,7 @@ const handleReset = async () => {
   align-items: center;
   gap: 10px;
   justify-content: center;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
 }
 .brand-icon {
   font-size: 28px;
@@ -161,7 +157,7 @@ const handleReset = async () => {
 }
 .brand-name {
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.03em;
 }
 
@@ -180,7 +176,7 @@ const handleReset = async () => {
 }
 .login-title {
   font-size: 1.75rem;
-  font-weight: 900;
+  font-weight: 600;
   color: #1d1d1f;
   margin-bottom: 8px;
 }

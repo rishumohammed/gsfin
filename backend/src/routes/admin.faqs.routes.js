@@ -5,7 +5,7 @@ import { authenticateJWT, authorizeRoles } from '../middleware/auth.js';
 const router = express.Router();
 
 router.use(authenticateJWT);
-router.use(authorizeRoles('super_admin'));
+router.use(authorizeRoles('super_admin', 'main_admin'));
 
 // Get all FAQs
 router.get('/', async (req, res) => {

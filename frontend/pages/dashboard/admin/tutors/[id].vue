@@ -350,7 +350,7 @@ const copyPassword = async () => {
 ::v-deep(.custom-table th) {
   background: #f8fafc !important;
   color: #64748b !important;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.05em;

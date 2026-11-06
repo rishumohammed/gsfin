@@ -6,7 +6,6 @@
       <div class="admin-header-row">
         <div>
           <h1 class="admin-title">System Users &amp; Access Control</h1>
-          <p class="admin-subtitle">Manage internal staff accounts, administrative roles, and system permissions.</p>
         </div>
 
         <div class="header-actions">
@@ -21,7 +20,7 @@
 
       <!-- ═══ STATS METRICS ROW ═══ -->
       <div class="metrics-grid">
-        <div class="metric-card">
+        <div class="metric-card metric-card-blue">
           <div class="metric-icon-box bg-blue-light">
             <i class="mdi mdi-account-group text-blue"></i>
           </div>
@@ -32,7 +31,7 @@
           </div>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-card metric-card-emerald">
           <div class="metric-icon-box bg-emerald-light">
             <i class="mdi mdi-account-check text-emerald"></i>
           </div>
@@ -43,7 +42,7 @@
           </div>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-card metric-card-red">
           <div class="metric-icon-box bg-red-light">
             <i class="mdi mdi-shield-account text-red"></i>
           </div>
@@ -54,7 +53,7 @@
           </div>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-card metric-card-amber">
           <div class="metric-icon-box bg-amber-light">
             <i class="mdi mdi-account-key text-amber"></i>
           </div>
@@ -90,7 +89,7 @@
                 <th>Status</th>
                 <th>Last Login</th>
                 <th>Created Date</th>
-                <th>Actions</th>
+                <th class="th-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -105,7 +104,7 @@
                   No System Users Found
                 </td>
               </tr>
-              <tr v-for="user in filteredUsers" :key="user.id">
+              <tr v-for="user in paginatedUsers" :key="user.id">
                 <td>
                   <div class="user-cell">
                     <div class="user-avatar">{{ getUserInitials(user.name) }}</div>
@@ -155,6 +154,13 @@
               </tr>
             </tbody>
           </table>
+          <AppPagination
+            v-if="filteredUsers.length > 0"
+            v-model="userPage"
+            v-model:items-per-page="userPerPage"
+            :total-items="filteredUsers.length"
+            :per-page-options="[10, 25, 50, 100]"
+          />
         </div>
       </div>
 
@@ -196,7 +202,7 @@
                     <tr v-else-if="auditLogs.length === 0">
                       <td colspan="4" class="text-center py-6 text-slate-500">No Audit Logs Recorded</td>
                     </tr>
-                    <tr v-for="log in auditLogs" :key="log.id">
+                    <tr v-for="log in paginatedAuditLogs" :key="log.id">
                       <td class="text-slate-500">{{ formatDate(log.created_at) }}</td>
                       <td class="font-weight-bold text-slate-900">{{ log.admin_name || 'System' }}</td>
                       <td>
@@ -206,6 +212,13 @@
                     </tr>
                   </tbody>
                 </table>
+                <AppPagination
+                  v-if="auditLogs.length > 0"
+                  v-model="auditPage"
+                  v-model:items-per-page="auditPerPage"
+                  :total-items="auditLogs.length"
+                  :per-page-options="[10, 25, 50, 100]"
+                />
               </div>
             </div>
             <div class="modal-footer">
@@ -243,6 +256,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import SystemUserModal from '@/components/system-users/SystemUserModal.vue';
 import { useApi } from '@/composables/useApi';
+import AppPagination from '@/components/common/AppPagination.vue';
 
 definePageMeta({
   layout: 'dashboard',
@@ -274,6 +288,24 @@ const filteredUsers = computed(() => {
     (u.email || '').toLowerCase().includes(q) ||
     (u.role || '').toLowerCase().includes(q)
   );
+});
+
+// Pagination state
+const userPage = ref(1);
+const userPerPage = ref(10);
+const paginatedUsers = computed(() => {
+  const start = (userPage.value - 1) * userPerPage.value;
+  return filteredUsers.value.slice(start, start + userPerPage.value);
+});
+watch(search, () => {
+  userPage.value = 1;
+});
+
+const auditPage = ref(1);
+const auditPerPage = ref(10);
+const paginatedAuditLogs = computed(() => {
+  const start = (auditPage.value - 1) * auditPerPage.value;
+  return auditLogs.value.slice(start, start + auditPerPage.value);
 });
 
 const getUserInitials = (name: string) => {
@@ -389,173 +421,7 @@ onMounted(fetchData);
 </script>
 
 <style scoped>
-.gsfin-admin-page {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-  background: #FAFAFD;
-  color: #0F172A;
-  min-height: 100vh;
-  padding: 32px 36px;
-  box-sizing: border-box;
-}
-
-.admin-wrap { max-width: 1300px; margin: 0 auto; }
-
-.admin-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 28px;
-  flex-wrap: wrap;
-}
-
-.eyebrow-red {
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #E31B23;
-}
-
-.admin-title {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #0F172A;
-  margin: 4px 0;
-  letter-spacing: -0.02em;
-}
-
-.admin-subtitle { font-size: 0.92rem; color: #64748B; margin: 0; }
-
-.header-actions { display: flex; align-items: center; gap: 12px; }
-
-.btn-red {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #E31B23;
-  color: #FFFFFF;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 0.86rem;
-  box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-.btn-red:hover { background: #C4131B; transform: translateY(-1px); }
-
-.btn-glass {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #F1F5F9;
-  color: #334155;
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  padding: 10px 20px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 0.86rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-glass:hover { background: #E2E8F0; }
-
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 28px;
-}
-@media (max-width: 1024px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 600px) { .metrics-grid { grid-template-columns: 1fr; } }
-
-.metric-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 20px;
-  padding: 24px;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
-}
-
-.metric-icon-box {
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.6rem;
-  flex-shrink: 0;
-}
-
-.bg-blue-light { background: rgba(59, 130, 246, 0.1); }
-.text-blue { color: #2563EB; }
-.bg-emerald-light { background: rgba(16, 185, 129, 0.1); }
-.text-emerald { color: #059669; }
-.bg-amber-light { background: rgba(245, 158, 11, 0.1); }
-.text-amber { color: #D97706; }
-.bg-red-light { background: rgba(227, 27, 35, 0.1); }
-.text-red { color: #E31B23; }
-
-.metric-info { display: flex; flex-direction: column; }
-.metric-label { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; }
-.metric-value { font-size: 1.8rem; font-weight: 900; color: #0F172A; line-height: 1.2; margin: 2px 0; }
-.metric-sub { font-size: 0.76rem; font-weight: 700; }
-
-.panel-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 20px;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
-  overflow: hidden;
-}
-
-.panel-card-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  background: #FAFAFD;
-}
-
-.search-input-wrap { position: relative; display: flex; align-items: center; }
-.search-icon { position: absolute; left: 14px; color: #94A3B8; font-size: 1.1rem; }
-.table-search-input {
-  padding: 9px 14px 9px 40px;
-  border-radius: 12px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  background: #FFFFFF;
-  font-size: 0.86rem;
-  color: #0F172A;
-  outline: none;
-  width: 300px;
-}
-.table-search-input:focus { border-color: #E31B23; }
-
-.total-count-badge { font-size: 0.8rem; font-weight: 700; color: #64748B; }
-
-.table-responsive { width: 100%; overflow-x: auto; }
-.gsfin-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
-.gsfin-table th {
-  padding: 14px 20px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #64748B;
-  background: #F8FAFC;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-}
-.gsfin-table td { padding: 16px 20px; border-bottom: 1px solid rgba(15, 23, 42, 0.06); color: #334155; vertical-align: middle; }
-.gsfin-table tbody tr:hover { background: rgba(248, 250, 252, 0.8); }
+/* Page-specific styles for System Users */
 
 .user-cell { display: flex; align-items: center; gap: 12px; }
 .user-avatar {
@@ -564,14 +430,14 @@ onMounted(fetchData);
   border-radius: 50%;
   background: #E31B23;
   color: #FFFFFF;
-  font-weight: 800;
+  font-weight: 600;
   font-size: 0.85rem;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-.user-name { font-weight: 800; color: #0F172A; }
+.user-name { font-weight: 600; color: #0F172A; }
 .user-email { font-size: 0.8rem; }
 
 .badge-role {
@@ -579,40 +445,18 @@ onMounted(fetchData);
   padding: 4px 12px;
   border-radius: 50px;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .role-super { background: rgba(227, 27, 35, 0.1); color: #E31B23; }
 .role-main { background: rgba(79, 70, 229, 0.1); color: #4F46E5; }
 .role-sub { background: rgba(245, 158, 11, 0.1); color: #D97706; }
 .role-default { background: rgba(100, 116, 139, 0.1); color: #64748B; }
 
-.badge-chip { display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
+.badge-chip { display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; }
 .chip-green { background: rgba(16, 185, 129, 0.1); color: #059669; }
 .chip-amber { background: rgba(245, 158, 11, 0.1); color: #D97706; }
 .chip-blue { background: rgba(59, 130, 246, 0.1); color: #2563EB; }
 
-.actions-cell { display: flex; align-items: center; gap: 6px; }
-
-.btn-table-action {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-.btn-edit { background: #F1F5F9; color: #334155; }
-.btn-edit:hover { background: #E31B23; color: #FFFFFF; }
-.btn-warn { background: rgba(245, 158, 11, 0.1); color: #D97706; }
-.btn-warn:hover { background: #D97706; color: #FFFFFF; }
-.btn-success { background: rgba(16, 185, 129, 0.1); color: #059669; }
-.btn-success:hover { background: #059669; color: #FFFFFF; }
-.btn-danger { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
-.btn-danger:hover { background: #DC2626; color: #FFFFFF; }
 
 .pw-copy-box {
   background: #F8FAFC;
@@ -623,8 +467,8 @@ onMounted(fetchData);
   align-items: center;
   justify-content: space-between;
 }
-.pw-copy-box code { font-size: 1.1rem; font-weight: 800; color: #E31B23; letter-spacing: 0.05em; }
-.btn-copy { background: #E31B23; color: #FFFFFF; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 0.78rem; cursor: pointer; }
+.pw-copy-box code { font-size: 1.1rem; font-weight: 600; color: #E31B23; letter-spacing: 0.05em; }
+.btn-copy { background: #E31B23; color: #FFFFFF; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 0.78rem; cursor: pointer; }
 
 /* Modal */
 .modal-overlay {
@@ -636,7 +480,7 @@ onMounted(fetchData);
 .modal-lg { max-width: 720px; }
 .modal-sm { max-width: 400px; }
 .modal-header { padding: 20px 24px; border-bottom: 1px solid rgba(15, 23, 42, 0.08); display: flex; align-items: center; justify-content: space-between; }
-.modal-header h3 { font-size: 1.2rem; font-weight: 800; color: #0F172A; margin: 0; }
+.modal-header h3 { font-size: 1.2rem; font-weight: 600; color: #0F172A; margin: 0; }
 .modal-close-btn { background: #F1F5F9; border: none; width: 32px; height: 32px; border-radius: 50%; color: #64748B; cursor: pointer; }
 .modal-body { padding: 24px; max-height: 70vh; overflow-y: auto; }
 .modal-footer { padding: 16px 24px; background: #FAFAFD; border-top: 1px solid rgba(15, 23, 42, 0.06); display: flex; align-items: center; justify-content: flex-end; gap: 12px; }

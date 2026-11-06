@@ -105,7 +105,7 @@
 
                       <div class="meta-grid-item">
                         <span class="meta-label">Grade / Result</span>
-                        <span class="meta-val text-emerald-600 font-extrabold">{{ result.grade }}</span>
+                        <span class="meta-val text-emerald-600 font-semibold">{{ result.grade }}</span>
                       </div>
                     </div>
                   </div>
@@ -142,12 +142,12 @@
                 <div class="error-icon-circle mx-auto mb-4">
                   <i class="mdi mdi-alert-circle-outline"></i>
                 </div>
-                <h3 class="text-xl font-bold text-slate-900 mb-2">Certificate Not Found</h3>
+                <h3 class="text-xl font-semibold text-slate-900 mb-2">Certificate Not Found</h3>
                 <p class="text-slate-500 text-sm max-w-md mx-auto mb-6">
                   No active certificate found matching <strong class="text-slate-900 font-mono">"{{ certCode }}"</strong> in the GSFIN global database.
                 </p>
                 <div class="text-xs text-slate-500 max-w-sm mx-auto bg-slate-50 p-4 rounded-xl border border-slate-200 text-left space-y-1.5">
-                  <div class="font-bold text-slate-700 mb-1">Please verify:</div>
+                  <div class="font-semibold text-slate-700 mb-1">Please verify:</div>
                   <div>• Certificate number spelling &amp; format (e.g. GSFIN-2026-89012)</div>
                   <div>• That the certificate was issued by an accredited GSFIN partner</div>
                   <div>• Or contact GSFIN support for manual credential verification</div>
@@ -331,7 +331,7 @@ onMounted(() => {
 
 .hero-title {
   font-size: clamp(2.2rem, 3.8vw, 3rem);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.03em;
   color: #0F172A;
   margin: 0 0 12px 0;
@@ -414,7 +414,7 @@ onMounted(() => {
 
 .sample-label {
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #94A3B8;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -426,7 +426,7 @@ onMounted(() => {
   border-radius: 50px;
   padding: 3px 10px;
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 600;
   font-family: monospace;
   color: #475569;
   cursor: pointer;
@@ -468,7 +468,7 @@ onMounted(() => {
 
 .status-badge-verified {
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #059669;
   background: #ECFDF5;
   padding: 4px 12px;
@@ -478,7 +478,7 @@ onMounted(() => {
   align-items: center;
 }
 
-.cert-code-text { font-family: monospace; font-size: 0.8rem; font-weight: 800; color: #64748B; }
+.cert-code-text { font-family: monospace; font-size: 0.8rem; font-weight: 600; color: #64748B; }
 
 .result-content-grid {
   display: grid;
@@ -491,13 +491,13 @@ onMounted(() => {
 
 .meta-label-top {
   font-size: 0.68rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.08em;
   color: #E31B23;
   display: block;
 }
 
-.holder-name { font-size: 1.4rem; font-weight: 800; color: #0F172A; margin: 2px 0 0 0; }
+.holder-name { font-size: 1.4rem; font-weight: 600; color: #0F172A; margin: 2px 0 0 0; }
 
 .course-box {
   background: #F8FAFC;
@@ -521,13 +521,13 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.course-title { display: block; font-size: 0.88rem; font-weight: 800; color: #0F172A; line-height: 1.3; }
+.course-title { display: block; font-size: 0.88rem; font-weight: 600; color: #0F172A; line-height: 1.3; }
 
 .meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 
 .meta-grid-item { display: flex; flex-direction: column; }
-.meta-label { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: #94A3B8; margin-bottom: 1px; }
-.meta-val { font-size: 0.82rem; font-weight: 700; color: #1E293B; line-height: 1.35; }
+.meta-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; color: #94A3B8; margin-bottom: 1px; }
+.meta-val { font-size: 0.82rem; font-weight: 600; color: #1E293B; line-height: 1.35; }
 
 .qr-code-box {
   background: #F8FAFC;
@@ -552,7 +552,7 @@ onMounted(() => {
 }
 
 .qr-sub { display: block; font-size: 0.7rem; color: #64748B; margin-bottom: 4px; font-weight: 600; }
-.qr-verified-tag { font-size: 0.68rem; font-weight: 800; color: #059669; display: inline-flex; align-items: center; }
+.qr-verified-tag { font-size: 0.68rem; font-weight: 600; color: #059669; display: inline-flex; align-items: center; }
 
 .action-buttons-wrap { display: flex; flex-direction: column; gap: 8px; }
 
@@ -572,7 +572,7 @@ onMounted(() => {
 .btn-red {
   display: inline-flex; align-items: center; justify-content: center;
   padding: 8px 20px; border-radius: 50px; background: #E31B23 !important;
-  color: #FFFFFF !important; font-weight: 700; font-size: 0.84rem; border: none; cursor: pointer;
+  color: #FFFFFF !important; font-weight: 600; font-size: 0.84rem; border: none; cursor: pointer;
   box-shadow: 0 4px 12px rgba(227, 27, 35, 0.2); transition: all 0.2s ease; text-decoration: none;
 }
 .btn-red:hover { background: #C8141B !important; transform: translateY(-1px); }
@@ -581,7 +581,7 @@ onMounted(() => {
   display: inline-flex; align-items: center; justify-content: center;
   padding: 8px 20px; border-radius: 50px; background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.16); color: #0F172A !important;
-  font-weight: 700; font-size: 0.84rem; transition: all 0.2s ease; text-decoration: none; cursor: pointer;
+  font-weight: 600; font-size: 0.84rem; transition: all 0.2s ease; text-decoration: none; cursor: pointer;
 }
 .btn-outline-dark:hover { background: #F1F5F9; border-color: #0F172A; }
 
@@ -601,7 +601,7 @@ onMounted(() => {
 .footer-socials { display: flex; gap: 8px; }
 .footer-soc { width: 34px; height: 34px; background: #FFFFFF; border: 1px solid rgba(15, 23, 42, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #64748B !important; text-decoration: none; font-size: 0.95rem; transition: all 0.2s; }
 .footer-soc:hover { background: #E31B23 !important; color: #FFFFFF !important; border-color: #E31B23 !important; }
-.footer-col-h { font-size: 0.76rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #0F172A; margin-bottom: 14px; }
+.footer-col-h { font-size: 0.76rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #0F172A; margin-bottom: 14px; }
 .footer-links { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
 .footer-links a { font-size: 0.82rem; color: #64748B !important; text-decoration: none; transition: color 0.18s; }
 .footer-links a:hover { color: #E31B23 !important; }

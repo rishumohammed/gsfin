@@ -116,7 +116,7 @@ video {
   background: rgba(0,0,0,0.6);
   color: white;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 2px 6px;
   border-radius: 10px;
   display: flex;

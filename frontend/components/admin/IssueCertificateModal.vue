@@ -236,7 +236,7 @@ const issueCertificate = async () => {
 
 .modal-title {
   font-size: 1.15rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0;
 }
@@ -264,7 +264,7 @@ const issueCertificate = async () => {
 }
 
 .form-group { display: flex; flex-direction: column; }
-.form-label { font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 8px; }
+.form-label { font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 8px; }
 .text-red { color: #E31B23; }
 
 .select-wrapper {
@@ -322,7 +322,7 @@ const issueCertificate = async () => {
   color: #475569;
   padding: 10px 20px;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.88rem;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -338,7 +338,7 @@ const issueCertificate = async () => {
   border: none;
   padding: 11px 22px;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.88rem;
   box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
   cursor: pointer;

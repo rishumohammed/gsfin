@@ -521,7 +521,7 @@ const submitPartnerForm = async () => {
   display: flex; flex-direction: column; align-items: center; gap: 12px;
 }
 .not-found-card .icon-red { font-size: 4rem; color: #E31B23; margin-bottom: 4px; }
-.not-found-card h2 { font-size: 1.5rem; font-weight: 800; color: #0F172A; margin: 0; }
+.not-found-card h2 { font-size: 1.5rem; font-weight: 600; color: #0F172A; margin: 0; }
 .not-found-card p { font-size: 0.92rem; color: #64748B; line-height: 1.6; margin: 0 0 8px; max-width: 380px; }
 .not-found-card .retry-btn {
   background: none; border: 1px solid rgba(15, 23, 42, 0.15);
@@ -566,7 +566,7 @@ const submitPartnerForm = async () => {
   display: inline-flex; align-items: center; gap: 6px;
   background: #E31B23 !important; color: #FFFFFF !important;
   text-decoration: none; padding: 9px 20px; border-radius: 50px;
-  font-weight: 700; font-size: 0.82rem; border: none;
+  font-weight: 600; font-size: 0.82rem; border: none;
   box-shadow: 0 2px 8px rgba(227, 27, 35, 0.18); transition: all 0.2s; cursor: pointer;
 }
 .nav-cta-btn:hover { background: #C4131B !important; transform: translateY(-1px); }
@@ -576,7 +576,7 @@ const submitPartnerForm = async () => {
   display: inline-flex; align-items: center; gap: 8px;
   background: #E31B23 !important; color: #FFFFFF !important;
   text-decoration: none; padding: 12px 24px; border-radius: 12px;
-  font-weight: 700; font-size: 0.88rem; border: 1px solid #E31B23 !important;
+  font-weight: 600; font-size: 0.88rem; border: 1px solid #E31B23 !important;
   box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2); transition: all 0.25s ease; cursor: pointer;
 }
 .btn-red:hover {
@@ -598,7 +598,7 @@ const submitPartnerForm = async () => {
 }
 
 .eyebrow-red {
-  font-size: 0.75rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #E31B23;
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #E31B23;
 }
 
 /* ── Hero Section ───────────────────────────────────────── */
@@ -654,13 +654,13 @@ const submitPartnerForm = async () => {
   gap: 8px; padding: 20px; text-align: center;
 }
 .hero-img-icon { font-size: 3rem; color: #E31B23; }
-.hero-img-placeholder span { font-size: 0.85rem; font-weight: 700; color: #334155; line-height: 1.3; }
+.hero-img-placeholder span { font-size: 0.85rem; font-weight: 600; color: #334155; line-height: 1.3; }
 
 .hero-img-badge {
   position: absolute; bottom: 10px; left: 10px;
   background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(15, 23, 42, 0.1); border-radius: 50px;
-  padding: 4px 10px; font-size: 0.68rem; font-weight: 800;
+  padding: 4px 10px; font-size: 0.68rem; font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.08em; color: #0F172A;
   display: flex; align-items: center; gap: 5px;
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
@@ -683,21 +683,21 @@ const submitPartnerForm = async () => {
 
 .badge-red {
   background: rgba(227, 27, 35, 0.08); color: #E31B23; border: 1px solid rgba(227, 27, 35, 0.2);
-  padding: 3px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+  padding: 3px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
 }
 
 .badge-glass {
   background: rgba(15, 23, 42, 0.05); color: #334155; border: 1px solid rgba(15, 23, 42, 0.1);
-  padding: 3px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 700;
+  padding: 3px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 600;
 }
 
 .badge-glass-highlight {
   background: rgba(245, 158, 11, 0.12); color: #D97706; border: 1px solid rgba(245, 158, 11, 0.25);
-  padding: 3px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 700;
+  padding: 3px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 600;
 }
 
 .hero-qual-title {
-  font-size: clamp(1.75rem, 3vw, 2.35rem); font-weight: 800; line-height: 1.15;
+  font-size: clamp(1.75rem, 3vw, 2.35rem); font-weight: 600; line-height: 1.15;
   letter-spacing: -0.02em; color: #0F172A; max-width: 800px; margin-bottom: 8px;
 }
 
@@ -722,8 +722,8 @@ const submitPartnerForm = async () => {
 .spec-icon { font-size: 1.6rem; color: #E31B23; }
 
 .spec-content { display: flex; flex-direction: column; }
-.spec-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #64748B; }
-.spec-val { font-size: 0.85rem; font-weight: 700; color: #0F172A; margin-top: 1px; }
+.spec-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #64748B; }
+.spec-val { font-size: 0.85rem; font-weight: 600; color: #0F172A; margin-top: 1px; }
 
 /* ── Body Layout ────────────────────────────────────────── */
 .qual-body-section { padding: 36px 0; }
@@ -744,7 +744,7 @@ const submitPartnerForm = async () => {
 }
 
 .box-head { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-.box-head h2 { font-size: 1.4rem; font-weight: 800; color: #0F172A; letter-spacing: -0.02em; margin: 0; }
+.box-head h2 { font-size: 1.4rem; font-weight: 600; color: #0F172A; letter-spacing: -0.02em; margin: 0; }
 .box-icon { font-size: 1.8rem; color: #E31B23; }
 
 .overview-text { font-size: 1.02rem; line-height: 1.75; color: #334155; white-space: pre-line; margin: 0; }
@@ -762,12 +762,12 @@ const submitPartnerForm = async () => {
 }
 
 .module-number {
-  font-size: 1.1rem; font-weight: 900; color: #E31B23;
+  font-size: 1.1rem; font-weight: 600; color: #E31B23;
   background: rgba(227, 27, 35, 0.08); width: 44px; height: 44px; border-radius: 12px;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 
-.module-title-text { font-weight: 700; color: #0F172A; font-size: 0.96rem; }
+.module-title-text { font-weight: 600; color: #0F172A; font-size: 0.96rem; }
 
 /* Audience & Benefits Grids */
 .audience-grid, .benefits-grid {
@@ -785,7 +785,7 @@ const submitPartnerForm = async () => {
 .benefit-card {
   background: #FFFFFF; border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 16px;
   padding: 16px 20px; display: flex; align-items: center; gap: 12px;
-  font-size: 0.92rem; font-weight: 700; color: #0F172A;
+  font-size: 0.92rem; font-weight: 600; color: #0F172A;
 }
 .benefit-icon { font-size: 1.5rem; color: #E31B23; flex-shrink: 0; }
 
@@ -807,7 +807,7 @@ const submitPartnerForm = async () => {
 }
 
 .action-badge-icon { font-size: 3rem; color: #E31B23; margin-bottom: 8px; }
-.action-head h3 { font-size: 1.3rem; font-weight: 800; color: #0F172A; margin-bottom: 6px; }
+.action-head h3 { font-size: 1.3rem; font-weight: 600; color: #0F172A; margin-bottom: 6px; }
 .action-head p { font-size: 0.84rem; color: #64748B; margin-bottom: 24px; line-height: 1.5; }
 
 .sidebar-btn-group { display: flex; flex-direction: column; gap: 12px; }
@@ -828,9 +828,9 @@ const submitPartnerForm = async () => {
   border: 1px solid rgba(227, 27, 35, 0.15); border-radius: 20px; padding: 24px;
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
 }
-.support-title { font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #0F172A; }
+.support-title { font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #0F172A; }
 .support-desc { font-size: 0.82rem; color: #64748B; line-height: 1.5; margin-bottom: 16px; }
-.support-link { color: #E31B23; font-weight: 700; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+.support-link { color: #E31B23; font-weight: 600; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
 .support-link:hover { color: #C4131B; text-decoration: underline; }
 
 /* ── CTA Banner ─────────────────────────────────────────── */
@@ -846,7 +846,7 @@ const submitPartnerForm = async () => {
 @media (max-width: 900px) { .cta-glass-card { flex-direction: column; text-align: center; padding: 36px 28px; } }
 
 .cta-left-box { max-width: 600px; }
-.cta-main-title { font-size: clamp(1.6rem, 3vw, 2.3rem); font-weight: 800; color: #0F172A; margin: 8px 0; line-height: 1.25; }
+.cta-main-title { font-size: clamp(1.6rem, 3vw, 2.3rem); font-weight: 600; color: #0F172A; margin: 8px 0; line-height: 1.25; }
 .cta-desc { font-size: 0.96rem; color: #475569; margin: 0; line-height: 1.6; }
 .cta-btn-large { padding: 14px 32px !important; font-size: 0.94rem !important; flex-shrink: 0; }
 
@@ -867,7 +867,7 @@ const submitPartnerForm = async () => {
 }
 .footer-soc:hover { background: #E31B23 !important; color: #FFFFFF !important; border-color: #E31B23 !important; }
 
-.footer-col-h { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #0F172A; margin-bottom: 18px; }
+.footer-col-h { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #0F172A; margin-bottom: 18px; }
 .footer-links { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .footer-links a { font-size: 0.84rem; color: #64748B !important; text-decoration: none; transition: color 0.18s; }
 .footer-links a:hover { color: #E31B23 !important; }
@@ -895,13 +895,13 @@ const submitPartnerForm = async () => {
 }
 .modal-close-btn:hover { background: #E31B23; color: #FFFFFF; }
 .modal-header { margin-bottom: 24px; }
-.modal-title { font-size: 1.6rem; font-weight: 800; color: #0F172A; margin-bottom: 6px; }
+.modal-title { font-size: 1.6rem; font-weight: 600; color: #0F172A; margin-bottom: 6px; }
 .modal-sub { font-size: 0.88rem; color: #64748B; }
 .partner-form { display: flex; flex-direction: column; gap: 16px; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
 .form-group { display: flex; flex-direction: column; gap: 6px; }
-.form-label { font-size: 0.76rem; font-weight: 700; color: #334155; }
+.form-label { font-size: 0.76rem; font-weight: 600; color: #334155; }
 .req { color: #E31B23; }
 .form-input, .form-textarea {
   width: 100%; padding: 11px 14px; border-radius: 12px; background: rgba(248, 250, 252, 0.85);
@@ -917,6 +917,6 @@ const submitPartnerForm = async () => {
   width: 64px; height: 64px; border-radius: 50%; background: #DCFCE7; color: #166534;
   display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 18px auto;
 }
-.success-title { font-size: 1.4rem; font-weight: 800; color: #0F172A; margin-bottom: 10px; }
+.success-title { font-size: 1.4rem; font-weight: 600; color: #0F172A; margin-bottom: 10px; }
 .success-text { font-size: 0.9rem; color: #475569; max-width: 440px; margin: 0 auto 24px auto; }
 </style>

@@ -546,7 +546,7 @@ onUnmounted(() => {
 .tc-row { display: flex; align-items: flex-start; gap: 12px; }
 .tc-checkbox { width: 18px; height: 18px; flex-shrink: 0; accent-color: #3b82f6; margin-top: 2px; cursor: pointer; }
 .tc-label { font-size: 14px; color: rgba(255,255,255,0.65); cursor: pointer; line-height: 1.5; }
-.start-btn { font-size: 16px !important; font-weight: 700 !important; height: 52px !important; }
+.start-btn { font-size: 16px !important; font-weight: 600 !important; height: 52px !important; }
 
 /* ── Exam Screen ─────────────────────────────────── */
 .exam-screen {
@@ -567,7 +567,7 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 .header-left { display: flex; flex-direction: column; }
-.exam-title { font-weight: 700; color: #e8eaf6; font-size: 15px; }
+.exam-title { font-weight: 600; color: #e8eaf6; font-size: 15px; }
 .exam-progress { font-size: 12px; color: rgba(255,255,255,0.4); }
 .header-center { display: flex; justify-content: center; flex: 1; }
 
@@ -585,7 +585,7 @@ onUnmounted(() => {
   padding: 20px 16px;
   overflow-y: auto;
 }
-.panel-header { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.3); margin-bottom: 14px; }
+.panel-header { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.3); margin-bottom: 14px; }
 .panel-legend { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 11px; color: rgba(255,255,255,0.4); }
 .legend-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 .legend-dot.answered { background: #3b82f6; }

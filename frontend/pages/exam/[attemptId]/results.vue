@@ -320,7 +320,7 @@ const downloadCertificate = async () => {
   transform: translate(-50%, -50%);
   text-align: center;
 }
-.score-pct { font-size: 32px; font-weight: 900; color: var(--ink); line-height: 1; }
+.score-pct { font-size: 32px; font-weight: 600; color: var(--ink); line-height: 1; }
 .score-label { font-size: 14px; color: var(--muted); margin-top: 4px; font-weight: 600; }
 
 .stats-row { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin: 32px 0; }
@@ -333,7 +333,7 @@ const downloadCertificate = async () => {
   min-width: 120px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.03);
 }
-.stat-val { font-size: 28px; font-weight: 800; color: var(--ink); }
+.stat-val { font-size: 28px; font-weight: 600; color: var(--ink); }
 .stat-key { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; font-weight: 600; }
 
 .cta-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; align-items: center; margin-top: 24px; }
@@ -353,9 +353,9 @@ const downloadCertificate = async () => {
 .review-card.pending { border-left: 4px solid #f59e0b; }
 
 .review-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-.q-num { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.q-num { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
 .q-type { font-size: 11px; background: var(--panel); border-radius: 10px; padding: 2px 8px; color: var(--muted); text-transform: uppercase; font-weight: 600; }
-.q-score-badge { margin-left: auto; font-size: 12px; font-weight: 700; border-radius: 20px; padding: 3px 12px; }
+.q-score-badge { margin-left: auto; font-size: 12px; font-weight: 600; border-radius: 20px; padding: 3px 12px; }
 .badge-pass { background: rgba(16,185,129,0.1); color: #10b981; }
 .badge-fail { background: var(--accent-soft); color: var(--accent); }
 .badge-pending { background: rgba(245,158,11,0.1); color: #f59e0b; }
@@ -399,9 +399,9 @@ const downloadCertificate = async () => {
 .review-card.pending { border-left: 4px solid #f59e0b; }
 
 .review-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-.q-num { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.q-num { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
 .q-type { font-size: 11px; background: var(--panel); border-radius: 10px; padding: 2px 8px; color: var(--muted); text-transform: uppercase; font-weight: 600; }
-.q-score-badge { margin-left: auto; font-size: 12px; font-weight: 700; border-radius: 20px; padding: 3px 12px; }
+.q-score-badge { margin-left: auto; font-size: 12px; font-weight: 600; border-radius: 20px; padding: 3px 12px; }
 .badge-pass { background: rgba(16,185,129,0.1); color: #10b981; }
 .badge-fail { background: rgba(239,68,68,0.1); color: #ef4444; }
 .badge-pending { background: rgba(245,158,11,0.1); color: #f59e0b; }

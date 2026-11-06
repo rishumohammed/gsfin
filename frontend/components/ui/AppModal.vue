@@ -69,7 +69,7 @@ defineEmits(['update:modelValue', 'submit']);
 
 .modal-title {
   font-size: 17px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.3px;
   color: var(--g7);
 }

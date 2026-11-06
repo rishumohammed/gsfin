@@ -111,7 +111,7 @@ const verificationUrl = computed(() => {
     left: 50%;
     transform: translate(-50%, -50%) rotate(-30deg);
     font-size: 120px;
-    font-weight: 900;
+    font-weight: 600;
     color: rgba(255, 59, 48, 0.1);
     border: 15px solid rgba(255, 59, 48, 0.1);
     padding: 20px 60px;

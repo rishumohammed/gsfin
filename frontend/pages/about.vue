@@ -319,19 +319,19 @@
             <div class="success-icon-circle">
               <i class="mdi mdi-check"></i>
             </div>
-            <h3 class="text-2xl font-black text-slate-900 mb-2">Application Submitted!</h3>
+            <h3 class="text-2xl font-semibold text-slate-900 mb-2">Application Submitted!</h3>
             <p class="text-slate-600 text-sm mb-6 max-w-sm mx-auto">
               Thank you for your interest in becoming a GSFIN Authorized Partner. Our accreditation team will review your application and contact you shortly.
             </p>
-            <button class="btn-red px-6 py-2.5 rounded-xl font-bold text-sm" @click="closePartnerModal">
+            <button class="btn-red px-6 py-2.5 rounded-xl font-semibold text-sm" @click="closePartnerModal">
               Done
             </button>
           </div>
 
-          <div v-else class="p-6 sm:p-8">
+          <div v-else class="modal-content-wrap">
             <div class="mb-6">
-              <span class="eyebrow-red text-xs font-black uppercase tracking-wider mb-1 block">PARTNER WITH GSFIN</span>
-              <h3 class="text-xl sm:text-2xl font-black text-slate-900">Apply for Center Accreditation</h3>
+              <span class="eyebrow-red text-xs font-semibold uppercase tracking-wider mb-1 block">PARTNER WITH GSFIN</span>
+              <h3 class="text-xl sm:text-2xl font-semibold text-slate-900">Apply for Center Accreditation</h3>
               <p class="text-xs sm:text-sm text-slate-500 mt-1">
                 Fill out the form below to apply as an Authorized Training / Examination Partner.
               </p>
@@ -344,52 +344,79 @@
 
             <form @submit.prevent="submitPartnerApplication" class="space-y-4">
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Organization / Center Name *</label>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Organization / Center Name *</label>
                 <input v-model="partnerForm.organizationName" type="text" placeholder="e.g. Global Food Safety Institute" class="form-input-box" required />
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-xs font-bold text-slate-700 mb-1">Contact Person Name *</label>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Contact Person Name *</label>
                   <input v-model="partnerForm.contactName" type="text" placeholder="e.g. Dr. Sarah Jenkins" class="form-input-box" required />
                 </div>
                 <div>
-                  <label class="block text-xs font-bold text-slate-700 mb-1">Country *</label>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Country *</label>
                   <input v-model="partnerForm.country" type="text" placeholder="e.g. United Kingdom" class="form-input-box" required />
                 </div>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-xs font-bold text-slate-700 mb-1">Email Address *</label>
-                  <input v-model="partnerForm.email" type="email" placeholder="sarah@institute.org" class="form-input-box" required />
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">City *</label>
+                  <input v-model="partnerForm.city" type="text" placeholder="e.g. London" class="form-input-box" required />
                 </div>
                 <div>
-                  <label class="block text-xs font-bold text-slate-700 mb-1">Phone / WhatsApp *</label>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Institution Type *</label>
+                  <select v-model="partnerForm.institutionType" class="form-select-box">
+                    <option value="Authorized Training Center">Authorized Training Center</option>
+                    <option value="University / Higher Education">University / Higher Education</option>
+                    <option value="Corporate / Food Processor">Corporate / Food Processor</option>
+                    <option value="Independent Assessment Center">Independent Assessment Center</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address *</label>
+                  <input v-model="partnerForm.email" type="email" placeholder="sarah@royalfoodsafety.co.uk" class="form-input-box" required />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Phone / WhatsApp *</label>
                   <input v-model="partnerForm.phone" type="tel" placeholder="+44 7911 123456" class="form-input-box" required />
                 </div>
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Institution Type</label>
-                <select v-model="partnerForm.institutionType" class="form-select-box">
-                  <option value="Authorized Training Center">Authorized Training Center</option>
-                  <option value="University / Higher Education">University / Higher Education</option>
-                  <option value="Corporate / Food Processor">Corporate / Food Processor</option>
-                  <option value="Independent Assessment Center">Independent Assessment Center</option>
-                </select>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Accreditation Programs *</label>
+                <p class="text-xs text-slate-500 mb-2">Select the certification programs you wish to deliver:</p>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    v-for="prog in availablePrograms"
+                    :key="prog.id"
+                    type="button"
+                    class="program-chip-btn"
+                    :class="{ 'is-selected': partnerForm.programs.includes(prog.id) }"
+                    @click="toggleProgram(prog.id)"
+                  >
+                    <i :class="['mdi', partnerForm.programs.includes(prog.id) ? 'mdi-check-circle' : 'mdi-plus-circle-outline']"></i>
+                    <span>{{ prog.label }}</span>
+                  </button>
+                </div>
+                <span v-if="partnerError && partnerForm.programs.length === 0" class="text-xs text-red-600 block mt-1">
+                  * Please select at least one accreditation program (e.g. ISO 22000, CODEX HACCP).
+                </span>
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Message / Additional Details</label>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Message / Additional Details</label>
                 <textarea v-model="partnerForm.message" class="form-textarea-box" rows="3" placeholder="Tell us about your institution..."></textarea>
               </div>
 
               <div class="pt-2 flex items-center justify-end gap-3">
-                <button type="button" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50" @click="closePartnerModal">
+                <button type="button" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50" @click="closePartnerModal">
                   Cancel
                 </button>
-                <button type="submit" class="btn-red px-6 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2" :disabled="partnerSubmitting">
+                <button type="submit" class="btn-red px-6 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2" :disabled="partnerSubmitting">
                   <span v-if="partnerSubmitting" class="spinner-sm-white"></span>
                   <span>{{ partnerSubmitting ? 'Submitting...' : 'Submit Application' }}</span>
                 </button>
@@ -434,9 +461,29 @@ const partnerForm = ref({
   email: '',
   phone: '',
   country: '',
+  city: '',
+  programs: [] as string[],
   institutionType: 'Authorized Training Center',
   message: '',
 });
+
+const availablePrograms = [
+  { id: 'ISO 22000', label: 'ISO 22000' },
+  { id: 'CODEX HACCP', label: 'CODEX HACCP' },
+  { id: 'GMP', label: 'GMP' },
+  { id: 'BRCGS', label: 'BRCGS' },
+  { id: 'FSSC 22000', label: 'FSSC 22000' },
+  { id: 'FSMA', label: 'FSMA' }
+];
+
+const toggleProgram = (progId: string) => {
+  const index = partnerForm.value.programs.indexOf(progId);
+  if (index > -1) {
+    partnerForm.value.programs.splice(index, 1);
+  } else {
+    partnerForm.value.programs.push(progId);
+  }
+};
 
 const openPartnerModal = () => {
   showPartnerModal.value = true;
@@ -449,8 +496,18 @@ const closePartnerModal = () => {
 };
 
 const submitPartnerApplication = async () => {
-  if (!partnerForm.value.organizationName || !partnerForm.value.contactName || !partnerForm.value.email || !partnerForm.value.phone) {
+  if (!partnerForm.value.organizationName || 
+      !partnerForm.value.contactName || 
+      !partnerForm.value.email || 
+      !partnerForm.value.phone || 
+      !partnerForm.value.country || 
+      !partnerForm.value.city) {
     partnerError.value = 'Please complete all required fields (*).';
+    return;
+  }
+
+  if (partnerForm.value.programs.length === 0) {
+    partnerError.value = 'Please select at least one Accreditation Program (e.g. ISO 22000, CODEX HACCP).';
     return;
   }
 
@@ -462,8 +519,8 @@ const submitPartnerApplication = async () => {
       name: partnerForm.value.contactName,
       email: partnerForm.value.email,
       phone: partnerForm.value.phone,
-      subject: `Partner Application: ${partnerForm.value.organizationName} (${partnerForm.value.country || 'Global'})`,
-      message: `[AUTHORIZED PARTNER APPLICATION]\nOrganization Name: ${partnerForm.value.organizationName}\nContact Person: ${partnerForm.value.contactName}\nEmail: ${partnerForm.value.email}\nPhone: ${partnerForm.value.phone}\nCountry: ${partnerForm.value.country || 'N/A'}\nInstitution Type: ${partnerForm.value.institutionType}\nAdditional Message: ${partnerForm.value.message || 'N/A'}`
+      subject: `Training Center Accreditation: ${partnerForm.value.organizationName} (${partnerForm.value.country} - ${partnerForm.value.city})`,
+      message: `[AUTHORIZED TRAINING CENTER ACCREDITATION APPLICATION]\nOrganization Name: ${partnerForm.value.organizationName}\nContact Person: ${partnerForm.value.contactName}\nEmail: ${partnerForm.value.email}\nPhone: ${partnerForm.value.phone}\nCountry: ${partnerForm.value.country}\nCity: ${partnerForm.value.city}\nAccreditation Programs: ${partnerForm.value.programs.join(', ')}\nInstitution Type: ${partnerForm.value.institutionType}\nAdditional Message: ${partnerForm.value.message || 'N/A'}`
     };
 
     await api.post('/public/contact', payload);
@@ -474,6 +531,8 @@ const submitPartnerApplication = async () => {
       email: '',
       phone: '',
       country: '',
+      city: '',
+      programs: [],
       institutionType: 'Authorized Training Center',
       message: '',
     };
@@ -503,7 +562,7 @@ const submitPartnerApplication = async () => {
 /* Common Typography & Color Helpers */
 .eyebrow-red {
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #E31B23;
@@ -606,7 +665,7 @@ const submitPartnerApplication = async () => {
 
 .about-hero-title {
   font-size: clamp(2.2rem, 3.8vw, 3.4rem);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.03em;
   color: #0F172A;
   line-height: 1.15;
@@ -679,7 +738,7 @@ const submitPartnerApplication = async () => {
 .metric-heading {
   display: block;
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   line-height: 1.2;
 }
@@ -779,7 +838,7 @@ const submitPartnerApplication = async () => {
 
 .f-badge-title {
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   line-height: 1.2;
 }
@@ -891,7 +950,7 @@ const submitPartnerApplication = async () => {
 
 .mv-eyebrow {
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   display: block;
@@ -900,7 +959,7 @@ const submitPartnerApplication = async () => {
 
 .mv-title {
   font-size: 1.75rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0;
   line-height: 1.2;
@@ -921,7 +980,7 @@ const submitPartnerApplication = async () => {
   align-items: center;
   justify-content: space-between;
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* ── Pillars 6-Grid Section (Refractive Glass Cards) ─────────── */
@@ -965,7 +1024,7 @@ const submitPartnerApplication = async () => {
 
 .section-main-title {
   font-size: clamp(2rem, 3.2vw, 2.75rem);
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   letter-spacing: -0.02em;
   margin: 8px 0 16px 0;
@@ -1029,7 +1088,7 @@ const submitPartnerApplication = async () => {
 
 .pillar-title {
   font-size: 1.2rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin-bottom: 12px;
   line-height: 1.3;
@@ -1083,7 +1142,7 @@ const submitPartnerApplication = async () => {
 
 .cta-eyebrow {
   color: #E31B23 !important;
-  font-weight: 800;
+  font-weight: 600;
   font-size: 0.75rem;
   letter-spacing: 0.12em;
   margin-bottom: 12px;
@@ -1092,7 +1151,7 @@ const submitPartnerApplication = async () => {
 
 .cta-title {
   font-size: clamp(1.8rem, 3.2vw, 2.5rem);
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A !important;
   margin-bottom: 12px;
   line-height: 1.2;
@@ -1141,7 +1200,7 @@ const submitPartnerApplication = async () => {
 
 .cta-slogan-line {
   font-size: clamp(1.4rem, 2.4vw, 2rem);
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A !important;
   line-height: 1.25;
   letter-spacing: -0.025em;
@@ -1161,7 +1220,7 @@ const submitPartnerApplication = async () => {
   border-radius: 50px;
   background: #E31B23 !important;
   color: #FFFFFF !important;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.92rem;
   border: none;
   cursor: pointer;
@@ -1184,7 +1243,7 @@ const submitPartnerApplication = async () => {
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.18);
   color: #0F172A !important;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.92rem;
   transition: all 0.25s ease;
   text-decoration: none;
@@ -1256,7 +1315,7 @@ const submitPartnerApplication = async () => {
 
 .footer-col-h {
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #0F172A;
@@ -1326,6 +1385,16 @@ const submitPartnerApplication = async () => {
   overflow: hidden;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+.modal-content-wrap {
+  padding: 36px 36px 32px 36px;
+  position: relative;
+}
+@media (max-width: 600px) {
+  .modal-content-wrap {
+    padding: 28px 20px 24px 20px;
+  }
 }
 
 .modal-close-btn {
@@ -1404,4 +1473,33 @@ const submitPartnerApplication = async () => {
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+.program-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #FFFFFF;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.program-chip-btn:hover {
+  background: #F8FAFC;
+  border-color: #E31B23;
+  color: #E31B23;
+}
+.program-chip-btn.is-selected {
+  background: #FFF5F5;
+  border-color: #E31B23;
+  color: #E31B23;
+  box-shadow: 0 2px 6px rgba(227, 27, 35, 0.12);
+}
+.program-chip-btn.is-selected i {
+  color: #E31B23;
+}
 </style>

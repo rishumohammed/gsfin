@@ -3,7 +3,6 @@
     <div class="d-flex justify-space-between align-center mb-8">
       <div>
         <h1 class="text-h4 font-weight-bold mb-1">Lead Forms</h1>
-        <p class="text-secondary">Manage drag-and-drop forms for your website.</p>
       </div>
       <v-btn color="primary" prepend-icon="mdi-plus" size="large" rounded="pill" @click="createForm">
         Create New Form
@@ -25,7 +24,7 @@
         <tbody>
           <tr v-for="form in forms" :key="form.id">
             <td class="font-weight-bold">{{ form.form_name }}</td>
-            <td class="text-truncate" style="max-width: 300px">{{ form.description || 'No description' }}</td>
+            <td class="table-desc-truncate">{{ form.description || 'No description' }}</td>
             <td>
               <v-chip size="small" variant="tonal" color="primary">0 Leads</v-chip>
             </td>

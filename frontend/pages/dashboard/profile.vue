@@ -297,7 +297,7 @@ const openSupport = () => {
 
 .detail-label {
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   color: #94a3b8;
   margin-bottom: 4px;

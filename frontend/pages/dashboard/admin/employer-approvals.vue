@@ -3,7 +3,6 @@
     <div class="d-flex align-center justify-space-between mb-8">
       <div>
         <h1 class="text-h4 font-weight-bold mb-1">Employer Approvals</h1>
-        <p class="text-subtitle-1 text-medium-emphasis mb-6">Review and approve new employer accounts</p>
       </div>
       <v-chip color="warning" variant="flat" size="large" class="font-weight-black">
         {{ pendingEmployers.length }} PENDING
@@ -48,20 +47,20 @@
             <td class="py-4">
               <div class="actions-wrapper">
                 <v-btn
-                  size="small" variant="outlined" color="deep-purple" class="rounded-lg action-btn font-weight-bold"
-                  prepend-icon="mdi-eye-outline"
+                  icon="mdi-eye-outline" size="small" variant="tonal" color="deep-purple" class="rounded-lg action-btn"
+                  title="View Details"
                   @click="viewDetails(employer)"
-                >View Details</v-btn>
+                ></v-btn>
                 <v-btn
-                  size="small" variant="flat" color="success" class="rounded-lg action-btn font-weight-bold"
-                  prepend-icon="mdi-check"
+                  icon="mdi-check" size="small" variant="flat" color="success" class="rounded-lg action-btn"
+                  title="Approve"
                   @click="confirmApprovePrompt(employer)"
-                >Approve</v-btn>
+                ></v-btn>
                 <v-btn
-                  size="small" variant="outlined" color="error" class="rounded-lg action-btn font-weight-bold"
-                  prepend-icon="mdi-close"
+                  icon="mdi-close" size="small" variant="tonal" color="error" class="rounded-lg action-btn"
+                  title="Reject"
                   @click="openRejectDialog(employer)"
-                >Reject</v-btn>
+                ></v-btn>
               </div>
             </td>
           </tr>
@@ -256,17 +255,19 @@ onMounted(fetchPendingEmployers);
 
 .actions-wrapper {
   display: flex;
-  gap: 12px;
+  gap: 6px;
   justify-content: flex-end;
-  min-width: 240px;
+  min-width: 120px;
 }
 .action-btn {
-  flex: 1;
+  width: 32px;
+  height: 32px;
+  min-width: 32px !important;
+  flex: none;
 }
 @media (max-width: 960px) {
   .actions-wrapper {
-    flex-direction: column;
-    align-items: stretch;
+    justify-content: flex-end;
   }
 }
 </style>

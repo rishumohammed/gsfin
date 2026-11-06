@@ -5,10 +5,10 @@
     <main class="page-wrap pt-32 pb-24 max-w-5xl mx-auto px-4 sm:px-6">
       <!-- Page Header -->
       <div class="mb-12 text-center">
-        <span class="eyebrow-red text-xs font-black tracking-wider uppercase mb-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-100">
+        <span class="eyebrow-red text-xs font-semibold tracking-wider uppercase mb-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-100">
           <i class="mdi mdi-shield-account text-red-600"></i> GOVERNANCE &amp; LEADERSHIP
         </span>
-        <h1 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight mb-4">
+        <h1 class="text-3xl sm:text-5xl font-semibold text-slate-900 tracking-tight mb-4">
           {{ configMap?.advisory_board_title || 'Advisory Board & Panel' }}
         </h1>
         <p class="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
@@ -23,7 +23,7 @@
         </div>
         <div v-else class="space-y-8 text-slate-700 text-sm sm:text-base leading-relaxed">
           <section>
-            <h2 class="text-xl font-bold text-slate-900 mb-3 flex items-center gap-2">
+            <h2 class="text-xl font-semibold text-slate-900 mb-3 flex items-center gap-2">
               <i class="mdi mdi-compass-outline text-red-600"></i> Charter &amp; Objective
             </h2>
             <p>
@@ -32,24 +32,24 @@
           </section>
 
           <section>
-            <h2 class="text-xl font-bold text-slate-900 mb-3 flex items-center gap-2">
+            <h2 class="text-xl font-semibold text-slate-900 mb-3 flex items-center gap-2">
               <i class="mdi mdi-clipboard-check-outline text-red-600"></i> Core Governance Functions
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                <h3 class="font-bold text-slate-900 mb-1 text-sm">Syllabus Standard Review</h3>
+                <h3 class="font-semibold text-slate-900 mb-1 text-sm">Syllabus Standard Review</h3>
                 <p class="text-xs text-slate-600">Annual audit and updates of ISO 22000, HACCP, and GHP examination domains.</p>
               </div>
               <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                <h3 class="font-bold text-slate-900 mb-1 text-sm">Center Accreditation Audit</h3>
+                <h3 class="font-semibold text-slate-900 mb-1 text-sm">Center Accreditation Audit</h3>
                 <p class="text-xs text-slate-600">Evaluating institutional compliance and proctoring protocols for training centers.</p>
               </div>
               <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                <h3 class="font-bold text-slate-900 mb-1 text-sm">Ethics &amp; Integrity Oversight</h3>
+                <h3 class="font-semibold text-slate-900 mb-1 text-sm">Ethics &amp; Integrity Oversight</h3>
                 <p class="text-xs text-slate-600">Investigating compliance violations and ensuring tamper-proof credential integrity.</p>
               </div>
               <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                <h3 class="font-bold text-slate-900 mb-1 text-sm">Global Regulatory Alignment</h3>
+                <h3 class="font-semibold text-slate-900 mb-1 text-sm">Global Regulatory Alignment</h3>
                 <p class="text-xs text-slate-600">Synchronizing certifications with FDA, EFSA, and regional food safety legislations.</p>
               </div>
             </div>
@@ -63,7 +63,7 @@
           <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4 text-2xl">
             <i class="mdi mdi-microscope"></i>
           </div>
-          <h3 class="font-bold text-slate-900 text-base mb-2">Scientific Committee</h3>
+          <h3 class="font-semibold text-slate-900 text-base mb-2">Scientific Committee</h3>
           <p class="text-xs text-slate-600 leading-relaxed">
             Microbiologists and toxicologists reviewing hazard analysis, CCP thresholds, and food safety risk assessment criteria.
           </p>
@@ -73,7 +73,7 @@
           <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4 text-2xl">
             <i class="mdi mdi-certificate"></i>
           </div>
-          <h3 class="font-bold text-slate-900 text-base mb-2">Audit &amp; Accreditation Panel</h3>
+          <h3 class="font-semibold text-slate-900 text-base mb-2">Audit &amp; Accreditation Panel</h3>
           <p class="text-xs text-slate-600 leading-relaxed">
             Senior GFSI lead auditors inspecting partner institutions and validating candidate examination rigors.
           </p>
@@ -83,7 +83,7 @@
           <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4 text-2xl">
             <i class="mdi mdi-earth"></i>
           </div>
-          <h3 class="font-bold text-slate-900 text-base mb-2">International Liaisons</h3>
+          <h3 class="font-semibold text-slate-900 text-base mb-2">International Liaisons</h3>
           <p class="text-xs text-slate-600 leading-relaxed">
             Representatives ensuring global harmonization across 45+ participating jurisdictions and trade bodies.
           </p>

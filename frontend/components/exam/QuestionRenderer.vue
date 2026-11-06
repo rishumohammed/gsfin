@@ -129,7 +129,7 @@ defineEmits(['update:modelValue']);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 14px;
   flex-shrink: 0;
 }
@@ -150,7 +150,7 @@ defineEmits(['update:modelValue']);
   border: 2px solid rgba(255,255,255,0.1);
   cursor: pointer;
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 600;
   transition: all 0.2s ease;
   background: rgba(255,255,255,0.04);
   color: #e8eaf6;

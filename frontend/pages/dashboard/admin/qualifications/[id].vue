@@ -11,7 +11,7 @@
       <!-- Error State -->
       <div v-else-if="error" class="panel-card pa-8 text-center">
         <i class="mdi mdi-alert-circle-outline text-5xl text-red mb-3"></i>
-        <h3 class="font-bold text-slate-900 text-lg">Failed to Load Qualification</h3>
+        <h3 class="font-semibold text-slate-900 text-lg">Failed to Load Qualification</h3>
         <p class="text-slate-500 text-sm max-w-md mx-auto mt-1 mb-4">{{ error }}</p>
         <NuxtLink to="/dashboard/admin/qualifications" class="btn-glass">
           <i class="mdi mdi-arrow-left"></i> Back to Qualifications
@@ -23,9 +23,6 @@
         <!-- ═══ TOP HEADER ROW ═══ -->
         <div class="admin-header-row">
           <div>
-            <div class="eyebrow-chip mb-1">
-              <i class="mdi mdi-certificate-outline"></i> QUALIFICATION SPECIFICATION GOVERNANCE
-            </div>
             <div class="flex items-center gap-3">
               <h1 class="admin-title">{{ qual.name }}</h1>
               <span v-if="qual.badge_tag" class="badge-tag-chip">{{ qual.badge_tag }}</span>
@@ -33,7 +30,6 @@
                 {{ qual.is_active ? 'Active Standard' : 'Draft Standard' }}
               </span>
             </div>
-            <p class="admin-subtitle">{{ qual.subtitle || qual.short_description }}</p>
           </div>
 
           <div class="header-actions">
@@ -191,11 +187,11 @@
                 </div>
                 <div class="meta-row">
                   <span class="meta-title">Assessment Type:</span>
-                  <span class="font-bold text-slate-800">{{ qual.assessment_type || 'Online Examination' }}</span>
+                  <span class="font-semibold text-slate-800">{{ qual.assessment_type || 'Online Examination' }}</span>
                 </div>
                 <div class="meta-row">
                   <span class="meta-title">Display Order Index:</span>
-                  <span class="font-bold text-slate-800">#{{ qual.order_index }}</span>
+                  <span class="font-semibold text-slate-800">#{{ qual.order_index }}</span>
                 </div>
               </div>
             </div>
@@ -465,7 +461,7 @@ onMounted(() => {
 
 <style scoped>
 .gsfin-admin-page {
-  padding: 40px 48px;
+  padding: 24px 32px;
   background: #FAFAFD;
   min-height: 100vh;
   box-sizing: border-box;
@@ -480,7 +476,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
@@ -489,7 +485,7 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   font-size: 0.74rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #E31B23;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -497,7 +493,7 @@ onMounted(() => {
 
 .admin-title {
   font-size: 1.95rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0;
   letter-spacing: -0.02em;
@@ -524,7 +520,7 @@ onMounted(() => {
   border: none;
   padding: 12px 22px;
   border-radius: 14px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.88rem;
   box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
   transition: all 0.2s ease;
@@ -544,7 +540,7 @@ onMounted(() => {
   border: 1px solid rgba(15, 23, 42, 0.12);
   padding: 12px 22px;
   border-radius: 14px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.88rem;
   text-decoration: none;
   cursor: pointer;
@@ -561,7 +557,7 @@ onMounted(() => {
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   background: rgba(227, 27, 35, 0.1);
   color: #E31B23;
 }
@@ -570,7 +566,7 @@ onMounted(() => {
   padding: 4px 12px;
   border-radius: 50px;
   font-size: 0.74rem;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
 }
 .status-active { background: rgba(16, 185, 129, 0.1); color: #059669; }
@@ -616,8 +612,8 @@ onMounted(() => {
 .text-red { color: #E31B23; }
 
 .kpi-content { display: flex; flex-direction: column; }
-.kpi-label { font-size: 0.74rem; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; }
-.kpi-value-sm { font-size: 1.15rem; font-weight: 800; color: #0F172A; line-height: 1.3; margin-top: 2px; }
+.kpi-label { font-size: 0.74rem; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; }
+.kpi-value-sm { font-size: 1.15rem; font-weight: 600; color: #0F172A; line-height: 1.3; margin-top: 2px; }
 .kpi-sub { font-size: 0.74rem; font-weight: 600; margin-top: 2px; }
 
 /* Grid Layout */
@@ -642,7 +638,7 @@ onMounted(() => {
 
 .panel-title {
   font-size: 1.05rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0;
 }
@@ -651,7 +647,7 @@ onMounted(() => {
   padding: 4px 12px;
   border-radius: 50px;
   font-size: 0.74rem;
-  font-weight: 800;
+  font-weight: 600;
   background: #F1F5F9;
   color: #475569;
 }
@@ -682,7 +678,7 @@ onMounted(() => {
   background: rgba(227, 27, 35, 0.1);
   color: #E31B23;
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -691,7 +687,7 @@ onMounted(() => {
 
 .module-text {
   font-size: 0.88rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #1E293B;
   line-height: 1.4;
   margin-top: 3px;
@@ -709,7 +705,7 @@ onMounted(() => {
   background: rgba(79, 70, 229, 0.08);
   color: #4F46E5;
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
 }
@@ -738,7 +734,7 @@ onMounted(() => {
   border-bottom: 1px dashed rgba(15, 23, 42, 0.08);
 }
 .meta-row:last-child { border-bottom: none; }
-.meta-title { font-weight: 700; color: #64748B; }
+.meta-title { font-weight: 600; color: #64748B; }
 
 /* Modal & Tabs */
 .modal-overlay {
@@ -773,7 +769,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
 }
-.modal-header h3 { font-size: 1.2rem; font-weight: 800; color: #0F172A; margin: 0; }
+.modal-header h3 { font-size: 1.2rem; font-weight: 600; color: #0F172A; margin: 0; }
 .modal-close-btn { background: #F1F5F9; border: none; width: 32px; height: 32px; border-radius: 50%; color: #64748B; cursor: pointer; }
 
 .modal-tabs-bar {
@@ -788,7 +784,7 @@ onMounted(() => {
   border: none;
   padding: 10px 16px;
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #64748B;
   cursor: pointer;
   border-bottom: 2px solid transparent;
@@ -801,7 +797,7 @@ onMounted(() => {
 .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
 
 .form-group { display: flex; flex-direction: column; gap: 6px; }
-.form-label { font-size: 0.8rem; font-weight: 700; color: #334155; }
+.form-label { font-size: 0.8rem; font-weight: 600; color: #334155; }
 .modal-input, .modal-select, .modal-textarea {
   width: 100%;
   padding: 10px 14px;
@@ -826,7 +822,7 @@ onMounted(() => {
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 0.76rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .list-editor-row { display: flex; align-items: center; gap: 8px; }

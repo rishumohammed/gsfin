@@ -206,7 +206,7 @@ const heroImgSrc = computed(() => {
 /* ── Headline ─────────────────────────────────────────── */
 .hero-headline {
   font-size: clamp(2.6rem, 5.5vw, 4.25rem);
-  font-weight: 900;
+  font-weight: 600;
   line-height: 1.05;
   letter-spacing: -0.04em;
   color: var(--g7);
@@ -245,7 +245,7 @@ const heroImgSrc = computed(() => {
   background: var(--accent);
   color: #ffffff;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.01em;
   text-decoration: none;
   transition: all 0.2s ease;
@@ -382,7 +382,7 @@ const heroImgSrc = computed(() => {
 }
 .float-value {
   font-size: 22px;
-  font-weight: 900;
+  font-weight: 600;
   color: var(--g7);
   letter-spacing: -0.04em;
   line-height: 1;
@@ -430,7 +430,7 @@ const heroImgSrc = computed(() => {
 
 .metric-value {
   font-size: 1.85rem;
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: -0.04em;
   color: var(--blue);
   line-height: 1;

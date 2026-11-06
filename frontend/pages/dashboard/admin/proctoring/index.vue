@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="d-flex justify-space-between align-center mb-6">
       <div>
-        <h1 class="text-h4 font-weight-bold mb-1 text-dark">Proctoring Logs</h1>
-        <p class="text-subtitle-1 text-medium-emphasis mb-0">Select a course to review proctoring violations and integrity checks.</p>
+        <h1 class="text-h4 font-weight-bold mb-1 text-dark">Proctoring</h1>
+        <p class="text-subtitle-1 text-medium-emphasis mb-0">Review exam proctoring sessions and alerts.</p>
       </div>
     </div>
 
@@ -220,7 +220,7 @@ const getCourseViolationsCount = (course: any) => {
 
 :deep(.v-data-table-header th) {
   font-size: 11px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.5px !important;
   color: var(--g4) !important;

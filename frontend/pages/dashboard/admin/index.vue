@@ -1,6 +1,6 @@
 <template>
   <div class="gsfin-admin-page">
-    <div class="dashboard-wrap">
+    <div class="admin-wrap">
 
       <!-- Loading State -->
       <div v-if="loading" class="py-12 text-center text-slate-500">
@@ -10,7 +10,7 @@
       <!-- Error State -->
       <div v-else-if="errorMsg" class="error-card text-center py-10 px-6 my-6">
         <i class="mdi mdi-alert-circle-outline text-4xl text-red mb-2 block"></i>
-        <h2 class="text-lg font-bold text-slate-900">Dashboard Analytics Unavailable</h2>
+        <h2 class="text-lg font-semibold text-slate-900">Dashboard Analytics Unavailable</h2>
         <p class="text-sm text-slate-500 mb-4">{{ errorMsg }}</p>
         <button class="btn-red" @click="fetchData"><i class="mdi mdi-reload"></i> Retry Loading</button>
       </div>
@@ -19,16 +19,10 @@
       <div v-else class="fade-in">
         
         <!-- Top Header Row -->
-        <div class="dash-header-row">
+        <div class="admin-header-row">
           <div>
-            <div class="eyebrow-chip">
-              <i class="mdi mdi-chart-timeline-variant"></i> EXECUTIVE CONTROL CENTER
-            </div>
-            <h1 class="dash-title">Executive Dashboard</h1>
-            <p class="dash-subtitle">Real-time overview of qualification exams, candidate enrollments, partner networks, and system health.</p>
+            <h1 class="admin-title">Dashboard</h1>
           </div>
-
-
         </div>
 
         <!-- ═══ KPI METRIC CARDS GRID ═══ -->
@@ -74,7 +68,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="c in data.recentCandidates" :key="c.id">
+                    <tr v-for="c in paginatedCandidates" :key="c.id">
                       <td>
                         <div class="candidate-cell">
                           <div class="avatar-circle">
@@ -106,6 +100,13 @@
                     </tr>
                   </tbody>
                 </table>
+                <AppPagination
+                  v-if="(data.recentCandidates || []).length > 0"
+                  v-model="candidatePage"
+                  v-model:items-per-page="candidatePerPage"
+                  :total-items="(data.recentCandidates || []).length"
+                  :per-page-options="[5, 10, 20]"
+                />
               </div>
             </div>
 
@@ -168,8 +169,8 @@
                 
                 <div class="health-progress-wrap mb-6">
                   <div class="health-label-row">
-                    <span class="text-sm font-bold text-slate-700">Storage Capacity</span>
-                    <span class="text-xs font-bold text-emerald">{{ data.systemHealth?.diskUsage || 32 }}% Used</span>
+                    <span class="text-sm font-semibold text-slate-700">Storage Capacity</span>
+                    <span class="text-xs font-semibold text-emerald">{{ data.systemHealth?.diskUsage || 32 }}% Used</span>
                   </div>
                   <div class="progress-bar-bg">
                     <div class="progress-bar-fill" :style="{ width: (data.systemHealth?.diskUsage || 32) + '%' }"></div>
@@ -228,9 +229,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useApi } from '@/composables/useApi';
 import dayjs from 'dayjs';
+import AppPagination from '@/components/common/AppPagination.vue';
 
 definePageMeta({
   layout: 'dashboard',
@@ -246,6 +248,14 @@ const data = ref<any>({
   kpis: { row1: [] },
   recentCandidates: [],
   systemHealth: { diskUsage: 32, dbStatus: 'Online', redisStatus: 'Online' }
+});
+
+const candidatePage = ref(1);
+const candidatePerPage = ref(5);
+const paginatedCandidates = computed(() => {
+  const list = data.value?.recentCandidates || [];
+  const start = (candidatePage.value - 1) * candidatePerPage.value;
+  return list.slice(start, start + candidatePerPage.value);
 });
 
 const fetchData = async () => {
@@ -291,12 +301,12 @@ onMounted(fetchData);
   background: #FAFAFD;
   color: #0F172A;
   min-height: 100vh;
-  padding: 32px 36px;
+  padding: 0;
   box-sizing: border-box;
 }
 
-.dashboard-wrap {
-  max-width: 1300px;
+.admin-wrap {
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -310,7 +320,7 @@ onMounted(fetchData);
   padding: 4px 12px;
   border-radius: 50px;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin-bottom: 8px;
@@ -321,13 +331,13 @@ onMounted(fetchData);
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 28px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
 .dash-title {
   font-size: 1.95rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0 0 4px 0;
   letter-spacing: -0.02em;
@@ -389,7 +399,7 @@ onMounted(fetchData);
 
 .kpi-badge {
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 2px 8px;
@@ -401,7 +411,7 @@ onMounted(fetchData);
 .kpi-value {
   display: block;
   font-size: 1.85rem;
-  font-weight: 900;
+  font-weight: 600;
   color: #0F172A;
   line-height: 1.2;
   margin-bottom: 2px;
@@ -409,7 +419,7 @@ onMounted(fetchData);
 
 .kpi-label {
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #64748B;
@@ -457,14 +467,14 @@ onMounted(fetchData);
 }
 .panel-title-wrap h3 {
   font-size: 1.05rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0;
 }
 
 .link-action {
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #E31B23;
   text-decoration: none;
   display: inline-flex;
@@ -480,31 +490,40 @@ onMounted(fetchData);
 .table-responsive {
   width: 100%;
   overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #FFFFFF;
 }
 
 .gsfin-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 0.86rem;
 }
 
 .gsfin-table th {
-  padding: 14px 20px;
+  padding: 12px 18px;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   color: #64748B;
-  background: #F8FAFC;
+  background: #FAFAFD;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  white-space: nowrap;
 }
 
 .gsfin-table td {
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  font-size: 0.86rem;
+  font-weight: 400;
   color: #334155;
   vertical-align: middle;
+}
+
+.gsfin-table tbody tr:hover {
+  background: #F8FAFC;
 }
 
 .candidate-cell {
@@ -519,7 +538,7 @@ onMounted(fetchData);
   border-radius: 50%;
   background: rgba(227, 27, 35, 0.1);
   color: #E31B23;
-  font-weight: 800;
+  font-weight: 600;
   font-size: 0.82rem;
   display: flex;
   align-items: center;
@@ -532,7 +551,7 @@ onMounted(fetchData);
   padding: 4px 12px;
   border-radius: 50px;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .chip-blue { background: rgba(59, 130, 246, 0.1); color: #2563EB; }
 .chip-green { background: rgba(16, 185, 129, 0.1); color: #059669; }
@@ -601,7 +620,7 @@ onMounted(fetchData);
 
 .shortcut-card h4 {
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0 0 4px 0;
 }
@@ -654,7 +673,7 @@ onMounted(fetchData);
   align-items: center;
   gap: 10px;
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #334155;
 }
 
@@ -672,7 +691,7 @@ onMounted(fetchData);
 }
 .promo-tag {
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   background: rgba(255, 255, 255, 0.2);
@@ -683,7 +702,7 @@ onMounted(fetchData);
 }
 .promo-content h3 {
   font-size: 1.25rem;
-  font-weight: 800;
+  font-weight: 600;
   margin: 0 0 8px 0;
 }
 .promo-content p {
@@ -701,7 +720,7 @@ onMounted(fetchData);
   padding: 9px 18px;
   border-radius: 10px;
   font-size: 0.84rem;
-  font-weight: 800;
+  font-weight: 600;
   text-decoration: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: transform 0.2s ease;

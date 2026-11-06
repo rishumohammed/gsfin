@@ -282,7 +282,7 @@ definePageMeta({
 
 :deep(.v-data-table-header th) {
   font-size: 11px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.4px !important;
   color: var(--g4) !important;
@@ -300,7 +300,7 @@ definePageMeta({
 }
 
 .user-name {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--g7);
   line-height: 1.2;
 }

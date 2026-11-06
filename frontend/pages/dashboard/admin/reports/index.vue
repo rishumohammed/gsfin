@@ -5,20 +5,14 @@
       <!-- ═══ HEADER ROW ═══ -->
       <div class="admin-header-row">
         <div>
-          <div class="eyebrow-chip mb-1">
-            <i class="mdi mdi-chart-bar font-bold"></i> EXECUTIVE REPORTS &amp; DATA ANALYTICS
-          </div>
-          <h1 class="admin-title">Reports &amp; Analytics</h1>
-          <p class="admin-subtitle">
-            Comprehensive audit reports across examination performance, sub-center partner volume, certificate issuance, and governance.
-          </p>
+          <h1 class="admin-title">Reports</h1>
         </div>
 
         <div class="header-actions">
           <div class="filter-select-wrap">
             <i class="mdi mdi-calendar-range text-slate-400"></i>
             <select v-model="selectedPeriod" class="filter-select">
-              <option value="all">All Time History</option>
+              <option value="all">All Time</option>
               <option value="30days">Last 30 Days</option>
               <option value="quarter">This Quarter</option>
               <option value="year">This Year</option>
@@ -30,7 +24,7 @@
           </button>
           
           <button class="btn-red" @click="printReport">
-            <i class="mdi mdi-printer-outline"></i> Print Summary
+            <i class="mdi mdi-printer-outline"></i> Print
           </button>
         </div>
       </div>
@@ -43,48 +37,48 @@
 
       <div v-else>
         <!-- ═══ EXECUTIVE KPI GRID ═══ -->
-        <div class="kpi-grid mb-8">
-          <div class="kpi-card">
-            <div class="kpi-icon bg-indigo-light">
+        <div class="metrics-grid mb-8">
+          <div class="metric-card">
+            <div class="metric-icon-box bg-indigo-light">
               <i class="mdi mdi-file-document-multiple-outline text-indigo"></i>
             </div>
-            <div class="kpi-content">
-              <span class="kpi-label">Total Exam Attempts</span>
-              <span class="kpi-value">{{ overview.total_attempts || 0 }}</span>
-              <span class="kpi-sub text-slate-500">Across {{ overview.total_exams || 0 }} Active Exams</span>
+            <div class="metric-info">
+              <span class="metric-label">Total Exam Attempts</span>
+              <span class="metric-value">{{ overview.total_attempts || 0 }}</span>
+              <span class="metric-sub text-slate-500">Across {{ overview.total_exams || 0 }} Active Exams</span>
             </div>
           </div>
 
-          <div class="kpi-card">
-            <div class="kpi-icon bg-emerald-light">
+          <div class="metric-card">
+            <div class="metric-icon-box bg-emerald-light">
               <i class="mdi mdi-chart-line text-emerald"></i>
             </div>
-            <div class="kpi-content">
-              <span class="kpi-label">Platform Pass Rate</span>
-              <span class="kpi-value text-emerald">{{ overview.pass_rate || 0 }}%</span>
-              <span class="kpi-sub text-slate-500">{{ overview.passed_attempts || 0 }} Passed Candidates</span>
+            <div class="metric-info">
+              <span class="metric-label">Platform Pass Rate</span>
+              <span class="metric-value text-emerald">{{ overview.pass_rate || 0 }}%</span>
+              <span class="metric-sub text-slate-500">{{ overview.passed_attempts || 0 }} Passed Candidates</span>
             </div>
           </div>
 
-          <div class="kpi-card">
-            <div class="kpi-icon bg-red-light">
+          <div class="metric-card">
+            <div class="metric-icon-box bg-red-light">
               <i class="mdi mdi-certificate-outline text-red"></i>
             </div>
-            <div class="kpi-content">
-              <span class="kpi-label">Issued Credentials</span>
-              <span class="kpi-value">{{ overview.total_certificates || 0 }}</span>
-              <span class="kpi-sub text-slate-500">{{ overview.total_qualifications || 0 }} Qualifications Active</span>
+            <div class="metric-info">
+              <span class="metric-label">Issued Credentials</span>
+              <span class="metric-value">{{ overview.total_certificates || 0 }}</span>
+              <span class="metric-sub text-slate-500">{{ overview.total_qualifications || 0 }} Qualifications Active</span>
             </div>
           </div>
 
-          <div class="kpi-card">
-            <div class="kpi-icon bg-amber-light">
+          <div class="metric-card">
+            <div class="metric-icon-box bg-amber-light">
               <i class="mdi mdi-wallet-outline text-amber"></i>
             </div>
-            <div class="kpi-content">
-              <span class="kpi-label">Token Consumption</span>
-              <span class="kpi-value">{{ overview.tokens_used || 0 }}</span>
-              <span class="kpi-sub text-slate-500">Of {{ overview.tokens_purchased || 0 }} Tokens Sold</span>
+            <div class="metric-info">
+              <span class="metric-label">Token Consumption</span>
+              <span class="metric-value">{{ overview.tokens_used || 0 }}</span>
+              <span class="metric-sub text-slate-500">Of {{ overview.tokens_purchased || 0 }} Tokens Sold</span>
             </div>
           </div>
         </div>
@@ -148,13 +142,13 @@
                   <tr v-if="examBreakdown.length === 0">
                     <td colspan="6" class="text-center py-8 text-slate-400">No exam attempts recorded yet.</td>
                   </tr>
-                  <tr v-for="e in examBreakdown" :key="e.id">
+                  <tr v-for="e in paginatedExamBreakdown" :key="e.id">
                     <td>
-                      <div class="font-bold text-slate-900">{{ e.title }}</div>
+                      <div class="font-semibold text-slate-900">{{ e.title }}</div>
                       <span class="text-xs text-slate-500 font-mono">ID: #{{ e.id }}</span>
                     </td>
                     <td>
-                      <span class="font-bold text-slate-800">{{ e.total_attempts }}</span>
+                      <span class="font-semibold text-slate-800">{{ e.total_attempts }}</span>
                     </td>
                     <td>
                       <span class="chip-green-sm">{{ e.passed_count }} Passed</span>
@@ -167,17 +161,24 @@
                         <div class="progress-bar-wrap">
                           <div class="progress-bar-fill" :style="{ width: `${calculateRate(e.passed_count, e.total_attempts)}%` }"></div>
                         </div>
-                        <span class="font-bold text-slate-800 text-xs">
+                        <span class="font-semibold text-slate-800 text-xs">
                           {{ calculateRate(e.passed_count, e.total_attempts) }}%
                         </span>
                       </div>
                     </td>
                     <td>
-                      <span class="font-bold text-slate-900">{{ e.avg_score ? e.avg_score + '%' : 'N/A' }}</span>
+                      <span class="font-semibold text-slate-900">{{ e.avg_score ? e.avg_score + '%' : 'N/A' }}</span>
                     </td>
                   </tr>
                 </tbody>
               </table>
+              <AppPagination
+                v-if="examBreakdown.length > 0"
+                v-model="examPage"
+                v-model:items-per-page="examPerPage"
+                :total-items="examBreakdown.length"
+                :per-page-options="[10, 25, 50, 100]"
+              />
             </div>
           </div>
 
@@ -207,19 +208,19 @@
                   <tr v-if="partnerBreakdown.length === 0">
                     <td colspan="6" class="text-center py-8 text-slate-400">No partner sub-centers registered yet.</td>
                   </tr>
-                  <tr v-for="p in partnerBreakdown" :key="p.id">
+                  <tr v-for="p in paginatedPartnerBreakdown" :key="p.id">
                     <td>
-                      <div class="font-bold text-slate-900">{{ p.name }}</div>
+                      <div class="font-semibold text-slate-900">{{ p.name }}</div>
                     </td>
                     <td>
                       <span class="code-pill">{{ p.code }}</span>
                       <div class="text-xs text-slate-500 mt-0.5">{{ p.city || 'Global' }}, {{ p.country || 'International' }}</div>
                     </td>
                     <td>
-                      <span class="font-bold text-indigo-600">{{ p.tokens_purchased }}</span>
+                      <span class="font-semibold text-indigo-600">{{ p.tokens_purchased }}</span>
                     </td>
                     <td>
-                      <span class="font-bold text-slate-800">{{ p.tokens_used }}</span>
+                      <span class="font-semibold text-slate-800">{{ p.tokens_used }}</span>
                     </td>
                     <td>
                       <span :class="['badge-chip', Number(p.tokens_remaining) > 50 ? 'chip-green' : 'chip-amber']">
@@ -227,11 +228,18 @@
                       </span>
                     </td>
                     <td>
-                      <span class="font-bold text-slate-800">{{ p.batch_count }} Batches</span>
+                      <span class="font-semibold text-slate-800">{{ p.batch_count }} Batches</span>
                     </td>
                   </tr>
                 </tbody>
               </table>
+              <AppPagination
+                v-if="partnerBreakdown.length > 0"
+                v-model="partnerPage"
+                v-model:items-per-page="partnerPerPage"
+                :total-items="partnerBreakdown.length"
+                :per-page-options="[10, 25, 50, 100]"
+              />
             </div>
           </div>
 
@@ -260,12 +268,12 @@
                   <tr v-if="certBreakdown.length === 0">
                     <td colspan="5" class="text-center py-8 text-slate-400">No certificates recorded in system.</td>
                   </tr>
-                  <tr v-for="c in certBreakdown" :key="c.qualification_name">
+                  <tr v-for="c in paginatedCertBreakdown" :key="c.qualification_name">
                     <td>
-                      <div class="font-bold text-slate-900">{{ c.qualification_name }}</div>
+                      <div class="font-semibold text-slate-900">{{ c.qualification_name }}</div>
                     </td>
                     <td>
-                      <span class="font-bold text-slate-900">{{ c.total_issued }}</span>
+                      <span class="font-semibold text-slate-900">{{ c.total_issued }}</span>
                     </td>
                     <td>
                       <span class="chip-green-sm">{{ c.active_count }} Active</span>
@@ -278,12 +286,19 @@
                     <td>
                       <div class="flex items-center gap-2">
                         <i class="mdi mdi-shield-check text-emerald text-base"></i>
-                        <span class="font-bold text-slate-800 text-xs">100% Cryptographic Verification</span>
+                        <span class="font-semibold text-slate-800 text-xs">100% Cryptographic Verification</span>
                       </div>
                     </td>
                   </tr>
                 </tbody>
               </table>
+              <AppPagination
+                v-if="certBreakdown.length > 0"
+                v-model="certPage"
+                v-model:items-per-page="certPerPage"
+                :total-items="certBreakdown.length"
+                :per-page-options="[10, 25, 50, 100]"
+              />
             </div>
           </div>
 
@@ -305,7 +320,7 @@
                 <div class="trend-value">{{ m.total_attempts }} <span class="trend-unit">Attempts</span></div>
                 <div class="trend-footer">
                   <span class="chip-green-sm">{{ m.passed_attempts }} Passed</span>
-                  <span class="text-xs font-bold text-slate-600">
+                  <span class="text-xs font-semibold text-slate-600">
                     {{ calculateRate(m.passed_attempts, m.total_attempts) }}% Success
                   </span>
                 </div>
@@ -322,8 +337,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useApi } from '@/composables/useApi';
+import AppPagination from '@/components/common/AppPagination.vue';
 
 definePageMeta({
   layout: 'dashboard',
@@ -341,6 +357,28 @@ const examBreakdown = ref<any[]>([]);
 const partnerBreakdown = ref<any[]>([]);
 const certBreakdown = ref<any[]>([]);
 const monthlyTrend = ref<any[]>([]);
+
+// Pagination state
+const examPage = ref(1);
+const examPerPage = ref(10);
+const paginatedExamBreakdown = computed(() => {
+  const start = (examPage.value - 1) * examPerPage.value;
+  return examBreakdown.value.slice(start, start + examPerPage.value);
+});
+
+const partnerPage = ref(1);
+const partnerPerPage = ref(10);
+const paginatedPartnerBreakdown = computed(() => {
+  const start = (partnerPage.value - 1) * partnerPerPage.value;
+  return partnerBreakdown.value.slice(start, start + partnerPerPage.value);
+});
+
+const certPage = ref(1);
+const certPerPage = ref(10);
+const paginatedCertBreakdown = computed(() => {
+  const start = (certPage.value - 1) * certPerPage.value;
+  return certBreakdown.value.slice(start, start + certPerPage.value);
+});
 
 const fetchAnalytics = async () => {
   loading.value = true;
@@ -403,56 +441,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.gsfin-admin-page {
-  padding: 40px 48px;
-  background: #FAFAFD;
-  min-height: 100vh;
-  box-sizing: border-box;
-}
-.admin-wrap {
-  max-width: 1440px;
-  margin: 0 auto;
-}
-
-.admin-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
-}
-
-.eyebrow-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.74rem;
-  font-weight: 800;
-  color: #E31B23;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.admin-title {
-  font-size: 1.95rem;
-  font-weight: 800;
-  color: #0F172A;
-  margin: 0;
-  letter-spacing: -0.02em;
-}
-
-.admin-subtitle {
-  font-size: 0.94rem;
-  color: #64748B;
-  margin: 6px 0 0 0;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+/* Page-specific styles for Reports & Analytics */
 
 .filter-select-wrap {
   display: inline-flex;
@@ -468,89 +457,11 @@ onMounted(() => {
   border: none;
   background: transparent;
   font-size: 0.84rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #0F172A;
   outline: none;
   cursor: pointer;
 }
-
-.btn-red {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #E31B23;
-  color: #FFFFFF;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 0.88rem;
-  box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-.btn-red:hover { background: #C4131B; transform: translateY(-1px); }
-
-.btn-glass {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #FFFFFF;
-  color: #334155;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  padding: 10px 20px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 0.88rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-glass:hover { background: #F8FAFC; color: #E31B23; border-color: rgba(227, 27, 35, 0.3); }
-
-/* KPI Grid */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-}
-@media (max-width: 1024px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 600px) { .kpi-grid { grid-template-columns: 1fr; } }
-
-.kpi-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 20px;
-  padding: 24px;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.02);
-}
-
-.kpi-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  flex-shrink: 0;
-}
-.bg-amber-light { background: rgba(245, 158, 11, 0.1); }
-.bg-indigo-light { background: rgba(79, 70, 229, 0.1); }
-.bg-emerald-light { background: rgba(16, 185, 129, 0.1); }
-.bg-red-light { background: rgba(227, 27, 35, 0.1); }
-
-.text-amber { color: #D97706; }
-.text-indigo { color: #4F46E5; }
-.text-emerald { color: #059669; }
-.text-red { color: #E31B23; }
-
-.kpi-content { display: flex; flex-direction: column; }
-.kpi-label { font-size: 0.74rem; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; }
-.kpi-value { font-size: 1.6rem; font-weight: 800; color: #0F172A; line-height: 1.2; margin-top: 2px; }
-.kpi-sub { font-size: 0.74rem; font-weight: 600; margin-top: 2px; }
 
 /* Panel & Tabs */
 .panel-card {
@@ -575,7 +486,7 @@ onMounted(() => {
   padding: 10px 18px;
   border-radius: 12px;
   font-size: 0.84rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #64748B;
   cursor: pointer;
   transition: all 0.2s;
@@ -596,44 +507,24 @@ onMounted(() => {
   flex-wrap: wrap;
 }
 
-.panel-title { font-size: 1.15rem; font-weight: 800; color: #0F172A; margin: 0; }
+.panel-title { font-size: 1.15rem; font-weight: 600; color: #0F172A; margin: 0; }
 .panel-desc { font-size: 0.84rem; color: #64748B; margin: 4px 0 0 0; }
 
 .total-count-badge {
   padding: 4px 12px;
   border-radius: 50px;
   font-size: 0.74rem;
-  font-weight: 800;
+  font-weight: 600;
   background: #F1F5F9;
   color: #475569;
 }
 
-/* Tables */
-.table-responsive { overflow-x: auto; }
-.gsfin-table { width: 100%; border-collapse: collapse; text-align: left; }
-.gsfin-table th {
-  padding: 14px 18px;
-  font-size: 0.74rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #64748B;
-  background: #FAFAFD;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-}
-.gsfin-table td {
-  padding: 16px 18px;
-  font-size: 0.88rem;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-  vertical-align: middle;
-}
-.gsfin-table tbody tr:hover { background: #F8FAFC; }
 
 .chip-green-sm {
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   background: rgba(16, 185, 129, 0.1);
   color: #059669;
 }
@@ -642,12 +533,12 @@ onMounted(() => {
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   background: #F1F5F9;
   color: #64748B;
 }
 
-.badge-chip { padding: 4px 12px; border-radius: 50px; font-size: 0.74rem; font-weight: 800; }
+.badge-chip { padding: 4px 12px; border-radius: 50px; font-size: 0.74rem; font-weight: 600; }
 .chip-green { background: rgba(16, 185, 129, 0.1); color: #059669; }
 .chip-amber { background: rgba(245, 158, 11, 0.1); color: #D97706; }
 
@@ -667,7 +558,7 @@ onMounted(() => {
 .code-pill {
   font-family: monospace;
   font-size: 0.74rem;
-  font-weight: 800;
+  font-weight: 600;
   background: #F1F5F9;
   color: #334155;
   padding: 2px 8px;
@@ -681,8 +572,8 @@ onMounted(() => {
   border-radius: 18px;
   padding: 20px;
 }
-.trend-month { font-size: 0.82rem; font-weight: 800; color: #64748B; text-transform: uppercase; }
-.trend-value { font-size: 1.5rem; font-weight: 800; color: #0F172A; margin: 4px 0 12px 0; }
+.trend-month { font-size: 0.82rem; font-weight: 600; color: #64748B; text-transform: uppercase; }
+.trend-value { font-size: 1.5rem; font-weight: 600; color: #0F172A; margin: 4px 0 12px 0; }
 .trend-unit { font-size: 0.82rem; font-weight: 600; color: #64748B; }
 .trend-footer { display: flex; align-items: center; justify-content: space-between; }
 </style>

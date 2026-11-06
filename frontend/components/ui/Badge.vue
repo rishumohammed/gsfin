@@ -17,7 +17,7 @@ defineProps<{
   align-items: center;
   border-radius: var(--r-pill);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 3px 9px;
   letter-spacing: 0.1px;
   line-height: 1;

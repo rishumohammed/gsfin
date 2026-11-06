@@ -96,7 +96,7 @@ const formatDate = (date: string) => dayjs(date).format('MMM D, h:mm A');
 
 .session-title {
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--g7);
   letter-spacing: -0.3px;
 }

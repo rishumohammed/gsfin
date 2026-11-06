@@ -32,7 +32,7 @@ const isCritical = computed(() => props.seconds <= 60 && props.seconds > 0);
   border-radius: 24px;
   padding: 6px 16px;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   color: #e8eaf6;
   letter-spacing: 0.05em;
   transition: all 0.3s ease;

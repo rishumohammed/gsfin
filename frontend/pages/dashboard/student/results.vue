@@ -128,7 +128,7 @@ onMounted(async () => {
 :deep(th) {
   background: #f8fafc !important;
   font-size: 11px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   text-transform: uppercase !important;
   letter-spacing: 1px !important;
   color: #64748b !important;

@@ -618,7 +618,7 @@ definePageMeta({
 }
 .reading-content :deep(h1), .reading-content :deep(h2), .reading-content :deep(h3) {
   color: #0f172a;
-  font-weight: 800;
+  font-weight: 600;
   margin-top: 2rem;
   margin-bottom: 0.75rem;
 }

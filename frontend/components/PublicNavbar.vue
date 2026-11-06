@@ -24,7 +24,7 @@
 
             <div class="nav-dropdown-menu mega-menu-qualifications">
               <div class="dropdown-header">
-                <span class="text-xs font-black uppercase text-red-600 tracking-wider">Qualification Framework</span>
+                <span class="text-xs font-semibold uppercase text-red-600 tracking-wider">Qualification Framework</span>
               </div>
               <div class="dropdown-grid-2col">
                 <NuxtLink
@@ -287,11 +287,11 @@
               <div class="success-icon-circle mx-auto mb-3">
                 <i class="mdi mdi-check"></i>
               </div>
-              <h3 class="text-xl font-extrabold text-slate-900 mb-2">Message Sent!</h3>
+              <h3 class="text-xl font-semibold text-slate-900 mb-2">Message Sent!</h3>
               <p class="text-slate-600 text-sm mb-6 max-w-sm mx-auto">
                 Thank you for contacting GSFIN. Our support team will get back to you within 24 hours.
               </p>
-              <button class="btn-red px-6 py-2.5 rounded-xl text-sm font-bold" @click="showContactModal = false; contactSuccess = false">
+              <button class="btn-red px-6 py-2.5 rounded-xl text-sm font-semibold" @click="showContactModal = false; contactSuccess = false">
                 Done
               </button>
             </div>
@@ -387,8 +387,11 @@ const handleScroll = () => {
 
 const handleCtaClick = () => {
   mobileMenuOpen.value = false;
-  emit('open-partner-modal');
-  router.push('/become-a-partner');
+  if (route.path === '/become-a-partner') {
+    emit('open-partner-modal');
+  } else {
+    router.push('/become-a-partner?apply=true');
+  }
 };
 
 const openQuickContactModal = () => {
@@ -621,7 +624,7 @@ onUnmounted(() => {
 .dropdown-item-title {
   display: block;
   font-size: 0.84rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin-bottom: 2px;
 }
@@ -645,7 +648,7 @@ onUnmounted(() => {
   justify-content: space-between;
   padding: 6px 8px;
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #E31B23 !important;
   text-decoration: none !important;
   border-radius: 8px;
@@ -682,7 +685,7 @@ onUnmounted(() => {
   padding: 8px 18px;
   border-radius: 50px;
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
   transition: background 0.2s;
 }
@@ -700,7 +703,7 @@ onUnmounted(() => {
   text-decoration: none;
   padding: 9px 20px;
   border-radius: 50px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.82rem;
   box-shadow: 0 2px 8px rgba(227, 27, 35, 0.18);
   transition: all 0.2s;
@@ -817,7 +820,7 @@ onUnmounted(() => {
   color: #FFFFFF !important;
   padding: 12px 24px;
   border-radius: 50px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.88rem;
   border: none;
   cursor: pointer;
@@ -887,7 +890,7 @@ onUnmounted(() => {
   backdrop-filter: blur(10px);
   color: #FFFFFF;
   font-size: 0.76rem;
-  font-weight: 700;
+  font-weight: 600;
   padding: 6px 14px;
   border-radius: 10px;
   white-space: nowrap;
@@ -1031,7 +1034,7 @@ onUnmounted(() => {
 
 .eyebrow-red {
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.12em;
   color: #E31B23;
 }
@@ -1147,7 +1150,7 @@ onUnmounted(() => {
 .eyebrow-chip {
   display: block;
   font-size: 0.68rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #E31B23;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1155,7 +1158,7 @@ onUnmounted(() => {
 
 .modal-title {
   font-size: 1.1rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0;
   line-height: 1.2;
@@ -1189,7 +1192,7 @@ onUnmounted(() => {
 .form-label-xs {
   display: block;
   font-size: 0.74rem;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   color: #475569;
   margin-bottom: 4px;
@@ -1223,7 +1226,7 @@ onUnmounted(() => {
   border: 1px solid rgba(15, 23, 42, 0.12);
   padding: 10px 20px;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -1238,7 +1241,7 @@ onUnmounted(() => {
   border: none;
   padding: 10px 20px;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 600;
   box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
   transition: all 0.2s ease;
   cursor: pointer;

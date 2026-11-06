@@ -4,38 +4,19 @@
     <div class="bg-white border-b border-slate-200/80 shadow-xs mb-8">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="d-flex align-center justify-space-between flex-wrap gap-4">
-          <div class="d-flex align-center gap-4">
-            <v-btn
-              to="/dashboard/admin/public-exams"
-              icon="mdi-arrow-left"
-              variant="outlined"
-              color="slate"
-              size="small"
-              class="rounded-xl border-slate-300"
-              title="Back to All Exams"
-            />
-            <div>
-              <div class="d-flex align-center gap-2 mb-1 flex-wrap">
-                <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-                  Exam Categories Manager
-                </h1>
-              </div>
-              <p class="text-xs sm:text-sm text-slate-500 font-medium">
-                Create, edit, and toggle classification categories for certification exams and mock tests.
-              </p>
-            </div>
+          <div class="d-flex align-center gap-3">
+            <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 m-0">
+              Categories
+            </h1>
           </div>
 
           <div>
-            <v-btn
-              color="#E31B23"
-              size="large"
-              class="font-bold text-white text-none rounded-xl shadow-md hover:bg-red-700"
-              prepend-icon="mdi-plus"
+            <button
+              class="btn-red"
               @click="openModal()"
             >
-              Add Category
-            </v-btn>
+              <i class="mdi mdi-plus"></i> Add Category
+            </button>
           </div>
         </div>
       </div>
@@ -47,7 +28,7 @@
       <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div v-if="loading" class="p-12 text-center">
           <v-progress-circular indeterminate color="#E31B23" size="48"></v-progress-circular>
-          <div class="mt-4 text-xs font-bold text-slate-500">Loading categories...</div>
+          <div class="mt-4 text-xs font-semibold text-slate-500">Loading categories...</div>
         </div>
 
         <v-data-table
@@ -62,13 +43,13 @@
               <div class="empty-state-icon-box">
                 <v-icon icon="mdi-shape-outline" size="32" color="#E31B23"></v-icon>
               </div>
-              <h3 class="text-base font-black text-slate-900 mb-1">No Categories Found</h3>
+              <h3 class="text-base font-semibold text-slate-900 mb-1">No Categories Found</h3>
               <p class="text-xs text-slate-500 max-w-md mx-auto mb-6">
                 Start by creating category classifications to organize certification exams.
               </p>
               <v-btn
                 color="#E31B23"
-                class="font-bold text-white text-none rounded-xl shadow-md"
+                class="font-semibold text-white text-none rounded-xl shadow-md"
                 prepend-icon="mdi-plus"
                 @click="openModal()"
               >
@@ -80,7 +61,7 @@
           <!-- Category Name Column -->
           <template v-slot:item.name="{ item }">
             <div class="py-3">
-              <div class="font-black text-slate-900 text-sm mb-0.5">{{ item.name }}</div>
+              <div class="font-semibold text-slate-900 text-sm mb-0.5">{{ item.name }}</div>
               <div class="text-xs text-slate-500 font-mono">
                 slug: <strong class="text-red-600">{{ item.slug }}</strong>
               </div>
@@ -98,7 +79,7 @@
           <template v-slot:item.status="{ item }">
             <span
               :class="[
-                'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-wider',
+                'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider',
                 item.status === 'active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200'
               ]"
             >
@@ -203,14 +184,14 @@
             <v-btn
               variant="outlined"
               color="slate"
-              class="text-none font-bold rounded-xl border-slate-300 me-3 mr-3"
+              class="text-none font-semibold rounded-xl border-slate-300 me-3 mr-3"
               @click="modal.show = false"
             >
               Cancel
             </v-btn>
             <v-btn
               color="#E31B23"
-              class="font-bold text-white text-none rounded-xl shadow-md"
+              class="font-semibold text-white text-none rounded-xl shadow-md"
               :loading="modal.loading"
               type="submit"
             >
@@ -224,7 +205,7 @@
     <!-- Delete Confirmation Dialog -->
     <v-dialog v-model="deleteDialog" max-width="440">
       <v-card class="modal-card pa-6 rounded-2xl bg-white border border-slate-200">
-        <h3 class="text-lg font-black text-slate-900 mb-2">Delete Category?</h3>
+        <h3 class="text-lg font-semibold text-slate-900 mb-2">Delete Category?</h3>
         <p class="text-xs text-slate-600 mb-6">
           Are you sure you want to delete category <strong>"{{ targetCategory?.name }}"</strong>? This action is permanent and cannot be undone.
         </p>
@@ -232,14 +213,14 @@
           <v-btn
             variant="outlined"
             color="slate"
-            class="text-none font-bold rounded-xl border-slate-300 me-3 mr-3"
+            class="text-none font-semibold rounded-xl border-slate-300 me-3 mr-3"
             @click="deleteDialog = false"
           >
             Cancel
           </v-btn>
           <v-btn
             color="#E31B23"
-            class="font-bold text-white text-none rounded-xl shadow-md"
+            class="font-semibold text-white text-none rounded-xl shadow-md"
             :loading="deleting"
             @click="deleteCategory"
           >
@@ -270,7 +251,7 @@ const targetCategory = ref<any>(null);
 const deleting = ref(false);
 
 const headers = [
-  { title: 'Category Name', key: 'name' },
+  { title: 'Category', key: 'name' },
   { title: 'Description', key: 'description' },
   { title: 'Status', key: 'status', align: 'center' as const },
   { title: 'Actions', key: 'actions', sortable: false, align: 'end' as const }
@@ -395,7 +376,7 @@ onMounted(() => {
 
 .modal-header-title {
   font-size: 1.15rem !important;
-  font-weight: 900 !important;
+  font-weight: 600 !important;
   color: #0F172A !important;
   margin: 0 !important;
 }
@@ -408,7 +389,7 @@ onMounted(() => {
 
 .form-label {
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #334155;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -476,7 +457,7 @@ onMounted(() => {
 }
 
 .gsfin-exam-table :deep(th) {
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   color: #0F172A !important;
   background-color: #F8FAFC !important;
   font-size: 0.75rem !important;

@@ -1,41 +1,12 @@
 <template>
   <div class="login-page">
     <div class="login-card-wrap">
-      <!-- GSFIN Brand Logo Header -->
-      <NuxtLink to="/" class="login-brand">
-        <img :src="fullLogoUrl || '/logo.webp'" alt="GSFIN Logo" class="login-logo-img" />
-      </NuxtLink>
-
       <!-- Glassmorphic Login Card -->
       <div class="login-card">
         <div class="login-card-header">
-          <h1 class="login-title">Welcome Back</h1>
-          <p class="login-sub">Sign in to GSFIN Partner &amp; Admin Portal</p>
-
-          <!-- Quick Demo Credential Chips -->
-          <div class="demo-chips-wrap mt-3">
-            <button
-              type="button"
-              class="demo-chip"
-              @click="email = 'admin@aems.local'; password = 'Admin@1234'"
-            >
-              <i class="mdi mdi-shield-account"></i> System Admin
-            </button>
-            <button
-              type="button"
-              class="demo-chip"
-              @click="email = 'mainadmin@certification.org'; password = 'Password123!'"
-            >
-              <i class="mdi mdi-domain"></i> Main Admin
-            </button>
-            <button
-              type="button"
-              class="demo-chip"
-              @click="email = 'staff@apexcenter.com'; password = 'Password123!'"
-            >
-              <i class="mdi mdi-office-building"></i> Partner Center
-            </button>
-          </div>
+          <NuxtLink to="/" class="login-brand">
+            <img :src="fullLogoUrl || '/logo.webp'" alt="GSFIN Logo" class="login-logo-img" />
+          </NuxtLink>
         </div>
 
         <form @submit.prevent="handleLogin">
@@ -168,12 +139,12 @@ const handleLogin = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 28px;
+  margin-bottom: 0;
   text-decoration: none;
 }
 
 .login-logo-img {
-  height: 52px;
+  height: 54px;
   width: auto;
   object-fit: contain;
 }
@@ -193,42 +164,6 @@ const handleLogin = async () => {
   margin-bottom: 32px;
 }
 
-.login-title {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: #0F172A;
-  margin: 0 0 8px 0;
-  letter-spacing: -0.02em;
-}
-
-.demo-chips-wrap {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: 14px;
-}
-
-.demo-chip {
-  background: rgba(15, 23, 42, 0.04);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 50px;
-  padding: 5px 12px;
-  font-size: 0.74rem;
-  font-weight: 700;
-  color: #475569;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  transition: all 0.2s ease;
-}
-
-.demo-chip:hover {
-  background: #E31B23;
-  color: #FFFFFF;
-  border-color: #E31B23;
-}
 
 .form-group {
   display: flex;
@@ -238,7 +173,7 @@ const handleLogin = async () => {
 
 .form-label {
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #334155;
 }
 
@@ -318,7 +253,7 @@ const handleLogin = async () => {
 
 .forgot-link {
   font-size: 0.84rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #E31B23;
   text-decoration: none;
   transition: color 0.2s;
@@ -336,7 +271,7 @@ const handleLogin = async () => {
   color: #FFFFFF;
   border: none;
   font-size: 0.94rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(227, 27, 35, 0.25);
   transition: all 0.25s ease;
@@ -397,7 +332,7 @@ const handleLogin = async () => {
   display: block;
   margin-top: 4px;
   color: #E31B23;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
 }
 .partner-link:hover {

@@ -183,7 +183,7 @@ function getImageUrl(path: string) {
 .fallback-logo {
   font-family: Georgia, serif;
   font-style: italic;
-  font-weight: bold;
+  font-weight: 600;
   font-size: 22px;
   color: #D4AF37;
 }
@@ -199,7 +199,7 @@ function getImageUrl(path: string) {
 }
 .exam-title-1, .exam-title-2 {
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 600;
   color: #003366;
   letter-spacing: 1px;
   margin: 0;
@@ -302,12 +302,12 @@ function getImageUrl(path: string) {
 }
 .seal-top, .seal-bot {
   font-size: 4px;
-  font-weight: bold;
+  font-weight: 600;
   color: #003366;
 }
 .seal-mid {
   font-size: 8px;
-  font-weight: bold;
+  font-weight: 600;
   color: #D4AF37;
 }
 
@@ -346,7 +346,7 @@ function getImageUrl(path: string) {
 .sig-name {
   font-family: Georgia, serif;
   font-size: 10px;
-  font-weight: bold;
+  font-weight: 600;
   color: #B8860B;
   margin: 0;
 }
@@ -373,7 +373,7 @@ function getImageUrl(path: string) {
 }
 .footer-title {
   font-size: 9.5px;
-  font-weight: bold;
+  font-weight: 600;
   color: #333;
 }
 .footer-sub {

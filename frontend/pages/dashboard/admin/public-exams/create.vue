@@ -16,7 +16,7 @@
             />
             <div>
               <div class="d-flex align-center gap-2 mb-1 flex-wrap">
-                <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+                <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
                   {{ isEditMode ? 'Edit Certification Exam' : 'Create Certification Exam' }}
                 </h1>
               </div>
@@ -30,7 +30,7 @@
             <v-btn
               variant="outlined"
               color="slate"
-              class="text-none font-bold rounded-xl border-slate-300 text-slate-700 me-3 mr-3"
+              class="text-none font-semibold rounded-xl border-slate-300 text-slate-700 me-3 mr-3"
               to="/dashboard/admin/public-exams"
             >
               Cancel
@@ -38,7 +38,7 @@
             <v-btn
               color="#E31B23"
               size="large"
-              class="font-bold text-white text-none rounded-xl shadow-md hover:bg-red-700"
+              class="font-semibold text-white text-none rounded-xl shadow-md hover:bg-red-700"
               prepend-icon="mdi-check-circle-outline"
               :loading="saving"
               @click="saveExam"
@@ -80,13 +80,35 @@
                   />
                 </div>
 
-                <v-row dense class="mb-4">
+                <v-row class="mb-4">
                   <v-col cols="12" sm="6">
                     <div class="form-group">
-                      <label class="form-label">Category <span class="text-red-500">*</span></label>
-                      <select v-model="fields.category_id" class="form-select">
-                        <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-                      </select>
+                      <div class="category-header-row">
+                        <label class="form-label mb-0">Category <span class="text-red-500">*</span></label>
+                        <button
+                          type="button"
+                          class="btn-manage-categories"
+                          title="Manage Categories"
+                          @click="openCategoryModal('list')"
+                        >
+                          <v-icon icon="mdi-cog-outline" size="14" class="mr-1"></v-icon>
+                          <span>Manage Categories</span>
+                        </button>
+                      </div>
+
+                      <div class="category-input-group">
+                        <select v-model="fields.category_id" class="form-select flex-grow-1 category-select-field">
+                          <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+                        </select>
+                        <button
+                          type="button"
+                          class="btn-cat-action"
+                          title="Quick Add New Category"
+                          @click="openAddCategoryQuick"
+                        >
+                          <v-icon icon="mdi-plus" size="20" color="#E31B23"></v-icon>
+                        </button>
+                      </div>
                     </div>
                   </v-col>
                   <v-col cols="12" sm="6">
@@ -223,43 +245,92 @@
 
                 <div class="form-group">
                   <label class="form-label">Exam Cover Artwork</label>
-                  <div v-if="fields.image_url" class="mb-3 rounded-xl overflow-hidden border border-slate-200 relative max-h-48 bg-slate-100">
+                  
+                  <!-- Hidden native file input -->
+                  <input
+                    type="file"
+                    ref="fileInputRef"
+                    accept="image/*"
+                    style="display: none;"
+                    @change="onFileSelected"
+                  />
+
+                  <!-- Preview Card when an image is present -->
+                  <div v-if="fields.image_url" class="cover-preview-card mb-3">
                     <img
                       :src="fields.image_url.startsWith('http') ? fields.image_url : (baseUrl.replace('/api', '') + (fields.image_url.startsWith('/') ? fields.image_url : '/' + fields.image_url))"
-                      alt="Exam Cover"
-                      class="w-full h-48 object-cover"
+                      alt="Exam Cover Preview"
+                      class="cover-preview-img"
+                      @error="(e: any) => { e.target.style.display = 'none'; }"
                     />
+                    <div class="cover-preview-info">
+                      <div class="cover-preview-title">Current Cover Artwork</div>
+                      <div class="cover-preview-url">{{ fields.image_url }}</div>
+                    </div>
+                    <div class="cover-preview-actions">
+                      <button
+                        type="button"
+                        class="btn-table-action btn-edit"
+                        title="Replace Artwork"
+                        @click="triggerFileSelect"
+                      >
+                        <i class="mdi mdi-upload"></i> Replace
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-table-action btn-danger"
+                        title="Remove Artwork"
+                        @click="fields.image_url = ''"
+                      >
+                        <i class="mdi mdi-trash-can-outline"></i> Remove
+                      </button>
+                    </div>
                   </div>
-                  <v-row dense>
-                    <v-col cols="12" sm="6">
-                      <div class="d-flex gap-2 align-center">
+
+                  <!-- Unified Upload Container -->
+                  <div class="cover-upload-container">
+                    <!-- Option 1: File Upload Dropzone -->
+                    <button
+                      type="button"
+                      class="btn-upload-dropzone"
+                      :disabled="uploadingImage"
+                      @click="triggerFileSelect"
+                    >
+                      <i :class="['mdi', uploadingImage ? 'mdi-loading spin-icon' : 'mdi-cloud-upload-outline', 'upload-icon']"></i>
+                      <div class="upload-text-wrap">
+                        <span class="upload-primary-text">{{ uploadingImage ? 'Uploading Image...' : 'Choose Image File' }}</span>
+                        <span class="upload-sub-text">PNG, JPG, WebP up to 5MB</span>
+                      </div>
+                    </button>
+
+                    <!-- Divider -->
+                    <div class="cover-divider">
+                      <span>OR</span>
+                    </div>
+
+                    <!-- Option 2: External Image URL -->
+                    <div class="cover-url-wrap">
+                      <div class="url-input-inner">
+                        <i class="mdi mdi-link-variant url-icon"></i>
                         <input
-                          type="file"
-                          ref="fileInputRef"
-                          accept="image/*"
-                          class="hidden"
-                          @change="onFileSelected"
+                          v-model="fields.image_url"
+                          type="text"
+                          placeholder="Or paste external image URL..."
+                          class="cover-url-input"
                         />
                         <button
+                          v-if="fields.image_url"
                           type="button"
-                          class="btn-upload-cover"
-                          :disabled="uploadingImage"
-                          @click="triggerFileSelect"
+                          class="btn-clear-url"
+                          title="Clear URL"
+                          @click="fields.image_url = ''"
                         >
-                          <v-icon icon="mdi-cloud-upload-outline" size="18"></v-icon>
-                          <span>{{ uploadingImage ? 'Uploading...' : 'Choose Image File' }}</span>
+                          <i class="mdi mdi-close-circle"></i>
                         </button>
                       </div>
-                    </v-col>
-                    <v-col cols="12" sm="6">
-                      <input
-                        v-model="fields.image_url"
-                        type="text"
-                        placeholder="Or paste external image URL..."
-                        class="form-input"
-                      />
-                    </v-col>
-                  </v-row>
+                      <span class="url-helper-text">Direct web link (e.g. https://...)</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -334,7 +405,7 @@
 
                 <!-- Proctoring -->
                 <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80">
-                  <div class="font-extrabold text-slate-900 text-sm mb-3 d-flex align-center gap-2">
+                  <div class="font-semibold text-slate-900 text-sm mb-3 d-flex align-center gap-2">
                     <v-icon icon="mdi-shield-alert-outline" size="18" color="#E31B23"></v-icon>
                     AI Proctoring & Integrity Checks
                   </div>
@@ -399,7 +470,7 @@
                   color="#E31B23"
                   block
                   size="large"
-                  class="font-bold text-white text-none rounded-xl shadow-md mb-3"
+                  class="font-semibold text-white text-none rounded-xl shadow-md mb-3"
                   prepend-icon="mdi-content-save-outline"
                   :loading="saving"
                   @click="saveExam"
@@ -411,7 +482,7 @@
                   variant="outlined"
                   color="slate"
                   block
-                  class="text-none font-bold rounded-xl border-slate-300 text-slate-700"
+                  class="text-none font-semibold rounded-xl border-slate-300 text-slate-700"
                   to="/dashboard/admin/public-exams"
                 >
                   Cancel
@@ -422,6 +493,182 @@
         </v-row>
       </v-form>
     </div>
+
+    <!-- ═══ MANAGE CATEGORIES MODAL (V-DIALOG) ═══ -->
+    <v-dialog v-model="showCategoryModal" max-width="600" scrollable>
+      <v-card class="category-modal-card">
+        <!-- Modal Header -->
+        <div class="cat-modal-header">
+          <div class="cat-modal-header-left">
+            <div class="cat-modal-icon-box">
+              <v-icon icon="mdi-shape-outline" size="22" color="#E31B23"></v-icon>
+            </div>
+            <div>
+              <h3 class="cat-modal-title">Manage Exam Categories</h3>
+              <p class="cat-modal-subtitle">Add, edit, or select categories for certification exams</p>
+            </div>
+          </div>
+          <v-btn
+            icon="mdi-close"
+            variant="tonal"
+            size="small"
+            class="rounded-xl"
+            @click="closeCategoryModal"
+          />
+        </div>
+
+        <v-card-text class="pa-5">
+          <!-- Sub-tabs row -->
+          <div class="cat-tabs-row">
+            <button
+              type="button"
+              class="cat-tab-btn"
+              :class="{ active: catModalTab === 'add' }"
+              @click="openAddCategoryQuick"
+            >
+              <v-icon icon="mdi-plus-circle-outline" size="16" class="mr-1"></v-icon>
+              {{ editingCatId ? 'Edit Category' : 'Add New Category' }}
+            </button>
+            <button
+              type="button"
+              class="cat-tab-btn"
+              :class="{ active: catModalTab === 'list' }"
+              @click="catModalTab = 'list'"
+            >
+              <v-icon icon="mdi-format-list-bulleted" size="16" class="mr-1"></v-icon>
+              Existing Categories ({{ categories.length }})
+            </button>
+            <NuxtLink
+              to="/dashboard/admin/public-exams/categories"
+              target="_blank"
+              class="cat-full-link"
+              title="Open full category management page in new tab"
+            >
+              <span>Full Manager</span>
+              <v-icon icon="mdi-open-in-new" size="14"></v-icon>
+            </NuxtLink>
+          </div>
+
+          <!-- TAB 1: ADD / EDIT -->
+          <div v-if="catModalTab === 'add'" class="pt-2">
+            <div class="form-group mb-4">
+              <label class="form-label">Category Name <span class="text-red-500">*</span></label>
+              <input
+                v-model="catForm.name"
+                type="text"
+                placeholder="e.g. Food Safety Auditing, Banking, Quality Assurance..."
+                class="form-input"
+                @input="onCatNameInput"
+              />
+            </div>
+
+            <div class="form-group mb-4">
+              <label class="form-label">URL Slug</label>
+              <input
+                v-model="catForm.slug"
+                type="text"
+                placeholder="e.g. food-safety-auditing"
+                class="form-input"
+              />
+              <span class="cat-field-hint">URL-friendly slug (auto-generated from category name)</span>
+            </div>
+
+            <div class="form-group mb-4">
+              <label class="form-label">Description (Optional)</label>
+              <textarea
+                v-model="catForm.description"
+                rows="3"
+                placeholder="Brief scope of certification exams covered by this category..."
+                class="form-textarea"
+              ></textarea>
+            </div>
+
+            <div class="form-group mb-2">
+              <label class="form-label">Visibility Status</label>
+              <select v-model="catForm.status" class="form-select">
+                <option value="active">Active (Visible)</option>
+                <option value="inactive">Inactive (Hidden)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- TAB 2: LIST EXISTING CATEGORIES -->
+          <div v-else class="cat-list-wrapper pt-2">
+            <div
+              v-for="cat in categories"
+              :key="cat.id"
+              class="cat-list-item"
+              :class="{ selected: cat.id === fields.category_id }"
+            >
+              <div class="cat-item-info">
+                <div class="cat-item-title-row">
+                  <span class="cat-item-name">{{ cat.name }}</span>
+                  <span class="cat-badge" :class="cat.status === 'active' ? 'badge-active' : 'badge-inactive'">
+                    {{ cat.status }}
+                  </span>
+                  <span v-if="cat.id === fields.category_id" class="badge-selected">
+                    Selected
+                  </span>
+                </div>
+                <div class="cat-item-desc">{{ cat.description || 'No description provided' }}</div>
+              </div>
+
+              <div class="cat-item-actions">
+                <v-btn
+                  size="small"
+                  :color="cat.id === fields.category_id ? '#10B981' : '#E31B23'"
+                  variant="tonal"
+                  class="cat-action-btn font-semibold rounded-lg text-none"
+                  prepend-icon="mdi-check"
+                  @click="selectAndCloseCat(cat)"
+                >
+                  {{ cat.id === fields.category_id ? 'Current' : 'Select' }}
+                </v-btn>
+                <v-btn
+                  size="small"
+                  variant="outlined"
+                  color="slate"
+                  class="cat-action-btn font-semibold rounded-lg text-none"
+                  icon="mdi-pencil"
+                  title="Edit Category"
+                  @click="startEditCategory(cat)"
+                />
+              </div>
+            </div>
+
+            <div v-if="categories.length === 0" class="cat-empty-state">
+              <v-icon icon="mdi-shape-outline" size="36" color="#94A3B8"></v-icon>
+              <p class="mt-2 mb-0 font-medium">No categories created yet.</p>
+              <button type="button" class="btn-create-first-cat mt-3" @click="openAddCategoryQuick">
+                <v-icon icon="mdi-plus" size="16" class="mr-1"></v-icon> Add First Category
+              </button>
+            </div>
+          </div>
+        </v-card-text>
+
+        <!-- Modal Actions Footer -->
+        <div class="cat-modal-footer">
+          <v-btn
+            variant="outlined"
+            color="slate"
+            class="text-none font-semibold rounded-xl border-slate-300 me-2"
+            @click="closeCategoryModal"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            v-if="catModalTab === 'add'"
+            color="#E31B23"
+            class="font-semibold text-white text-none rounded-xl shadow-md"
+            :loading="savingCat"
+            :disabled="savingCat || !catForm.name.trim()"
+            @click="saveQuickCategory"
+          >
+            {{ editingCatId ? 'Update Category' : 'Create & Select Category' }}
+          </v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
 
     <!-- Snackbar -->
     <v-snackbar v-model="snackbar" :color="snackbarColor" rounded="lg">
@@ -525,15 +772,121 @@ async function onFileSelected(e: Event) {
   }
 }
 
+// Quick Category Management Modal State
+const showCategoryModal = ref(false);
+const catModalTab = ref<'add' | 'list'>('add');
+const editingCatId = ref<string | null>(null);
+const savingCat = ref(false);
+const catForm = ref({
+  name: '',
+  slug: '',
+  description: '',
+  status: 'active'
+});
+
+function openCategoryModal(tab: 'add' | 'list' = 'list') {
+  catModalTab.value = tab;
+  if (tab === 'add' && !editingCatId.value) {
+    catForm.value = { name: '', slug: '', description: '', status: 'active' };
+  }
+  showCategoryModal.value = true;
+}
+
+function openAddCategoryQuick() {
+  editingCatId.value = null;
+  catForm.value = { name: '', slug: '', description: '', status: 'active' };
+  catModalTab.value = 'add';
+  showCategoryModal.value = true;
+}
+
+function closeCategoryModal() {
+  showCategoryModal.value = false;
+  editingCatId.value = null;
+}
+
+function onCatNameInput() {
+  if (!editingCatId.value) {
+    catForm.value.slug = catForm.value.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+  }
+}
+
+function startEditCategory(cat: any) {
+  editingCatId.value = cat.id;
+  catForm.value = {
+    name: cat.name,
+    slug: cat.slug || '',
+    description: cat.description || '',
+    status: cat.status || 'active'
+  };
+  catModalTab.value = 'add';
+}
+
+function selectAndCloseCat(cat: any) {
+  fields.value.category_id = cat.id;
+  snackbarText.value = `Selected category: "${cat.name}"`;
+  snackbarColor.value = 'success';
+  snackbar.value = true;
+  closeCategoryModal();
+}
+
+async function saveQuickCategory() {
+  if (!catForm.value.name.trim()) return;
+  savingCat.value = true;
+  try {
+    if (!catForm.value.slug) {
+      catForm.value.slug = catForm.value.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+    }
+
+    if (editingCatId.value) {
+      await api.put(`/admin/public-exams/categories/${editingCatId.value}`, catForm.value);
+      snackbarText.value = 'Category updated successfully!';
+    } else {
+      const { data } = await api.post('/admin/public-exams/categories', catForm.value);
+      if (data?.id) {
+        fields.value.category_id = data.id;
+      }
+      snackbarText.value = 'Category created and selected!';
+    }
+
+    await fetchCategories();
+    if (!editingCatId.value && catForm.value.name) {
+      const found = categories.value.find(c => c.name.toLowerCase() === catForm.value.name.trim().toLowerCase());
+      if (found) fields.value.category_id = found.id;
+    }
+
+    snackbarColor.value = 'success';
+    snackbar.value = true;
+    closeCategoryModal();
+  } catch (err: any) {
+    alert(err.response?.data?.message || 'Failed to save category');
+  } finally {
+    savingCat.value = false;
+  }
+}
+
 async function fetchCategories() {
   try {
-    const { data } = await api.get('/public/exams/categories');
+    const { data } = await api.get('/admin/public-exams/categories');
     categories.value = data;
     if (data.length > 0 && !fields.value.category_id) {
       fields.value.category_id = data[0].id;
     }
   } catch (err) {
-    console.error('Failed to load categories:', err);
+    try {
+      const { data } = await api.get('/public/exams/categories');
+      categories.value = data;
+      if (data.length > 0 && !fields.value.category_id) {
+        fields.value.category_id = data[0].id;
+      }
+    } catch (fallbackErr) {
+      console.error('Failed to load categories:', fallbackErr);
+    }
   }
 }
 
@@ -662,7 +1015,7 @@ onMounted(async () => {
 
 .card-title {
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0;
 }
@@ -686,7 +1039,7 @@ onMounted(async () => {
 
 .form-label {
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #334155;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -722,7 +1075,7 @@ onMounted(async () => {
   background: #F8FAFC;
   color: #334155;
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   width: 100%;
   justify-content: center;
@@ -765,7 +1118,7 @@ onMounted(async () => {
 
 .toggle-title {
   font-size: 0.84rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
 }
 
@@ -773,5 +1126,461 @@ onMounted(async () => {
   font-size: 0.74rem;
   color: #64748B;
   font-weight: 500;
+}
+
+/* Category Management Input & Label Controls */
+.category-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.btn-manage-categories {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #E31B23;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.15s ease;
+  border-radius: 6px;
+}
+.btn-manage-categories:hover {
+  color: #B91C1C;
+  background-color: #FEF2F2;
+  text-decoration: underline;
+}
+
+.category-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.category-select-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-cat-action {
+  height: 42px;
+  width: 42px;
+  min-width: 42px;
+  border-radius: 10px;
+  border: 1px solid #CBD5E1;
+  background-color: #F8FAFC;
+  color: #E31B23;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+.btn-cat-action:hover {
+  background-color: #FEF2F2;
+  border-color: #E31B23;
+  color: #B91C1C;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(227, 27, 35, 0.15);
+}
+
+/* Category Modal Dialog Styles */
+.category-modal-card {
+  border-radius: 16px !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  overflow: hidden !important;
+}
+
+.cat-modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid #E2E8F0;
+  background-color: #FAFAFD;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cat-modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cat-modal-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background-color: #FEF2F2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cat-modal-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+}
+
+.cat-modal-subtitle {
+  font-size: 0.78rem;
+  color: #64748B;
+  margin: 2px 0 0 0;
+  font-weight: 500;
+}
+
+.cat-tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #E2E8F0;
+  flex-wrap: wrap;
+}
+
+.cat-tab-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #CBD5E1;
+  background-color: #F8FAFC;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.15s ease;
+}
+.cat-tab-btn:hover {
+  background-color: #F1F5F9;
+  color: #0F172A;
+}
+.cat-tab-btn.active {
+  background-color: #E31B23;
+  color: #FFFFFF;
+  border-color: #E31B23;
+  box-shadow: 0 2px 4px rgba(227, 27, 35, 0.2);
+}
+
+.cat-full-link {
+  margin-left: auto;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #E31B23;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+.cat-full-link:hover {
+  background-color: #FEF2F2;
+  text-decoration: underline;
+}
+
+.cat-field-hint {
+  font-size: 0.72rem;
+  color: #64748B;
+  margin-top: 4px;
+  display: block;
+  font-weight: 500;
+}
+
+.cat-list-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.cat-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  background-color: #F8FAFC;
+  transition: all 0.15s ease;
+}
+.cat-list-item:hover {
+  border-color: #CBD5E1;
+  background-color: #FFFFFF;
+}
+.cat-list-item.selected {
+  border-color: #E31B23;
+  background-color: #FEF2F2;
+}
+
+.cat-item-info {
+  flex: 1;
+  min-width: 0;
+  margin-right: 12px;
+}
+
+.cat-item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cat-item-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.cat-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.badge-active {
+  background-color: #DEF7EC;
+  color: #03543F;
+}
+.badge-inactive {
+  background-color: #E2E8F0;
+  color: #475569;
+}
+.badge-selected {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
+.cat-item-desc {
+  font-size: 0.74rem;
+  color: #64748B;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cat-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.cat-empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: #64748B;
+  font-size: 0.84rem;
+}
+
+.btn-create-first-cat {
+  background-color: #E31B23;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.cat-modal-footer {
+  padding: 16px 24px;
+  background-color: #FAFAFD;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.text-2xs {
+  font-size: 0.68rem;
+  line-height: 1rem;
+}
+
+/* Exam Cover Artwork Container & Controls */
+.cover-upload-container {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+@media (max-width: 768px) {
+  .cover-upload-container {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .cover-divider {
+    display: none;
+  }
+}
+
+.btn-upload-dropzone {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px dashed #CBD5E1;
+  background: #F8FAFC;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+}
+.btn-upload-dropzone:hover {
+  border-color: #E31B23;
+  background: #FEF2F2;
+  color: #E31B23;
+}
+.btn-upload-dropzone .upload-icon {
+  font-size: 1.5rem;
+  color: #E31B23;
+  flex-shrink: 0;
+}
+.upload-text-wrap {
+  display: flex;
+  flex-direction: column;
+}
+.upload-primary-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0F172A;
+}
+.upload-sub-text {
+  font-size: 0.72rem;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.cover-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94A3B8;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.cover-url-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.url-input-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.url-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 1.1rem;
+  color: #94A3B8;
+  pointer-events: none;
+}
+.cover-url-input {
+  width: 100%;
+  padding: 10px 36px 10px 38px;
+  border-radius: 10px;
+  border: 1px solid #CBD5E1;
+  background-color: #F8FAFC;
+  font-size: 0.85rem;
+  color: #0F172A;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.cover-url-input:focus {
+  border-color: #E31B23;
+  background-color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.1);
+}
+.btn-clear-url {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #94A3B8;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1rem;
+}
+.btn-clear-url:hover {
+  color: #EF4444;
+}
+.url-helper-text {
+  font-size: 0.72rem;
+  color: #64748B;
+  font-weight: 500;
+}
+
+/* Cover Preview Card */
+.cover-preview-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+}
+.cover-preview-img {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #CBD5E1;
+  flex-shrink: 0;
+}
+.cover-preview-info {
+  flex: 1;
+  min-width: 0;
+}
+.cover-preview-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0F172A;
+}
+.cover-preview-url {
+  font-size: 0.72rem;
+  color: #64748B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: monospace;
+}
+.cover-preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 </style>

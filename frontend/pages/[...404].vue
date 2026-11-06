@@ -54,7 +54,7 @@ const layoutName = computed(() =>
 const homeRoute = computed(() => {
   const role = authStore.userRole;
   if (!authStore.isAuthenticated) return '/';
-  if (role === 'super_admin') return '/dashboard/admin';
+  if (role === 'super_admin' || role === 'main_admin') return '/dashboard/admin';
   if (role === 'tutor') return '/dashboard/tutor';
   if (role === 'student') return '/dashboard/student';
   if (role === 'employer') return '/dashboard/employer';
@@ -74,7 +74,7 @@ const homeRoute = computed(() => {
 
 .error-code {
   font-size: clamp(80px, 15vw, 160px);
-  font-weight: 900;
+  font-weight: 600;
   line-height: 1;
   background: linear-gradient(135deg, #5624D0 0%, #A435F0 100%);
   -webkit-background-clip: text;

@@ -461,7 +461,7 @@ watch(viewMode, (newVal) => {
 
 .column-title {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--g7);
 }
 

@@ -467,7 +467,7 @@ const contactEmail = () => {
 .custom-table :deep(th) {
   text-transform: uppercase;
   font-size: 11px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   color: var(--g5) !important;
   letter-spacing: 0.5px;
 }

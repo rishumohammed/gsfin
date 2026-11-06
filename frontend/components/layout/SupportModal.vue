@@ -194,7 +194,7 @@ defineExpose({ open });
 
 .modal-title {
   font-size: 1.1rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0;
   line-height: 1.2;
@@ -291,7 +291,7 @@ defineExpose({ open });
 
 .channel-name {
   font-size: 0.86rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
 }
 
@@ -315,7 +315,7 @@ defineExpose({ open });
 .section-label {
   display: block;
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #64748B;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -335,7 +335,7 @@ defineExpose({ open });
   border: 1px solid rgba(15, 23, 42, 0.06);
   color: #334155;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -371,7 +371,7 @@ defineExpose({ open });
 
 .protip-title {
   font-size: 0.76rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #92400E;
   display: block;
 }
@@ -385,7 +385,7 @@ defineExpose({ open });
 
 .protip-link {
   color: #92400E;
-  font-weight: 800;
+  font-weight: 600;
   text-decoration: underline;
 }
 
@@ -405,7 +405,7 @@ defineExpose({ open });
   border: none;
   padding: 10px 20px;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.86rem;
   box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
   transition: all 0.2s ease;

@@ -5,10 +5,10 @@
     <main class="page-wrap pt-32 pb-24 max-w-4xl mx-auto px-4 sm:px-6">
       <!-- Page Header -->
       <div class="mb-10 text-center">
-        <span class="eyebrow-red text-xs font-black tracking-wider uppercase mb-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-100">
+        <span class="eyebrow-red text-xs font-semibold tracking-wider uppercase mb-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-100">
           <i class="mdi mdi-cookie-outline text-red-600"></i> PRIVACY &amp; CONSENT
         </span>
-        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">Cookie Preferences</h1>
+        <h1 class="text-3xl sm:text-4xl font-semibold text-slate-900 tracking-tight mb-3">Cookie Preferences</h1>
         <p class="text-slate-500 text-sm max-w-xl mx-auto">
           Manage your privacy settings and customize how GSFIN collects and uses cookie data across our platforms.
         </p>
@@ -16,9 +16,9 @@
 
       <!-- Interactive Cookie Consent Controls Card -->
       <div class="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-10 shadow-sm mb-10">
-        <h2 class="text-lg font-bold text-slate-900 mb-6 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-slate-900 mb-6 flex items-center justify-between">
           <span>Manage Cookie Categories</span>
-          <span v-if="savedSuccess" class="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+          <span v-if="savedSuccess" class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
             <i class="mdi mdi-check-circle me-1"></i> Preferences Saved
           </span>
         </h2>
@@ -28,8 +28,8 @@
           <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/60 flex items-start justify-between gap-4">
             <div>
               <div class="flex items-center gap-2 mb-1">
-                <h3 class="font-bold text-slate-900 text-sm">Essential &amp; System Cookies</h3>
-                <span class="text-[10px] font-extrabold uppercase bg-slate-200 text-slate-700 px-2 py-0.5 rounded">Strictly Required</span>
+                <h3 class="font-semibold text-slate-900 text-sm">Essential &amp; System Cookies</h3>
+                <span class="text-[10px] font-semibold uppercase bg-slate-200 text-slate-700 px-2 py-0.5 rounded">Strictly Required</span>
               </div>
               <p class="text-xs text-slate-600 leading-relaxed">
                 Necessary for secure candidate authentication, certificate verification lookup, and core site navigation. Cannot be disabled.
@@ -43,7 +43,7 @@
           <!-- Analytics Cookies -->
           <div class="p-5 rounded-2xl bg-white border border-slate-200/80 flex items-start justify-between gap-4">
             <div>
-              <h3 class="font-bold text-slate-900 text-sm mb-1">Performance &amp; Analytics Cookies</h3>
+              <h3 class="font-semibold text-slate-900 text-sm mb-1">Performance &amp; Analytics Cookies</h3>
               <p class="text-xs text-slate-600 leading-relaxed">
                 Allows us to collect anonymized telemetry on page performance, verification usage, and portal navigation speed.
               </p>
@@ -59,7 +59,7 @@
           <!-- Functional Cookies -->
           <div class="p-5 rounded-2xl bg-white border border-slate-200/80 flex items-start justify-between gap-4">
             <div>
-              <h3 class="font-bold text-slate-900 text-sm mb-1">Functional &amp; Preference Cookies</h3>
+              <h3 class="font-semibold text-slate-900 text-sm mb-1">Functional &amp; Preference Cookies</h3>
               <p class="text-xs text-slate-600 leading-relaxed">
                 Remembers your language preferences, region selection, and portal layout choices for future visits.
               </p>
@@ -74,10 +74,10 @@
 
           <!-- Action Buttons -->
           <div class="pt-4 flex flex-wrap items-center justify-end gap-3 border-t border-slate-100">
-            <button @click="acceptAll" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-bold transition">
+            <button @click="acceptAll" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition">
               Accept All
             </button>
-            <button @click="savePreferences" class="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition shadow-sm">
+            <button @click="savePreferences" class="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition shadow-sm">
               Save Preferences
             </button>
           </div>
@@ -86,7 +86,7 @@
 
       <!-- Dynamic Cookie Policy Body Text from Admin Panel -->
       <div class="bg-white rounded-3xl border border-slate-200/80 p-8 sm:p-12 shadow-sm">
-        <h2 class="text-lg font-bold text-slate-900 mb-4">Cookie Policy Notice</h2>
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">Cookie Policy Notice</h2>
         <div v-if="configMap?.cookie_policy_content" class="prose prose-slate max-w-none text-slate-700 text-sm leading-relaxed whitespace-pre-line">
           {{ configMap.cookie_policy_content }}
         </div>
@@ -95,7 +95,7 @@
             GSFIN uses cookies and similar cryptographic session tokens to authenticate user requests, prevent malicious proctoring tampering during online examinations, and ensure secure certificate lookup operations.
           </p>
           <p>
-            You can modify your browser settings to reject non-essential cookies at any time. For questions regarding our data privacy compliance under GDPR and international standards, please contact our Data Protection Officer at <a href="mailto:privacy@gsfin.org" class="text-red-600 font-bold">privacy@gsfin.org</a>.
+            You can modify your browser settings to reject non-essential cookies at any time. For questions regarding our data privacy compliance under GDPR and international standards, please contact our Data Protection Officer at <a href="mailto:privacy@gsfin.org" class="text-red-600 font-semibold">privacy@gsfin.org</a>.
           </p>
         </div>
       </div>

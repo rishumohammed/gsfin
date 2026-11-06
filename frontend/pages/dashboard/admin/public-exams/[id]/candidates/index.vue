@@ -8,7 +8,6 @@
       <div class="d-flex align-center justify-space-between flex-wrap gap-4">
         <div>
           <h1 class="text-h4 font-weight-bold mb-1">Candidates - {{ exam?.name || 'Loading...' }}</h1>
-          <p class="text-subtitle-2 text-secondary">Manage registrations and results for the "{{ exam?.name || '...' }}" entrance exam.</p>
         </div>
         <div class="d-flex gap-2 align-center">
           <!-- View Exam -->
@@ -98,6 +97,8 @@
         <v-data-table
           :headers="headers"
           :items="filteredCandidates"
+          :items-per-page="10"
+          :items-per-page-options="[10, 25, 50, 100]"
           class="bg-transparent custom-table"
         >
           <!-- Candidate Name -->
@@ -122,8 +123,8 @@
           <!-- Login Status -->
           <template v-slot:item.last_login_at="{ item }">
             <div v-if="item.last_login_at">
-              <div class="text-body-2 font-weight-medium" style="color:#1e293b;">{{ formatDate(item.last_login_at) }}</div>
-              <div class="text-caption" style="color:#94a3b8;">{{ item.login_count }} login(s)</div>
+              <div class="text-body-2 font-weight-medium text-slate-800">{{ formatDate(item.last_login_at) }}</div>
+              <div class="text-caption text-slate-400">{{ item.login_count }} login(s)</div>
             </div>
             <v-chip v-else size="x-small" color="grey" variant="tonal" class="font-weight-bold">Never Logged In</v-chip>
           </template>
@@ -561,9 +562,9 @@ function exportPDF() {
         <td>${item.email || ''}</td>
         <td>${item.phone || ''}</td>
         <td>${formatDate(item.registered_at)}</td>
-        <td style="text-align: center;">${item.exam_status || ''}</td>
-        <td style="text-align: center;">${item.score || ''} (${item.percentage || '0'}%)</td>
-        <td style="text-align: center;">${item.result || ''}</td>
+        <td class="text-center">${item.exam_status || ''}</td>
+        <td class="text-center">${item.score || ''} (${item.percentage || '0'}%)</td>
+        <td class="text-center">${item.result || ''}</td>
         ${metaCells}
       </tr>
     `;
@@ -605,10 +606,13 @@ function exportPDF() {
             font-size: 12px;
             text-align: left;
           }
+          .text-center {
+            text-align: center;
+          }
           th {
             background-color: #f8fafc;
             color: #334155;
-            font-weight: bold;
+            font-weight: 600;
           }
           tr:nth-child(even) {
             background-color: #f8fafc;
@@ -630,9 +634,9 @@ function exportPDF() {
               <th>Email</th>
               <th>Phone</th>
               <th>Registered At</th>
-              <th style="text-align: center;">Status</th>
-              <th style="text-align: center;">Score</th>
-              <th style="text-align: center;">Result</th>
+              <th class="text-center">Status</th>
+              <th class="text-center">Score</th>
+              <th class="text-center">Result</th>
               ${metaHeaders.map(h => `<th>${h}</th>`).join('')}
             </tr>
           </thead>
@@ -666,7 +670,7 @@ onMounted(() => {
 .custom-table :deep(th) {
   text-transform: uppercase;
   font-size: 11px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   color: #475569 !important;
   letter-spacing: 0.5px;
 }

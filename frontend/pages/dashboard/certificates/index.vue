@@ -5,11 +5,7 @@
       <!-- ═══ TOP HEADER ROW ═══ -->
       <div class="admin-header-row">
         <div>
-          <div class="eyebrow-chip mb-1">
-            <i class="mdi mdi-certificate-outline"></i> CREDENTIAL PORTAL
-          </div>
           <h1 class="admin-title">{{ pageTitle }}</h1>
-          <p class="admin-subtitle">{{ pageSubtitle }}</p>
         </div>
 
         <div v-if="userRole !== 'student'" class="header-actions">
@@ -47,7 +43,7 @@
 
         <div v-else-if="certificates.length === 0" class="empty-state">
           <i class="mdi mdi-certificate-outline text-5xl text-slate-300 mb-3"></i>
-          <h3 class="font-bold text-slate-800 text-lg">No Certificates Found</h3>
+          <h3 class="font-semibold text-slate-800 text-lg">No Certificates Found</h3>
           <p class="text-slate-500 text-sm max-w-md mt-1">{{ emptyStateText }}</p>
         </div>
 
@@ -63,20 +59,20 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="item in certificates" :key="item.cert_number">
+              <tr v-for="item in paginatedCertificates" :key="item.cert_number">
                 <td>
                   <div class="flex items-center gap-3">
                     <div class="cert-avatar-badge">
                       <i class="mdi mdi-file-certificate text-red"></i>
                     </div>
                     <div>
-                      <div class="font-bold text-slate-900 text-sm">{{ item.student_name || authStore.user?.name }}</div>
+                      <div class="font-semibold text-slate-900 text-sm">{{ item.student_name || authStore.user?.name }}</div>
                       <div class="text-xs text-slate-400 font-mono">ID: {{ item.cert_number }}</div>
                     </div>
                   </div>
                 </td>
                 <td>
-                  <div class="font-bold text-slate-800 text-sm">{{ item.course_title }}</div>
+                  <div class="font-semibold text-slate-800 text-sm">{{ item.course_title }}</div>
                 </td>
                 <td class="text-slate-500 font-medium text-xs whitespace-nowrap">
                   {{ formatDate(item.issued_at) }}
@@ -99,13 +95,20 @@
               </tr>
             </tbody>
           </table>
+          <AppPagination
+            v-if="certificates.length > 0"
+            v-model="page"
+            v-model:items-per-page="perPage"
+            :total-items="certificates.length"
+            :per-page-options="[10, 25, 50, 100]"
+          />
         </div>
       </div>
 
       <!-- ═══ EXTERNAL CERTIFICATES TAB ═══ -->
       <div v-else-if="activeTab === 'external'" class="space-y-6">
         <div class="flex items-center justify-between gap-4 mb-4">
-          <h2 class="font-bold text-slate-900 text-lg">My Verified External Credentials</h2>
+          <h2 class="font-semibold text-slate-900 text-lg">My Verified External Credentials</h2>
           <button class="btn-red" @click="openAddExternalModal">
             <i class="mdi mdi-plus"></i> Add External Certificate
           </button>
@@ -117,7 +120,7 @@
 
         <div v-else-if="externalCertificates.length === 0" class="panel-card empty-state">
           <i class="mdi mdi-certificate-outline text-5xl text-slate-300 mb-3"></i>
-          <h3 class="font-bold text-slate-800 text-lg">No External Credentials</h3>
+          <h3 class="font-semibold text-slate-800 text-lg">No External Credentials</h3>
           <p class="text-slate-500 text-sm max-w-md mt-1">You have not uploaded any external certifications yet.</p>
         </div>
 
@@ -125,7 +128,7 @@
           <div v-for="cert in externalCertificates" :key="cert.id" class="external-card">
             <div class="flex items-start justify-between gap-3 mb-3">
               <div>
-                <h4 class="font-bold text-slate-900 text-base leading-snug line-clamp-2">{{ cert.certificate_name }}</h4>
+                <h4 class="font-semibold text-slate-900 text-base leading-snug line-clamp-2">{{ cert.certificate_name }}</h4>
                 <div class="text-slate-500 font-medium text-xs mt-1">{{ cert.issuer }}</div>
               </div>
               <div class="dropdown-actions">
@@ -172,6 +175,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useApi } from '@/composables/useApi';
 import IssueCertificateModal from '@/components/admin/IssueCertificateModal.vue';
 import ExternalCertificateModal from '@/components/certificates/ExternalCertificateModal.vue';
+import AppPagination from '@/components/common/AppPagination.vue';
 
 definePageMeta({
   layout: 'dashboard',
@@ -185,6 +189,14 @@ const loading = ref(true);
 const showIssueModal = ref(false);
 const certificates = ref<any[]>([]);
 const userRole = computed(() => authStore.userRole);
+
+// Pagination state
+const page = ref(1);
+const perPage = ref(10);
+const paginatedCertificates = computed(() => {
+  const start = (page.value - 1) * perPage.value;
+  return certificates.value.slice(start, start + perPage.value);
+});
 
 const activeTab = ref('internal');
 const showExternalModal = ref(false);
@@ -288,7 +300,7 @@ onMounted(() => {
 
 <style scoped>
 .gsfin-admin-page {
-  padding: 40px 48px;
+  padding: 24px 32px;
   background: #FAFAFD;
   min-height: 100vh;
   box-sizing: border-box;
@@ -303,7 +315,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
@@ -312,7 +324,7 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   font-size: 0.74rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #E31B23;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -320,7 +332,7 @@ onMounted(() => {
 
 .admin-title {
   font-size: 1.95rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0 0 6px 0;
   letter-spacing: -0.02em;
@@ -347,7 +359,7 @@ onMounted(() => {
   border: none;
   padding: 12px 22px;
   border-radius: 14px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.88rem;
   box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
   transition: all 0.2s ease;
@@ -377,7 +389,7 @@ onMounted(() => {
   padding: 10px 20px;
   border-radius: 12px;
   font-size: 0.88rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #64748B;
   background: transparent;
   border: none;
@@ -407,10 +419,44 @@ onMounted(() => {
 }
 
 /* Tables */
-.table-responsive { overflow-x: auto; }
-.gsfin-table { width: 100%; border-collapse: collapse; text-align: left; }
-.gsfin-table th { background: #F8FAFC; padding: 18px 24px; font-size: 0.74rem; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid rgba(15, 23, 42, 0.08); white-space: nowrap; }
-.gsfin-table td { padding: 20px 24px; font-size: 0.9rem; color: #334155; border-bottom: 1px solid rgba(15, 23, 42, 0.06); vertical-align: middle; }
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #FFFFFF;
+}
+
+.gsfin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.gsfin-table th {
+  padding: 12px 18px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748B;
+  background: #FAFAFD;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  white-space: nowrap;
+}
+
+.gsfin-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  font-size: 0.86rem;
+  font-weight: 400;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.gsfin-table tbody tr:hover {
+  background: #F8FAFD;
+}
 
 .cert-avatar-badge {
   width: 40px; height: 40px; border-radius: 12px;
@@ -419,7 +465,7 @@ onMounted(() => {
   font-size: 1.25rem; flex-shrink: 0;
 }
 
-.chip-pill { padding: 6px 14px; border-radius: 50px; font-size: 0.74rem; font-weight: 800; text-transform: uppercase; display: inline-block; }
+.chip-pill { padding: 6px 14px; border-radius: 50px; font-size: 0.74rem; font-weight: 600; text-transform: uppercase; display: inline-block; }
 .chip-green { background: rgba(16, 185, 129, 0.1); color: #059669; }
 .chip-red { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
 
@@ -464,7 +510,7 @@ onMounted(() => {
 .skills-flex { display: flex; flex-wrap: wrap; gap: 6px; }
 .skill-tag {
   padding: 4px 10px; border-radius: 6px;
-  font-size: 0.72rem; font-weight: 700;
+  font-size: 0.72rem; font-weight: 600;
   background: rgba(227, 27, 35, 0.08); color: #E31B23;
 }
 
@@ -472,7 +518,7 @@ onMounted(() => {
 .btn-glass-sm {
   padding: 8px 14px; border-radius: 10px;
   border: 1px solid rgba(15, 23, 42, 0.12); background: #FFFFFF;
-  color: #334155; font-size: 0.8rem; font-weight: 700;
+  color: #334155; font-size: 0.8rem; font-weight: 600;
   text-decoration: none; transition: all 0.18s;
 }
 .btn-glass-sm:hover { background: #F8FAFC; color: #E31B23; border-color: rgba(227, 27, 35, 0.3); }

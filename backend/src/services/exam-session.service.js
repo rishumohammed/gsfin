@@ -87,9 +87,11 @@ export class ExamSessionService {
 
       const [attempts] = await connection.query(
         `SELECT att.*, ea.id as assignment_id, ea.attempts_used, ea.max_attempts, ea.student_id, ea.exam_id,
+                ea.batch_id, ea.wallet_id, b.org_id,
                 s.name as student_name, e.name as exam_name
          FROM exam_attempts att
          JOIN exam_assignments ea ON att.assignment_id = ea.id
+         JOIN batches b ON ea.batch_id = b.id
          JOIN students s ON ea.student_id = s.id
          JOIN exams e ON ea.exam_id = e.id
          WHERE att.id = ? FOR UPDATE`,
@@ -163,6 +165,23 @@ export class ExamSessionService {
             `UPDATE exam_assignments SET status = 'failed' WHERE id = ?`,
             [assignmentId]
           );
+        }
+
+        // 3. Log token redemption audit transaction when candidate completes exam
+        try {
+          const txId = uuidv4();
+          const certNote = passed 
+            ? `Token Redeemed: Candidate ${att.student_name} completed and passed ${att.exam_name} (Score: ${percentage}% - Certified)` 
+            : `Token Redeemed: Candidate ${att.student_name} completed ${att.exam_name} (Score: ${percentage}% - ${result.toUpperCase()})`;
+
+          await connection.query(
+            `INSERT INTO token_transactions 
+             (id, org_id, wallet_id, type, token_count, related_batch_id, related_assignment_id, notes)
+             VALUES (?, ?, ?, 'redeem', -1, ?, ?, ?)`,
+            [txId, att.org_id, att.wallet_id, att.batch_id, assignmentId, certNote]
+          );
+        } catch (txErr) {
+          console.error('Token redemption logging error (non-fatal):', txErr);
         }
       }
 

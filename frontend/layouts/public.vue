@@ -8,7 +8,7 @@
             <img :src="fullLogoUrl" alt="Logo" style="max-height: 40px; object-fit: contain;" />
           </template>
           <template v-else>
-            <span style="font-size: 1.3rem; font-weight: 800; color: #CC1F1F;">GSFIN</span>
+            <span style="font-size: 1.3rem; font-weight: 600; color: #CC1F1F;">GSFIN</span>
           </template>
         </NuxtLink>
         <v-spacer></v-spacer>
@@ -16,7 +16,7 @@
           to="/"
           rounded="lg"
           elevation="0"
-          style="background: #CC1F1F; color: #fff; font-weight: 700; text-transform: none; letter-spacing: 0; font-size: 0.85rem; padding: 0 20px;"
+          style="background: #CC1F1F; color: #fff; font-weight: 600; text-transform: none; letter-spacing: 0; font-size: 0.85rem; padding: 0 20px;"
         >
           ← Home
         </v-btn>

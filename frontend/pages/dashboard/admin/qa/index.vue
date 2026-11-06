@@ -5,7 +5,6 @@
       <div class="d-flex align-center justify-space-between mb-2">
         <div>
           <h1 class="text-h4 font-weight-bold mb-1">Global Course Q&A</h1>
-          <p class="text-subtitle-1 text-medium-emphasis mb-6">Oversee all student questions across the platform.</p>
         </div>
       </div>
     </div>
@@ -75,7 +74,7 @@
           <template v-slot:item.title="{ item }">
             <div>
               <div class="text-subtitle-2 font-weight-bold mb-1">{{ item.title }}</div>
-              <div class="text-caption text-grey text-truncate" style="max-width: 300px;">{{ item.body }}</div>
+              <div class="text-caption text-grey table-desc-truncate">{{ item.body }}</div>
             </div>
           </template>
 
@@ -208,7 +207,7 @@ definePageMeta({
 
 .modern-table :deep(thead th) {
   background: #f8fafc !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   color: #475569 !important;
   text-transform: uppercase;
   font-size: 0.7rem !important;

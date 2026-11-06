@@ -48,11 +48,11 @@ onUnmounted(() => {
 <style scoped>
 .dashboard-main {
   min-height: 100vh;
-  padding-top: 64px !important; /* Matches AppHeader height */
+  padding-top: 56px !important; /* Matches AppHeader height */
 }
 
 .dashboard-content {
   padding: 0;
-  min-height: calc(100vh - 64px);
+  min-height: calc(100vh - 56px);
 }
 </style>

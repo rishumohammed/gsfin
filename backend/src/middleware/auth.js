@@ -70,8 +70,8 @@ export const requirePermission = (module, action = 'view') => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
     
-    // Super Admin has full access
-    if (req.user.role === 'super_admin') {
+    // Super Admin and Main Admin have full access
+    if (req.user.role === 'super_admin' || req.user.role === 'main_admin') {
       return next();
     }
 

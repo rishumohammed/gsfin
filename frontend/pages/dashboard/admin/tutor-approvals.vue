@@ -4,7 +4,6 @@
     <div class="d-flex align-center justify-space-between mb-8">
       <div>
         <h1 class="text-h4 font-weight-bold mb-1">Tutor Approvals</h1>
-        <p class="text-subtitle-1 text-medium-emphasis mb-6">Review and process tutor applications</p>
       </div>
       <v-btn icon="mdi-refresh" variant="tonal" color="primary" @click="loadTutors" :loading="loading || loadingApproved || loadingRejected" />
     </div>
@@ -73,21 +72,21 @@
                 <td class="py-4">
                   <div class="actions-wrapper">
                     <v-btn
-                      size="small" variant="outlined" color="deep-purple" class="rounded-lg action-btn font-weight-bold"
-                      prepend-icon="mdi-eye-outline"
+                      icon="mdi-eye-outline" size="small" variant="tonal" color="deep-purple" class="rounded-lg action-btn"
+                      title="View Details"
                       @click="viewDetails(tutor)"
-                    >View Details</v-btn>
+                    ></v-btn>
                     <v-btn
-                      size="small" variant="flat" color="success" class="rounded-lg action-btn font-weight-bold"
-                      prepend-icon="mdi-check"
+                      icon="mdi-check" size="small" variant="flat" color="success" class="rounded-lg action-btn"
+                      title="Approve"
                       @click="confirmApprovePrompt(tutor)"
                       :loading="actionLoading === tutor.id + '_approve'"
-                    >Approve</v-btn>
+                    ></v-btn>
                     <v-btn
-                      size="small" variant="outlined" color="error" class="rounded-lg action-btn font-weight-bold"
-                      prepend-icon="mdi-close"
+                      icon="mdi-close" size="small" variant="tonal" color="error" class="rounded-lg action-btn"
+                      title="Reject"
                       @click="openRejectDialog(tutor)"
-                    >Reject</v-btn>
+                    ></v-btn>
                   </div>
                 </td>
               </tr>
@@ -226,7 +225,7 @@
             </template>
             <!-- Rejection Reason -->
             <template v-slot:item.rejection_reason="{ item }">
-              <div v-if="item.rejection_reason" class="text-caption text-grey-darken-2" style="max-width: 200px;">
+              <div v-if="item.rejection_reason" class="text-caption text-grey-darken-2 table-desc-truncate-sm">
                 <v-tooltip :text="item.rejection_reason" location="top">
                   <template v-slot:activator="{ props }">
                     <span v-bind="props" class="truncate-text">{{ item.rejection_reason }}</span>
@@ -548,7 +547,7 @@ onMounted(loadTutors);
 .tutor-table :deep(th), ::v-deep(.custom-table th) {
   background: #f8fafc !important;
   color: #64748b !important;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   font-size: 0.7rem !important;
   letter-spacing: 0.06em;
@@ -562,24 +561,26 @@ onMounted(loadTutors);
 .tutor-row { transition: background 0.15s ease; }
 .tutor-row:hover { background: rgba(99, 102, 241, 0.03) !important; }
 
-.detail-section-label { font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #94a3b8; }
+.detail-section-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #94a3b8; }
 .experience-box { background: #f8fafc; border: 1px solid rgba(0,0,0,0.06); min-height: 60px; line-height: 1.7; }
 .truncate-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: help; }
 .gap-2 { gap: 8px; } .gap-3 { gap: 12px; } .gap-4 { gap: 16px; } .gap-6 { gap: 24px; }
 
 .actions-wrapper {
   display: flex;
-  gap: 12px;
+  gap: 6px;
   justify-content: flex-end;
-  min-width: 240px;
+  min-width: 120px;
 }
 .action-btn {
-  flex: 1;
+  width: 32px;
+  height: 32px;
+  min-width: 32px !important;
+  flex: none;
 }
 @media (max-width: 960px) {
   .actions-wrapper {
-    flex-direction: column;
-    align-items: stretch;
+    justify-content: flex-end;
   }
 }
 </style>

@@ -295,17 +295,29 @@
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label">Country / Region</label>
+                  <label class="form-label">Country / Region <span class="req">*</span></label>
                   <input
                     v-model="partnerForm.country"
                     type="text"
                     class="form-input"
-                    placeholder="e.g. United Arab Emirates, India, UK"
+                    placeholder="e.g. United Kingdom"
+                    required
                   />
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label">Institution Type</label>
+                  <label class="form-label">City <span class="req">*</span></label>
+                  <input
+                    v-model="partnerForm.city"
+                    type="text"
+                    class="form-input"
+                    placeholder="e.g. London"
+                    required
+                  />
+                </div>
+
+                <div class="form-group full-width">
+                  <label class="form-label">Institution Type <span class="req">*</span></label>
                   <select v-model="partnerForm.institutionType" class="form-select">
                     <option value="Authorized Training Center">Training Center / Academy</option>
                     <option value="College / University">College / University</option>
@@ -313,6 +325,27 @@
                     <option value="Corporate Enterprise">Corporate Enterprise</option>
                     <option value="Government Agency">Government Agency</option>
                   </select>
+                </div>
+
+                <div class="form-group full-width">
+                  <label class="form-label">Accreditation Programs <span class="req">*</span></label>
+                  <p class="form-hint-sub">Select the accreditation qualifications your center wishes to deliver:</p>
+                  <div class="programs-chips-container">
+                    <button
+                      v-for="prog in availablePrograms"
+                      :key="prog.id"
+                      type="button"
+                      class="program-chip-btn"
+                      :class="{ 'is-selected': partnerForm.programs.includes(prog.id) }"
+                      @click="toggleProgram(prog.id)"
+                    >
+                      <i :class="['mdi', partnerForm.programs.includes(prog.id) ? 'mdi-check-circle' : 'mdi-plus-circle-outline']"></i>
+                      <span>{{ prog.label }}</span>
+                    </button>
+                  </div>
+                  <span v-if="partnerError && partnerForm.programs.length === 0" class="field-error-msg">
+                    * Please select at least one accreditation program (e.g. ISO 22000, CODEX HACCP).
+                  </span>
                 </div>
               </div>
 
@@ -388,9 +421,29 @@ const partnerForm = ref({
   email: '',
   phone: '',
   country: '',
+  city: '',
+  programs: [] as string[],
   institutionType: 'Authorized Training Center',
   message: '',
 });
+
+const availablePrograms = [
+  { id: 'ISO 22000', label: 'ISO 22000' },
+  { id: 'CODEX HACCP', label: 'CODEX HACCP' },
+  { id: 'GMP', label: 'GMP' },
+  { id: 'BRCGS', label: 'BRCGS' },
+  { id: 'FSSC 22000', label: 'FSSC 22000' },
+  { id: 'FSMA', label: 'FSMA' }
+];
+
+const toggleProgram = (progId: string) => {
+  const index = partnerForm.value.programs.indexOf(progId);
+  if (index > -1) {
+    partnerForm.value.programs.splice(index, 1);
+  } else {
+    partnerForm.value.programs.push(progId);
+  }
+};
 
 const openPartnerModal = () => {
   showPartnerModal.value = true;
@@ -403,8 +456,18 @@ const closePartnerModal = () => {
 };
 
 const submitPartnerApplication = async () => {
-  if (!partnerForm.value.organizationName || !partnerForm.value.contactName || !partnerForm.value.email || !partnerForm.value.phone) {
+  if (!partnerForm.value.organizationName || 
+      !partnerForm.value.contactName || 
+      !partnerForm.value.email || 
+      !partnerForm.value.phone || 
+      !partnerForm.value.country || 
+      !partnerForm.value.city) {
     partnerError.value = 'Please complete all required fields (*).';
+    return;
+  }
+
+  if (partnerForm.value.programs.length === 0) {
+    partnerError.value = 'Please select at least one Accreditation Program (e.g. ISO 22000, CODEX HACCP).';
     return;
   }
 
@@ -416,8 +479,8 @@ const submitPartnerApplication = async () => {
       name: partnerForm.value.contactName,
       email: partnerForm.value.email,
       phone: partnerForm.value.phone,
-      subject: `Partner Application: ${partnerForm.value.organizationName} (${partnerForm.value.country || 'Global'})`,
-      message: `[AUTHORIZED PARTNER APPLICATION]\nOrganization Name: ${partnerForm.value.organizationName}\nContact Person: ${partnerForm.value.contactName}\nEmail: ${partnerForm.value.email}\nPhone: ${partnerForm.value.phone}\nCountry: ${partnerForm.value.country || 'N/A'}\nInstitution Type: ${partnerForm.value.institutionType}\nAdditional Message: ${partnerForm.value.message || 'N/A'}`
+      subject: `Training Center Accreditation: ${partnerForm.value.organizationName} (${partnerForm.value.country} - ${partnerForm.value.city})`,
+      message: `[AUTHORIZED TRAINING CENTER ACCREDITATION APPLICATION]\nOrganization Name: ${partnerForm.value.organizationName}\nContact Person: ${partnerForm.value.contactName}\nEmail: ${partnerForm.value.email}\nPhone: ${partnerForm.value.phone}\nCountry: ${partnerForm.value.country}\nCity: ${partnerForm.value.city}\nAccreditation Programs: ${partnerForm.value.programs.join(', ')}\nInstitution Type: ${partnerForm.value.institutionType}\nAdditional Message: ${partnerForm.value.message || 'N/A'}`
     };
 
     await api.post('/public/contact', payload);
@@ -428,6 +491,8 @@ const submitPartnerApplication = async () => {
       email: '',
       phone: '',
       country: '',
+      city: '',
+      programs: [],
       institutionType: 'Authorized Training Center',
       message: '',
     };
@@ -525,9 +590,9 @@ const testimonials = [
 .section   { padding: 100px 0; position: relative; }
 
 /* ── Minimal Brand Crimson Red Palette ───────────────────── */
-.text-red { color: #E31B23 !important; font-weight: 700; }
+.text-red { color: #E31B23 !important; font-weight: 600; }
 .eyebrow-red {
-  font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
   color: #E31B23; margin-bottom: 12px;
 }
 
@@ -564,7 +629,7 @@ const testimonials = [
   display: inline-flex !important; align-items: center !important; gap: 8px;
   background: #E31B23 !important; color: #FFFFFF !important;
   text-decoration: none; padding: 12px 26px; border-radius: 12px;
-  font-weight: 700; font-size: 0.88rem; border: 1px solid #E31B23 !important;
+  font-weight: 600; font-size: 0.88rem; border: 1px solid #E31B23 !important;
   box-shadow: 0 2px 8px rgba(227, 27, 35, 0.18);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer; white-space: nowrap;
 }
@@ -601,7 +666,7 @@ const testimonials = [
 /* ── Section Headings ───────────────────────────────────── */
 .section-head { text-align: center; margin-bottom: 56px; }
 .section-title {
-  font-size: clamp(1.8rem, 3vw, 2.5rem); font-weight: 800;
+  font-size: clamp(1.8rem, 3vw, 2.5rem); font-weight: 600;
   line-height: 1.2; letter-spacing: -0.03em; color: #0F172A; margin-bottom: 12px;
 }
 .section-sub { font-size: 1rem; color: #64748B; max-width: 520px; margin: 0 auto; line-height: 1.6; }
@@ -628,7 +693,7 @@ const testimonials = [
 }
 .nav-logo { display: flex; align-items: center; text-decoration: none; }
 .nav-logo-img { height: 42px; object-fit: contain; }
-.nav-logo-text { font-size: 1.4rem; font-weight: 800; color: #0F172A !important; letter-spacing: -0.02em; }
+.nav-logo-text { font-size: 1.4rem; font-weight: 600; color: #0F172A !important; letter-spacing: -0.02em; }
 .nav-links { display: flex; align-items: center; gap: 28px; }
 @media (max-width: 900px) { .nav-links { display: none; } }
 .nav-link {
@@ -646,7 +711,7 @@ const testimonials = [
   display: inline-flex; align-items: center; gap: 6px;
   background: #E31B23 !important; color: #FFFFFF !important;
   text-decoration: none; padding: 9px 20px; border-radius: 50px;
-  font-weight: 700; font-size: 0.82rem;
+  font-weight: 600; font-size: 0.82rem;
   box-shadow: 0 2px 8px rgba(227, 27, 35, 0.18); transition: all 0.2s; white-space: nowrap;
 }
 .nav-cta-btn:hover { background: #C4131B !important; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(227, 27, 35, 0.25); }
@@ -710,11 +775,11 @@ const testimonials = [
 .hero-content { max-width: 580px; }
 
 .hero-eyebrow {
-  font-size: 0.72rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
   color: #E31B23; margin-bottom: 16px;
 }
 .hero-title {
-  font-size: clamp(2.1rem, 3.8vw, 3.1rem); font-weight: 800; line-height: 1.15;
+  font-size: clamp(2.1rem, 3.8vw, 3.1rem); font-weight: 600; line-height: 1.15;
   letter-spacing: -0.035em; color: #0F172A; margin-bottom: 20px;
 }
 .hero-title-top { display: inline-block; white-space: nowrap; }
@@ -741,7 +806,7 @@ const testimonials = [
 .certs-section { background: #FFFFFF; }
 .certs-header-row { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 48px; }
 .link-view-all {
-  color: #E31B23 !important; text-decoration: none; font-size: 0.85rem; font-weight: 700;
+  color: #E31B23 !important; text-decoration: none; font-size: 0.85rem; font-weight: 600;
   display: inline-flex; align-items: center; gap: 4px; transition: gap 0.2s;
 }
 .link-view-all:hover { gap: 8px; }
@@ -780,18 +845,18 @@ const testimonials = [
 .cert-badge-tag {
   position: absolute; top: 12px; right: 12px;
   background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(10px);
-  color: #FFFFFF; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.05em;
+  color: #FFFFFF; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.05em;
   padding: 4px 10px; border-radius: 50px; text-transform: uppercase;
 }
 
 .cert-card-content {
   padding: 24px; display: flex; flex-direction: column; flex-grow: 1;
 }
-.cert-title { font-size: 1.08rem; font-weight: 800; color: #0F172A; margin-bottom: 8px; }
+.cert-title { font-size: 1.08rem; font-weight: 600; color: #0F172A; margin-bottom: 8px; }
 .cert-desc { font-size: 0.83rem; line-height: 1.6; color: #64748B; margin-bottom: 20px; flex-grow: 1; }
 .cert-link-more {
   display: inline-flex; align-items: center; gap: 4px;
-  color: #E31B23 !important; text-decoration: none; font-size: 0.82rem; font-weight: 700;
+  color: #E31B23 !important; text-decoration: none; font-size: 0.82rem; font-weight: 600;
   margin-top: auto; transition: gap 0.2s;
 }
 .cert-card:hover .cert-link-more { gap: 8px; }
@@ -894,8 +959,8 @@ const testimonials = [
   border-color: #E31B23 !important;
 }
 
-.step-num { font-size: 0.75rem; font-weight: 800; color: #0F172A; margin-bottom: 6px; letter-spacing: 0.05em; }
-.step-title { font-size: 0.98rem; font-weight: 700; color: #0F172A; margin-bottom: 6px; transition: color 0.2s ease; }
+.step-num { font-size: 0.75rem; font-weight: 600; color: #0F172A; margin-bottom: 6px; letter-spacing: 0.05em; }
+.step-title { font-size: 0.98rem; font-weight: 600; color: #0F172A; margin-bottom: 6px; transition: color 0.2s ease; }
 .step-desc { font-size: 0.8rem; line-height: 1.55; color: #64748B; max-width: 220px; }
 
 /* ═══════════════════════════════════════════════════════════
@@ -953,7 +1018,7 @@ const testimonials = [
   display: flex; align-items: center; justify-content: center;
   font-size: 1.25rem; color: #E31B23; margin-bottom: 14px;
 }
-.why-feat-title { font-size: 0.95rem; font-weight: 700; color: #0F172A; margin-bottom: 6px; }
+.why-feat-title { font-size: 0.95rem; font-weight: 600; color: #0F172A; margin-bottom: 6px; }
 .why-feat-desc { font-size: 0.8rem; line-height: 1.5; color: #64748B; }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1011,7 +1076,7 @@ const testimonials = [
 .testi-text { font-size: 0.88rem; line-height: 1.75; color: #334155; margin-bottom: 24px; font-style: italic; }
 .testi-author { display: flex; align-items: center; gap: 12px; }
 .testi-avatar-img { font-size: 2.2rem; color: #94A3B8; display: flex; align-items: center; }
-.testi-name { font-size: 0.88rem; font-weight: 700; color: #0F172A; }
+.testi-name { font-size: 0.88rem; font-weight: 600; color: #0F172A; }
 .testi-role { font-size: 0.75rem; color: #64748B; margin-top: 1px; }
 .testi-stars { color: #F59E0B; font-size: 0.75rem; margin-top: 3px; letter-spacing: 2px; }
 
@@ -1039,15 +1104,15 @@ const testimonials = [
 }
 
 .cta-left { position: relative; z-index: 2; max-width: 580px; }
-.cta-eyebrow { color: #E31B23 !important; font-weight: 800; font-size: 0.75rem; letter-spacing: 0.12em; margin-bottom: 12px; }
-.cta-title { font-size: clamp(1.8rem, 3.2vw, 2.5rem); font-weight: 800; color: #0F172A !important; margin-bottom: 12px; line-height: 1.2; letter-spacing: -0.03em; }
+.cta-eyebrow { color: #E31B23 !important; font-weight: 600; font-size: 0.75rem; letter-spacing: 0.12em; margin-bottom: 12px; }
+.cta-title { font-size: clamp(1.8rem, 3.2vw, 2.5rem); font-weight: 600; color: #0F172A !important; margin-bottom: 12px; line-height: 1.2; letter-spacing: -0.03em; }
 .cta-sub { font-size: 0.98rem; color: #475569 !important; margin-bottom: 32px; font-weight: 500; }
 .cta-actions { display: flex; gap: 16px; flex-wrap: wrap; }
 @media (max-width: 900px) { .cta-actions { justify-content: center; } }
 
 .btn-glass-secondary {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 13px 26px; border-radius: 50px; font-weight: 700; font-size: 0.88rem;
+  padding: 13px 26px; border-radius: 50px; font-weight: 600; font-size: 0.88rem;
   background: rgba(255, 255, 255, 0.85); color: #0F172A !important;
   border: 1px solid rgba(15, 23, 42, 0.15); backdrop-filter: blur(12px);
   text-decoration: none; transition: all 0.22s ease; cursor: pointer;
@@ -1061,7 +1126,7 @@ const testimonials = [
 .cta-right { flex-shrink: 0; position: relative; z-index: 2; }
 .cta-slogan-box { border-left: 3px solid #E31B23; padding-left: 24px; }
 @media (max-width: 900px) { .cta-slogan-box { border-left: none; border-top: 3px solid #E31B23; padding-left: 0; padding-top: 18px; } }
-.cta-slogan-line { font-size: clamp(1.4rem, 2.4vw, 2rem); font-weight: 800; color: #0F172A !important; line-height: 1.25; letter-spacing: -0.025em; }
+.cta-slogan-line { font-size: clamp(1.4rem, 2.4vw, 2rem); font-weight: 600; color: #0F172A !important; line-height: 1.25; letter-spacing: -0.025em; }
 .cta-slogan-line.text-slate { color: #64748B !important; font-weight: 600; }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1073,7 +1138,7 @@ const testimonials = [
 @media (max-width: 600px) { .footer-grid { grid-template-columns: 1fr; } }
 
 .footer-logo { height: 40px; object-fit: contain; margin-bottom: 16px; display: block; }
-.footer-logo-txt { font-size: 1.4rem; font-weight: 800; color: #0F172A; margin-bottom: 16px; }
+.footer-logo-txt { font-size: 1.4rem; font-weight: 600; color: #0F172A; margin-bottom: 16px; }
 .footer-brand-desc { font-size: 0.84rem; line-height: 1.7; color: #64748B; margin-bottom: 24px; max-width: 300px; }
 .footer-socials { display: flex; gap: 10px; }
 .footer-soc {
@@ -1083,7 +1148,7 @@ const testimonials = [
 }
 .footer-soc:hover { background: #E31B23 !important; color: #FFFFFF !important; border-color: #E31B23 !important; transform: translateY(-2px); }
 
-.footer-col-h { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #0F172A; margin-bottom: 18px; }
+.footer-col-h { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #0F172A; margin-bottom: 18px; }
 .footer-links { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .footer-links a { font-size: 0.84rem; color: #64748B !important; text-decoration: none; transition: color 0.18s; cursor: pointer; }
 .footer-links a:hover { color: #E31B23 !important; }
@@ -1126,7 +1191,7 @@ const testimonials = [
 .modal-close-btn:hover { background: #E31B23; color: #FFFFFF; }
 
 .modal-header { margin-bottom: 24px; }
-.modal-title { font-size: 1.6rem; font-weight: 800; color: #0F172A; margin-bottom: 6px; line-height: 1.2; letter-spacing: -0.02em; }
+.modal-title { font-size: 1.6rem; font-weight: 600; color: #0F172A; margin-bottom: 6px; line-height: 1.2; letter-spacing: -0.02em; }
 .modal-sub { font-size: 0.88rem; color: #64748B; line-height: 1.55; }
 
 .partner-form { display: flex; flex-direction: column; gap: 16px; }
@@ -1134,7 +1199,7 @@ const testimonials = [
 @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
 
 .form-group { display: flex; flex-direction: column; gap: 6px; }
-.form-label { font-size: 0.76rem; font-weight: 700; color: #334155; }
+.form-label { font-size: 0.76rem; font-weight: 600; color: #334155; }
 .req { color: #E31B23; }
 
 .form-input, .form-select, .form-textarea {
@@ -1163,6 +1228,48 @@ const testimonials = [
   color: #166534; display: flex; align-items: center; justify-content: center;
   font-size: 2.2rem; margin: 0 auto 18px auto;
 }
-.success-title { font-size: 1.4rem; font-weight: 800; color: #0F172A; margin-bottom: 10px; }
+.success-title { font-size: 1.4rem; font-weight: 600; color: #0F172A; margin-bottom: 10px; }
 .success-text { font-size: 0.9rem; color: #475569; max-width: 440px; margin: 0 auto 24px auto; line-height: 1.6; }
+
+.full-width { grid-column: 1 / -1; }
+.form-hint-sub { font-size: 0.76rem; color: #64748B; margin: 0 0 6px 0; }
+.programs-chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.program-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(248, 250, 252, 0.85);
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.program-chip-btn:hover {
+  background: #FFFFFF;
+  border-color: #E31B23;
+  color: #E31B23;
+}
+.program-chip-btn.is-selected {
+  background: #FFF5F5;
+  border-color: #E31B23;
+  color: #E31B23;
+  box-shadow: 0 2px 6px rgba(227, 27, 35, 0.12);
+}
+.program-chip-btn.is-selected i {
+  color: #E31B23;
+}
+.field-error-msg {
+  font-size: 0.74rem;
+  color: #DC2626;
+  font-weight: 600;
+  margin-top: 4px;
+}
 </style>

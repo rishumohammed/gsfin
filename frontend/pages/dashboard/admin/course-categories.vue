@@ -242,7 +242,7 @@ onMounted(fetchCategories);
 
 <style scoped>
 .category-table :deep(thead th) {
-  font-weight: bold !important;
+  font-weight: 600 !important;
   color: #666 !important;
   text-transform: uppercase;
   font-size: 0.75rem;

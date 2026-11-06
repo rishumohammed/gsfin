@@ -207,11 +207,11 @@ const openPartnerModal = () => {
 .nav-link:hover, .nav-link--active { color: #E31B23 !important; }
 .nav-cta-btn {
   display: inline-flex; align-items: center; gap: 6px; background: #E31B23 !important; color: #FFFFFF !important;
-  text-decoration: none; padding: 9px 20px; border-radius: 50px; font-weight: 700; font-size: 0.82rem; border: none;
+  text-decoration: none; padding: 9px 20px; border-radius: 50px; font-weight: 600; font-size: 0.82rem; border: none;
   box-shadow: 0 2px 8px rgba(227, 27, 35, 0.18); transition: all 0.2s; cursor: pointer;
 }
 
-.eyebrow-red { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #E31B23; }
+.eyebrow-red { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #E31B23; }
 .text-red { color: #E31B23; }
 
 /* ── Hero ───────────────────────────────────────────────── */
@@ -230,7 +230,7 @@ const openPartnerModal = () => {
 }
 
 .catalog-hero-content { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; }
-.catalog-title { font-size: clamp(2.2rem, 3.8vw, 3.4rem); font-weight: 800; letter-spacing: -0.03em; color: #0F172A; line-height: 1.15; margin: 12px 0; max-width: 850px; }
+.catalog-title { font-size: clamp(2.2rem, 3.8vw, 3.4rem); font-weight: 600; letter-spacing: -0.03em; color: #0F172A; line-height: 1.15; margin: 12px 0; max-width: 850px; }
 .catalog-sub { font-size: 1.08rem; color: #475569; line-height: 1.6; max-width: 680px; margin-bottom: 40px; }
 
 /* ── Search Panel ───────────────────────────────────────── */
@@ -254,7 +254,7 @@ const openPartnerModal = () => {
 }
 .category-select {
   padding: 12px 20px; border-radius: 14px; background: #F8FAFC; border: 1px solid rgba(15, 23, 42, 0.08);
-  outline: none; font-size: 0.9rem; font-weight: 700; color: #0F172A; cursor: pointer;
+  outline: none; font-size: 0.9rem; font-weight: 600; color: #0F172A; cursor: pointer;
   transition: all 0.2s ease;
 }
 .category-select:focus {
@@ -315,7 +315,7 @@ const openPartnerModal = () => {
   -webkit-backdrop-filter: blur(10px);
   color: #FFFFFF;
   font-size: 0.68rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.05em;
   padding: 5px 12px;
   border-radius: 50px;
@@ -329,11 +329,11 @@ const openPartnerModal = () => {
   flex: 1;
 }
 
-.cert-category-text { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; color: #E31B23; letter-spacing: 0.06em; margin-bottom: 6px; }
+.cert-category-text { font-size: 0.74rem; font-weight: 600; text-transform: uppercase; color: #E31B23; letter-spacing: 0.06em; margin-bottom: 6px; }
 
 .cert-card-title {
   font-size: 1.25rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin-bottom: 10px;
   line-height: 1.3;
@@ -354,7 +354,7 @@ const openPartnerModal = () => {
 
 .btn-card-learn {
   background: #F8FAFC; color: #0F172A; border: 1px solid rgba(15, 23, 42, 0.12);
-  padding: 11px 20px; border-radius: 50px; font-weight: 700; font-size: 0.84rem;
+  padding: 11px 20px; border-radius: 50px; font-weight: 600; font-size: 0.84rem;
   display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.25s;
 }
 .cert-catalog-card:hover .btn-card-learn {
@@ -377,7 +377,7 @@ const openPartnerModal = () => {
   color: #64748B !important; text-decoration: none; font-size: 1rem; transition: all 0.2s;
 }
 .footer-soc:hover { background: #E31B23 !important; color: #FFFFFF !important; border-color: #E31B23 !important; }
-.footer-col-h { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #0F172A; margin-bottom: 18px; }
+.footer-col-h { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #0F172A; margin-bottom: 18px; }
 .footer-links { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .footer-links a { font-size: 0.84rem; color: #64748B !important; text-decoration: none; transition: color 0.18s; }
 .footer-links a:hover { color: #E31B23 !important; }

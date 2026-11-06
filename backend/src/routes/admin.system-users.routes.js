@@ -26,7 +26,7 @@ const SYSTEM_ROLES = [
 ];
 
 // 1. Get all system users
-router.get('/', authenticateJWT, authorizeRoles('super_admin'), async (req, res) => {
+router.get('/', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   try {
     const [users] = await pool.query(`
       SELECT id, name, email, phone, role, status, last_login_at, created_at, NULL as permissions_json 
@@ -51,7 +51,7 @@ router.get('/', authenticateJWT, authorizeRoles('super_admin'), async (req, res)
 });
 
 // 2. Create System User
-router.post('/', authenticateJWT, authorizeRoles('super_admin'), async (req, res) => {
+router.post('/', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   const { name, email, phone, role, permissions_json, password } = req.body;
   
   if (!SYSTEM_ROLES.includes(role)) {
@@ -111,7 +111,7 @@ router.post('/', authenticateJWT, authorizeRoles('super_admin'), async (req, res
 });
 
 // 3. Update System User
-router.put('/:id', authenticateJWT, authorizeRoles('super_admin'), async (req, res) => {
+router.put('/:id', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   const { name, phone, role, permissions_json } = req.body;
   const targetId = req.params.id;
 
@@ -146,7 +146,7 @@ router.put('/:id', authenticateJWT, authorizeRoles('super_admin'), async (req, r
 });
 
 // 4. Suspend/Activate User
-router.put('/:id/status', authenticateJWT, authorizeRoles('super_admin'), async (req, res) => {
+router.put('/:id/status', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   const { status } = req.body;
   const targetId = req.params.id;
 
@@ -176,7 +176,7 @@ router.put('/:id/status', authenticateJWT, authorizeRoles('super_admin'), async 
 });
 
 // 5. Reset Password
-router.post('/:id/reset-password', authenticateJWT, authorizeRoles('super_admin'), async (req, res) => {
+router.post('/:id/reset-password', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   const targetId = req.params.id;
   const plainPassword = Math.random().toString(36).slice(-10);
 
@@ -223,7 +223,7 @@ router.post('/:id/reset-password', authenticateJWT, authorizeRoles('super_admin'
 });
 
 // 6. Delete System User
-router.delete('/:id', authenticateJWT, authorizeRoles('super_admin'), async (req, res) => {
+router.delete('/:id', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   const targetId = req.params.id;
   if (targetId === req.user.id) {
     return res.status(400).json({ message: 'Cannot delete yourself' });
@@ -257,7 +257,7 @@ router.delete('/:id', authenticateJWT, authorizeRoles('super_admin'), async (req
 });
 
 // 7. Get Audit Logs
-router.get('/audit-logs', authenticateJWT, authorizeRoles('super_admin'), async (req, res) => {
+router.get('/audit-logs', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   try {
     const [logs] = await pool.query(`
       SELECT a.*, u.name as admin_name 

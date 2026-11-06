@@ -280,7 +280,7 @@
                 <div class="success-icon-circle mx-auto mb-3">
                   <i class="mdi mdi-check"></i>
                 </div>
-                <h3 class="text-2xl font-black text-slate-900 mb-2">Application Submitted!</h3>
+                <h3 class="text-2xl font-semibold text-slate-900 mb-2">Application Submitted!</h3>
                 <p class="text-slate-600 text-sm mb-6">
                   Thank you for submitting your application. Our accreditation team will review your details and reach out to you shortly.
                 </p>
@@ -306,7 +306,23 @@
                   </div>
                   <div>
                     <label class="form-label">Country *</label>
-                    <input v-model="form.country" type="text" placeholder="e.g. United Arab Emirates" class="form-input-box" required />
+                    <input v-model="form.country" type="text" placeholder="e.g. United Kingdom" class="form-input-box" required />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="form-label">City *</label>
+                    <input v-model="form.city" type="text" placeholder="e.g. London" class="form-input-box" required />
+                  </div>
+                  <div>
+                    <label class="form-label">Institution Type *</label>
+                    <select v-model="form.institutionType" class="form-select-box">
+                      <option value="Authorized Training Center">Authorized Training Center</option>
+                      <option value="University / Higher Education">University / Higher Education</option>
+                      <option value="Corporate / Food Industry Processor">Corporate / Food Industry Processor</option>
+                      <option value="Independent Assessment Center">Independent Assessment Center</option>
+                    </select>
                   </div>
                 </div>
 
@@ -317,18 +333,29 @@
                   </div>
                   <div>
                     <label class="form-label">Phone / WhatsApp *</label>
-                    <input v-model="form.phone" type="tel" placeholder="+971 50 123 4567" class="form-input-box" required />
+                    <input v-model="form.phone" type="tel" placeholder="+44 7911 123456" class="form-input-box" required />
                   </div>
                 </div>
 
                 <div>
-                  <label class="form-label">Institution Type *</label>
-                  <select v-model="form.institutionType" class="form-select-box">
-                    <option value="Authorized Training Center">Authorized Training Center</option>
-                    <option value="University / Higher Education">University / Higher Education</option>
-                    <option value="Corporate / Food Industry Processor">Corporate / Food Industry Processor</option>
-                    <option value="Independent Assessment Center">Independent Assessment Center</option>
-                  </select>
+                  <label class="form-label">Accreditation Programs *</label>
+                  <p class="text-xs text-slate-500 mb-2">Select the qualifications your center wants to offer:</p>
+                  <div class="flex flex-wrap gap-2">
+                    <button
+                      v-for="prog in availablePrograms"
+                      :key="prog.id"
+                      type="button"
+                      class="program-chip-btn"
+                      :class="{ 'is-selected': form.programs.includes(prog.id) }"
+                      @click="toggleFormProgram(prog.id)"
+                    >
+                      <i :class="['mdi', form.programs.includes(prog.id) ? 'mdi-check-circle' : 'mdi-plus-circle-outline']"></i>
+                      <span>{{ prog.label }}</span>
+                    </button>
+                  </div>
+                  <span v-if="formError && form.programs.length === 0" class="text-xs text-red-600 block mt-1">
+                    * Please select at least one accreditation program (e.g. ISO 22000, CODEX HACCP).
+                  </span>
                 </div>
 
                 <div>
@@ -351,22 +378,166 @@
     <!-- ═══ GLOBAL PRODUCT FOOTER ═══ -->
     <PublicFooter />
 
-    <!-- ═══ MODAL ═══ -->
+    <!-- ═══ PARTNER ACCREDITATION APPLICATION MODAL ═══ -->
     <Transition name="fade">
       <div v-if="showPartnerModal" class="modal-overlay" @click.self="closePartnerModal">
         <div class="modal-card-box">
           <button class="modal-close-btn" @click="closePartnerModal" aria-label="Close Modal">
             <i class="mdi mdi-close"></i>
           </button>
-          <div class="p-6 sm:p-8">
-            <span class="eyebrow-red text-xs font-black uppercase mb-1 block">BECOME AN AUTHORIZED CENTER</span>
-            <h3 class="text-xl sm:text-2xl font-black text-slate-900 mb-4">Apply for Partner Accreditation</h3>
-            <p class="text-slate-600 text-sm mb-6">
-              Complete your institution details below and our team will get in touch with you.
-            </p>
-            <button class="btn-red w-full justify-center" @click="closePartnerModal(); scrollTo('apply-form')">
-              Proceed to Application Form <i class="mdi mdi-arrow-right ms-2"></i>
-            </button>
+
+          <div class="modal-content-wrap">
+            <!-- Modal Header -->
+            <div class="modal-header-block">
+              <span class="modal-eyebrow">
+                <i class="mdi mdi-domain me-1"></i> BECOME AN AUTHORIZED CENTER
+              </span>
+              <h3 class="modal-title">Apply for Partner Accreditation</h3>
+              <p class="modal-sub">
+                Complete your institution details below and our accreditation team will review your application.
+              </p>
+            </div>
+
+            <!-- Success State View -->
+            <div v-if="modalSuccess" class="form-success-box py-6">
+              <div class="success-icon-circle mx-auto mb-3">
+                <i class="mdi mdi-check"></i>
+              </div>
+              <h3 class="text-2xl font-semibold text-slate-900 mb-2">Application Submitted!</h3>
+              <p class="text-slate-600 text-sm mb-6 max-w-md mx-auto">
+                Thank you for applying to become an Authorized GSFIN Training Center. Our partnership director will review your details and contact you within 24 hours.
+              </p>
+              <button class="btn-red w-full justify-center" @click="closePartnerModal(); modalSuccess = false">
+                Done &amp; Continue Browsing
+              </button>
+            </div>
+
+            <!-- Interactive Application Form -->
+            <form v-else @submit.prevent="submitModalApplication" class="modal-form">
+              <div v-if="modalError" class="form-error-alert mb-4">
+                <i class="mdi mdi-alert-circle me-1"></i> {{ modalError }}
+              </div>
+
+              <div class="form-field-group">
+                <label class="form-label">Organization / Training Center Name <span class="text-red">*</span></label>
+                <input
+                  v-model="modalForm.organizationName"
+                  type="text"
+                  placeholder="e.g. Apex Institute of Food Technology"
+                  class="form-input-box"
+                  required
+                />
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-field-group">
+                  <label class="form-label">Contact Person Name <span class="text-red">*</span></label>
+                  <input
+                    v-model="modalForm.contactName"
+                    type="text"
+                    placeholder="e.g. Prof. David Miller"
+                    class="form-input-box"
+                    required
+                  />
+                </div>
+                <div class="form-field-group">
+                  <label class="form-label">Country <span class="text-red">*</span></label>
+                  <input
+                    v-model="modalForm.country"
+                    type="text"
+                    placeholder="e.g. United Kingdom"
+                    class="form-input-box"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-field-group">
+                  <label class="form-label">City <span class="text-red">*</span></label>
+                  <input
+                    v-model="modalForm.city"
+                    type="text"
+                    placeholder="e.g. London"
+                    class="form-input-box"
+                    required
+                  />
+                </div>
+                <div class="form-field-group">
+                  <label class="form-label">Institution Type <span class="text-red">*</span></label>
+                  <select v-model="modalForm.institutionType" class="form-select-box">
+                    <option value="Authorized Training Center">Authorized Training Center</option>
+                    <option value="University / Higher Education">University / Higher Education</option>
+                    <option value="Corporate / Food Industry Processor">Corporate / Food Industry Processor</option>
+                    <option value="Independent Assessment Center">Independent Assessment Center</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-field-group">
+                  <label class="form-label">Email Address <span class="text-red">*</span></label>
+                  <input
+                    v-model="modalForm.email"
+                    type="email"
+                    placeholder="sarah@royalfoodsafety.co.uk"
+                    class="form-input-box"
+                    required
+                  />
+                </div>
+                <div class="form-field-group">
+                  <label class="form-label">Phone / WhatsApp <span class="text-red">*</span></label>
+                  <input
+                    v-model="modalForm.phone"
+                    type="tel"
+                    placeholder="+44 7911 123456"
+                    class="form-input-box"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="form-field-group">
+                <label class="form-label">Accreditation Programs <span class="text-red">*</span></label>
+                <p class="text-xs text-slate-500 mb-2">Select the qualifications your center wants to offer:</p>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    v-for="prog in availablePrograms"
+                    :key="prog.id"
+                    type="button"
+                    class="program-chip-btn"
+                    :class="{ 'is-selected': modalForm.programs.includes(prog.id) }"
+                    @click="toggleModalProgram(prog.id)"
+                  >
+                    <i :class="['mdi', modalForm.programs.includes(prog.id) ? 'mdi-check-circle' : 'mdi-plus-circle-outline']"></i>
+                    <span>{{ prog.label }}</span>
+                  </button>
+                </div>
+                <span v-if="modalError && modalForm.programs.length === 0" class="text-xs text-red-600 block mt-1">
+                  * Please select at least one accreditation program (e.g. ISO 22000, CODEX HACCP).
+                </span>
+              </div>
+
+              <div class="form-field-group">
+                <label class="form-label">Additional Message / Facility Details</label>
+                <textarea
+                  v-model="modalForm.message"
+                  rows="3"
+                  placeholder="Tell us about your facility, student volume, or current courses..."
+                  class="form-textarea-box"
+                ></textarea>
+              </div>
+
+              <div class="modal-actions-row">
+                <button type="button" class="btn-cancel-modal" @click="closePartnerModal">
+                  Cancel
+                </button>
+                <button type="submit" class="btn-red flex-1 justify-center py-3" :disabled="modalSubmitting">
+                  <span v-if="modalSubmitting" class="spinner-sm-white"></span>
+                  <span>{{ modalSubmitting ? 'Submitting Application...' : 'Submit Application' }}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -376,8 +547,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useHead, useState } from '#imports';
+import { ref, onMounted } from 'vue';
+import { useHead, useState, useRoute } from '#imports';
 import { useApi } from '@/composables/useApi';
 
 useHead({
@@ -390,6 +561,7 @@ useHead({
   ],
 });
 
+const route = useRoute();
 const api = useApi();
 const fullLogoUrl = useState('fullLogoUrl', () => '');
 const currentYear = new Date().getFullYear();
@@ -399,15 +571,60 @@ const formSubmitting = ref(false);
 const formSuccess = ref(false);
 const formError = ref('');
 
+const modalSubmitting = ref(false);
+const modalSuccess = ref(false);
+const modalError = ref('');
+
+const modalForm = ref({
+  organizationName: '',
+  contactName: '',
+  email: '',
+  phone: '',
+  country: '',
+  city: '',
+  programs: [] as string[],
+  institutionType: 'Authorized Training Center',
+  message: '',
+});
+
 const form = ref({
   organizationName: '',
   contactName: '',
   email: '',
   phone: '',
   country: '',
+  city: '',
+  programs: [] as string[],
   institutionType: 'Authorized Training Center',
   message: '',
 });
+
+const availablePrograms = [
+  { id: 'ISO 22000', label: 'ISO 22000' },
+  { id: 'CODEX HACCP', label: 'CODEX HACCP' },
+  { id: 'GMP', label: 'GMP' },
+  { id: 'BRCGS', label: 'BRCGS' },
+  { id: 'FSSC 22000', label: 'FSSC 22000' },
+  { id: 'FSMA', label: 'FSMA' }
+];
+
+const toggleFormProgram = (progId: string) => {
+  const index = form.value.programs.indexOf(progId);
+  if (index > -1) {
+    form.value.programs.splice(index, 1);
+  } else {
+    form.value.programs.push(progId);
+  }
+};
+
+const toggleModalProgram = (progId: string) => {
+  const index = modalForm.value.programs.indexOf(progId);
+  if (index > -1) {
+    modalForm.value.programs.splice(index, 1);
+  } else {
+    modalForm.value.programs.push(progId);
+  }
+};
 
 const approvalSteps = [
   {
@@ -470,11 +687,69 @@ const approvalSteps = [
 
 const openPartnerModal = () => {
   showPartnerModal.value = true;
+  modalSuccess.value = false;
+  modalError.value = '';
 };
 
 const closePartnerModal = () => {
   showPartnerModal.value = false;
 };
+
+const submitModalApplication = async () => {
+  if (!modalForm.value.organizationName || 
+      !modalForm.value.contactName || 
+      !modalForm.value.email || 
+      !modalForm.value.phone || 
+      !modalForm.value.country || 
+      !modalForm.value.city) {
+    modalError.value = 'Please complete all required fields (*).';
+    return;
+  }
+
+  if (modalForm.value.programs.length === 0) {
+    modalError.value = 'Please select at least one Accreditation Program (e.g. ISO 22000, CODEX HACCP).';
+    return;
+  }
+
+  modalSubmitting.value = true;
+  modalError.value = '';
+
+  try {
+    const payload = {
+      name: modalForm.value.contactName,
+      email: modalForm.value.email,
+      phone: modalForm.value.phone,
+      subject: `Training Center Accreditation: ${modalForm.value.organizationName} (${modalForm.value.country} - ${modalForm.value.city})`,
+      message: `[GSFIN TRAINING CENTER ACCREDITATION APPLICATION]\nOrganization Name: ${modalForm.value.organizationName}\nContact Person: ${modalForm.value.contactName}\nEmail: ${modalForm.value.email}\nPhone: ${modalForm.value.phone}\nCountry: ${modalForm.value.country}\nCity: ${modalForm.value.city}\nAccreditation Programs: ${modalForm.value.programs.join(', ')}\nInstitution Type: ${modalForm.value.institutionType}\nAdditional Message: ${modalForm.value.message || 'N/A'}`
+    };
+
+    await api.post('/public/contact', payload);
+    modalSuccess.value = true;
+    modalForm.value = {
+      organizationName: '',
+      contactName: '',
+      email: '',
+      phone: '',
+      country: '',
+      city: '',
+      programs: [],
+      institutionType: 'Authorized Training Center',
+      message: '',
+    };
+  } catch (err: any) {
+    modalError.value = err?.response?.data?.message || 'Failed to submit application. Please try again.';
+  } finally {
+    modalSubmitting.value = false;
+  }
+};
+
+onMounted(() => {
+  if (route.query.apply === 'true' || route.query.modal === 'true') {
+    openPartnerModal();
+  } else if (route.hash === '#apply-form') {
+    scrollTo('apply-form');
+  }
+});
 
 const scrollTo = (id: string) => {
   const el = document.getElementById(id);
@@ -484,8 +759,18 @@ const scrollTo = (id: string) => {
 };
 
 const submitApplication = async () => {
-  if (!form.value.organizationName || !form.value.contactName || !form.value.email || !form.value.phone || !form.value.country) {
+  if (!form.value.organizationName || 
+      !form.value.contactName || 
+      !form.value.email || 
+      !form.value.phone || 
+      !form.value.country || 
+      !form.value.city) {
     formError.value = 'Please complete all required fields (*).';
+    return;
+  }
+
+  if (form.value.programs.length === 0) {
+    formError.value = 'Please select at least one Accreditation Program (e.g. ISO 22000, CODEX HACCP).';
     return;
   }
 
@@ -497,8 +782,8 @@ const submitApplication = async () => {
       name: form.value.contactName,
       email: form.value.email,
       phone: form.value.phone,
-      subject: `Training Center Accreditation: ${form.value.organizationName} (${form.value.country})`,
-      message: `[GSFIN TRAINING CENTER ACCREDITATION APPLICATION]\nOrganization Name: ${form.value.organizationName}\nContact Person: ${form.value.contactName}\nEmail: ${form.value.email}\nPhone: ${form.value.phone}\nCountry: ${form.value.country}\nInstitution Type: ${form.value.institutionType}\nAdditional Message: ${form.value.message || 'N/A'}`
+      subject: `Training Center Accreditation: ${form.value.organizationName} (${form.value.country} - ${form.value.city})`,
+      message: `[GSFIN TRAINING CENTER ACCREDITATION APPLICATION]\nOrganization Name: ${form.value.organizationName}\nContact Person: ${form.value.contactName}\nEmail: ${form.value.email}\nPhone: ${form.value.phone}\nCountry: ${form.value.country}\nCity: ${form.value.city}\nAccreditation Programs: ${form.value.programs.join(', ')}\nInstitution Type: ${form.value.institutionType}\nAdditional Message: ${form.value.message || 'N/A'}`
     };
 
     await api.post('/public/contact', payload);
@@ -509,6 +794,8 @@ const submitApplication = async () => {
       email: '',
       phone: '',
       country: '',
+      city: '',
+      programs: [],
       institutionType: 'Authorized Training Center',
       message: '',
     };
@@ -538,7 +825,7 @@ const submitApplication = async () => {
 /* Typography & Colors */
 .eyebrow-red {
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #E31B23;
@@ -636,7 +923,7 @@ const submitApplication = async () => {
 
 .partner-hero-title {
   font-size: clamp(2.2rem, 3.8vw, 3.4rem);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.03em;
   color: #0F172A;
   line-height: 1.15;
@@ -709,7 +996,7 @@ const submitApplication = async () => {
 .metric-heading {
   display: block;
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   line-height: 1.2;
 }
@@ -795,7 +1082,7 @@ const submitApplication = async () => {
 .bg-red-100 { background: rgba(254, 242, 242, 0.85); }
 .text-red-600 { color: #E31B23; }
 
-.f-badge-title { font-size: 0.78rem; font-weight: 800; color: #0F172A; line-height: 1.2; }
+.f-badge-title { font-size: 0.78rem; font-weight: 600; color: #0F172A; line-height: 1.2; }
 .f-badge-sub { font-size: 0.7rem; color: #475569; font-weight: 600; }
 
 /* ── 8-Step Procedure Timeline ──────────────────────────────── */
@@ -820,7 +1107,7 @@ const submitApplication = async () => {
 }
 
 .section-main-title {
-  font-size: clamp(2rem, 3.2vw, 2.75rem); font-weight: 800; color: #0F172A;
+  font-size: clamp(2rem, 3.2vw, 2.75rem); font-weight: 600; color: #0F172A;
   letter-spacing: -0.02em; margin: 8px 0 16px 0;
 }
 
@@ -871,7 +1158,7 @@ const submitApplication = async () => {
 
 .step-badge-num {
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #E31B23;
   background: rgba(254, 242, 242, 0.9);
   padding: 4px 12px;
@@ -892,7 +1179,7 @@ const submitApplication = async () => {
 
 .step-card-title {
   font-size: 1.12rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin-bottom: 10px;
   line-height: 1.3;
@@ -963,7 +1250,7 @@ const submitApplication = async () => {
   backdrop-filter: blur(10px);
 }
 
-.benefit-title { font-size: 1.2rem; font-weight: 800; color: #0F172A; margin-bottom: 12px; }
+.benefit-title { font-size: 1.2rem; font-weight: 600; color: #0F172A; margin-bottom: 12px; }
 .benefit-desc { font-size: 0.88rem; color: #64748B; line-height: 1.7; flex: 1; margin: 0; }
 
 /* ── Application Form Section ────────────────────────────────── */
@@ -999,7 +1286,7 @@ const submitApplication = async () => {
 }
 
 .app-left-info { max-width: 480px; }
-.app-main-title { font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 800; color: #0F172A; margin-bottom: 12px; }
+.app-main-title { font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 600; color: #0F172A; margin-bottom: 12px; }
 .app-main-sub { font-size: 0.96rem; color: #475569; line-height: 1.65; margin-bottom: 32px; }
 
 .app-perks-list { display: flex; flex-direction: column; gap: 20px; }
@@ -1017,7 +1304,7 @@ const submitApplication = async () => {
 
 @media (max-width: 600px) { .app-right-form { padding: 24px; } }
 
-.form-label { display: block; font-size: 0.78rem; font-weight: 700; color: #334155; margin-bottom: 6px; }
+.form-label { display: block; font-size: 0.78rem; font-weight: 600; color: #334155; margin-bottom: 6px; }
 
 .form-input-box, .form-select-box, .form-textarea-box {
   width: 100%; padding: 12px 16px; border-radius: 12px;
@@ -1054,7 +1341,7 @@ const submitApplication = async () => {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 12px 26px; border-radius: 50px;
   background: #E31B23 !important; color: #FFFFFF !important;
-  font-weight: 700; font-size: 0.92rem; border: none; cursor: pointer;
+  font-weight: 600; font-size: 0.92rem; border: none; cursor: pointer;
   box-shadow: 0 4px 14px rgba(227, 27, 35, 0.25); transition: all 0.25s ease; text-decoration: none;
 }
 
@@ -1067,7 +1354,7 @@ const submitApplication = async () => {
   display: inline-flex; align-items: center;
   padding: 12px 26px; border-radius: 50px;
   background: #FFFFFF; border: 1px solid rgba(15, 23, 42, 0.18);
-  color: #0F172A !important; font-weight: 700; font-size: 0.92rem;
+  color: #0F172A !important; font-weight: 600; font-size: 0.92rem;
   transition: all 0.25s ease; text-decoration: none; cursor: pointer;
 }
 
@@ -1084,7 +1371,7 @@ const submitApplication = async () => {
 .footer-socials { display: flex; gap: 10px; }
 .footer-soc { width: 36px; height: 36px; background: #FFFFFF; border: 1px solid rgba(15, 23, 42, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #64748B !important; text-decoration: none; font-size: 1rem; transition: all 0.2s; }
 .footer-soc:hover { background: #E31B23 !important; color: #FFFFFF !important; border-color: #E31B23 !important; }
-.footer-col-h { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #0F172A; margin-bottom: 18px; }
+.footer-col-h { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #0F172A; margin-bottom: 18px; }
 .footer-links { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .footer-links a { font-size: 0.84rem; color: #64748B !important; text-decoration: none; transition: color 0.18s; }
 .footer-links a:hover { color: #E31B23 !important; }
@@ -1094,22 +1381,174 @@ const submitApplication = async () => {
 
 /* Modal */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(10px) saturate(180%); -webkit-backdrop-filter: blur(10px) saturate(180%);
-  z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
 }
 
 .modal-card-box {
-  background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 24px;
-  max-width: 580px; width: 100%; position: relative; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.3);
-  overflow: hidden; max-height: 90vh; overflow-y: auto;
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 28px;
+  max-width: 620px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.6);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  margin: auto;
+}
+
+.modal-content-wrap {
+  padding: 36px 36px 32px 36px;
+  position: relative;
+}
+@media (max-width: 600px) {
+  .modal-content-wrap {
+    padding: 28px 20px 24px 20px;
+  }
+}
+
+.modal-header-block {
+  margin-bottom: 22px;
+  padding-right: 44px;
+}
+
+.modal-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #E31B23;
+  margin-bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.4;
+}
+
+.modal-title {
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0 0 6px 0;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.modal-sub {
+  font-size: 0.86rem;
+  color: #64748B;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 600px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+.modal-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.btn-cancel-modal {
+  padding: 12px 22px;
+  border-radius: 50px;
+  background: #F1F5F9;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-cancel-modal:hover {
+  background: #E2E8F0;
+  color: #0F172A;
 }
 
 .modal-close-btn {
-  position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 50%;
-  background: #F1F5F9; color: #64748B; display: flex; align-items: center; justify-content: center;
-  font-size: 20px; border: none; cursor: pointer; transition: all 0.2s ease; z-index: 10;
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #F1F5F9;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
 }
-.modal-close-btn:hover { background: #FEF2F2; color: #E31B23; }
+.modal-close-btn:hover {
+  background: #FEF2F2;
+  color: #E31B23;
+  transform: rotate(90deg);
+}
+
+.program-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #FFFFFF;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.program-chip-btn:hover {
+  background: #F8FAFC;
+  border-color: #E31B23;
+  color: #E31B23;
+}
+.program-chip-btn.is-selected {
+  background: #FFF5F5;
+  border-color: #E31B23;
+  color: #E31B23;
+  box-shadow: 0 2px 6px rgba(227, 27, 35, 0.12);
+}
+.program-chip-btn.is-selected i {
+  color: #E31B23;
+}
 </style>

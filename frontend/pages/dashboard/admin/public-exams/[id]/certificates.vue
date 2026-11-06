@@ -5,11 +5,7 @@
       <!-- ═══ TOP HEADER ROW ═══ -->
       <div class="admin-header-row">
         <div>
-          <div class="eyebrow-chip mb-1">
-            <i class="mdi mdi-certificate-outline"></i> PUBLIC EXAM CERTIFICATES
-          </div>
           <h1 class="admin-title">Generated Exam Certificates</h1>
-          <p class="admin-subtitle">View, edit candidate credentials, and resend digital qualification certificates.</p>
         </div>
 
         <div class="header-actions">
@@ -56,9 +52,9 @@
                   No Certificates Issued for this Exam
                 </td>
               </tr>
-              <tr v-for="item in filteredCertificates" :key="item.id">
+              <tr v-for="item in paginatedCertificates" :key="item.id">
                 <td>
-                  <div class="font-bold text-slate-900 text-sm">{{ item.candidate_name }}</div>
+                  <div class="font-semibold text-slate-900 text-sm">{{ item.candidate_name }}</div>
                 </td>
                 <td>
                   <div class="text-slate-600 text-sm font-medium">{{ item.candidate_email }}</div>
@@ -102,6 +98,13 @@
               </tr>
             </tbody>
           </table>
+          <AppPagination
+            v-if="filteredCertificates.length > 0"
+            v-model="page"
+            v-model:items-per-page="perPage"
+            :total-items="filteredCertificates.length"
+            :per-page-options="[10, 25, 50, 100]"
+          />
         </div>
       </div>
 
@@ -199,9 +202,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useApi } from '@/composables/useApi';
+import AppPagination from '@/components/common/AppPagination.vue';
 
 definePageMeta({
   layout: 'dashboard',
@@ -242,6 +246,17 @@ const filteredCertificates = computed(() => {
     (c.candidate_name || '').toLowerCase().includes(s) || 
     (c.candidate_email || '').toLowerCase().includes(s)
   );
+});
+
+// Pagination state
+const page = ref(1);
+const perPage = ref(10);
+const paginatedCertificates = computed(() => {
+  const start = (page.value - 1) * perPage.value;
+  return filteredCertificates.value.slice(start, start + perPage.value);
+});
+watch(search, () => {
+  page.value = 1;
 });
 
 async function loadData() {
@@ -340,7 +355,7 @@ onMounted(() => {
 
 <style scoped>
 .gsfin-admin-page {
-  padding: 40px 48px;
+  padding: 24px 32px;
   background: #FAFAFD;
   min-height: 100vh;
   box-sizing: border-box;
@@ -355,7 +370,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
@@ -364,7 +379,7 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   font-size: 0.74rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #E31B23;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -372,7 +387,7 @@ onMounted(() => {
 
 .admin-title {
   font-size: 1.95rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0 0 6px 0;
   letter-spacing: -0.02em;
@@ -399,7 +414,7 @@ onMounted(() => {
   border: 1px solid rgba(15, 23, 42, 0.12);
   padding: 12px 22px;
   border-radius: 14px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.88rem;
   text-decoration: none;
   cursor: pointer;
@@ -460,16 +475,50 @@ onMounted(() => {
   padding: 6px 16px;
   border-radius: 50px;
   font-size: 0.8rem;
-  font-weight: 800;
+  font-weight: 600;
   background: #F1F5F9;
   color: #475569;
 }
 
 /* Tables */
-.table-responsive { overflow-x: auto; }
-.gsfin-table { width: 100%; border-collapse: collapse; text-align: left; }
-.gsfin-table th { background: #F8FAFC; padding: 18px 24px; font-size: 0.74rem; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid rgba(15, 23, 42, 0.08); white-space: nowrap; }
-.gsfin-table td { padding: 20px 24px; font-size: 0.9rem; color: #334155; border-bottom: 1px solid rgba(15, 23, 42, 0.06); vertical-align: middle; }
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #FFFFFF;
+}
+
+.gsfin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.gsfin-table th {
+  padding: 12px 18px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748B;
+  background: #FAFAFD;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  white-space: nowrap;
+}
+
+.gsfin-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  font-size: 0.86rem;
+  font-weight: 400;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.gsfin-table tbody tr:hover {
+  background: #F8FAFD;
+}
 
 /* Action Buttons */
 .action-btn-group { display: inline-flex; align-items: center; gap: 8px; }
@@ -524,13 +573,13 @@ onMounted(() => {
   background: #FAFAFD;
 }
 
-.modal-title { font-size: 1.1rem; font-weight: 800; color: #0F172A; margin: 0; }
+.modal-title { font-size: 1.1rem; font-weight: 600; color: #0F172A; margin: 0; }
 .modal-close-btn { background: transparent; border: none; color: #94A3B8; font-size: 1.25rem; cursor: pointer; padding: 4px; border-radius: 8px; }
 .modal-close-btn:hover { background: #E2E8F0; color: #0F172A; }
 
 .modal-body { padding: 24px 28px; }
 .form-group { display: flex; flex-direction: column; }
-.form-label { font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 8px; }
+.form-label { font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 8px; }
 
 .form-input {
   width: 100%; padding: 12px 16px; border-radius: 14px;
@@ -548,14 +597,14 @@ onMounted(() => {
 .btn-cancel {
   background: transparent; border: 1px solid rgba(15, 23, 42, 0.12);
   color: #475569; padding: 10px 20px; border-radius: 12px;
-  font-weight: 700; font-size: 0.88rem; cursor: pointer;
+  font-weight: 600; font-size: 0.88rem; cursor: pointer;
 }
 .btn-cancel:hover { background: #F1F5F9; color: #0F172A; }
 
 .btn-red {
   display: inline-flex; align-items: center; gap: 8px;
   background: #E31B23; color: #FFFFFF; border: none;
-  padding: 10px 22px; border-radius: 12px; font-weight: 700; font-size: 0.88rem;
+  padding: 10px 22px; border-radius: 12px; font-weight: 600; font-size: 0.88rem;
   box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2); cursor: pointer;
 }
 .btn-red:hover:not(:disabled) { background: #C4131B; transform: translateY(-1px); }
@@ -563,7 +612,7 @@ onMounted(() => {
 
 .toast-notification {
   position: fixed; bottom: 32px; right: 32px; padding: 14px 24px;
-  border-radius: 16px; font-weight: 700; font-size: 0.88rem;
+  border-radius: 16px; font-weight: 600; font-size: 0.88rem;
   display: flex; align-items: center; gap: 10px;
   box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12); z-index: 9999;
 }

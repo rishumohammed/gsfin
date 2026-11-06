@@ -196,7 +196,7 @@ onMounted(async () => {
   background: rgba(227, 27, 35, 0.06);
   border: 1px solid rgba(227, 27, 35, 0.15);
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #E31B23;
   margin-bottom: 20px;
 }
@@ -234,7 +234,7 @@ onMounted(async () => {
 
 .footer-col-h {
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #0F172A;
@@ -300,7 +300,7 @@ onMounted(async () => {
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.12);
   font-size: 0.76rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #334155;
   cursor: pointer;
   transition: all 0.2s ease;

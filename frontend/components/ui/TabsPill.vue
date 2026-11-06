@@ -48,7 +48,7 @@ defineEmits(['update:modelValue']);
 .tab-active {
   background: white;
   color: var(--blue);
-  font-weight: 700;
+  font-weight: 600;
   border: 1px solid var(--border);
   
 }

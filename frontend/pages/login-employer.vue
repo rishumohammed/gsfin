@@ -141,7 +141,7 @@ const handleLogin = async () => {
 }
 .brand-name {
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.03em;
 }
 
@@ -160,7 +160,7 @@ const handleLogin = async () => {
 }
 .login-title {
   font-size: 1.75rem;
-  font-weight: 900;
+  font-weight: 600;
   color: #1a237e;
   margin-bottom: 8px;
 }

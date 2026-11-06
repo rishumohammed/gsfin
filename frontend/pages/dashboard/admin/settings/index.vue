@@ -1,6 +1,6 @@
 <template>
   <div class="gsfin-admin-page">
-    <div class="settings-wrap">
+    <div class="admin-wrap">
 
       <!-- ═══════════════════════════════════════════════════════════════════ -->
       <!-- VIEW 1: CARD VIEW OVERVIEW HUB (DEFAULT WHEN NO CATEGORY SELECTED) -->
@@ -8,15 +8,9 @@
       <div v-if="!activeCategory" class="fade-in">
         
         <!-- Header Row -->
-        <div class="settings-header-row">
+        <div class="admin-header-row">
           <div>
-            <div class="control-panel-chip">
-              <i class="mdi mdi-cog-outline"></i> CONTROL PANEL
-            </div>
-            <h1 class="settings-title">System Settings</h1>
-            <p class="settings-subtitle">
-              Configure branding, homepage content, governance legal text, system users, integrations, and email dispatches.
-            </p>
+            <h1 class="admin-title">Settings</h1>
           </div>
 
           <!-- Quick Search Filter Bar -->
@@ -396,8 +390,13 @@
               <TalentHuntSettingsTab />
             </div>
 
+            <!-- 8. Education Levels Tab -->
+            <div v-if="activeCategory === 'education_levels'" class="fade-in">
+              <EducationLevelsTab />
+            </div>
+
             <!-- Bottom Action Controls -->
-            <div class="form-bottom-actions" v-if="activeCategory !== 'email_templates'">
+            <div class="form-bottom-actions" v-if="activeCategory !== 'email_templates' && activeCategory !== 'education_levels'">
               <button type="button" class="btn-glass" @click="fetchData">
                 <i class="mdi mdi-refresh"></i> Reset Changes
               </button>
@@ -426,6 +425,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useApi } from '@/composables/useApi';
 import EmailTemplatesTab from '@/components/admin/settings/EmailTemplatesTab.vue';
 import TalentHuntSettingsTab from '@/components/admin/settings/TalentHuntSettingsTab.vue';
+import EducationLevelsTab from '@/components/admin/settings/EducationLevelsTab.vue';
 
 definePageMeta({
   layout: 'dashboard',
@@ -528,6 +528,15 @@ const settingsCards = [
     iconClass: 'card-icon-rose',
     badge: 'Competition',
     badgeClass: 'badge-rose'
+  },
+  {
+    id: 'education_levels',
+    title: 'Education Levels',
+    subtitle: 'Manage candidate qualifications and educational degree levels for partner student registration.',
+    icon: 'mdi-school-outline',
+    iconClass: 'card-icon-purple',
+    badge: 'Candidate Data',
+    badgeClass: 'badge-purple'
   },
   {
     id: 'faqs',
@@ -681,60 +690,7 @@ watch(
 </script>
 
 <style scoped>
-.gsfin-admin-page {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-  background: #FAFAFD;
-  color: #0F172A;
-  min-height: 100vh;
-  padding: 32px 36px;
-  box-sizing: border-box;
-}
-
-.settings-wrap {
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
-/* Header Row */
-.settings-header-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
-}
-
-.control-panel-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(227, 27, 35, 0.08);
-  color: #E31B23;
-  border: 1px solid rgba(227, 27, 35, 0.18);
-  padding: 4px 12px;
-  border-radius: 50px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-
-.settings-title {
-  font-size: 1.95rem;
-  font-weight: 800;
-  color: #0F172A;
-  margin: 0 0 6px 0;
-  letter-spacing: -0.02em;
-}
-
-.settings-subtitle {
-  font-size: 0.9rem;
-  color: #64748B;
-  margin: 0;
-  max-width: 680px;
-}
+/* Page-specific styles for Settings Hub */
 
 .search-input-wrap {
   position: relative;
@@ -831,7 +787,7 @@ watch(
   padding: 4px 10px;
   border-radius: 50px;
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   border: 1px solid transparent;
@@ -848,7 +804,7 @@ watch(
 
 .card-title {
   font-size: 1.05rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0 0 8px 0;
   display: flex;
@@ -883,7 +839,7 @@ watch(
   align-items: center;
   justify-content: space-between;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #64748B;
   transition: color 0.2s ease;
 }
@@ -924,7 +880,7 @@ watch(
   padding: 8px 14px;
   border-radius: 10px;
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #334155;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);
@@ -943,7 +899,7 @@ watch(
 
 .breadcrumb-text {
   font-size: 0.84rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #64748B;
 }
 .bc-slash { margin: 0 6px; color: #94A3B8; }
@@ -964,7 +920,7 @@ watch(
   padding: 6px 14px;
   border-radius: 10px;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #64748B;
   cursor: pointer;
   white-space: nowrap;
@@ -991,7 +947,7 @@ watch(
 
 .form-section-title {
   font-size: 1.25rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #0F172A;
   margin: 0 0 6px 0;
   display: flex;
@@ -1019,7 +975,7 @@ watch(
   font-size: 0.88rem;
 }
 .info-callout-title {
-  font-weight: 800;
+  font-weight: 600;
   margin-bottom: 4px;
   display: flex;
   align-items: center;
@@ -1029,7 +985,7 @@ watch(
 }
 .info-link {
   color: #2563EB;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: underline;
 }
 
@@ -1052,7 +1008,7 @@ watch(
   border: none;
   padding: 10px 22px;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.88rem;
   box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
   transition: all 0.2s ease;
@@ -1072,7 +1028,7 @@ watch(
   border: 1px solid rgba(15, 23, 42, 0.1);
   padding: 10px 20px;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.88rem;
   cursor: pointer;
   transition: all 0.2s;

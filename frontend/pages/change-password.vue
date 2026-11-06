@@ -1,16 +1,12 @@
 <template>
   <div class="change-password-page">
     <div class="card-wrap">
-      <NuxtLink to="/" class="brand" style="text-decoration:none;">
-        <img v-if="appLogo" :src="baseUrl + appLogo" :alt="instituteName" style="max-height: 40px; max-width: 160px; object-fit: contain;" />
-        <template v-else>
-          <span class="brand-icon">◈</span>
-          <span class="brand-name">{{ instituteName || 'AEMS Academy' }}</span>
-        </template>
-      </NuxtLink>
-
       <div class="card">
         <div class="card-header">
+          <NuxtLink to="/" class="brand" style="text-decoration:none;">
+            <img v-if="appLogo" :src="baseUrl + appLogo" :alt="instituteName || 'GSFIN'" style="max-height: 52px; max-width: 220px; object-fit: contain;" />
+            <img v-else src="/logo.webp" alt="GSFIN" style="max-height: 52px; max-width: 220px; object-fit: contain;" />
+          </NuxtLink>
           <h1 class="title">Change Password</h1>
           <p class="sub">Please choose a secure new password for your account.</p>
         </div>
@@ -132,7 +128,18 @@ const handleSubmit = async () => {
     await authStore.fetchUser();
     
     setTimeout(() => {
-      window.location.href = '/dashboard';
+      const role = authStore.user?.role;
+      if (role === 'sub_center_staff') {
+        window.location.href = '/sub-center';
+      } else if (role === 'student') {
+        window.location.href = '/dashboard/student';
+      } else if (role === 'tutor') {
+        window.location.href = '/dashboard/tutor';
+      } else if (role === 'super_admin' || role === 'main_admin' || role === 'sub_admin') {
+        window.location.href = '/dashboard/admin';
+      } else {
+        window.location.href = '/dashboard';
+      }
     }, 1500);
   } catch (err: any) {
     console.error('Password change failed:', err);
@@ -164,7 +171,7 @@ const handleSubmit = async () => {
   align-items: center;
   gap: 10px;
   justify-content: center;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
   color: #1f2937;
   text-decoration: none;
 }
@@ -175,7 +182,7 @@ const handleSubmit = async () => {
 }
 .brand-name {
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.03em;
 }
 
@@ -196,7 +203,7 @@ const handleSubmit = async () => {
 }
 .title {
   font-size: 1.75rem;
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: -0.04em;
   color: #1f2937;
   margin-bottom: 8px;

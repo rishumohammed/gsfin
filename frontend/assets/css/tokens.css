@@ -54,7 +54,7 @@ body, .v-application {
   background-color: #ffffff !important;
   color: #2563eb !important;
   border-radius: var(--radius-sm);
-  font-weight: 700 !important;
+  font-weight: 600 !important;
 }
 
 .v-navigation-drawer .v-list-item--active .v-icon {

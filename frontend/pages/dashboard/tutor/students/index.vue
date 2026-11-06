@@ -217,7 +217,7 @@ definePageMeta({
 
 .modern-table :deep(thead th) {
   background: #f8fafc !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   color: #475569 !important;
   text-transform: uppercase;
   font-size: 0.7rem !important;

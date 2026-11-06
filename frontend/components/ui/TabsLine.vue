@@ -40,7 +40,7 @@ defineEmits(['update:modelValue']);
 
 .tab-active {
   color: var(--blue);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .tab-active::after {

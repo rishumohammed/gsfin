@@ -126,7 +126,7 @@
 
           <!-- Active Filter Chips Bar -->
           <div v-if="hasActiveFilters" class="active-chips-row">
-            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Filters:</span>
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Filters:</span>
             
             <span v-if="searchQuery" class="filter-chip">
               Search: "{{ searchQuery }}"
@@ -154,7 +154,7 @@
         <!-- Results Counter & Status Summary -->
         <div class="results-header-row">
           <div class="results-count">
-            Showing <span class="font-black text-slate-900">{{ filteredPartners.length }}</span> of {{ partners.length }} Authorized Partner Centers
+            Showing <span class="font-semibold text-slate-900">{{ filteredPartners.length }}</span> of {{ partners.length }} Authorized Partner Centers
           </div>
           <div class="verified-tag-legend">
             <span class="legend-dot bg-emerald-500"></span>
@@ -167,11 +167,11 @@
           <div class="empty-icon-circle">
             <i class="mdi mdi-domain-off"></i>
           </div>
-          <h3 class="text-xl font-bold text-slate-900 mb-2">No Partner Centers Found</h3>
+          <h3 class="text-xl font-semibold text-slate-900 mb-2">No Partner Centers Found</h3>
           <p class="text-slate-500 text-sm mb-6 max-w-md mx-auto">
             We couldn't find any accredited training centers matching your search criteria. Try clearing your filters or searching for a different country.
           </p>
-          <button class="btn-red px-6 py-2.5 rounded-xl font-bold text-sm" @click="resetFilters">
+          <button class="btn-red px-6 py-2.5 rounded-xl font-semibold text-sm" @click="resetFilters">
             Clear All Filters
           </button>
         </div>
@@ -291,19 +291,19 @@
             <i class="mdi mdi-close"></i>
           </button>
 
-          <div class="p-6 sm:p-8">
+          <div class="modal-content-wrap">
 
             <!-- Modal Header -->
             <div class="flex items-center justify-between mb-4">
-              <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-black flex items-center gap-1">
+              <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold flex items-center gap-1">
                 <i class="mdi mdi-check-decagram"></i> Official GSFIN Partner
               </span>
-              <span class="text-xs font-mono font-bold text-slate-500">
+              <span class="text-xs font-mono font-semibold text-slate-500">
                 Center ID: {{ selectedPartnerModal.centerCode }}
               </span>
             </div>
 
-            <h3 class="text-2xl font-black text-slate-900 mb-2">
+            <h3 class="text-2xl font-semibold text-slate-900 mb-2">
               {{ selectedPartnerModal.name }}
             </h3>
 
@@ -316,17 +316,17 @@
             <div class="space-y-4 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 mb-6">
               
               <div>
-                <span class="block text-xs font-bold text-slate-500 uppercase">Accreditation Status</span>
-                <span class="text-sm font-extrabold text-emerald-600">Active &amp; Audit Compliant</span>
+                <span class="block text-xs font-semibold text-slate-500 uppercase">Accreditation Status</span>
+                <span class="text-sm font-semibold text-emerald-600">Active &amp; Audit Compliant</span>
               </div>
 
               <div>
-                <span class="block text-xs font-bold text-slate-500 uppercase mb-1">Approved Qualification Programs</span>
+                <span class="block text-xs font-semibold text-slate-500 uppercase mb-1">Approved Qualification Programs</span>
                 <div class="flex flex-wrap gap-1.5">
                   <span
                     v-for="p in selectedPartnerModal.programs"
                     :key="p"
-                    class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs font-bold shadow-2xs"
+                    class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs font-semibold shadow-2xs"
                   >
                     {{ p }}
                   </span>
@@ -335,11 +335,11 @@
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
-                  <span class="block font-bold text-slate-500">Official Email</span>
+                  <span class="block font-semibold text-slate-500">Official Email</span>
                   <span class="text-slate-800 font-semibold">{{ selectedPartnerModal.email || 'accreditation@gsfin.org' }}</span>
                 </div>
                 <div>
-                  <span class="block font-bold text-slate-500">Phone / WhatsApp</span>
+                  <span class="block font-semibold text-slate-500">Phone / WhatsApp</span>
                   <span class="text-slate-800 font-semibold">{{ selectedPartnerModal.phone || '+44 20 7946 0912' }}</span>
                 </div>
               </div>
@@ -348,10 +348,10 @@
 
             <!-- Modal Action Buttons -->
             <div class="flex items-center justify-end gap-3">
-              <button class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50" @click="selectedPartnerModal = null">
+              <button class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50" @click="selectedPartnerModal = null">
                 Close
               </button>
-              <NuxtLink to="/become-a-partner" class="btn-red px-6 py-2.5 rounded-xl font-bold text-sm" @click="selectedPartnerModal = null">
+              <NuxtLink to="/become-a-partner" class="btn-red px-6 py-2.5 rounded-xl font-semibold text-sm" @click="selectedPartnerModal = null">
                 Become a Partner
               </NuxtLink>
             </div>
@@ -617,7 +617,7 @@ onMounted(async () => {
 
 /* Helpers */
 .eyebrow-red {
-  font-size: 0.75rem; font-weight: 800; letter-spacing: 0.12em;
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.12em;
   text-transform: uppercase; color: #E31B23; display: inline-block;
 }
 
@@ -651,7 +651,7 @@ onMounted(async () => {
 .hero-center-content { max-width: 780px; text-align: center; }
 
 .hero-title {
-  font-size: clamp(2.2rem, 3.8vw, 3.4rem); font-weight: 800; letter-spacing: -0.03em;
+  font-size: clamp(2.2rem, 3.8vw, 3.4rem); font-weight: 600; letter-spacing: -0.03em;
   color: #0F172A; line-height: 1.15; margin: 12px 0 16px 0;
 }
 
@@ -739,7 +739,7 @@ onMounted(async () => {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 12px 20px; border-radius: 14px; background: rgba(254, 242, 242, 0.9);
   border: 1px solid rgba(227, 27, 35, 0.2); color: #E31B23;
-  font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease;
+  font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
   white-space: nowrap;
 }
 
@@ -753,7 +753,7 @@ onMounted(async () => {
 
 .filter-chip {
   background: #FFFFFF; border: 1px solid rgba(15, 23, 42, 0.12);
-  border-radius: 50px; padding: 4px 12px; font-size: 0.76rem; font-weight: 700;
+  border-radius: 50px; padding: 4px 12px; font-size: 0.76rem; font-weight: 600;
   color: #334155; display: inline-flex; align-items: center; gap: 6px; shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 }
 
@@ -821,19 +821,19 @@ onMounted(async () => {
 }
 
 .center-id-badge {
-  font-size: 0.72rem; font-family: monospace; font-weight: 800;
+  font-size: 0.72rem; font-family: monospace; font-weight: 600;
   color: #475569; background: rgba(241, 245, 249, 0.9);
   padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .verified-status-badge {
-  font-size: 0.72rem; font-weight: 800; color: #059669;
+  font-size: 0.72rem; font-weight: 600; color: #059669;
   background: rgba(236, 253, 245, 0.9); padding: 3px 10px; border-radius: 50px;
   border: 1px solid rgba(5, 150, 105, 0.2); display: flex; align-items: center;
 }
 
 .partner-name {
-  font-size: 1.15rem; font-weight: 800; color: #0F172A;
+  font-size: 1.15rem; font-weight: 600; color: #0F172A;
   line-height: 1.35; margin-bottom: 12px;
 }
 
@@ -845,12 +845,12 @@ onMounted(async () => {
 
 .programs-section { flex: 1; margin-bottom: 20px; }
 
-.programs-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #94A3B8; display: block; margin-bottom: 8px; }
+.programs-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #94A3B8; display: block; margin-bottom: 8px; }
 
 .program-badges-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .prog-badge {
-  font-size: 0.72rem; font-weight: 700; color: #1E293B;
+  font-size: 0.72rem; font-weight: 600; color: #1E293B;
   background: #FFFFFF; border: 1px solid rgba(15, 23, 42, 0.1);
   padding: 3px 9px; border-radius: 8px;
 }
@@ -859,7 +859,7 @@ onMounted(async () => {
 
 .btn-card-details {
   background: rgba(15, 23, 42, 0.05); border: none; border-radius: 12px;
-  padding: 8px 14px; font-size: 0.78rem; font-weight: 700; color: #0F172A;
+  padding: 8px 14px; font-size: 0.78rem; font-weight: 600; color: #0F172A;
   cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center;
 }
 
@@ -867,7 +867,7 @@ onMounted(async () => {
 
 .btn-card-contact {
   background: transparent; border: 1px solid rgba(227, 27, 35, 0.3); border-radius: 12px;
-  padding: 8px 14px; font-size: 0.78rem; font-weight: 700; color: #E31B23;
+  padding: 8px 14px; font-size: 0.78rem; font-weight: 600; color: #E31B23;
   cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center;
 }
 
@@ -888,19 +888,19 @@ onMounted(async () => {
 @media (max-width: 900px) { .cta-glass-banner { flex-direction: column; text-align: center; padding: 40px 28px; } }
 
 .cta-left { max-width: 580px; }
-.cta-title { font-size: clamp(1.8rem, 3.2vw, 2.5rem); font-weight: 800; color: #0F172A !important; margin-bottom: 12px; line-height: 1.2; }
+.cta-title { font-size: clamp(1.8rem, 3.2vw, 2.5rem); font-weight: 600; color: #0F172A !important; margin-bottom: 12px; line-height: 1.2; }
 .cta-sub { font-size: 0.98rem; color: #475569 !important; margin-bottom: 32px; line-height: 1.65; }
 .cta-actions { display: flex; gap: 16px; flex-wrap: wrap; }
 @media (max-width: 900px) { .cta-actions { justify-content: center; } }
 .cta-slogan-box { border-left: 3px solid #E31B23; padding-left: 24px; }
 @media (max-width: 900px) { .cta-slogan-box { border-left: none; border-top: 3px solid #E31B23; padding-left: 0; padding-top: 18px; } }
-.cta-slogan-line { font-size: clamp(1.4rem, 2.4vw, 2rem); font-weight: 800; color: #0F172A !important; line-height: 1.25; }
+.cta-slogan-line { font-size: clamp(1.4rem, 2.4vw, 2rem); font-weight: 600; color: #0F172A !important; line-height: 1.25; }
 .cta-slogan-line.text-slate { color: #64748B !important; }
 
 /* Buttons */
 .btn-red {
   display: inline-flex; align-items: center; gap: 8px; padding: 12px 26px; border-radius: 50px;
-  background: #E31B23 !important; color: #FFFFFF !important; font-weight: 700; font-size: 0.92rem;
+  background: #E31B23 !important; color: #FFFFFF !important; font-weight: 600; font-size: 0.92rem;
   border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(227, 27, 35, 0.25); transition: all 0.25s ease; text-decoration: none;
 }
 .btn-red:hover { background: #C8141B !important; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(227, 27, 35, 0.35); }
@@ -908,7 +908,7 @@ onMounted(async () => {
 .btn-outline-dark {
   display: inline-flex; align-items: center; padding: 12px 26px; border-radius: 50px;
   background: #FFFFFF; border: 1px solid rgba(15, 23, 42, 0.18); color: #0F172A !important;
-  font-weight: 700; font-size: 0.92rem; transition: all 0.25s ease; text-decoration: none; cursor: pointer;
+  font-weight: 600; font-size: 0.92rem; transition: all 0.25s ease; text-decoration: none; cursor: pointer;
 }
 .btn-outline-dark:hover { background: #F1F5F9; border-color: #0F172A; }
 
@@ -923,7 +923,7 @@ onMounted(async () => {
 .footer-socials { display: flex; gap: 10px; }
 .footer-soc { width: 36px; height: 36px; background: #FFFFFF; border: 1px solid rgba(15, 23, 42, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #64748B !important; text-decoration: none; font-size: 1rem; transition: all 0.2s; }
 .footer-soc:hover { background: #E31B23 !important; color: #FFFFFF !important; border-color: #E31B23 !important; }
-.footer-col-h { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #0F172A; margin-bottom: 18px; }
+.footer-col-h { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #0F172A; margin-bottom: 18px; }
 .footer-links { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .footer-links a { font-size: 0.84rem; color: #64748B !important; text-decoration: none; transition: color 0.18s; }
 .footer-links a:hover { color: #E31B23 !important; }
@@ -942,6 +942,15 @@ onMounted(async () => {
   border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 24px;
   max-width: 580px; width: 100%; position: relative; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.3);
   overflow: hidden; max-height: 90vh; overflow-y: auto;
+}
+.modal-content-wrap {
+  padding: 36px 36px 32px 36px;
+  position: relative;
+}
+@media (max-width: 600px) {
+  .modal-content-wrap {
+    padding: 28px 20px 24px 20px;
+  }
 }
 .modal-close-btn {
   position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 50%;

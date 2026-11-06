@@ -54,7 +54,7 @@ const getCellTitle = (qId: string) => {
   justify-content: center;
   cursor: pointer;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   position: relative;
   border: 2px solid transparent;
   transition: all 0.15s ease;

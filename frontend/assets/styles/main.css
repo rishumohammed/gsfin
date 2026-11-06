@@ -179,7 +179,7 @@ body {
 /* The <h2> inside a section header */
 .section-title {
   font-size:   clamp(1.6rem, 3vw, 2.25rem);
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.1;
   color: var(--g7);

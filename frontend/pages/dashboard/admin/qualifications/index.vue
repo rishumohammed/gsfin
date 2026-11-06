@@ -5,16 +5,15 @@
       <!-- ═══ TOP HEADER ═══ -->
       <div class="admin-header-row">
         <div>
-          <h1 class="admin-title">Qualifications Management</h1>
-          <p class="admin-subtitle">Manage global food safety &amp; quality certification standards, detail pages, and curricula.</p>
+          <h1 class="admin-title">Certifications</h1>
         </div>
 
         <div class="header-actions">
           <NuxtLink to="/qualifications" target="_blank" class="btn-glass">
-            <i class="mdi mdi-open-in-new"></i> View Public Catalog
+            <i class="mdi mdi-open-in-new"></i> View Catalog
           </NuxtLink>
           <button class="btn-red" @click="openDialog()">
-            <i class="mdi mdi-plus"></i> Add Qualification
+            <i class="mdi mdi-plus"></i> Add Certification
           </button>
         </div>
       </div>
@@ -61,7 +60,7 @@
                 <th>Category &amp; Level</th>
                 <th>Status</th>
                 <th>Display Order</th>
-                <th>Actions</th>
+                <th class="th-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -76,7 +75,7 @@
                   No Qualifications Found
                 </td>
               </tr>
-              <tr v-for="q in filteredQualifications" :key="q.id">
+              <tr v-for="q in paginatedQualifications" :key="q.id">
                 <td>
                   <div class="qual-cell-row">
                     <div class="qual-thumb">
@@ -113,13 +112,13 @@
                 </td>
                 <td>
                   <div class="actions-cell">
-                    <NuxtLink :to="`/dashboard/admin/qualifications/${q.id}`" class="btn-table-action btn-view" title="View Qualification Specification Details">
-                      <i class="mdi mdi-eye-outline"></i> View
+                    <NuxtLink :to="`/dashboard/admin/qualifications/${q.id}`" class="btn-table-action btn-view" title="View">
+                      <i class="mdi mdi-eye-outline"></i>
                     </NuxtLink>
-                    <button class="btn-table-action btn-edit" title="Edit Qualification" @click="openDialog(q)">
-                      <i class="mdi mdi-pencil"></i> Edit
+                    <button class="btn-table-action btn-edit" title="Edit" @click="openDialog(q)">
+                      <i class="mdi mdi-pencil"></i>
                     </button>
-                    <button class="btn-table-action btn-danger" title="Delete Qualification" @click="confirmDelete(q)">
+                    <button class="btn-table-action btn-danger" title="Delete" @click="confirmDelete(q)">
                       <i class="mdi mdi-trash-can-outline"></i>
                     </button>
                   </div>
@@ -127,6 +126,13 @@
               </tr>
             </tbody>
           </table>
+          <AppPagination
+            v-if="filteredQualifications.length > 0"
+            v-model="page"
+            v-model:items-per-page="perPage"
+            :total-items="filteredQualifications.length"
+            :per-page-options="[10, 25, 50, 100]"
+          />
         </div>
       </div>
 
@@ -416,8 +422,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useApi } from '@/composables/useApi';
+import AppPagination from '@/components/common/AppPagination.vue';
 
 definePageMeta({
   layout: 'dashboard',
@@ -490,6 +497,18 @@ const filteredQualifications = computed(() => {
 
     return matchesSearch && matchesCategory;
   });
+});
+
+const page = ref(1);
+const perPage = ref(10);
+
+const paginatedQualifications = computed(() => {
+  const start = (page.value - 1) * perPage.value;
+  return filteredQualifications.value.slice(start, start + perPage.value);
+});
+
+watch([searchQuery, categoryFilter], () => {
+  page.value = 1;
 });
 
 const fetchQualifications = async () => {
@@ -641,213 +660,7 @@ const deleteItem = async () => {
 </script>
 
 <style scoped>
-.gsfin-admin-page {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-  background: #FAFAFD;
-  color: #0F172A;
-  min-height: 100vh;
-  padding: 32px 36px;
-  box-sizing: border-box;
-}
-
-.admin-wrap {
-  max-width: 1300px;
-  margin: 0 auto;
-}
-
-.admin-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 28px;
-  flex-wrap: wrap;
-}
-
-.eyebrow-red {
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #E31B23;
-}
-
-.admin-title {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #0F172A;
-  margin: 4px 0;
-  letter-spacing: -0.02em;
-}
-
-.admin-subtitle {
-  font-size: 0.92rem;
-  color: #64748B;
-  margin: 0;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.btn-red {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #E31B23;
-  color: #FFFFFF;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 0.86rem;
-  box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-.btn-red:hover {
-  background: #C4131B;
-  transform: translateY(-1px);
-}
-
-.btn-glass {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #F1F5F9;
-  color: #334155;
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  padding: 10px 20px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 0.86rem;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.2s;
-}
-.btn-glass:hover {
-  background: #E2E8F0;
-}
-
-.error-banner {
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  color: #DC2626;
-  padding: 12px 18px;
-  border-radius: 14px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-.close-alert-btn {
-  margin-left: auto;
-  background: none;
-  border: none;
-  color: #DC2626;
-  cursor: pointer;
-}
-
-.panel-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 20px;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
-  overflow: hidden;
-}
-
-.panel-card-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  background: #FAFAFD;
-}
-
-.panel-filter-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.search-input-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-icon {
-  position: absolute;
-  left: 14px;
-  color: #94A3B8;
-  font-size: 1.1rem;
-}
-
-.table-search-input {
-  padding: 9px 14px 9px 40px;
-  border-radius: 12px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  background: #FFFFFF;
-  font-size: 0.86rem;
-  color: #0F172A;
-  outline: none;
-  width: 260px;
-}
-.table-search-input:focus { border-color: #E31B23; }
-
-.table-select-filter {
-  padding: 9px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  background: #FFFFFF;
-  font-size: 0.86rem;
-  font-weight: 700;
-  color: #0F172A;
-  outline: none;
-  cursor: pointer;
-}
-
-.total-count-badge {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #64748B;
-}
-
-.table-responsive { width: 100%; overflow-x: auto; }
-
-.gsfin-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-  font-size: 0.88rem;
-}
-
-.gsfin-table th {
-  padding: 14px 20px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #64748B;
-  background: #F8FAFC;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-}
-
-.gsfin-table td {
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-  color: #334155;
-  vertical-align: middle;
-}
-
-.gsfin-table tbody tr:hover { background: rgba(248, 250, 252, 0.8); }
+/* Page-specific styles for Qualifications */
 
 .qual-cell-row {
   display: flex;
@@ -869,7 +682,7 @@ const deleteItem = async () => {
   object-fit: cover;
 }
 
-.qual-name { font-weight: 800; color: #0F172A; }
+.qual-name { font-weight: 600; color: #0F172A; }
 .qual-sub { font-size: 0.78rem; line-height: 1.3; max-width: 300px; }
 
 .badge-chip {
@@ -877,19 +690,19 @@ const deleteItem = async () => {
   padding: 4px 12px;
   border-radius: 50px;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
 .chip-green { background: rgba(16, 185, 129, 0.1); color: #059669; }
 .chip-slate { background: rgba(100, 116, 139, 0.1); color: #64748B; }
-.chip-red-sm { background: rgba(227, 27, 35, 0.1); color: #E31B23; font-size: 0.68rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; display: inline-block; }
+.chip-red-sm { background: rgba(227, 27, 35, 0.1); color: #E31B23; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 4px; display: inline-block; }
 
 .order-adjust-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .order-btns { display: flex; flex-direction: column; }
 .order-btn {
@@ -903,43 +716,24 @@ const deleteItem = async () => {
 }
 .order-btn:hover { color: #E31B23; }
 
-.actions-cell { display: flex; align-items: center; gap: 8px; }
-
-.btn-table-action {
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.btn-edit { background: #F1F5F9; color: #334155; }
-.btn-edit:hover { background: #E31B23; color: #FFFFFF; }
-.btn-view { background: rgba(59, 130, 246, 0.1); color: #2563EB; }
-.btn-view:hover { background: #2563EB; color: #FFFFFF; }
-.btn-danger { background: rgba(239, 68, 68, 0.1); color: #DC2626; }
-.btn-danger:hover { background: #DC2626; color: #FFFFFF; }
 
 .qual-detail-header-flex { display: flex; align-items: center; gap: 14px; }
 .qual-thumb-lg { width: 48px; height: 48px; border-radius: 12px; overflow: hidden; background: #F1F5F9; flex-shrink: 0; }
 .qual-thumb-lg img { width: 100%; height: 100%; object-fit: cover; }
-.modal-title-text { font-size: 1.25rem; font-weight: 800; color: #0F172A; margin: 0; }
+.modal-title-text { font-size: 1.25rem; font-weight: 600; color: #0F172A; margin: 0; }
 
 .kpi-meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
 @media (max-width: 640px) { .kpi-meta-grid { grid-template-columns: repeat(2, 1fr); } }
 .meta-box { background: #F8FAFC; border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; }
-.meta-label { font-size: 0.68rem; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; }
-.meta-val { font-size: 0.88rem; font-weight: 800; color: #0F172A; margin-top: 2px; }
+.meta-label { font-size: 0.68rem; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; }
+.meta-val { font-size: 0.88rem; font-weight: 600; color: #0F172A; margin-top: 2px; }
 
-.section-subhead { font-size: 0.84rem; font-weight: 800; color: #0F172A; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; border-left: 3px solid #E31B23; padding-left: 8px; }
+.section-subhead { font-size: 0.84rem; font-weight: 600; color: #0F172A; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; border-left: 3px solid #E31B23; padding-left: 8px; }
 .detail-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
 .detail-list li { font-size: 0.88rem; color: #334155; display: flex; align-items: center; }
 
 .badge-flex { display: flex; flex-wrap: wrap; gap: 8px; }
-.audience-badge { padding: 6px 14px; border-radius: 50px; background: rgba(15, 23, 42, 0.06); color: #1E293B; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; }
+.audience-badge { padding: 6px 14px; border-radius: 50px; background: rgba(15, 23, 42, 0.06); color: #1E293B; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; }
 
 /* Modal & Tabs */
 .modal-overlay {
@@ -975,7 +769,7 @@ const deleteItem = async () => {
   align-items: center;
   justify-content: space-between;
 }
-.modal-header h3 { font-size: 1.2rem; font-weight: 800; color: #0F172A; margin: 0; }
+.modal-header h3 { font-size: 1.2rem; font-weight: 600; color: #0F172A; margin: 0; }
 .modal-close-btn { background: #F1F5F9; border: none; width: 32px; height: 32px; border-radius: 50%; color: #64748B; cursor: pointer; }
 
 .modal-tabs-bar {
@@ -990,7 +784,7 @@ const deleteItem = async () => {
   border: none;
   padding: 10px 16px;
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #64748B;
   cursor: pointer;
   border-bottom: 2px solid transparent;
@@ -1003,7 +797,7 @@ const deleteItem = async () => {
 .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
 
 .form-group { display: flex; flex-direction: column; gap: 6px; }
-.form-label { font-size: 0.8rem; font-weight: 700; color: #334155; }
+.form-label { font-size: 0.8rem; font-weight: 600; color: #334155; }
 .modal-input, .modal-select, .modal-textarea {
   width: 100%;
   padding: 10px 14px;
@@ -1028,7 +822,7 @@ const deleteItem = async () => {
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 0.76rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .list-editor-row { display: flex; align-items: center; gap: 8px; }

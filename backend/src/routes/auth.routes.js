@@ -19,7 +19,7 @@ const generateTokens = (user) => {
   }
 
   const accessToken = jwt.sign(
-    { id: user.id, role: user.role, email: user.email, permissions },
+    { id: user.id, role: user.role, email: user.email, org_id: user.org_id, permissions },
     process.env.JWT_ACCESS_SECRET,
     { expiresIn: process.env.JWT_ACCESS_EXPIRY || '15m' }
   );
@@ -239,7 +239,7 @@ router.post('/login', async (req, res) => {
 
     res.json({
       accessToken,
-      user: { id: user.id, name: user.name, role: user.role, email: user.email, avatar_url: user.avatar_url, force_password_change: !!user.force_password_change }
+      user: { id: user.id, name: user.name, role: user.role, email: user.email, org_id: user.org_id, avatar_url: user.avatar_url, force_password_change: !!user.force_password_change }
     });
   } catch (error) {
     console.error('CRITICAL LOGIN ERROR:', error);
@@ -390,27 +390,25 @@ router.post('/reset-password', async (req, res) => {
 
 router.post('/force-change-password', authenticateJWT, async (req, res) => {
   const { password } = req.body;
-  if (!password) {
-    return res.status(400).json({ message: 'Password is required' });
+  if (!password || password.length < 8) {
+    return res.status(400).json({ message: 'Password must be at least 8 characters long.' });
   }
   try {
-    const [users] = await pool.query('SELECT force_password_change FROM users WHERE id = ?', [req.user.id]);
+    const userId = req.user.id;
+    const [users] = await pool.query('SELECT id, force_password_change FROM users WHERE id = ?', [userId]);
     if (users.length === 0) {
       return res.status(404).json({ message: 'User not found' });
-    }
-    if (!users[0].force_password_change) {
-      return res.status(400).json({ message: 'Password change not forced' });
     }
     
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query(
-      'UPDATE users SET password_hash = ?, force_password_change = 0, temp_password = NULL WHERE id = ?',
-      [hashedPassword, req.user.id]
+      'UPDATE users SET password_hash = ?, force_password_change = 0 WHERE id = ?',
+      [hashedPassword, userId]
     );
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
     console.error('Force change password error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: error.message || 'Internal server error' });
   }
 });
 

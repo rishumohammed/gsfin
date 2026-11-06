@@ -47,8 +47,8 @@
           
           <v-card width="250" rounded="xl" class="mt-2 border border-slate-200/80 shadow-xl overflow-hidden bg-white user-dropdown-card">
             <div class="pa-4 bg-slate-50/80 border-b border-slate-100">
-              <div class="text-sm font-bold text-slate-900 leading-tight mb-0.5">{{ authStore.user?.name || 'User Account' }}</div>
-              <div class="text-[11px] font-bold text-red-600 uppercase tracking-wider">{{ authStore.userRole }}</div>
+              <div class="text-sm font-semibold text-slate-900 leading-tight mb-0.5">{{ authStore.user?.name || 'User Account' }}</div>
+              <div class="text-[11px] font-semibold text-red-600 uppercase tracking-wider">{{ authStore.userRole }}</div>
             </div>
             <v-list density="compact" class="pa-1.5 bg-white">
               <v-list-item link :to="profileLink" class="rounded-lg py-2">
@@ -71,7 +71,7 @@
                 <template v-slot:prepend>
                   <v-icon icon="mdi-logout" size="18" color="red-600" class="mr-3"></v-icon>
                 </template>
-                <v-list-item-title class="text-xs font-bold text-red-600">Logout</v-list-item-title>
+                <v-list-item-title class="text-xs font-semibold text-red-600">Logout</v-list-item-title>
               </v-list-item>
             </v-list>
           </v-card>
@@ -185,7 +185,7 @@ const handleSearch = () => {
 
 .version-label {
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 600;
   color: #94a3b8;
   letter-spacing: 1px;
   margin-top: 2px;

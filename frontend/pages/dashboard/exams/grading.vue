@@ -228,7 +228,7 @@ onMounted(fetchAttempts);
 
 :deep(.v-data-table-header th) {
   font-size: 11px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.4px !important;
   color: var(--g4) !important;
@@ -270,7 +270,7 @@ onMounted(fetchAttempts);
   padding-top: 12px;
   border-top: 1px solid rgba(0,0,0,0.05);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: #007AFF;
   display: flex;
   align-items: center;
@@ -296,7 +296,7 @@ onMounted(fetchAttempts);
 
 .stat-value {
   font-size: 26px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--g7);
   line-height: 1.1;
   letter-spacing: -0.5px;

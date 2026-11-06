@@ -22,7 +22,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, idx) in items" :key="idx" @click="$emit('row-click', item)">
+          <tr v-for="(item, idx) in paginatedItems" :key="idx" @click="$emit('row-click', item)">
             <td v-if="selectable" class="checkbox-cell" @click.stop>
               <v-checkbox-btn density="compact" :model-value="isSelected(item)" @update:model-value="$emit('select-row', { item, val: $event })"></v-checkbox-btn>
             </td>
@@ -45,23 +45,58 @@
       </table>
     </div>
 
-    <div v-if="pagination" class="table-footer px-4 py-3 d-flex align-center justify-space-between">
+    <!-- Built-in Pagination -->
+    <AppPagination
+      v-if="pagination !== false && items && items.length > 0"
+      v-model="currentPage"
+      v-model:items-per-page="perPage"
+      :total-items="items.length"
+      :per-page-options="[10, 25, 50, 100]"
+    />
+
+    <div v-if="$slots.footer" class="table-footer px-4 py-3 d-flex align-center justify-space-between">
       <slot name="footer" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
-  headers: any[];
-  items: any[];
-  selectable?: boolean;
-  selected?: any[];
-  pagination?: boolean;
-  loading?: boolean;
-}>();
+import { ref, computed, watch } from 'vue';
+import AppPagination from '@/components/common/AppPagination.vue';
+
+const props = withDefaults(
+  defineProps<{
+    headers: any[];
+    items: any[];
+    selectable?: boolean;
+    selected?: any[];
+    pagination?: boolean;
+    loading?: boolean;
+    itemsPerPage?: number;
+  }>(),
+  {
+    pagination: true,
+    itemsPerPage: 10
+  }
+);
 
 defineEmits(['select-all', 'select-row', 'row-click']);
+
+const currentPage = ref(1);
+const perPage = ref(props.itemsPerPage || 10);
+
+const paginatedItems = computed(() => {
+  if (props.pagination === false) return props.items || [];
+  const start = (currentPage.value - 1) * perPage.value;
+  return (props.items || []).slice(start, start + perPage.value);
+});
+
+watch(() => props.items, () => {
+  const maxPage = Math.max(1, Math.ceil((props.items?.length || 0) / perPage.value));
+  if (currentPage.value > maxPage) {
+    currentPage.value = 1;
+  }
+});
 
 const isSelected = (item: any) => {
   if (!props.selected) return false;
@@ -94,7 +129,7 @@ const isSelected = (item: any) => {
 
 .apple-table th {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.4px;
   color: var(--g4);

@@ -16,7 +16,7 @@
             />
             <div>
               <div class="d-flex align-center gap-2 mb-1 flex-wrap">
-                <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+                <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
                   Question Bank Manager
                 </h1>
               </div>
@@ -30,7 +30,7 @@
             <v-btn
               variant="outlined"
               color="slate"
-              class="text-none font-bold rounded-xl border-slate-300 text-slate-700"
+              class="text-none font-semibold rounded-xl border-slate-300 text-slate-700"
               prepend-icon="mdi-code-json"
               @click="openImportSection('json')"
             >
@@ -39,7 +39,7 @@
             <v-btn
               variant="outlined"
               color="slate"
-              class="text-none font-bold rounded-xl border-slate-300 text-slate-700"
+              class="text-none font-semibold rounded-xl border-slate-300 text-slate-700"
               prepend-icon="mdi-file-delimited-outline"
               @click="openImportSection('csv')"
             >
@@ -48,7 +48,7 @@
             <v-btn
               color="#E31B23"
               size="large"
-              class="font-bold text-white text-none rounded-xl shadow-md hover:bg-red-700"
+              class="font-semibold text-white text-none rounded-xl shadow-md hover:bg-red-700"
               prepend-icon="mdi-plus"
               @click="openQuestionDialog()"
             >
@@ -821,7 +821,7 @@ onMounted(() => {
 .custom-table :deep(th) {
   text-transform: uppercase;
   font-size: 11px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   color: #475569 !important;
   letter-spacing: 0.5px;
 }

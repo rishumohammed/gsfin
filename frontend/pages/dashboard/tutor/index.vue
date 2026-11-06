@@ -261,7 +261,7 @@ onMounted(fetchDashboardData);
 
 .modern-table :deep(thead th) {
   background: #f1f5f9 !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   color: #1e293b !important;
   text-transform: uppercase;
   font-size: 0.75rem !important;
