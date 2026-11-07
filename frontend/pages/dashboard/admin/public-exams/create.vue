@@ -21,7 +21,7 @@
                 </h1>
               </div>
               <p class="text-xs sm:text-sm text-slate-500 font-medium">
-                {{ isEditMode ? 'Modify configurations, passing criteria, and certificate rules for this exam.' : 'Set up basic exam details, time limits, candidate rules, proctoring options, and certificates.' }}
+                {{ isEditMode ? 'Modify qualification curriculum, passing criteria, and proctoring rules for this exam.' : 'Set up certification course standards, question parameters, proctoring options, and credential rules for Partner Centers.' }}
               </p>
             </div>
           </div>
@@ -184,64 +184,38 @@
               </div>
             </div>
 
-            <!-- Section 2: Scheduling & Banner Image -->
+            <!-- Section 2: Catalog Media & Delivery Model -->
             <div class="form-card mb-6">
               <div class="card-header-wrap">
                 <div class="card-icon-box bg-blue-50 text-blue-600">
-                  <v-icon icon="mdi-calendar-clock-outline" size="20" color="#2563EB"></v-icon>
+                  <v-icon icon="mdi-certificate-outline" size="20" color="#2563EB"></v-icon>
                 </div>
                 <div>
-                  <h3 class="card-title">2. Scheduling & Media</h3>
-                  <p class="card-subtitle">Define registration windows, test availability, and cover artwork.</p>
+                  <h3 class="card-title">2. Catalog Media & Availability</h3>
+                  <p class="card-subtitle">Accreditation artwork and Certifying Authority on-demand delivery model.</p>
                 </div>
               </div>
 
               <div class="form-body">
-                <v-row dense class="mb-4">
-                  <v-col cols="12" sm="6">
-                    <div class="form-group">
-                      <label class="form-label">Registration Start Date</label>
-                      <input
-                        v-model="fields.registration_start_date"
-                        type="datetime-local"
-                        class="form-input"
-                      />
+                <!-- Certifying Authority On-Demand Delivery Model Card -->
+                <div class="delivery-model-notice mb-5">
+                  <div class="notice-icon-wrap">
+                    <v-icon icon="mdi-shield-check" size="22" color="#059669"></v-icon>
+                  </div>
+                  <div class="notice-text-wrap">
+                    <div class="notice-title">Certifying Authority • On-Demand Partner Delivery</div>
+                    <p class="notice-desc">
+                      As the personnel certifying authority, GSFIN standardizes exam curriculum, question banks, and verifiable credentials.
+                      Authorized Partner Centers enroll their students and conduct proctored exams on demand using their center token wallets — without rigid calendar windows.
+                    </p>
+                    <div class="notice-badges">
+                      <span class="notice-badge"><i class="mdi mdi-all-inclusive mr-1"></i> Continuous On-Demand Delivery</span>
+                      <span class="notice-badge"><i class="mdi mdi-wallet-outline mr-1"></i> Partner Center Token Redemption</span>
+                      <span class="notice-badge"><i class="mdi mdi-calendar-clock mr-1"></i> Flexible Center Scheduling</span>
+                      <span class="notice-badge"><i class="mdi mdi-file-certificate-outline mr-1"></i> Automated GSFIN Credentials</span>
                     </div>
-                  </v-col>
-                  <v-col cols="12" sm="6">
-                    <div class="form-group">
-                      <label class="form-label">Registration End Date</label>
-                      <input
-                        v-model="fields.registration_end_date"
-                        type="datetime-local"
-                        class="form-input"
-                      />
-                    </div>
-                  </v-col>
-                </v-row>
-
-                <v-row dense class="mb-4">
-                  <v-col cols="12" sm="6">
-                    <div class="form-group">
-                      <label class="form-label">Exam Access Start Date</label>
-                      <input
-                        v-model="fields.exam_start_date"
-                        type="datetime-local"
-                        class="form-input"
-                      />
-                    </div>
-                  </v-col>
-                  <v-col cols="12" sm="6">
-                    <div class="form-group">
-                      <label class="form-label">Exam Access End Date</label>
-                      <input
-                        v-model="fields.exam_end_date"
-                        type="datetime-local"
-                        class="form-input"
-                      />
-                    </div>
-                  </v-col>
-                </v-row>
+                  </div>
+                </div>
 
                 <div class="form-group">
                   <label class="form-label">Exam Cover Artwork</label>
@@ -441,17 +415,17 @@
                 </div>
                 <div>
                   <h3 class="card-title">Workflow & Status</h3>
-                  <p class="card-subtitle">Set public visibility and state.</p>
+                  <p class="card-subtitle">Set catalog availability and certificate rules.</p>
                 </div>
               </div>
 
               <div class="form-body">
                 <div class="form-group mb-6">
-                  <label class="form-label">Publication Status</label>
+                  <label class="form-label">Catalog Status</label>
                   <select v-model="fields.status" class="form-select capitalize">
-                    <option value="draft">Draft (Offline Preview)</option>
+                    <option value="draft">Draft (Authoring Mode)</option>
                     <option value="review">Under Review</option>
-                    <option value="published">Published (Live Online)</option>
+                    <option value="published">Published (Active in Partner Catalog)</option>
                     <option value="archived">Archived (Read Only)</option>
                   </select>
                 </div>
@@ -461,7 +435,7 @@
                     <input type="checkbox" v-model="fields.enable_certificate" class="toggle-checkbox" />
                     <div>
                       <div class="toggle-title">Automate Certificates</div>
-                      <div class="toggle-sub">Auto-generate PDF certificate for passing candidates</div>
+                      <div class="toggle-sub">Auto-generate verified GSFIN Personnel Certificate for passing candidates</div>
                     </div>
                   </label>
                 </div>
@@ -475,7 +449,7 @@
                   :loading="saving"
                   @click="saveExam"
                 >
-                  {{ isEditMode ? 'Save Settings' : 'Create Certification Exam' }}
+                  {{ isEditMode ? 'Save Settings' : 'Create & Proceed to Questions' }}
                 </v-btn>
 
                 <v-btn
@@ -487,6 +461,62 @@
                 >
                   Cancel
                 </v-btn>
+              </div>
+            </div>
+
+            <!-- Certifying Authority Hub Quick Links (When in Edit Mode) -->
+            <div v-if="isEditMode" class="form-card mb-6">
+              <div class="card-header-wrap">
+                <div class="card-icon-box bg-red-50 text-red-600">
+                  <v-icon icon="mdi-shield-crown-outline" size="20" color="#E31B23"></v-icon>
+                </div>
+                <div>
+                  <h3 class="card-title">Certifying Authority Hub</h3>
+                  <p class="card-subtitle">Questions & certificate management</p>
+                </div>
+              </div>
+              <div class="form-body space-y-3">
+                <NuxtLink
+                  :to="`/dashboard/admin/public-exams/questions?examId=${route.query.id}`"
+                  class="authority-hub-btn"
+                >
+                  <div class="authority-btn-icon bg-red-50 text-red-600">
+                    <i class="mdi mdi-database-edit-outline"></i>
+                  </div>
+                  <div class="authority-btn-text">
+                    <div class="authority-btn-title">Manage Question Bank</div>
+                    <div class="authority-btn-sub">Add questions, marks & bulk imports</div>
+                  </div>
+                  <i class="mdi mdi-chevron-right text-slate-400"></i>
+                </NuxtLink>
+
+                <NuxtLink
+                  to="/dashboard/admin/certificate-template"
+                  class="authority-hub-btn"
+                >
+                  <div class="authority-btn-icon bg-blue-50 text-blue-600">
+                    <i class="mdi mdi-file-certificate-outline"></i>
+                  </div>
+                  <div class="authority-btn-text">
+                    <div class="authority-btn-title">Certificate Template & Signatories</div>
+                    <div class="authority-btn-sub">Configure GSFIN signatories & rules</div>
+                  </div>
+                  <i class="mdi mdi-chevron-right text-slate-400"></i>
+                </NuxtLink>
+
+                <NuxtLink
+                  :to="`/dashboard/admin/public-exams/${route.query.id}/certificates`"
+                  class="authority-hub-btn"
+                >
+                  <div class="authority-btn-icon bg-emerald-50 text-emerald-600">
+                    <i class="mdi mdi-certificate-outline"></i>
+                  </div>
+                  <div class="authority-btn-text">
+                    <div class="authority-btn-title">Issued Certificates</div>
+                    <div class="authority-btn-sub">View credentials awarded for this exam</div>
+                  </div>
+                  <i class="mdi mdi-chevron-right text-slate-400"></i>
+                </NuxtLink>
               </div>
             </div>
           </v-col>
@@ -723,11 +753,7 @@ const fields = ref<any>({
   enable_proctoring: false,
   max_proctoring_warnings: 3,
   enforce_fullscreen: false,
-  status: 'draft',
-  registration_start_date: '',
-  registration_end_date: '',
-  exam_start_date: '',
-  exam_end_date: '',
+  status: 'published',
   image_url: ''
 });
 
@@ -923,10 +949,6 @@ async function fetchExamDetails() {
         max_proctoring_warnings: examMatch.max_proctoring_warnings !== undefined ? examMatch.max_proctoring_warnings : 3,
         enforce_fullscreen: !!examMatch.enforce_fullscreen,
         status: examMatch.status,
-        registration_start_date: examMatch.registration_start_date ? new Date(new Date(examMatch.registration_start_date).getTime() - new Date(examMatch.registration_start_date).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '',
-        registration_end_date: examMatch.registration_end_date ? new Date(new Date(examMatch.registration_end_date).getTime() - new Date(examMatch.registration_end_date).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '',
-        exam_start_date: examMatch.exam_start_date ? new Date(new Date(examMatch.exam_start_date).getTime() - new Date(examMatch.exam_start_date).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '',
-        exam_end_date: examMatch.exam_end_date ? new Date(new Date(examMatch.exam_end_date).getTime() - new Date(examMatch.exam_end_date).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '',
         image_url: examMatch.image_url || ''
       };
     }
@@ -957,18 +979,22 @@ async function saveExam() {
     
     if (isEditMode.value) {
       await api.put(`/admin/public-exams/${examId}`, fields.value);
+      snackbarText.value = 'Exam configurations updated successfully!';
+      snackbarColor.value = 'success';
+      snackbar.value = true;
+      setTimeout(() => {
+        router.push('/dashboard/admin/public-exams');
+      }, 700);
     } else {
       const res = await api.post('/admin/public-exams', fields.value);
       examId = res.data.id;
+      snackbarText.value = 'Exam created successfully! Directing to Question Bank...';
+      snackbarColor.value = 'success';
+      snackbar.value = true;
+      setTimeout(() => {
+        router.push(`/dashboard/admin/public-exams/questions?examId=${examId}`);
+      }, 900);
     }
-
-    snackbarText.value = isEditMode.value ? 'Exam updated successfully!' : 'Exam created successfully!';
-    snackbarColor.value = 'success';
-    snackbar.value = true;
-
-    setTimeout(() => {
-      router.push('/dashboard/admin/public-exams');
-    }, 800);
   } catch (err) {
     console.error('Failed to save exam configurations:', err);
     snackbarText.value = 'Failed to save exam. Please check all fields.';
@@ -1582,5 +1608,116 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+}
+
+/* Certifying Authority Delivery Model Banner */
+.delivery-model-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 20px;
+  background-color: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 14px;
+}
+
+.notice-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background-color: #DCFCE7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notice-text-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.notice-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #166534;
+  margin-bottom: 4px;
+}
+
+.notice-desc {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #15803D;
+  margin: 0 0 12px 0;
+  font-weight: 500;
+}
+
+.notice-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.notice-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background-color: #FFFFFF;
+  color: #166534;
+  border: 1px solid #86EFAC;
+}
+
+/* Authority Hub Quick Navigation Links */
+.authority-hub-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  background-color: #F8FAFC;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.authority-hub-btn:hover {
+  border-color: #CBD5E1;
+  background-color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+}
+
+.authority-btn-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.authority-btn-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.authority-btn-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.authority-btn-sub {
+  font-size: 0.72rem;
+  color: #64748B;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

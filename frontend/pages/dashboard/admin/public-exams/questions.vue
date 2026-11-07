@@ -66,7 +66,7 @@
       <div v-show="importOpen && selectedExamId" class="mb-6">
         <v-card class="pa-6 border rounded-xl" flat color="grey-lighten-4">
           <div class="d-flex justify-space-between align-center mb-2">
-            <h3 class="text-h6 font-weight-bold text-dark">
+            <h3 class="text-h6 font-semibold text-dark">
               Bulk Import Questions ({{ importMode.toUpperCase() }} Mode)
             </h3>
             <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="importOpen = false"></v-btn>
@@ -89,7 +89,7 @@
 
           <div v-else>
             <p class="text-caption text-secondary mb-4 leading-relaxed">
-              Upload a CSV file. Columns must map to: <strong class="text-dark">Type, Question, Options (separated by |), Correct Answer (separated by | for MSQ), Explanation, Marks, Difficulty</strong>.<br/>
+              Upload a CSV file. Columns must map to: <span class="font-semibold text-dark">Type, Question, Options (separated by |), Correct Answer (separated by | for MSQ), Explanation, Marks, Difficulty</span>.<br/>
               The first row is ignored as the header. Valid Types: <code>mcq, msq, truefalse, fib</code>. Example:<br/>
               <code>Type,Question,Options,Correct Answer,Explanation,Marks,Difficulty<br/>"mcq","Which is a prime number?","2|4|6|8","2","2 is the only even prime.",4,"Easy"</code>
             </p>
@@ -102,13 +102,13 @@
               </v-btn>
             </div>
             <input type="file" ref="csvFileInput" accept=".csv" class="d-none" @change="handleCsvUpload" />
-            <div v-if="selectedCsvFileName" class="text-center text-caption text-success font-weight-bold mb-4">
+            <div v-if="selectedCsvFileName" class="text-center text-caption text-success font-semibold mb-4">
               <v-icon left>mdi-check-circle</v-icon> {{ selectedCsvFileName }} Selected
             </div>
           </div>
 
           <div class="d-flex gap-2">
-            <v-btn color="success" rounded="lg" class="text-white font-weight-bold px-6" elevation="0" :loading="importing" @click="runBulkImport">
+            <v-btn color="success" rounded="lg" class="text-white font-semibold px-6" elevation="0" :loading="importing" @click="runBulkImport">
               Import Questions
             </v-btn>
             <v-btn variant="text" color="grey" @click="importOpen = false">Cancel</v-btn>
@@ -145,8 +145,8 @@
         </v-col>
         <v-spacer></v-spacer>
         <div class="d-flex text-caption text-secondary gap-4 pr-2">
-          <div>Total Questions: <strong class="text-dark">{{ filteredQuestions.length }}</strong></div>
-          <div>Total Marks: <strong class="text-dark">{{ totalCalculatedMarks }}</strong></div>
+          <div>Total Questions: <span class="font-semibold text-dark">{{ filteredQuestions.length }}</span></div>
+          <div>Total Marks: <span class="font-semibold text-dark">{{ totalCalculatedMarks }}</span></div>
         </div>
       </v-row>
     </v-card>
@@ -154,7 +154,7 @@
     <!-- Loading State -->
     <div v-if="loadingQuestions" class="text-center py-12">
       <v-progress-circular indeterminate color="primary" size="48"></v-progress-circular>
-      <div class="mt-4 text-grey font-weight-bold">Loading questions...</div>
+      <div class="mt-4 text-grey font-semibold">Loading questions...</div>
     </div>
 
     <!-- Empty State -->
@@ -162,7 +162,7 @@
       <div class="empty-state-icon-box">
         <v-icon size="32" color="#E31B23">mdi-database-alert-outline</v-icon>
       </div>
-      <h3 class="text-h6 font-weight-bold mb-2">No Questions Found</h3>
+      <h3 class="text-h6 font-semibold mb-2">No Questions Found</h3>
       <p class="text-body-2 text-secondary mb-4">No questions match your filter criteria or there are no questions in this exam yet.</p>
     </v-card>
 
@@ -170,9 +170,9 @@
       <div class="empty-state-icon-box">
         <v-icon size="32" color="#E31B23">mdi-database-search-outline</v-icon>
       </div>
-      <h3 class="text-h6 font-weight-bold mb-2">No Exam Selected</h3>
+      <h3 class="text-h6 font-semibold mb-2">No Exam Selected</h3>
       <p class="text-body-2 text-secondary mb-4">You must select an exam from the All Exams list to manage its questions.</p>
-      <v-btn to="/dashboard/admin/public-exams" color="#E31B23" rounded="lg" class="text-capitalize text-white font-weight-bold">
+      <v-btn to="/dashboard/admin/public-exams" color="#E31B23" rounded="lg" class="text-capitalize text-white font-semibold">
         Go to All Exams
       </v-btn>
     </div>
@@ -187,14 +187,14 @@
       >
         <div class="d-flex align-center justify-space-between mb-3 flex-wrap gap-2">
           <div class="d-flex align-center flex-wrap gap-2">
-            <span class="font-weight-black text-body-1 text-dark">Question {{ idx + 1 }}</span>
-            <v-chip size="small" color="primary" variant="flat" class="text-white font-weight-bold text-uppercase">
+            <span class="font-semibold text-body-1 text-dark">Question {{ idx + 1 }}</span>
+            <v-chip size="small" color="primary" variant="flat" class="text-white font-semibold text-uppercase">
               {{ q.type }}
             </v-chip>
-            <v-chip size="small" :color="getDifficultyColor(q.difficulty_level)" variant="tonal" class="font-weight-bold">
+            <v-chip size="small" :color="getDifficultyColor(q.difficulty_level)" variant="tonal" class="font-semibold">
               {{ q.difficulty_level }}
             </v-chip>
-            <v-chip size="small" color="grey-lighten-4" text-color="grey-darken-3" class="font-weight-bold">
+            <v-chip size="small" color="grey-lighten-4" text-color="grey-darken-3" class="font-semibold">
               {{ q.marks }} Marks
             </v-chip>
           </div>
@@ -214,7 +214,7 @@
         </div>
 
         <!-- Question Text -->
-        <p class="text-body-2 text-dark font-weight-medium mb-3" style="white-space: pre-line;">{{ q.question_text }}</p>
+        <p class="text-body-2 text-dark font-medium mb-3" style="white-space: pre-line;">{{ q.question_text }}</p>
 
         <!-- Options (if MCQ/MSQ/TF) -->
         <div v-if="q.options && q.options.length > 0" class="mb-3 pl-4">
@@ -222,7 +222,7 @@
             v-for="(opt, oIdx) in q.options"
             :key="oIdx"
             class="text-caption mb-1 d-flex align-center"
-            :class="{'text-success font-weight-bold': isCorrectAns(q, opt)}"
+            :class="{'text-success font-semibold': isCorrectAns(q, opt)}"
           >
             <v-icon size="16" class="mr-2" :color="isCorrectAns(q, opt) ? 'success' : 'grey'">
               {{ isCorrectAns(q, opt) ? 'mdi-check-circle-outline' : 'mdi-circle-outline' }}
@@ -232,13 +232,13 @@
         </div>
 
         <!-- Correct Display for non-options -->
-        <div v-else class="text-caption text-success font-weight-bold mb-3 pl-4">
+        <div v-else class="text-caption text-success font-semibold mb-3 pl-4">
           Correct Answer: {{ q.correct_answer }}
         </div>
 
         <!-- Explanation -->
         <div v-if="q.explanation" class="text-caption text-secondary bg-grey-lighten-4 pa-3 rounded-lg border-l-4 border-indigo-accent-1">
-          <strong class="text-dark">Explanation:</strong> {{ q.explanation }}
+          <span class="font-semibold text-dark">Explanation:</span> {{ q.explanation }}
         </div>
       </v-card>
     </div>
@@ -246,7 +246,7 @@
     <!-- Create / Edit Question Dialog -->
     <v-dialog v-model="questionDialog" max-width="650" persistent>
       <v-card class="pa-6 rounded-xl" elevation="24">
-        <h3 class="text-h5 font-weight-bold text-dark mb-6">
+        <h3 class="text-h5 font-semibold text-dark mb-6">
           {{ editingQuestionId ? 'Edit Question' : 'Add Question' }}
         </h3>
 
@@ -303,7 +303,7 @@
           <!-- Options Editor (MCQ / MSQ) -->
           <div v-if="['mcq', 'msq'].includes(questionFields.type)" class="mb-4">
             <div class="d-flex align-center justify-space-between mb-2">
-              <span class="text-subtitle-2 font-weight-bold text-dark">Options</span>
+              <span class="text-subtitle-2 font-semibold text-dark">Options</span>
               <v-btn variant="text" color="primary" size="small" @click="addOptionField">
                 <v-icon start>mdi-plus</v-icon> Add Option
               </v-btn>
@@ -381,7 +381,7 @@
 
         <div class="d-flex justify-end gap-2 mt-6">
           <v-btn variant="text" color="grey" @click="questionDialog = false">Cancel</v-btn>
-          <v-btn color="primary" rounded="lg" class="px-6 font-weight-bold" :loading="savingQuestion" @click="saveQuestion">
+          <v-btn color="primary" rounded="lg" class="px-6 font-semibold" :loading="savingQuestion" @click="saveQuestion">
             Save Question
           </v-btn>
         </div>
@@ -391,13 +391,13 @@
     <!-- Delete Confirmation Dialog -->
     <v-dialog v-model="deleteConfirmDialog" max-width="400">
       <v-card class="pa-6 rounded-xl">
-        <h3 class="text-h6 font-weight-bold mb-3 text-dark">Delete Question?</h3>
+        <h3 class="text-h6 font-semibold mb-3 text-dark">Delete Question?</h3>
         <p class="text-body-2 text-secondary mb-6">
           Are you sure you want to delete this question? This will permanently remove it from the exam and cannot be undone.
         </p>
         <div class="d-flex justify-end gap-2">
           <v-btn variant="text" color="grey" @click="deleteConfirmDialog = false">Cancel</v-btn>
-          <v-btn color="error" rounded="lg" class="text-capitalize font-weight-bold" :loading="deleting" @click="deleteQuestion">
+          <v-btn color="error" rounded="lg" class="text-capitalize font-semibold" :loading="deleting" @click="deleteQuestion">
             Delete
           </v-btn>
         </div>

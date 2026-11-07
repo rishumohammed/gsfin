@@ -102,7 +102,7 @@
             <div class="py-3">
               <div class="font-semibold text-slate-900 text-xs">{{ item.question_count || 0 }} Questions</div>
               <div class="text-xs text-slate-500 mt-0.5">
-                {{ item.duration_minutes }} Mins • Pass Score: <strong class="text-slate-800">{{ item.passing_marks }} ({{ item.pass_percentage }}%)</strong>
+                {{ item.duration_minutes }} Mins • Pass Score: <span class="font-semibold text-slate-800">{{ item.passing_marks }} ({{ item.pass_percentage }}%)</span>
               </div>
             </div>
           </template>
@@ -220,7 +220,7 @@
       <div class="bg-white rounded-3xl p-6 shadow-2xl border border-slate-200/80">
         <h3 class="text-lg font-semibold text-slate-900 mb-2">Delete Certification Exam?</h3>
         <p class="text-xs text-slate-600 mb-6">
-          Are you sure you want to delete <strong>"{{ targetExam?.name }}"</strong>? This action will permanently remove questions and student attempts.
+          Are you sure you want to delete <span class="font-semibold text-slate-800">"{{ targetExam?.name }}"</span>? This action will permanently remove questions and student attempts.
         </p>
         <div class="flex justify-end gap-3">
           <v-btn variant="text" class="text-none font-semibold text-slate-600" @click="deleteDialog = false">Cancel</v-btn>
