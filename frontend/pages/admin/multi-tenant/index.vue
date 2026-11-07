@@ -62,26 +62,6 @@
         </div>
       </div>
 
-      <!-- Navigation Tabs Pill Bar -->
-      <div class="panel-nav-tabs">
-        <button
-          v-for="t in tabItems"
-          :key="t.value"
-          :class="['panel-tab-btn', { active: activeTab === t.value }]"
-          @click="switchTab(t.value)"
-        >
-          <i :class="['mdi', t.icon]"></i>
-          <span>{{ t.label }}</span>
-          <span
-            v-if="t.value === 'requests' && (overview.metrics.pendingTokenRequests || tokenRequestCounts.pending) > 0"
-            class="tab-badge-amber"
-          >
-            {{ overview.metrics.pendingTokenRequests || tokenRequestCounts.pending }}
-          </span>
-        </button>
-      </div>
-
-
       <!-- ═══ TAB CONTENT PANELS ═══ -->
 
       <!-- TAB 1 & 2: OVERVIEW & LIVE BATCHES -->
@@ -1316,7 +1296,11 @@ function switchTab(val: string) {
 }
 
 watch(() => route.query.tab, (newTab) => {
-  if (newTab) activeTab.value = String(newTab);
+  if (newTab) {
+    activeTab.value = String(newTab);
+  } else {
+    activeTab.value = 'subcenters';
+  }
 });
 
 // Overview state

@@ -23,6 +23,7 @@ export const useNavStore = defineStore('nav', {
       
       // PARTNERS
       { label: 'Partners', icon: 'mdi-office-building-outline', route: '/admin/multi-tenant', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'PARTNERS' },
+      { label: 'Batches', icon: 'mdi-layers-triple-outline', route: '/admin/multi-tenant?tab=batches', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'PARTNERS' },
 
       // EXAMS & CERTIFICATES
       { label: 'Exams', icon: 'mdi-clipboard-text-outline', route: '/dashboard/admin/public-exams', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAMS & CERTIFICATES' },
