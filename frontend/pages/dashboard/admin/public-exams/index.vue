@@ -147,7 +147,7 @@
           <!-- Actions Column (2 Rows) -->
           <template v-slot:item.actions="{ item }">
             <div class="actions-cell-2rows">
-              <!-- Row 1: Content & Learning Standards (Question Bank, Certificates, Edit) -->
+              <!-- Row 1: Authoring & Questions (Question Bank, Edit) -->
               <div class="actions-row">
                 <NuxtLink
                   :to="`/dashboard/admin/public-exams/questions?examId=${item.id}`"
@@ -155,13 +155,6 @@
                   title="Question Bank"
                 >
                   <i class="mdi mdi-database-outline"></i>
-                </NuxtLink>
-                <NuxtLink
-                  :to="`/dashboard/admin/public-exams/${item.id}/certificates`"
-                  class="btn-table-action icon-only btn-cert"
-                  title="Issued Certificates"
-                >
-                  <i class="mdi mdi-file-certificate-outline"></i>
                 </NuxtLink>
                 <NuxtLink
                   :to="`/dashboard/admin/public-exams/create?id=${item.id}`"
@@ -172,16 +165,8 @@
                 </NuxtLink>
               </div>
 
-              <!-- Row 2: Operations & Lifecycle (Proctoring Logs, Duplicate, Status, Delete) -->
+              <!-- Row 2: Operations & Lifecycle (Duplicate, Status Toggle, Delete) -->
               <div class="actions-row">
-                <NuxtLink
-                  v-if="item.enable_proctoring"
-                  :to="`/dashboard/admin/public-exams/proctoring/exam/${item.id}`"
-                  class="btn-table-action icon-only btn-proctor"
-                  title="Audit Proctoring Logs"
-                >
-                  <i class="mdi mdi-shield-check-outline"></i>
-                </NuxtLink>
                 <button
                   type="button"
                   class="btn-table-action icon-only btn-warn"
@@ -288,7 +273,7 @@ const headers = [
   { title: 'Status', key: 'status', align: 'center' as const, minWidth: '150px' },
   { title: 'Attempts', key: 'engagement', align: 'center' as const, sortable: false, minWidth: '140px' },
   { title: 'Date', key: 'created_at', minWidth: '110px' },
-  { title: 'Actions', key: 'actions', sortable: false, align: 'center' as const, width: '150px', minWidth: '150px' }
+  { title: 'Actions', key: 'actions', sortable: false, align: 'center' as const, width: '135px', minWidth: '135px' }
 ];
 
 function getStatusClass(status: string) {
