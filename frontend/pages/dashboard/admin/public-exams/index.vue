@@ -95,15 +95,17 @@
           <template v-slot:item.name="{ item }">
             <div class="py-2.5">
               <div class="font-semibold text-slate-900 text-sm mb-1.5">{{ item.name }}</div>
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap">
+              <div class="programs-badges-wrap">
+                <span class="badge-program-tag">
+                  <i class="mdi mdi-shape-outline"></i>
                   {{ item.category_name || 'General Certification' }}
                 </span>
                 <span
                   v-if="item.enable_proctoring"
-                  class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200 whitespace-nowrap inline-flex items-center gap-1"
+                  class="badge-proctor-tag"
                 >
-                  <i class="mdi mdi-shield-check text-xs text-red-600"></i> AI Proctored
+                  <i class="mdi mdi-shield-check"></i>
+                  AI Proctored
                 </span>
               </div>
             </div>
@@ -122,20 +124,9 @@
           <!-- Status Column -->
           <template v-slot:item.status="{ item }">
             <div class="flex items-center justify-center py-2">
-              <span
-                :class="[
-                  'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap',
-                  item.status === 'published' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                  item.status === 'draft' ? 'bg-slate-100 text-slate-700 border border-slate-200' :
-                  item.status === 'review' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                  'bg-red-50 text-red-700 border border-red-200'
-                ]"
-              >
-                <span
-                  class="w-1.5 h-1.5 rounded-full"
-                  :class="item.status === 'published' ? 'bg-emerald-500' : item.status === 'draft' ? 'bg-slate-400' : 'bg-amber-500'"
-                ></span>
-                {{ item.status === 'published' ? 'Active in Catalog' : item.status === 'draft' ? 'Draft' : item.status === 'review' ? 'Under Review' : 'Archived' }}
+              <span :class="['status-btn', getStatusClass(item.status)]">
+                <span class="status-dot"></span>
+                {{ getStatusLabel(item.status) }}
               </span>
             </div>
           </template>
@@ -153,81 +144,82 @@
             <span class="text-xs text-slate-500 font-medium whitespace-nowrap">{{ formatDate(item.created_at) }}</span>
           </template>
 
-          <!-- Actions Column -->
+          <!-- Actions Column (2 Rows) -->
           <template v-slot:item.actions="{ item }">
-            <div class="actions-toolbar">
-              <!-- Manage Questions / Question Bank -->
-              <v-btn
-                icon="mdi-database-outline"
-                variant="outlined"
-                size="x-small"
-                color="#E31B23"
-                class="rounded-lg action-btn"
-                :to="`/dashboard/admin/public-exams/questions?examId=${item.id}`"
-                title="Question Bank"
-              />
-              <!-- Edit Exam Settings -->
-              <v-btn
-                icon="mdi-pencil-outline"
-                variant="outlined"
-                size="x-small"
-                color="slate"
-                class="rounded-lg action-btn"
-                :to="`/dashboard/admin/public-exams/create?id=${item.id}`"
-                title="Edit Exam Settings"
-              />
-              <!-- Proctoring Audit Logs (when enabled) -->
-              <v-btn
-                v-if="item.enable_proctoring"
-                icon="mdi-shield-check-outline"
-                variant="outlined"
-                size="x-small"
-                color="#E31B23"
-                class="rounded-lg action-btn"
-                :to="`/dashboard/admin/public-exams/proctoring/exam/${item.id}`"
-                title="Audit Proctoring Logs"
-              />
-              <!-- Duplicate Exam -->
-              <v-btn
-                icon="mdi-content-copy"
-                variant="outlined"
-                size="x-small"
-                color="amber"
-                class="rounded-lg action-btn"
-                @click="duplicateExam(item.id)"
-                title="Duplicate Exam"
-              />
-              <!-- Publish / Unpublish Toggle -->
-              <v-btn
-                v-if="item.status !== 'published'"
-                icon="mdi-rocket-launch-outline"
-                variant="flat"
-                size="x-small"
-                color="#10B981"
-                class="rounded-lg text-white action-btn"
-                @click="changeStatus(item.id, 'published')"
-                title="Publish to Partner Centers"
-              />
-              <v-btn
-                v-else
-                icon="mdi-pause-circle-outline"
-                variant="tonal"
-                size="x-small"
-                color="slate"
-                class="rounded-lg action-btn"
-                @click="changeStatus(item.id, 'draft')"
-                title="Unpublish (Set to Draft)"
-              />
-              <!-- Delete -->
-              <v-btn
-                icon="mdi-delete-outline"
-                variant="tonal"
-                size="x-small"
-                color="error"
-                class="rounded-lg action-btn"
-                @click="confirmDelete(item)"
-                title="Delete Exam"
-              />
+            <div class="actions-cell-2rows">
+              <!-- Row 1: Content & Settings (3 icons) -->
+              <div class="actions-row">
+                <NuxtLink
+                  :to="`/dashboard/admin/public-exams/questions?examId=${item.id}`"
+                  class="btn-table-action icon-only"
+                  title="Question Bank"
+                >
+                  <i class="mdi mdi-database-outline text-red"></i>
+                </NuxtLink>
+                <NuxtLink
+                  :to="`/dashboard/admin/public-exams/create?id=${item.id}`"
+                  class="btn-table-action icon-only btn-edit"
+                  title="Edit Exam Settings"
+                >
+                  <i class="mdi mdi-pencil-outline"></i>
+                </NuxtLink>
+                <NuxtLink
+                  v-if="item.enable_proctoring"
+                  :to="`/dashboard/admin/public-exams/proctoring/exam/${item.id}`"
+                  class="btn-table-action icon-only btn-proctor"
+                  title="Audit Proctoring Logs"
+                >
+                  <i class="mdi mdi-shield-check-outline"></i>
+                </NuxtLink>
+                <button
+                  v-else
+                  type="button"
+                  class="btn-table-action icon-only btn-warn"
+                  title="Duplicate Exam"
+                  @click="duplicateExam(item.id)"
+                >
+                  <i class="mdi mdi-content-copy"></i>
+                </button>
+              </div>
+
+              <!-- Row 2: Operations & Lifecycle (3 icons) -->
+              <div class="actions-row">
+                <button
+                  v-if="item.enable_proctoring"
+                  type="button"
+                  class="btn-table-action icon-only btn-warn"
+                  title="Duplicate Exam"
+                  @click="duplicateExam(item.id)"
+                >
+                  <i class="mdi mdi-content-copy"></i>
+                </button>
+                <button
+                  v-if="item.status !== 'published'"
+                  type="button"
+                  class="btn-table-action icon-only btn-success"
+                  title="Publish to Partner Centers"
+                  @click="changeStatus(item.id, 'published')"
+                >
+                  <i class="mdi mdi-rocket-launch-outline"></i>
+                </button>
+                <button
+                  v-else
+                  type="button"
+                  class="btn-table-action icon-only btn-edit"
+                  title="Unpublish (Set to Draft)"
+                  @click="changeStatus(item.id, 'draft')"
+                >
+                  <i class="mdi mdi-pause-circle-outline"></i>
+                </button>
+                <button
+                  type="button"
+                  class="btn-table-action icon-only btn-danger"
+                  title="Delete Exam"
+                  @click="confirmDelete(item)"
+                >
+                  <i class="mdi mdi-trash-can-outline"></i>
+                </button>
+              </div>
             </div>
           </template>
         </v-data-table>
@@ -295,12 +287,26 @@ const snackbarColor = ref('success');
 
 const headers = [
   { title: 'Exam', key: 'name', minWidth: '220px' },
-  { title: 'Details', key: 'settings', sortable: false, minWidth: '190px' },
-  { title: 'Status', key: 'status', align: 'center' as const, minWidth: '140px' },
+  { title: 'Details', key: 'settings', sortable: false, minWidth: '180px' },
+  { title: 'Status', key: 'status', align: 'center' as const, minWidth: '150px' },
   { title: 'Attempts', key: 'engagement', align: 'center' as const, sortable: false, minWidth: '140px' },
   { title: 'Date', key: 'created_at', minWidth: '110px' },
-  { title: 'Actions', key: 'actions', sortable: false, align: 'end' as const, minWidth: '220px' }
+  { title: 'Actions', key: 'actions', sortable: false, align: 'center' as const, width: '135px', minWidth: '135px' }
 ];
+
+function getStatusClass(status: string) {
+  if (status === 'published') return 'status-active';
+  if (status === 'draft') return 'status-read';
+  if (status === 'review') return 'status-suspended';
+  return 'status-new';
+}
+
+function getStatusLabel(status: string) {
+  if (status === 'published') return 'Active in Catalog';
+  if (status === 'draft') return 'Draft Mode';
+  if (status === 'review') return 'Under Review';
+  return 'Archived';
+}
 
 const filteredExams = computed(() => {
   return exams.value.filter(exam => {
@@ -376,26 +382,78 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.actions-toolbar {
+.actions-cell-2rows {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: max-content;
+  margin: 0 auto;
+}
+
+.actions-row {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
+  gap: 5px;
+}
+
+.btn-table-action.btn-proctor {
+  background: rgba(227, 27, 35, 0.08);
+  color: #E31B23;
+  border-color: rgba(227, 27, 35, 0.2);
+}
+
+.btn-table-action.btn-proctor:hover {
+  background: #E31B23;
+  color: #FFFFFF;
+}
+
+/* Global Tags & Badges Match */
+.programs-badges-wrap {
+  display: flex;
   gap: 6px;
-  padding: 4px 0;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.badge-program-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.70rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #F1F5F9;
+  color: #334155;
+  border: 1px solid rgba(15, 23, 42, 0.08);
   white-space: nowrap;
 }
 
-.action-btn {
-  width: 28px !important;
-  height: 28px !important;
-  min-width: 28px !important;
-  border-radius: 8px !important;
-  transition: all 0.15s ease !important;
+.badge-program-tag i {
+  color: #059669;
+  font-size: 0.78rem;
 }
 
-.action-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+.badge-proctor-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.70rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(227, 27, 35, 0.08);
+  color: #E31B23;
+  border: 1px solid rgba(227, 27, 35, 0.2);
+  white-space: nowrap;
+}
+
+.badge-proctor-tag i {
+  color: #E31B23;
+  font-size: 0.78rem;
 }
 </style>
 
