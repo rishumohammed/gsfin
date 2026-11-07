@@ -3,3 +3,4 @@
 
 ALTER TABLE public_exam_issued_certificates 
   ADD COLUMN certificate_number VARCHAR(100) NULL;
+

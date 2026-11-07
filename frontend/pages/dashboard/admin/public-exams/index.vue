@@ -10,6 +10,12 @@
 
         <div class="header-actions">
           <NuxtLink
+            to="/dashboard/admin/public-exams/proctoring"
+            class="btn-glass"
+          >
+            <i class="mdi mdi-shield-check-outline"></i> Proctoring Logs
+          </NuxtLink>
+          <NuxtLink
             to="/dashboard/admin/public-exams/categories"
             class="btn-glass"
           >
@@ -89,9 +95,15 @@
           <template v-slot:item.name="{ item }">
             <div class="py-3">
               <div class="font-semibold text-slate-900 text-sm mb-1">{{ item.name }}</div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 flex-wrap">
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
                   {{ item.category_name || 'General Certification' }}
+                </span>
+                <span
+                  v-if="item.enable_proctoring"
+                  class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 d-inline-flex align-center gap-1"
+                >
+                  <i class="mdi mdi-shield-check text-xs"></i> AI Proctored
                 </span>
               </div>
             </div>
@@ -140,7 +152,7 @@
           <!-- Actions Column -->
           <template v-slot:item.actions="{ item }">
             <div class="actions-cell-2rows">
-              <!-- Row 1: Authoring & Templates (3 buttons) -->
+              <!-- Row 1: Authoring, Templates & Proctoring (4 buttons) -->
               <div class="actions-row">
                 <!-- Manage Questions / Question Bank -->
                 <v-btn
@@ -161,6 +173,17 @@
                   class="rounded-lg action-btn"
                   :to="`/dashboard/admin/public-exams/create?id=${item.id}`"
                   title="Edit Exam Settings"
+                />
+                <!-- Proctoring Audit Logs (when enabled) -->
+                <v-btn
+                  v-if="item.enable_proctoring"
+                  icon="mdi-shield-check-outline"
+                  variant="outlined"
+                  size="x-small"
+                  color="#E31B23"
+                  class="rounded-lg action-btn"
+                  :to="`/dashboard/admin/public-exams/proctoring/exam/${item.id}`"
+                  title="Audit Proctoring Logs"
                 />
                 <!-- Duplicate Exam -->
                 <v-btn

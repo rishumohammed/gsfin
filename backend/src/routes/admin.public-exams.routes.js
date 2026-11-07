@@ -218,11 +218,11 @@ router.post('/:id/duplicate', async (req, res) => {
     // Insert duplicated exam
     await connection.query(`
       INSERT INTO public_exams (
-        id, name, category_id, description, syllabus, duration_minutes, total_questions, total_marks, passing_marks, difficulty_level, status, slug, instructions, pass_percentage, negative_marking, randomize_questions, randomize_options, show_correct_answers, show_explanations, allow_retake, enable_certificate, anonymous_access, require_name, require_email, require_mobile, enable_proctoring, max_proctoring_warnings, enforce_fullscreen
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, name, category_id, description, syllabus, duration_minutes, total_questions, total_marks, passing_marks, difficulty_level, status, slug, instructions, pass_percentage, negative_marking, randomize_questions, randomize_options, show_correct_answers, show_explanations, allow_retake, enable_certificate, anonymous_access, require_name, require_email, require_mobile, enable_proctoring, max_proctoring_warnings, enforce_fullscreen, proctoring_config
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       newExamId, newName, exam.category_id, exam.description, exam.syllabus, exam.duration_minutes, exam.total_questions, exam.total_marks, exam.passing_marks, exam.difficulty_level, 'draft', newSlug,
-      exam.instructions, exam.pass_percentage, exam.negative_marking, exam.randomize_questions, exam.randomize_options, exam.show_correct_answers, exam.show_explanations, exam.allow_retake, exam.enable_certificate, exam.anonymous_access, exam.require_name, exam.require_email, exam.require_mobile, exam.enable_proctoring, exam.max_proctoring_warnings, exam.enforce_fullscreen
+      exam.instructions, exam.pass_percentage, exam.negative_marking, exam.randomize_questions, exam.randomize_options, exam.show_correct_answers, exam.show_explanations, exam.allow_retake, exam.enable_certificate, exam.anonymous_access, exam.require_name, exam.require_email, exam.require_mobile, exam.enable_proctoring, exam.max_proctoring_warnings, exam.enforce_fullscreen, exam.proctoring_config || null
     ]);
 
     // Copy questions
@@ -539,7 +539,7 @@ router.get('/', async (req, res) => {
 // POST /api/admin/public-exams
 router.post('/', async (req, res) => {
   try {
-    const { name, category_id, description, syllabus, duration_minutes, total_questions, total_marks, passing_marks, difficulty_level, status, slug, instructions, pass_percentage, negative_marking, randomize_questions, randomize_options, show_correct_answers, show_explanations, allow_retake, max_retakes, enable_certificate, anonymous_access, require_name, require_email, require_mobile, enable_proctoring, max_proctoring_warnings, enforce_fullscreen, registration_start_date, registration_end_date, exam_start_date, exam_end_date, image_url } = req.body;
+    const { name, category_id, description, syllabus, duration_minutes, total_questions, total_marks, passing_marks, difficulty_level, status, slug, instructions, pass_percentage, negative_marking, randomize_questions, randomize_options, show_correct_answers, show_explanations, allow_retake, max_retakes, enable_certificate, anonymous_access, require_name, require_email, require_mobile, enable_proctoring, max_proctoring_warnings, enforce_fullscreen, proctoring_config, registration_start_date, registration_end_date, exam_start_date, exam_end_date, image_url } = req.body;
 
     if (!name || !category_id || !slug) {
       return res.status(400).json({ message: 'Name, Category, and SEO Slug are required' });
@@ -554,10 +554,12 @@ router.post('/', async (req, res) => {
     }
 
     const id = uuidv4();
+    const proctoringConfigStr = proctoring_config ? (typeof proctoring_config === 'object' ? JSON.stringify(proctoring_config) : proctoring_config) : null;
+
     await pool.query(`
       INSERT INTO public_exams (
-        id, name, category_id, description, syllabus, duration_minutes, total_questions, total_marks, passing_marks, difficulty_level, status, slug, instructions, pass_percentage, negative_marking, randomize_questions, randomize_options, show_correct_answers, show_explanations, allow_retake, max_retakes, enable_certificate, anonymous_access, require_name, require_email, require_mobile, enable_proctoring, max_proctoring_warnings, enforce_fullscreen, registration_start_date, registration_end_date, exam_start_date, exam_end_date, image_url
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, name, category_id, description, syllabus, duration_minutes, total_questions, total_marks, passing_marks, difficulty_level, status, slug, instructions, pass_percentage, negative_marking, randomize_questions, randomize_options, show_correct_answers, show_explanations, allow_retake, max_retakes, enable_certificate, anonymous_access, require_name, require_email, require_mobile, enable_proctoring, max_proctoring_warnings, enforce_fullscreen, proctoring_config, registration_start_date, registration_end_date, exam_start_date, exam_end_date, image_url
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       id, name, category_id, description || null, syllabus || null,
       duration_minutes !== undefined && duration_minutes !== '' ? duration_minutes : 60,
@@ -573,6 +575,7 @@ router.post('/', async (req, res) => {
       enable_certificate !== false, anonymous_access !== false,
       require_name !== false, !!require_email, !!require_mobile,
       !!enable_proctoring, max_proctoring_warnings !== undefined ? max_proctoring_warnings : 3, !!enforce_fullscreen,
+      proctoringConfigStr,
       registration_start_date || null, registration_end_date || null, exam_start_date || null, exam_end_date || null, image_url || null
     ]);
 
@@ -591,7 +594,7 @@ router.put('/:id', async (req, res) => {
       'total_questions', 'total_marks', 'passing_marks', 'difficulty_level', 'status', 'slug',
       'instructions', 'pass_percentage', 'negative_marking', 'randomize_questions', 'randomize_options',
       'show_correct_answers', 'show_explanations', 'allow_retake', 'max_retakes', 'enable_certificate', 'anonymous_access',
-      'require_name', 'require_email', 'require_mobile', 'enable_proctoring', 'max_proctoring_warnings', 'enforce_fullscreen',
+      'require_name', 'require_email', 'require_mobile', 'enable_proctoring', 'max_proctoring_warnings', 'enforce_fullscreen', 'proctoring_config',
       'registration_start_date', 'registration_end_date', 'exam_start_date', 'exam_end_date', 'image_url'
     ];
     const updates = fields.filter(f => req.body[f] !== undefined);
@@ -620,6 +623,9 @@ router.put('/:id', async (req, res) => {
     const values = updates.map(f => {
       if (['randomize_questions', 'randomize_options', 'show_correct_answers', 'show_explanations', 'allow_retake', 'enable_certificate', 'anonymous_access', 'require_name', 'require_email', 'require_mobile', 'enable_proctoring', 'enforce_fullscreen'].includes(f)) {
         return !!req.body[f];
+      }
+      if (f === 'proctoring_config') {
+        return req.body[f] ? (typeof req.body[f] === 'object' ? JSON.stringify(req.body[f]) : req.body[f]) : null;
       }
       if (['registration_start_date', 'registration_end_date', 'exam_start_date', 'exam_end_date'].includes(f)) {
         return formatMySQL(req.body[f]);

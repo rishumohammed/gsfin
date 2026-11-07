@@ -337,29 +337,212 @@
                   </v-col>
                 </v-row>
 
-                <!-- Proctoring -->
-                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80">
-                  <div class="font-semibold text-slate-900 text-sm mb-3 d-flex align-center gap-2">
-                    <v-icon icon="mdi-shield-alert-outline" size="18" color="#E31B23"></v-icon>
-                    AI Proctoring & Integrity Checks
+                <!-- AI Proctoring & Integrity Checks Suite -->
+                <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200/90 shadow-sm mt-2">
+                  <div class="d-flex align-center justify-space-between mb-3">
+                    <div class="font-semibold text-slate-900 text-sm d-flex align-center gap-2">
+                      <v-icon icon="mdi-shield-check" size="20" color="#E31B23"></v-icon>
+                      AI Proctoring & Integrity Checks
+                    </div>
+                    <v-chip
+                      :color="fields.enable_proctoring ? '#E31B23' : 'slate'"
+                      size="x-small"
+                      variant="flat"
+                      class="text-white font-semibold text-uppercase"
+                    >
+                      {{ fields.enable_proctoring ? 'Proctoring Enabled' : 'Proctoring Inactive' }}
+                    </v-chip>
                   </div>
-                  <v-row dense align="center">
-                    <v-col cols="12" sm="6">
-                      <label class="toggle-card bg-white">
-                        <input type="checkbox" v-model="fields.enable_proctoring" class="toggle-checkbox" />
-                        <div>
-                          <div class="toggle-title">Tab-Switch Detection</div>
-                          <div class="toggle-sub">Track browser focus loss</div>
-                        </div>
-                      </label>
-                    </v-col>
-                    <v-col cols="12" sm="6" v-if="fields.enable_proctoring">
-                      <div class="form-group">
-                        <label class="form-label">Max Allowed Violations</label>
-                        <input v-model.number="fields.max_proctoring_warnings" type="number" min="1" class="form-input" />
+                  <p class="text-xs text-slate-600 mb-4 leading-relaxed font-normal">
+                    Automate candidate identity verification, live computer vision head-pose tracking, phone detection, and security audit logs for Certifying Authority standards.
+                  </p>
+
+                  <!-- Master Toggle Card -->
+                  <label class="toggle-card bg-white border border-slate-200/90 mb-4 p-3.5 transition-all" :class="{ 'ring-2 ring-red-500/20 border-red-500/40': fields.enable_proctoring }">
+                    <input type="checkbox" v-model="fields.enable_proctoring" class="toggle-checkbox" />
+                    <div class="flex-grow-1">
+                      <div class="toggle-title text-slate-900 font-semibold text-sm d-flex align-center gap-2">
+                        <span>Enable AI Proctoring Suite</span>
+                        <span v-if="fields.enable_proctoring" class="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Active</span>
                       </div>
-                    </v-col>
-                  </v-row>
+                      <div class="toggle-sub text-slate-500 text-xs mt-0.5">
+                        Enforces camera vision monitoring, browser lockdown, candidate face baseline, and holds certificates for audit approval.
+                      </div>
+                    </div>
+                  </label>
+
+                  <!-- Sub-Options Grid (Expanded when Proctoring is Active) -->
+                  <v-expand-transition>
+                    <div v-if="fields.enable_proctoring" class="mt-3 pt-3 border-t border-slate-200/70">
+                      <v-row dense>
+                        <!-- Fullscreen Lock -->
+                        <v-col cols="12" sm="6" class="mb-2">
+                          <label class="toggle-card bg-white h-100 p-3">
+                            <input type="checkbox" v-model="fields.enforce_fullscreen" class="toggle-checkbox" />
+                            <div>
+                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
+                                <v-icon icon="mdi-fullscreen" size="15" color="#E31B23"></v-icon>
+                                Enforce Full Screen Lock
+                              </div>
+                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">Locks browser in fullscreen; exit triggers security alerts</div>
+                            </div>
+                          </label>
+                        </v-col>
+
+                        <!-- Max Violation Warnings -->
+                        <v-col cols="12" sm="6" class="mb-2">
+                          <div class="bg-white p-3 rounded-xl border border-slate-200/80 h-100 d-flex flex-column justify-center">
+                            <div class="d-flex align-center justify-space-between mb-1">
+                              <label class="text-xs font-semibold text-slate-800 d-flex align-center gap-1.5">
+                                <v-icon icon="mdi-alert-octagon-outline" size="15" color="#E31B23"></v-icon>
+                                Violation Warning Limit
+                              </label>
+                              <span class="text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">{{ fields.max_proctoring_warnings }} Warnings</span>
+                            </div>
+                            <input
+                              v-model.number="fields.max_proctoring_warnings"
+                              type="number"
+                              min="1"
+                              max="15"
+                              class="form-input text-xs py-1.5 h-8 mt-1"
+                              placeholder="3"
+                            />
+                            <div class="text-[10px] text-slate-400 mt-1">Exceeding this count auto-submits exam attempt</div>
+                          </div>
+                        </v-col>
+
+                        <!-- Tab & Blur Detection -->
+                        <v-col cols="12" sm="6" class="mb-2">
+                          <label class="toggle-card bg-white h-100 p-3">
+                            <input type="checkbox" v-model="fields.proctoring_config.tab_switch_detection" class="toggle-checkbox" />
+                            <div>
+                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
+                                <v-icon icon="mdi-tab" size="15" color="#E31B23"></v-icon>
+                                Tab-Switch &amp; Blur Check
+                              </div>
+                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">1500ms debounced window blur &amp; devtools monitor</div>
+                            </div>
+                          </label>
+                        </v-col>
+
+                        <!-- AI Face Mesh & Pose Tracking -->
+                        <v-col cols="12" sm="6" class="mb-2">
+                          <label class="toggle-card bg-white h-100 p-3">
+                            <input type="checkbox" v-model="fields.proctoring_config.enable_face_tracking" class="toggle-checkbox" />
+                            <div>
+                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
+                                <v-icon icon="mdi-face-recognition" size="15" color="#E31B23"></v-icon>
+                                Face Mesh &amp; Head-Pose Tracking
+                              </div>
+                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">Euler pitch/yaw/roll look-away &amp; multi-face audit</div>
+                            </div>
+                          </label>
+                        </v-col>
+
+                        <!-- 3-Pose Biometric Registration & Verification -->
+                        <v-col cols="12" sm="6" class="mb-2">
+                          <label class="toggle-card bg-white h-100 p-3">
+                            <input type="checkbox" v-model="fields.proctoring_config.enable_face_verification" class="toggle-checkbox" />
+                            <div>
+                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
+                                <v-icon icon="mdi-account-check-outline" size="15" color="#E31B23"></v-icon>
+                                3-Pose Biometric Identity Match
+                              </div>
+                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">Registration 3-pose selfie + live pre-exam face match</div>
+                            </div>
+                          </label>
+                        </v-col>
+
+                        <!-- Mobile Phone & Object Detection -->
+                        <v-col cols="12" sm="6" class="mb-2">
+                          <label class="toggle-card bg-white h-100 p-3">
+                            <input type="checkbox" v-model="fields.proctoring_config.enable_object_detection" class="toggle-checkbox" />
+                            <div>
+                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
+                                <v-icon icon="mdi-cellphone-cog" size="15" color="#E31B23"></v-icon>
+                                Mobile Phone &amp; Device Detection
+                              </div>
+                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">150ms COCO-SSD edge vision loop for smartphones</div>
+                            </div>
+                          </label>
+                        </v-col>
+
+                        <!-- 10-Second Video Chunks Streaming -->
+                        <v-col cols="12" sm="6" class="mb-2">
+                          <label class="toggle-card bg-white h-100 p-3">
+                            <input type="checkbox" v-model="fields.proctoring_config.record_video_chunks" class="toggle-checkbox" />
+                            <div>
+                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
+                                <v-icon icon="mdi-video-outline" size="15" color="#E31B23"></v-icon>
+                                10-Second Video Streaming
+                              </div>
+                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">Continuous WebM chunks uploaded to server for review</div>
+                            </div>
+                          </label>
+                        </v-col>
+
+                        <!-- Incident Evidence Snapshots -->
+                        <v-col cols="12" sm="6" class="mb-2">
+                          <label class="toggle-card bg-white h-100 p-3">
+                            <input type="checkbox" v-model="fields.proctoring_config.capture_screenshots" class="toggle-checkbox" />
+                            <div>
+                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
+                                <v-icon icon="mdi-camera-outline" size="15" color="#E31B23"></v-icon>
+                                Automated Snapshot Evidence
+                              </div>
+                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">Auto-captures downscaled JPGs on violation (max 15/session)</div>
+                            </div>
+                          </label>
+                        </v-col>
+
+                        <!-- Text-To-Speech Voice Warnings -->
+                        <v-col cols="12" sm="6" class="mb-2">
+                          <label class="toggle-card bg-white h-100 p-3">
+                            <input type="checkbox" v-model="fields.proctoring_config.enable_voice_warnings" class="toggle-checkbox" />
+                            <div>
+                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
+                                <v-icon icon="mdi-volume-high" size="15" color="#E31B23"></v-icon>
+                                Text-To-Speech Audio Warnings
+                              </div>
+                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">Audible Web Speech alerts warning candidate on violations</div>
+                            </div>
+                          </label>
+                        </v-col>
+
+                        <!-- Certificate Hold Gate -->
+                        <v-col cols="12" sm="6" class="mb-2">
+                          <label class="toggle-card bg-white h-100 p-3">
+                            <input type="checkbox" v-model="fields.proctoring_config.hold_certificate" class="toggle-checkbox" />
+                            <div>
+                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
+                                <v-icon icon="mdi-certificate-outline" size="15" color="#E31B23"></v-icon>
+                                Certificate Audit Hold Gate
+                              </div>
+                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">Holds certificates in 'Pending Review' until admin release</div>
+                            </div>
+                          </label>
+                        </v-col>
+                      </v-row>
+
+                      <!-- Audit Shortcut if Editing -->
+                      <div v-if="isEditMode" class="mt-3 pt-3 border-t border-slate-200/70 d-flex align-center justify-space-between flex-wrap gap-2">
+                        <div class="text-xs text-slate-500">
+                          <i class="mdi mdi-information-outline mr-1 text-slate-400"></i>
+                          Auditors can review video chunks, snapshot evidence, and approve withheld certificates.
+                        </div>
+                        <v-btn
+                          variant="tonal"
+                          color="#E31B23"
+                          size="small"
+                          class="text-none font-semibold rounded-lg"
+                          prepend-icon="mdi-shield-search"
+                          :to="`/dashboard/admin/public-exams/proctoring/exam/${route.query.id}`"
+                        >
+                          Audit Proctoring Logs for this Exam &rarr;
+                        </v-btn>
+                      </div>
+                    </div>
+                  </v-expand-transition>
                 </div>
               </div>
             </div>
@@ -717,6 +900,16 @@ const fields = ref<any>({
   enable_proctoring: false,
   max_proctoring_warnings: 3,
   enforce_fullscreen: false,
+  proctoring_config: {
+    enable_face_tracking: true,
+    enable_face_verification: true,
+    enable_object_detection: true,
+    enable_voice_warnings: true,
+    record_video_chunks: true,
+    capture_screenshots: true,
+    tab_switch_detection: true,
+    hold_certificate: true
+  },
   status: 'published',
   image_url: ''
 });
@@ -912,6 +1105,22 @@ async function fetchExamDetails() {
         enable_proctoring: !!examMatch.enable_proctoring,
         max_proctoring_warnings: examMatch.max_proctoring_warnings !== undefined ? examMatch.max_proctoring_warnings : 3,
         enforce_fullscreen: !!examMatch.enforce_fullscreen,
+        proctoring_config: (() => {
+          let pc = examMatch.proctoring_config;
+          if (typeof pc === 'string') {
+            try { pc = JSON.parse(pc); } catch (_) { pc = {}; }
+          }
+          return {
+            enable_face_tracking: pc?.enable_face_tracking !== false,
+            enable_face_verification: pc?.enable_face_verification !== false,
+            enable_object_detection: pc?.enable_object_detection !== false,
+            enable_voice_warnings: pc?.enable_voice_warnings !== false,
+            record_video_chunks: pc?.record_video_chunks !== false,
+            capture_screenshots: pc?.capture_screenshots !== false,
+            tab_switch_detection: pc?.tab_switch_detection !== false,
+            hold_certificate: pc?.hold_certificate !== false
+          };
+        })(),
         status: examMatch.status,
         image_url: examMatch.image_url || ''
       };

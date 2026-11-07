@@ -28,7 +28,7 @@ export const useNavStore = defineStore('nav', {
       { label: 'Exams', icon: 'mdi-clipboard-text-outline', route: '/dashboard/admin/public-exams', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAMS & CERTIFICATES' },
       { label: 'Categories', icon: 'mdi-shape-outline', route: '/dashboard/admin/public-exams/categories', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAMS & CERTIFICATES' },
       { label: 'Certificates', icon: 'mdi-file-certificate-outline', route: '/dashboard/admin/certificates', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAMS & CERTIFICATES' },
-      { label: 'Proctoring', icon: 'mdi-shield-check-outline', route: '/dashboard/admin/proctoring', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAMS & CERTIFICATES' },
+      { label: 'Proctoring', icon: 'mdi-shield-check-outline', route: '/dashboard/admin/public-exams/proctoring', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAMS & CERTIFICATES' },
       { label: 'Certifications', icon: 'mdi-certificate-outline', route: '/dashboard/admin/qualifications', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAMS & CERTIFICATES' },
 
       // TOKENS
