@@ -338,195 +338,307 @@
                 </v-row>
 
                 <!-- AI Proctoring & Integrity Checks Suite -->
-                <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200/90 shadow-sm mt-2">
-                  <div class="d-flex align-center justify-space-between mb-3">
-                    <div class="font-semibold text-slate-900 text-sm d-flex align-center gap-2">
-                      <v-icon icon="mdi-shield-check" size="20" color="#E31B23"></v-icon>
-                      AI Proctoring & Integrity Checks
+                <div class="proctor-suite-card mt-2">
+                  <div class="d-flex align-center justify-space-between mb-2">
+                    <div class="d-flex align-center gap-2.5">
+                      <div class="card-icon-box icon-box-active">
+                        <v-icon icon="mdi-shield-check" size="20"></v-icon>
+                      </div>
+                      <div>
+                        <h4 class="text-sm font-semibold text-slate-900 m-0">AI Proctoring &amp; Integrity Checks</h4>
+                        <p class="text-xs text-slate-500 m-0 font-normal">Candidate monitoring, computer vision tracking, and audit review</p>
+                      </div>
                     </div>
-                    <v-chip
-                      :color="fields.enable_proctoring ? '#E31B23' : 'slate'"
-                      size="x-small"
-                      variant="flat"
-                      class="text-white font-semibold text-uppercase"
-                    >
-                      {{ fields.enable_proctoring ? 'Proctoring Enabled' : 'Proctoring Inactive' }}
-                    </v-chip>
+                    <div>
+                      <span
+                        v-if="fields.enable_proctoring"
+                        class="proctor-status-pill pill-active"
+                      >
+                        <i class="mdi mdi-check-circle"></i>
+                        <span>Proctoring Active</span>
+                      </span>
+                      <span
+                        v-else
+                        class="proctor-status-pill pill-inactive"
+                      >
+                        <i class="mdi mdi-shield-off-outline"></i>
+                        <span>Proctoring Inactive</span>
+                      </span>
+                    </div>
                   </div>
-                  <p class="text-xs text-slate-600 mb-4 leading-relaxed font-normal">
-                    Automate candidate identity verification, live computer vision head-pose tracking, phone detection, and security audit logs for Certifying Authority standards.
-                  </p>
 
                   <!-- Master Toggle Card -->
-                  <label class="toggle-card bg-white border border-slate-200/90 mb-4 p-3.5 transition-all" :class="{ 'ring-2 ring-red-500/20 border-red-500/40': fields.enable_proctoring }">
-                    <input type="checkbox" v-model="fields.enable_proctoring" class="toggle-checkbox" />
-                    <div class="flex-grow-1">
-                      <div class="toggle-title text-slate-900 font-semibold text-sm d-flex align-center gap-2">
-                        <span>Enable AI Proctoring Suite</span>
-                        <span v-if="fields.enable_proctoring" class="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Active</span>
+                  <div
+                    class="master-proctor-card mt-4 mb-4"
+                    :class="{ 'is-active': fields.enable_proctoring }"
+                    @click="fields.enable_proctoring = !fields.enable_proctoring"
+                  >
+                    <div class="master-card-left">
+                      <div class="master-icon-wrap" :class="fields.enable_proctoring ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-500'">
+                        <v-icon icon="mdi-shield-account-outline" size="24" :color="fields.enable_proctoring ? '#E31B23' : '#64748B'"></v-icon>
                       </div>
-                      <div class="toggle-sub text-slate-500 text-xs mt-0.5">
-                        Enforces camera vision monitoring, browser lockdown, candidate face baseline, and holds certificates for audit approval.
+                      <div>
+                        <div class="d-flex align-center gap-2">
+                          <span class="master-title">Enable AI Proctoring Suite</span>
+                          <span v-if="fields.enable_proctoring" class="status-pill-green">Active</span>
+                          <span v-else class="status-pill-gray">Disabled</span>
+                        </div>
+                        <div class="master-sub">
+                          Enforces camera vision monitoring, browser lockdown, candidate face baseline, and holds certificates for audit approval.
+                        </div>
                       </div>
                     </div>
-                  </label>
+                    <div class="card-switch" :class="{ 'switch-on': fields.enable_proctoring }">
+                      <span class="switch-dot"></span>
+                    </div>
+                  </div>
 
                   <!-- Sub-Options Grid (Expanded when Proctoring is Active) -->
                   <v-expand-transition>
-                    <div v-if="fields.enable_proctoring" class="mt-3 pt-3 border-t border-slate-200/70">
-                      <v-row dense>
-                        <!-- Fullscreen Lock -->
-                        <v-col cols="12" sm="6" class="mb-2">
-                          <label class="toggle-card bg-white h-100 p-3">
-                            <input type="checkbox" v-model="fields.enforce_fullscreen" class="toggle-checkbox" />
-                            <div>
-                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
-                                <v-icon icon="mdi-fullscreen" size="15" color="#E31B23"></v-icon>
-                                Enforce Full Screen Lock
-                              </div>
-                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">Locks browser in fullscreen; exit triggers security alerts</div>
-                            </div>
-                          </label>
-                        </v-col>
+                    <div v-if="fields.enable_proctoring" class="space-y-4">
+                      <!-- Parameter Strip: Violation Warning Limit -->
+                      <div class="proctoring-param-strip">
+                        <div class="d-flex align-center gap-3">
+                          <div class="param-icon-box">
+                            <v-icon icon="mdi-alert-octagon-outline" size="20" color="#E31B23"></v-icon>
+                          </div>
+                          <div>
+                            <div class="text-xs font-semibold text-slate-900">Violation Strike Threshold</div>
+                            <div class="text-[11px] text-slate-500">Auto-terminates and submits attempt when cumulative infractions reach this count</div>
+                          </div>
+                        </div>
+                        <div class="d-flex align-center gap-2">
+                          <button
+                            type="button"
+                            class="btn-stepper"
+                            :disabled="fields.max_proctoring_warnings <= 1"
+                            @click="fields.max_proctoring_warnings = Math.max(1, (fields.max_proctoring_warnings || 3) - 1)"
+                            title="Decrease limit"
+                          >
+                            <i class="mdi mdi-minus"></i>
+                          </button>
+                          <div class="stepper-value-box">
+                            <span class="stepper-num">{{ fields.max_proctoring_warnings || 3 }}</span>
+                            <span class="stepper-unit">Strikes</span>
+                          </div>
+                          <button
+                            type="button"
+                            class="btn-stepper"
+                            :disabled="fields.max_proctoring_warnings >= 15"
+                            @click="fields.max_proctoring_warnings = Math.min(15, (fields.max_proctoring_warnings || 3) + 1)"
+                            title="Increase limit"
+                          >
+                            <i class="mdi mdi-plus"></i>
+                          </button>
+                        </div>
+                      </div>
 
-                        <!-- Max Violation Warnings -->
+                      <!-- 10 Feature Toggles Grid -->
+                      <v-row dense class="mt-2">
+                        <!-- 1. Fullscreen Lock -->
                         <v-col cols="12" sm="6" class="mb-2">
-                          <div class="bg-white p-3 rounded-xl border border-slate-200/80 h-100 d-flex flex-column justify-center">
-                            <div class="d-flex align-center justify-space-between mb-1">
-                              <label class="text-xs font-semibold text-slate-800 d-flex align-center gap-1.5">
-                                <v-icon icon="mdi-alert-octagon-outline" size="15" color="#E31B23"></v-icon>
-                                Violation Warning Limit
-                              </label>
-                              <span class="text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">{{ fields.max_proctoring_warnings }} Warnings</span>
+                          <div
+                            class="feature-toggle-card"
+                            :class="{ 'is-active': fields.enforce_fullscreen }"
+                            @click="fields.enforce_fullscreen = !fields.enforce_fullscreen"
+                          >
+                            <div class="card-icon-box" :class="fields.enforce_fullscreen ? 'icon-box-active' : 'icon-box-inactive'">
+                              <v-icon icon="mdi-fullscreen" size="18"></v-icon>
                             </div>
-                            <input
-                              v-model.number="fields.max_proctoring_warnings"
-                              type="number"
-                              min="1"
-                              max="15"
-                              class="form-input text-xs py-1.5 h-8 mt-1"
-                              placeholder="3"
-                            />
-                            <div class="text-[10px] text-slate-400 mt-1">Exceeding this count auto-submits exam attempt</div>
+                            <div class="card-text-wrap">
+                              <div class="card-feature-title">Full Screen Lockdown</div>
+                              <div class="card-feature-sub">Locks browser in fullscreen; exit triggers security alerts</div>
+                            </div>
+                            <div class="card-switch" :class="{ 'switch-on': fields.enforce_fullscreen }">
+                              <span class="switch-dot"></span>
+                            </div>
                           </div>
                         </v-col>
 
-                        <!-- Tab & Blur Detection -->
+                        <!-- 2. Tab & Blur Detection -->
                         <v-col cols="12" sm="6" class="mb-2">
-                          <label class="toggle-card bg-white h-100 p-3">
-                            <input type="checkbox" v-model="fields.proctoring_config.tab_switch_detection" class="toggle-checkbox" />
-                            <div>
-                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
-                                <v-icon icon="mdi-tab" size="15" color="#E31B23"></v-icon>
-                                Tab-Switch &amp; Blur Check
-                              </div>
-                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">1500ms debounced window blur &amp; devtools monitor</div>
+                          <div
+                            class="feature-toggle-card"
+                            :class="{ 'is-active': fields.proctoring_config.tab_switch_detection }"
+                            @click="fields.proctoring_config.tab_switch_detection = !fields.proctoring_config.tab_switch_detection"
+                          >
+                            <div class="card-icon-box" :class="fields.proctoring_config.tab_switch_detection ? 'icon-box-active' : 'icon-box-inactive'">
+                              <v-icon icon="mdi-tab" size="18"></v-icon>
                             </div>
-                          </label>
+                            <div class="card-text-wrap">
+                              <div class="card-feature-title">Tab-Switch &amp; Blur Check</div>
+                              <div class="card-feature-sub">1500ms debounced window blur &amp; devtools monitor</div>
+                            </div>
+                            <div class="card-switch" :class="{ 'switch-on': fields.proctoring_config.tab_switch_detection }">
+                              <span class="switch-dot"></span>
+                            </div>
+                          </div>
                         </v-col>
 
-                        <!-- AI Face Mesh & Pose Tracking -->
+                        <!-- 3. AI Face Mesh & Pose Tracking -->
                         <v-col cols="12" sm="6" class="mb-2">
-                          <label class="toggle-card bg-white h-100 p-3">
-                            <input type="checkbox" v-model="fields.proctoring_config.enable_face_tracking" class="toggle-checkbox" />
-                            <div>
-                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
-                                <v-icon icon="mdi-face-recognition" size="15" color="#E31B23"></v-icon>
-                                Face Mesh &amp; Head-Pose Tracking
-                              </div>
-                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">Euler pitch/yaw/roll look-away &amp; multi-face audit</div>
+                          <div
+                            class="feature-toggle-card"
+                            :class="{ 'is-active': fields.proctoring_config.enable_face_tracking }"
+                            @click="fields.proctoring_config.enable_face_tracking = !fields.proctoring_config.enable_face_tracking"
+                          >
+                            <div class="card-icon-box" :class="fields.proctoring_config.enable_face_tracking ? 'icon-box-active' : 'icon-box-inactive'">
+                              <v-icon icon="mdi-face-recognition" size="18"></v-icon>
                             </div>
-                          </label>
+                            <div class="card-text-wrap">
+                              <div class="card-feature-title">Face Mesh &amp; Head-Pose</div>
+                              <div class="card-feature-sub">Euler pitch/yaw/roll look-away &amp; multi-face audit</div>
+                            </div>
+                            <div class="card-switch" :class="{ 'switch-on': fields.proctoring_config.enable_face_tracking }">
+                              <span class="switch-dot"></span>
+                            </div>
+                          </div>
                         </v-col>
 
-                        <!-- 3-Pose Biometric Registration & Verification -->
+                        <!-- 4. 3-Pose Biometric Identity Match -->
                         <v-col cols="12" sm="6" class="mb-2">
-                          <label class="toggle-card bg-white h-100 p-3">
-                            <input type="checkbox" v-model="fields.proctoring_config.enable_face_verification" class="toggle-checkbox" />
-                            <div>
-                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
-                                <v-icon icon="mdi-account-check-outline" size="15" color="#E31B23"></v-icon>
-                                3-Pose Biometric Identity Match
-                              </div>
-                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">Registration 3-pose selfie + live pre-exam face match</div>
+                          <div
+                            class="feature-toggle-card"
+                            :class="{ 'is-active': fields.proctoring_config.enable_face_verification }"
+                            @click="fields.proctoring_config.enable_face_verification = !fields.proctoring_config.enable_face_verification"
+                          >
+                            <div class="card-icon-box" :class="fields.proctoring_config.enable_face_verification ? 'icon-box-active' : 'icon-box-inactive'">
+                              <v-icon icon="mdi-account-check-outline" size="18"></v-icon>
                             </div>
-                          </label>
+                            <div class="card-text-wrap">
+                              <div class="card-feature-title">3-Pose Biometric Match</div>
+                              <div class="card-feature-sub">Pre-exam 3-pose selfie + live baseline face check</div>
+                            </div>
+                            <div class="card-switch" :class="{ 'switch-on': fields.proctoring_config.enable_face_verification }">
+                              <span class="switch-dot"></span>
+                            </div>
+                          </div>
                         </v-col>
 
-                        <!-- Mobile Phone & Object Detection -->
+                        <!-- 5. Mobile Phone Detection -->
                         <v-col cols="12" sm="6" class="mb-2">
-                          <label class="toggle-card bg-white h-100 p-3">
-                            <input type="checkbox" v-model="fields.proctoring_config.enable_object_detection" class="toggle-checkbox" />
-                            <div>
-                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
-                                <v-icon icon="mdi-cellphone-cog" size="15" color="#E31B23"></v-icon>
-                                Mobile Phone &amp; Device Detection
-                              </div>
-                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">150ms COCO-SSD edge vision loop for smartphones</div>
+                          <div
+                            class="feature-toggle-card"
+                            :class="{ 'is-active': fields.proctoring_config.enable_object_detection }"
+                            @click="fields.proctoring_config.enable_object_detection = !fields.proctoring_config.enable_object_detection"
+                          >
+                            <div class="card-icon-box" :class="fields.proctoring_config.enable_object_detection ? 'icon-box-active' : 'icon-box-inactive'">
+                              <v-icon icon="mdi-cellphone-cog" size="18"></v-icon>
                             </div>
-                          </label>
+                            <div class="card-text-wrap">
+                              <div class="card-feature-title">Mobile Phone Detection</div>
+                              <div class="card-feature-sub">150ms COCO-SSD edge vision loop for smartphones</div>
+                            </div>
+                            <div class="card-switch" :class="{ 'switch-on': fields.proctoring_config.enable_object_detection }">
+                              <span class="switch-dot"></span>
+                            </div>
+                          </div>
                         </v-col>
 
-                        <!-- 10-Second Video Chunks Streaming -->
+                        <!-- 6. 10-Second Video Streaming -->
                         <v-col cols="12" sm="6" class="mb-2">
-                          <label class="toggle-card bg-white h-100 p-3">
-                            <input type="checkbox" v-model="fields.proctoring_config.record_video_chunks" class="toggle-checkbox" />
-                            <div>
-                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
-                                <v-icon icon="mdi-video-outline" size="15" color="#E31B23"></v-icon>
-                                10-Second Video Streaming
-                              </div>
-                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">Continuous WebM chunks uploaded to server for review</div>
+                          <div
+                            class="feature-toggle-card"
+                            :class="{ 'is-active': fields.proctoring_config.record_video_chunks }"
+                            @click="fields.proctoring_config.record_video_chunks = !fields.proctoring_config.record_video_chunks"
+                          >
+                            <div class="card-icon-box" :class="fields.proctoring_config.record_video_chunks ? 'icon-box-active' : 'icon-box-inactive'">
+                              <v-icon icon="mdi-video-outline" size="18"></v-icon>
                             </div>
-                          </label>
+                            <div class="card-text-wrap">
+                              <div class="card-feature-title">10-Second Video Streaming</div>
+                              <div class="card-feature-sub">Continuous WebM chunks uploaded for auditor review</div>
+                            </div>
+                            <div class="card-switch" :class="{ 'switch-on': fields.proctoring_config.record_video_chunks }">
+                              <span class="switch-dot"></span>
+                            </div>
+                          </div>
                         </v-col>
 
-                        <!-- Incident Evidence Snapshots -->
+                        <!-- 7. Automated Snapshot Evidence -->
                         <v-col cols="12" sm="6" class="mb-2">
-                          <label class="toggle-card bg-white h-100 p-3">
-                            <input type="checkbox" v-model="fields.proctoring_config.capture_screenshots" class="toggle-checkbox" />
-                            <div>
-                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
-                                <v-icon icon="mdi-camera-outline" size="15" color="#E31B23"></v-icon>
-                                Automated Snapshot Evidence
-                              </div>
-                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">Auto-captures downscaled JPGs on violation (max 15/session)</div>
+                          <div
+                            class="feature-toggle-card"
+                            :class="{ 'is-active': fields.proctoring_config.capture_screenshots }"
+                            @click="fields.proctoring_config.capture_screenshots = !fields.proctoring_config.capture_screenshots"
+                          >
+                            <div class="card-icon-box" :class="fields.proctoring_config.capture_screenshots ? 'icon-box-active' : 'icon-box-inactive'">
+                              <v-icon icon="mdi-camera-outline" size="18"></v-icon>
                             </div>
-                          </label>
+                            <div class="card-text-wrap">
+                              <div class="card-feature-title">Automated Snapshot Evidence</div>
+                              <div class="card-feature-sub">Auto-captures downscaled JPGs on violation (max 15)</div>
+                            </div>
+                            <div class="card-switch" :class="{ 'switch-on': fields.proctoring_config.capture_screenshots }">
+                              <span class="switch-dot"></span>
+                            </div>
+                          </div>
                         </v-col>
 
-                        <!-- Text-To-Speech Voice Warnings -->
+                        <!-- 8. Text-To-Speech Audio Warnings -->
                         <v-col cols="12" sm="6" class="mb-2">
-                          <label class="toggle-card bg-white h-100 p-3">
-                            <input type="checkbox" v-model="fields.proctoring_config.enable_voice_warnings" class="toggle-checkbox" />
-                            <div>
-                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
-                                <v-icon icon="mdi-volume-high" size="15" color="#E31B23"></v-icon>
-                                Text-To-Speech Audio Warnings
-                              </div>
-                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">Audible Web Speech alerts warning candidate on violations</div>
+                          <div
+                            class="feature-toggle-card"
+                            :class="{ 'is-active': fields.proctoring_config.enable_voice_warnings }"
+                            @click="fields.proctoring_config.enable_voice_warnings = !fields.proctoring_config.enable_voice_warnings"
+                          >
+                            <div class="card-icon-box" :class="fields.proctoring_config.enable_voice_warnings ? 'icon-box-active' : 'icon-box-inactive'">
+                              <v-icon icon="mdi-volume-high" size="18"></v-icon>
                             </div>
-                          </label>
+                            <div class="card-text-wrap">
+                              <div class="card-feature-title">Text-To-Speech Audio Alerts</div>
+                              <div class="card-feature-sub">Audible Web Speech alerts warning candidate on violations</div>
+                            </div>
+                            <div class="card-switch" :class="{ 'switch-on': fields.proctoring_config.enable_voice_warnings }">
+                              <span class="switch-dot"></span>
+                            </div>
+                          </div>
                         </v-col>
 
-                        <!-- Certificate Hold Gate -->
+                        <!-- 9. Clipboard & Shortcut Lock -->
                         <v-col cols="12" sm="6" class="mb-2">
-                          <label class="toggle-card bg-white h-100 p-3">
-                            <input type="checkbox" v-model="fields.proctoring_config.hold_certificate" class="toggle-checkbox" />
-                            <div>
-                              <div class="toggle-title font-semibold text-xs text-slate-800 d-flex align-center gap-1.5">
-                                <v-icon icon="mdi-certificate-outline" size="15" color="#E31B23"></v-icon>
-                                Certificate Audit Hold Gate
-                              </div>
-                              <div class="toggle-sub text-slate-500 text-[11px] mt-0.5">Holds certificates in 'Pending Review' until admin release</div>
+                          <div
+                            class="feature-toggle-card"
+                            :class="{ 'is-active': fields.proctoring_config.prevent_clipboard }"
+                            @click="fields.proctoring_config.prevent_clipboard = !fields.proctoring_config.prevent_clipboard"
+                          >
+                            <div class="card-icon-box" :class="fields.proctoring_config.prevent_clipboard ? 'icon-box-active' : 'icon-box-inactive'">
+                              <v-icon icon="mdi-content-cut" size="18"></v-icon>
                             </div>
-                          </label>
+                            <div class="card-text-wrap">
+                              <div class="card-feature-title">Clipboard &amp; Shortcut Lock</div>
+                              <div class="card-feature-sub">Blocks copy, paste, text select, and dev shortcuts</div>
+                            </div>
+                            <div class="card-switch" :class="{ 'switch-on': fields.proctoring_config.prevent_clipboard }">
+                              <span class="switch-dot"></span>
+                            </div>
+                          </div>
+                        </v-col>
+
+                        <!-- 10. Certificate Audit Hold Gate -->
+                        <v-col cols="12" sm="6" class="mb-2">
+                          <div
+                            class="feature-toggle-card"
+                            :class="{ 'is-active': fields.proctoring_config.hold_certificate }"
+                            @click="fields.proctoring_config.hold_certificate = !fields.proctoring_config.hold_certificate"
+                          >
+                            <div class="card-icon-box" :class="fields.proctoring_config.hold_certificate ? 'icon-box-active' : 'icon-box-inactive'">
+                              <v-icon icon="mdi-certificate-outline" size="18"></v-icon>
+                            </div>
+                            <div class="card-text-wrap">
+                              <div class="card-feature-title">Certificate Audit Hold Gate</div>
+                              <div class="card-feature-sub">Holds certificates in 'Pending Review' until admin release</div>
+                            </div>
+                            <div class="card-switch" :class="{ 'switch-on': fields.proctoring_config.hold_certificate }">
+                              <span class="switch-dot"></span>
+                            </div>
+                          </div>
                         </v-col>
                       </v-row>
 
                       <!-- Audit Shortcut if Editing -->
                       <div v-if="isEditMode" class="mt-3 pt-3 border-t border-slate-200/70 d-flex align-center justify-space-between flex-wrap gap-2">
-                        <div class="text-xs text-slate-500">
+                        <div class="text-xs text-slate-500 font-medium">
                           <i class="mdi mdi-information-outline mr-1 text-slate-400"></i>
                           Auditors can review video chunks, snapshot evidence, and approve withheld certificates.
                         </div>
@@ -908,6 +1020,7 @@ const fields = ref<any>({
     record_video_chunks: true,
     capture_screenshots: true,
     tab_switch_detection: true,
+    prevent_clipboard: true,
     hold_certificate: true
   },
   status: 'published',
@@ -1118,6 +1231,7 @@ async function fetchExamDetails() {
             record_video_chunks: pc?.record_video_chunks !== false,
             capture_screenshots: pc?.capture_screenshots !== false,
             tab_switch_detection: pc?.tab_switch_detection !== false,
+            prevent_clipboard: pc?.prevent_clipboard !== false,
             hold_certificate: pc?.hold_certificate !== false
           };
         })(),
@@ -1988,5 +2102,291 @@ onMounted(async () => {
   justify-content: center;
   gap: 4px;
   font-weight: 500;
+}
+
+/* AI Proctoring & Integrity Checks Redesign */
+.proctor-suite-card {
+  background: #F8FAFD;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 22px;
+}
+
+.proctor-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.proctor-status-pill.pill-active {
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+}
+
+.proctor-status-pill.pill-inactive {
+  background: #F1F5F9;
+  color: #64748B;
+  border: 1px solid #E2E8F0;
+}
+
+/* Master Toggle Card */
+.master-proctor-card {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.master-proctor-card:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+}
+
+.master-proctor-card.is-active {
+  border-color: #F87171;
+  box-shadow: 0 4px 14px rgba(227, 27, 35, 0.08);
+}
+
+.master-card-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.master-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.master-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.master-sub {
+  font-size: 0.74rem;
+  color: #64748B;
+  margin-top: 2px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.status-pill-green {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #059669;
+  background-color: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  padding: 1px 8px;
+  border-radius: 9999px;
+}
+
+.status-pill-gray {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #64748B;
+  background-color: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  padding: 1px 8px;
+  border-radius: 9999px;
+}
+
+/* Violation Strike Limit Parameter Strip */
+.proctoring-param-strip {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.param-icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background-color: #FEF2F2;
+  color: #DC2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.btn-stepper {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  background-color: #F8FAFC;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.15s ease;
+}
+
+.btn-stepper:hover:not(:disabled) {
+  background-color: #FFFFFF;
+  border-color: #94A3B8;
+  color: #0F172A;
+}
+
+.btn-stepper:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.stepper-value-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 68px;
+  padding: 2px 8px;
+  background-color: #F1F5F9;
+  border-radius: 8px;
+}
+
+.stepper-num {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0F172A;
+  line-height: 1.1;
+}
+
+.stepper-unit {
+  font-size: 0.64rem;
+  color: #64748B;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Feature Toggle Cards Grid */
+.feature-toggle-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  min-height: 74px;
+  height: 100%;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.feature-toggle-card:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.feature-toggle-card.is-active {
+  border-color: #FECACA;
+  background: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(227, 27, 35, 0.04);
+}
+
+.card-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.icon-box-active {
+  background-color: #FEF2F2;
+  color: #DC2626;
+}
+
+.icon-box-inactive {
+  background-color: #F1F5F9;
+  color: #64748B;
+}
+
+.card-text-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-feature-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0F172A;
+  line-height: 1.25;
+}
+
+.card-feature-sub {
+  font-size: 0.7rem;
+  color: #64748B;
+  margin-top: 2px;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+/* Custom Sleek Switch */
+.card-switch {
+  width: 36px;
+  height: 20px;
+  border-radius: 9999px;
+  background-color: #CBD5E1;
+  position: relative;
+  transition: background-color 0.25s ease;
+  flex-shrink: 0;
+}
+
+.card-switch.switch-on {
+  background-color: #E31B23;
+}
+
+.switch-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #FFFFFF;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.card-switch.switch-on .switch-dot {
+  transform: translateX(16px);
 }
 </style>
