@@ -14,8 +14,8 @@ export default defineNuxtRouteMiddleware((to, from) => {
     return navigateTo('/dashboard/admin');
   }
 
-  // Check if route has metadata role restrictions
-  const allowedRoles = to.meta.role as string[] | undefined;
+  // Check if route has metadata role restrictions (supports both singular 'role' and plural 'roles')
+  const allowedRoles = (to.meta.role || to.meta.roles) as string[] | undefined;
   if (allowedRoles && !allowedRoles.includes(role)) {
     console.warn(`User role '${role}' is not allowed to access path '${to.path}'. Redirecting to /dashboard.`);
     return navigateTo('/dashboard');

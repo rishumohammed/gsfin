@@ -500,7 +500,7 @@ import AppPagination from '@/components/common/AppPagination.vue';
 definePageMeta({
   layout: 'dashboard',
   middleware: ['auth', 'role'],
-  roles: ['super_admin', 'main_admin', 'sub_admin', 'tutor']
+  role: ['super_admin', 'main_admin', 'sub_admin', 'tutor']
 });
 
 const api = useApi();

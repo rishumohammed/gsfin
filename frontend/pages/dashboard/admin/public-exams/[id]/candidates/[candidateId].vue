@@ -269,7 +269,7 @@ import { useApi } from '@/composables/useApi';
 definePageMeta({
   layout: 'dashboard',
   middleware: ['auth', 'role'],
-  role: ['super_admin', 'sub_admin', 'lms_user']
+  role: ['super_admin', 'main_admin', 'sub_admin', 'lms_user']
 });
 
 const route = useRoute();

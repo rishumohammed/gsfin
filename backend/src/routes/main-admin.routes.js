@@ -62,7 +62,7 @@ router.get('/reports/analytics', async (req, res) => {
         (SELECT COUNT(*) FROM public_exams WHERE deleted_at IS NULL) as total_exams,
         (SELECT COUNT(*) FROM public_exam_attempts) as total_attempts,
         (SELECT COUNT(*) FROM public_exam_attempts WHERE is_passed = TRUE) as passed_attempts,
-        (SELECT COUNT(*) FROM public_exam_issued_certificates WHERE revoked_at IS NULL) as total_certificates,
+        (SELECT COUNT(*) FROM public_exam_issued_certificates) as total_certificates,
         (SELECT COUNT(*) FROM qualifications WHERE deleted_at IS NULL) as total_qualifications,
         (SELECT COUNT(*) FROM organizations) as total_sub_centers,
         (SELECT COALESCE(SUM(tokens_purchased), 0) FROM sub_center_wallets) as tokens_purchased,
@@ -72,7 +72,7 @@ router.get('/reports/analytics', async (req, res) => {
 
     // 2. Exam performance breakdown
     const [examBreakdown] = await pool.query(`
-      SELECT e.id, e.title, e.category_id,
+      SELECT e.id, e.name as title, e.category_id,
              COUNT(pea.id) as total_attempts,
              SUM(CASE WHEN pea.is_passed = 1 THEN 1 ELSE 0 END) as passed_count,
              SUM(CASE WHEN pea.is_passed = 0 THEN 1 ELSE 0 END) as failed_count,
@@ -101,12 +101,13 @@ router.get('/reports/analytics', async (req, res) => {
 
     // 4. Certificates by qualification standard
     const [certBreakdown] = await pool.query(`
-      SELECT c.qualification_name,
+      SELECT COALESCE(e.name, 'Public Exam') as qualification_name,
              COUNT(c.id) as total_issued,
-             SUM(CASE WHEN c.revoked_at IS NULL THEN 1 ELSE 0 END) as active_count,
-             SUM(CASE WHEN c.revoked_at IS NOT NULL THEN 1 ELSE 0 END) as revoked_count
+             COUNT(c.id) as active_count,
+             0 as revoked_count
       FROM public_exam_issued_certificates c
-      GROUP BY c.qualification_name
+      JOIN public_exams e ON c.exam_id = e.id
+      GROUP BY e.name
       ORDER BY total_issued DESC
     `);
 
@@ -749,7 +750,7 @@ router.get('/certificates', async (req, res) => {
         c.candidate_email as email,
         NULL as phone,
         e.id as exam_id,
-        e.title as course_title,
+        e.name as course_title,
         c.created_at as issued_at,
         'active' as status,
         'public_exam' as type,
@@ -844,7 +845,7 @@ router.get('/certificates/hierarchy', async (req, res) => {
         1 as attempts_used,
         1 as max_attempts,
         e.id as exam_id,
-        e.title as exam_name,
+        e.name as exam_name,
         e.duration_minutes
       FROM public_exam_issued_certificates c
       JOIN public_exams e ON c.exam_id = e.id

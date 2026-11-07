@@ -147,14 +147,21 @@
           <!-- Actions Column (2 Rows) -->
           <template v-slot:item.actions="{ item }">
             <div class="actions-cell-2rows">
-              <!-- Row 1: Content & Settings (3 icons) -->
+              <!-- Row 1: Content & Learning Standards (Question Bank, Certificates, Edit) -->
               <div class="actions-row">
                 <NuxtLink
                   :to="`/dashboard/admin/public-exams/questions?examId=${item.id}`"
-                  class="btn-table-action icon-only"
+                  class="btn-table-action icon-only btn-qb"
                   title="Question Bank"
                 >
-                  <i class="mdi mdi-database-outline text-red"></i>
+                  <i class="mdi mdi-database-outline"></i>
+                </NuxtLink>
+                <NuxtLink
+                  :to="`/dashboard/admin/public-exams/${item.id}/certificates`"
+                  class="btn-table-action icon-only btn-cert"
+                  title="Issued Certificates"
+                >
+                  <i class="mdi mdi-file-certificate-outline"></i>
                 </NuxtLink>
                 <NuxtLink
                   :to="`/dashboard/admin/public-exams/create?id=${item.id}`"
@@ -163,6 +170,10 @@
                 >
                   <i class="mdi mdi-pencil-outline"></i>
                 </NuxtLink>
+              </div>
+
+              <!-- Row 2: Operations & Lifecycle (Proctoring Logs, Duplicate, Status, Delete) -->
+              <div class="actions-row">
                 <NuxtLink
                   v-if="item.enable_proctoring"
                   :to="`/dashboard/admin/public-exams/proctoring/exam/${item.id}`"
@@ -172,20 +183,6 @@
                   <i class="mdi mdi-shield-check-outline"></i>
                 </NuxtLink>
                 <button
-                  v-else
-                  type="button"
-                  class="btn-table-action icon-only btn-warn"
-                  title="Duplicate Exam"
-                  @click="duplicateExam(item.id)"
-                >
-                  <i class="mdi mdi-content-copy"></i>
-                </button>
-              </div>
-
-              <!-- Row 2: Operations & Lifecycle (3 icons) -->
-              <div class="actions-row">
-                <button
-                  v-if="item.enable_proctoring"
                   type="button"
                   class="btn-table-action icon-only btn-warn"
                   title="Duplicate Exam"
@@ -291,7 +288,7 @@ const headers = [
   { title: 'Status', key: 'status', align: 'center' as const, minWidth: '150px' },
   { title: 'Attempts', key: 'engagement', align: 'center' as const, sortable: false, minWidth: '140px' },
   { title: 'Date', key: 'created_at', minWidth: '110px' },
-  { title: 'Actions', key: 'actions', sortable: false, align: 'center' as const, width: '135px', minWidth: '135px' }
+  { title: 'Actions', key: 'actions', sortable: false, align: 'center' as const, width: '150px', minWidth: '150px' }
 ];
 
 function getStatusClass(status: string) {
@@ -397,6 +394,28 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 5px;
+}
+
+.btn-table-action.btn-qb {
+  background: rgba(227, 27, 35, 0.08);
+  color: #E31B23;
+  border-color: rgba(227, 27, 35, 0.2);
+}
+
+.btn-table-action.btn-qb:hover {
+  background: #E31B23;
+  color: #FFFFFF;
+}
+
+.btn-table-action.btn-cert {
+  background: rgba(99, 102, 241, 0.08);
+  color: #4F46E5;
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.btn-table-action.btn-cert:hover {
+  background: #4F46E5;
+  color: #FFFFFF;
 }
 
 .btn-table-action.btn-proctor {

@@ -118,7 +118,7 @@ import { ref, onMounted } from 'vue';
 import { useApi } from '@/composables/useApi';
 import CertificatePreview from '@/components/CertificatePreview.vue';
 
-definePageMeta({ layout: 'dashboard', middleware: ['auth', 'role'], roles: ['super_admin', 'main_admin'] });
+definePageMeta({ layout: 'dashboard', middleware: ['auth', 'role'], role: ['super_admin', 'main_admin', 'sub_admin'] });
 
 const api = useApi();
 const config = ref<any>({
