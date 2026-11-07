@@ -93,17 +93,17 @@
 
           <!-- Exam Details Column -->
           <template v-slot:item.name="{ item }">
-            <div class="py-3">
-              <div class="font-semibold text-slate-900 text-sm mb-1">{{ item.name }}</div>
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+            <div class="py-2.5">
+              <div class="font-semibold text-slate-900 text-sm mb-1.5">{{ item.name }}</div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap">
                   {{ item.category_name || 'General Certification' }}
                 </span>
                 <span
                   v-if="item.enable_proctoring"
-                  class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 d-inline-flex align-center gap-1"
+                  class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200 whitespace-nowrap inline-flex items-center gap-1"
                 >
-                  <i class="mdi mdi-shield-check text-xs"></i> AI Proctored
+                  <i class="mdi mdi-shield-check text-xs text-red-600"></i> AI Proctored
                 </span>
               </div>
             </div>
@@ -111,7 +111,7 @@
 
           <!-- Configuration Column -->
           <template v-slot:item.settings="{ item }">
-            <div class="py-3">
+            <div class="py-2.5 whitespace-nowrap">
               <div class="font-semibold text-slate-900 text-xs">{{ item.question_count || 0 }} Questions</div>
               <div class="text-xs text-slate-500 mt-0.5">
                 {{ item.duration_minutes }} Mins • Pass Score: <span class="font-semibold text-slate-800">{{ item.passing_marks }} ({{ item.pass_percentage }}%)</span>
@@ -121,24 +121,28 @@
 
           <!-- Status Column -->
           <template v-slot:item.status="{ item }">
-            <div class="flex flex-col items-center justify-center py-2">
+            <div class="flex items-center justify-center py-2">
               <span
                 :class="[
-                  'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider',
+                  'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap',
                   item.status === 'published' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
                   item.status === 'draft' ? 'bg-slate-100 text-slate-700 border border-slate-200' :
                   item.status === 'review' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
                   'bg-red-50 text-red-700 border border-red-200'
                 ]"
               >
-                {{ item.status === 'published' ? 'Active in Catalog' : item.status }}
+                <span
+                  class="w-1.5 h-1.5 rounded-full"
+                  :class="item.status === 'published' ? 'bg-emerald-500' : item.status === 'draft' ? 'bg-slate-400' : 'bg-amber-500'"
+                ></span>
+                {{ item.status === 'published' ? 'Active in Catalog' : item.status === 'draft' ? 'Draft' : item.status === 'review' ? 'Under Review' : 'Archived' }}
               </span>
             </div>
           </template>
 
           <!-- Partner Engagement Column -->
           <template v-slot:item.engagement="{ item }">
-            <div class="py-3 text-center">
+            <div class="py-2.5 text-center whitespace-nowrap">
               <div class="font-semibold text-slate-900 text-xs">{{ item.attempts_count || 0 }} Attempts</div>
               <div class="text-[11px] text-slate-500 font-medium mt-0.5">{{ item.candidate_count || 0 }} Students Conducted</div>
             </div>
@@ -146,91 +150,84 @@
 
           <!-- Created Date Column -->
           <template v-slot:item.created_at="{ item }">
-            <span class="text-xs text-slate-500 font-medium">{{ formatDate(item.created_at) }}</span>
+            <span class="text-xs text-slate-500 font-medium whitespace-nowrap">{{ formatDate(item.created_at) }}</span>
           </template>
 
           <!-- Actions Column -->
           <template v-slot:item.actions="{ item }">
-            <div class="actions-cell-2rows">
-              <!-- Row 1: Authoring, Templates & Proctoring (4 buttons) -->
-              <div class="actions-row">
-                <!-- Manage Questions / Question Bank -->
-                <v-btn
-                  icon="mdi-database-outline"
-                  variant="outlined"
-                  size="x-small"
-                  color="#E31B23"
-                  class="rounded-lg action-btn"
-                  :to="`/dashboard/admin/public-exams/questions?examId=${item.id}`"
-                  title="Question Bank"
-                />
-                <!-- Edit Exam Settings -->
-                <v-btn
-                  icon="mdi-pencil-outline"
-                  variant="outlined"
-                  size="x-small"
-                  color="slate"
-                  class="rounded-lg action-btn"
-                  :to="`/dashboard/admin/public-exams/create?id=${item.id}`"
-                  title="Edit Exam Settings"
-                />
-                <!-- Proctoring Audit Logs (when enabled) -->
-                <v-btn
-                  v-if="item.enable_proctoring"
-                  icon="mdi-shield-check-outline"
-                  variant="outlined"
-                  size="x-small"
-                  color="#E31B23"
-                  class="rounded-lg action-btn"
-                  :to="`/dashboard/admin/public-exams/proctoring/exam/${item.id}`"
-                  title="Audit Proctoring Logs"
-                />
-                <!-- Duplicate Exam -->
-                <v-btn
-                  icon="mdi-content-copy"
-                  variant="outlined"
-                  size="x-small"
-                  color="amber"
-                  class="rounded-lg action-btn"
-                  @click="duplicateExam(item.id)"
-                  title="Duplicate Exam"
-                />
-              </div>
-
-              <!-- Row 2: Status & Deletion (2 buttons) -->
-              <div class="actions-row">
-                <!-- Publish / Unpublish Toggle -->
-                <v-btn
-                  v-if="item.status !== 'published'"
-                  icon="mdi-rocket-launch-outline"
-                  variant="flat"
-                  size="x-small"
-                  color="#10B981"
-                  class="rounded-lg text-white action-btn"
-                  @click="changeStatus(item.id, 'published')"
-                  title="Publish to Partner Centers"
-                />
-                <v-btn
-                  v-else
-                  icon="mdi-pause-circle-outline"
-                  variant="tonal"
-                  size="x-small"
-                  color="slate"
-                  class="rounded-lg action-btn"
-                  @click="changeStatus(item.id, 'draft')"
-                  title="Unpublish (Set to Draft)"
-                />
-                <!-- Delete -->
-                <v-btn
-                  icon="mdi-delete-outline"
-                  variant="tonal"
-                  size="x-small"
-                  color="error"
-                  class="rounded-lg action-btn"
-                  @click="confirmDelete(item)"
-                  title="Delete Exam"
-                />
-              </div>
+            <div class="actions-toolbar">
+              <!-- Manage Questions / Question Bank -->
+              <v-btn
+                icon="mdi-database-outline"
+                variant="outlined"
+                size="x-small"
+                color="#E31B23"
+                class="rounded-lg action-btn"
+                :to="`/dashboard/admin/public-exams/questions?examId=${item.id}`"
+                title="Question Bank"
+              />
+              <!-- Edit Exam Settings -->
+              <v-btn
+                icon="mdi-pencil-outline"
+                variant="outlined"
+                size="x-small"
+                color="slate"
+                class="rounded-lg action-btn"
+                :to="`/dashboard/admin/public-exams/create?id=${item.id}`"
+                title="Edit Exam Settings"
+              />
+              <!-- Proctoring Audit Logs (when enabled) -->
+              <v-btn
+                v-if="item.enable_proctoring"
+                icon="mdi-shield-check-outline"
+                variant="outlined"
+                size="x-small"
+                color="#E31B23"
+                class="rounded-lg action-btn"
+                :to="`/dashboard/admin/public-exams/proctoring/exam/${item.id}`"
+                title="Audit Proctoring Logs"
+              />
+              <!-- Duplicate Exam -->
+              <v-btn
+                icon="mdi-content-copy"
+                variant="outlined"
+                size="x-small"
+                color="amber"
+                class="rounded-lg action-btn"
+                @click="duplicateExam(item.id)"
+                title="Duplicate Exam"
+              />
+              <!-- Publish / Unpublish Toggle -->
+              <v-btn
+                v-if="item.status !== 'published'"
+                icon="mdi-rocket-launch-outline"
+                variant="flat"
+                size="x-small"
+                color="#10B981"
+                class="rounded-lg text-white action-btn"
+                @click="changeStatus(item.id, 'published')"
+                title="Publish to Partner Centers"
+              />
+              <v-btn
+                v-else
+                icon="mdi-pause-circle-outline"
+                variant="tonal"
+                size="x-small"
+                color="slate"
+                class="rounded-lg action-btn"
+                @click="changeStatus(item.id, 'draft')"
+                title="Unpublish (Set to Draft)"
+              />
+              <!-- Delete -->
+              <v-btn
+                icon="mdi-delete-outline"
+                variant="tonal"
+                size="x-small"
+                color="error"
+                class="rounded-lg action-btn"
+                @click="confirmDelete(item)"
+                title="Delete Exam"
+              />
             </div>
           </template>
         </v-data-table>
@@ -297,12 +294,12 @@ const snackbarText = ref('');
 const snackbarColor = ref('success');
 
 const headers = [
-  { title: 'Exam', key: 'name' },
-  { title: 'Details', key: 'settings', sortable: false },
-  { title: 'Status', key: 'status', align: 'center' as const },
-  { title: 'Attempts', key: 'engagement', align: 'center' as const, sortable: false },
-  { title: 'Date', key: 'created_at' },
-  { title: 'Actions', key: 'actions', sortable: false, align: 'end' as const, width: '130px' }
+  { title: 'Exam', key: 'name', minWidth: '220px' },
+  { title: 'Details', key: 'settings', sortable: false, minWidth: '190px' },
+  { title: 'Status', key: 'status', align: 'center' as const, minWidth: '140px' },
+  { title: 'Attempts', key: 'engagement', align: 'center' as const, sortable: false, minWidth: '140px' },
+  { title: 'Date', key: 'created_at', minWidth: '110px' },
+  { title: 'Actions', key: 'actions', sortable: false, align: 'end' as const, minWidth: '220px' }
 ];
 
 const filteredExams = computed(() => {
@@ -379,32 +376,26 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.actions-cell-2rows {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 6px 0;
-  width: max-content;
-  margin-left: auto;
-}
-
-.actions-row {
+.actions-toolbar {
   display: flex;
   align-items: center;
-  gap: 5px;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 4px 0;
+  white-space: nowrap;
 }
 
 .action-btn {
   width: 28px !important;
   height: 28px !important;
   min-width: 28px !important;
+  border-radius: 8px !important;
   transition: all 0.15s ease !important;
 }
 
 .action-btn:hover {
   transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 </style>
 
