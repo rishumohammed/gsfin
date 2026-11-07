@@ -444,13 +444,17 @@
                   color="#E31B23"
                   block
                   size="large"
-                  class="font-semibold text-white text-none rounded-xl shadow-md mb-3"
-                  prepend-icon="mdi-content-save-outline"
+                  class="font-semibold text-white text-none rounded-xl shadow-md mb-2 sidebar-save-btn"
+                  :prepend-icon="isEditMode ? 'mdi-content-save-outline' : 'mdi-plus-circle-outline'"
                   :loading="saving"
                   @click="saveExam"
                 >
-                  {{ isEditMode ? 'Save Settings' : 'Create & Proceed to Questions' }}
+                  {{ isEditMode ? 'Save Settings' : 'Create Exam' }}
                 </v-btn>
+
+                <div v-if="!isEditMode" class="create-hint-text text-center text-xs text-slate-500 mb-3">
+                  <i class="mdi mdi-arrow-right-circle-outline mr-1 text-slate-400"></i>Directs to Question Bank next
+                </div>
 
                 <v-btn
                   variant="outlined"
@@ -1719,5 +1723,30 @@ onMounted(async () => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.sidebar-save-btn {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em;
+  padding: 0 16px !important;
+  height: 46px !important;
+  min-height: 46px !important;
+}
+
+.sidebar-save-btn :deep(.v-btn__content) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.create-hint-text {
+  font-size: 0.74rem;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-weight: 500;
 }
 </style>
