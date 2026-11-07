@@ -1,59 +1,58 @@
 <template>
   <div class="questions-page min-h-screen pb-16" style="background-color: #FAFAFD;">
-    <!-- Page Header -->
-    <div class="bg-white border-b border-slate-200/80 shadow-xs mb-8">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div class="d-flex align-center justify-space-between flex-wrap gap-4">
-          <div class="d-flex align-center gap-4">
-            <v-btn
+    <!-- Page Header Bar -->
+    <div class="exam-header-bar mb-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="header-inner-row">
+          <!-- Left: Back Button + Title & Subtitle + Optional Exam Badge -->
+          <div class="header-left-col">
+            <NuxtLink
               to="/dashboard/admin/public-exams"
-              icon="mdi-arrow-left"
-              variant="outlined"
-              color="slate"
-              size="small"
-              class="rounded-xl border-slate-300"
+              class="btn-header-back"
               title="Back to All Exams"
-            />
-            <div>
-              <div class="d-flex align-center gap-2 mb-1 flex-wrap">
-                <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
-                  Question Bank Manager
-                </h1>
+            >
+              <i class="mdi mdi-arrow-left"></i>
+            </NuxtLink>
+            <div class="header-titles">
+              <div class="header-title-row">
+                <h1 class="header-page-title">Question Bank Manager</h1>
+                <span v-if="selectedExam" class="badge-exam-pill">
+                  <i class="mdi mdi-clipboard-text-outline"></i>
+                  {{ selectedExam.name }}
+                </span>
               </div>
-              <p class="text-xs sm:text-sm text-slate-500 font-medium">
+              <p class="header-page-subtitle">
                 Manage exam questions, set marking schemes, options explanations, and bulk import using CSV/JSON formats.
               </p>
             </div>
           </div>
 
-          <div class="d-flex align-center gap-2 flex-wrap" v-if="selectedExamId">
-            <v-btn
-              variant="outlined"
-              color="slate"
-              class="text-none font-semibold rounded-xl border-slate-300 text-slate-700"
-              prepend-icon="mdi-code-json"
+          <!-- Right: Action Buttons -->
+          <div class="header-actions-col" v-if="selectedExamId">
+            <button
+              type="button"
+              class="btn-header-secondary"
               @click="openImportSection('json')"
             >
-              Bulk JSON
-            </v-btn>
-            <v-btn
-              variant="outlined"
-              color="slate"
-              class="text-none font-semibold rounded-xl border-slate-300 text-slate-700"
-              prepend-icon="mdi-file-delimited-outline"
+              <i class="mdi mdi-code-json"></i>
+              <span>Bulk JSON</span>
+            </button>
+            <button
+              type="button"
+              class="btn-header-secondary"
               @click="openImportSection('csv')"
             >
-              Bulk CSV
-            </v-btn>
-            <v-btn
-              color="#E31B23"
-              size="large"
-              class="font-semibold text-white text-none rounded-xl shadow-md hover:bg-red-700"
-              prepend-icon="mdi-plus"
+              <i class="mdi mdi-file-delimited-outline"></i>
+              <span>Bulk CSV</span>
+            </button>
+            <button
+              type="button"
+              class="btn-header-primary"
               @click="openQuestionDialog()"
             >
-              Add Question
-            </v-btn>
+              <i class="mdi mdi-plus"></i>
+              <span>Add Question</span>
+            </button>
           </div>
         </div>
       </div>
@@ -63,184 +62,224 @@
 
     <!-- Bulk Import Section (JSON / CSV) -->
     <v-expand-transition>
-      <div v-show="importOpen && selectedExamId" class="mb-6">
-        <v-card class="pa-6 border rounded-xl" flat color="grey-lighten-4">
-          <div class="d-flex justify-space-between align-center mb-2">
-            <h3 class="text-h6 font-semibold text-dark">
-              Bulk Import Questions ({{ importMode.toUpperCase() }} Mode)
+      <div v-show="importOpen && selectedExamId" class="bulk-import-card mb-6">
+        <div class="d-flex justify-space-between align-center mb-3">
+          <div class="d-flex align-center gap-2">
+            <span class="bulk-mode-pill">{{ importMode.toUpperCase() }} IMPORT</span>
+            <h3 class="text-base font-semibold text-slate-900">
+              Bulk Import Questions
             </h3>
-            <v-btn icon="mdi-close" variant="text" size="small" color="grey" @click="importOpen = false"></v-btn>
           </div>
+          <button type="button" class="btn-close-import" @click="importOpen = false">
+            <i class="mdi mdi-close"></i>
+          </button>
+        </div>
 
-          <div v-if="importMode === 'json'">
-            <p class="text-caption text-secondary mb-4 leading-relaxed">
-              Paste a valid JSON array of question objects. Example format:<br/>
-              <code>[ { "question_text": "Solve 2+2?", "type": "mcq", "options": ["3", "4", "5"], "correct_answer": "4", "explanation": "2+2 equals 4", "marks": 4, "difficulty_level": "Easy" } ]</code>
-            </p>
-            <v-textarea
-              v-model="importJsonText"
-              placeholder='[ { "question_text": "...", "type": "mcq", "options": [...], "correct_answer": "...", "marks": 4 } ]'
-              variant="outlined"
-              bg-color="white"
-              rows="8"
-              class="font-mono mb-4"
-            ></v-textarea>
-          </div>
+        <div v-if="importMode === 'json'">
+          <p class="text-xs text-slate-500 mb-3 leading-relaxed font-medium">
+            Paste a valid JSON array of question objects. Example format:<br/>
+            <code class="bg-slate-100 text-slate-800 px-2 py-1 rounded text-xs">[ { "question_text": "Solve 2+2?", "type": "mcq", "options": ["3", "4", "5"], "correct_answer": "4", "explanation": "2+2 equals 4", "marks": 4, "difficulty_level": "Easy" } ]</code>
+          </p>
+          <textarea
+            v-model="importJsonText"
+            placeholder='[ { "question_text": "...", "type": "mcq", "options": [...], "correct_answer": "...", "marks": 4 } ]'
+            rows="8"
+            class="import-json-textarea mb-4 font-mono text-xs"
+          ></textarea>
+        </div>
 
-          <div v-else>
-            <p class="text-caption text-secondary mb-4 leading-relaxed">
-              Upload a CSV file. Columns must map to: <span class="font-semibold text-dark">Type, Question, Options (separated by |), Correct Answer (separated by | for MSQ), Explanation, Marks, Difficulty</span>.<br/>
-              The first row is ignored as the header. Valid Types: <code>mcq, msq, truefalse, fib</code>. Example:<br/>
-              <code>Type,Question,Options,Correct Answer,Explanation,Marks,Difficulty<br/>"mcq","Which is a prime number?","2|4|6|8","2","2 is the only even prime.",4,"Easy"</code>
-            </p>
-            <div class="d-flex gap-2 mb-4">
-              <v-btn color="primary" variant="outlined" class="text-none py-6 flex-grow-1" style="border-style: dashed" @click="triggerCsvSelect">
-                <v-icon left size="24" class="mr-2">mdi-cloud-upload</v-icon> Click to Select CSV File
-              </v-btn>
-              <v-btn color="info" variant="tonal" class="text-none py-6" @click="downloadSampleCsv">
-                <v-icon left size="24" class="mr-2">mdi-download</v-icon> Sample CSV
-              </v-btn>
-            </div>
-            <input type="file" ref="csvFileInput" accept=".csv" class="d-none" @change="handleCsvUpload" />
-            <div v-if="selectedCsvFileName" class="text-center text-caption text-success font-semibold mb-4">
-              <v-icon left>mdi-check-circle</v-icon> {{ selectedCsvFileName }} Selected
-            </div>
+        <div v-else>
+          <p class="text-xs text-slate-500 mb-3 leading-relaxed font-medium">
+            Upload a CSV file. Columns must map to: <span class="font-semibold text-slate-700">Type, Question, Options (separated by |), Correct Answer (separated by | for MSQ), Explanation, Marks, Difficulty</span>.<br/>
+            The first row is ignored as the header. Valid Types: <code>mcq, msq, truefalse, fib</code>. Example:<br/>
+            <code class="bg-slate-100 text-slate-800 px-2 py-1 rounded text-xs">Type,Question,Options,Correct Answer,Explanation,Marks,Difficulty<br/>"mcq","Which is a prime number?","2|4|6|8","2","2 is the only even prime.",4,"Easy"</code>
+          </p>
+          <div class="d-flex gap-3 mb-4">
+            <button type="button" class="btn-csv-upload-box" @click="triggerCsvSelect">
+              <i class="mdi mdi-cloud-upload text-xl text-slate-400"></i>
+              <span class="text-sm font-semibold text-slate-700">Click to Select CSV File</span>
+            </button>
+            <button type="button" class="btn-header-secondary" @click="downloadSampleCsv">
+              <i class="mdi mdi-download"></i>
+              <span>Sample CSV</span>
+            </button>
           </div>
+          <input type="file" ref="csvFileInput" accept=".csv" class="d-none" @change="handleCsvUpload" />
+          <div v-if="selectedCsvFileName" class="text-xs text-emerald-600 font-semibold mb-4 d-flex align-center gap-1">
+            <i class="mdi mdi-check-circle"></i>
+            <span>{{ selectedCsvFileName }} Selected</span>
+          </div>
+        </div>
 
-          <div class="d-flex gap-2">
-            <v-btn color="success" rounded="lg" class="text-white font-semibold px-6" elevation="0" :loading="importing" @click="runBulkImport">
-              Import Questions
-            </v-btn>
-            <v-btn variant="text" color="grey" @click="importOpen = false">Cancel</v-btn>
-          </div>
-        </v-card>
+        <div class="d-flex align-center gap-2">
+          <button type="button" class="btn-header-primary" :disabled="importing" @click="runBulkImport">
+            <i :class="['mdi', importing ? 'mdi-loading spin-icon' : 'mdi-file-import-outline']"></i>
+            <span>Import Questions</span>
+          </button>
+          <button type="button" class="btn-header-secondary" @click="importOpen = false">
+            Cancel
+          </button>
+        </div>
       </div>
     </v-expand-transition>
 
     <!-- Search, Filter & Summary Bar -->
-    <v-card flat border class="pa-4 mb-6 rounded-xl" v-if="selectedExamId && !loadingQuestions">
-      <v-row align="center" no-gutters class="gap-4 flex-wrap">
-        <v-col cols="12" md="4" class="pa-0">
-          <v-text-field
+    <div class="filter-panel-card mb-6" v-if="selectedExamId && !loadingQuestions">
+      <div class="filter-panel-grid">
+        <!-- Search Input -->
+        <div class="search-wrap">
+          <i class="mdi mdi-magnify search-icon"></i>
+          <input
             v-model="search"
-            placeholder="Search questions by text..."
-            prepend-inner-icon="mdi-magnify"
-            hide-details
-            clearable
-            density="comfortable"
-            variant="outlined"
-            rounded="lg"
-          ></v-text-field>
-        </v-col>
-        <v-col cols="12" md="3" class="pa-0">
+            type="text"
+            placeholder="Search questions by text or options..."
+            class="filter-search-input"
+          />
+        </div>
+
+        <!-- Difficulty Dropdown -->
+        <div class="difficulty-wrap">
           <v-select
             v-model="difficultyFilter"
             :items="['All Difficulties', 'Easy', 'Medium', 'Hard']"
-            label="Filter by Difficulty"
-            hide-details
-            density="comfortable"
+            density="compact"
             variant="outlined"
             rounded="lg"
+            hide-details
+            class="difficulty-select"
           ></v-select>
-        </v-col>
-        <v-spacer></v-spacer>
-        <div class="d-flex text-caption text-secondary gap-4 pr-2">
-          <div>Total Questions: <span class="font-semibold text-dark">{{ filteredQuestions.length }}</span></div>
-          <div>Total Marks: <span class="font-semibold text-dark">{{ totalCalculatedMarks }}</span></div>
         </div>
-      </v-row>
-    </v-card>
+
+        <!-- Summary Badges on the right -->
+        <div class="summary-badges-col">
+          <div class="summary-badge">
+            <i class="mdi mdi-help-circle-outline"></i>
+            <span class="summary-label">Total Questions:</span>
+            <span class="summary-value">{{ filteredQuestions.length }}</span>
+          </div>
+          <div class="summary-badge marks-badge">
+            <i class="mdi mdi-star-circle-outline"></i>
+            <span class="summary-label">Total Marks:</span>
+            <span class="summary-value">{{ totalCalculatedMarks }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Loading State -->
     <div v-if="loadingQuestions" class="text-center py-12">
-      <v-progress-circular indeterminate color="primary" size="48"></v-progress-circular>
-      <div class="mt-4 text-grey font-semibold">Loading questions...</div>
+      <v-progress-circular indeterminate color="#E31B23" size="48"></v-progress-circular>
+      <div class="mt-4 text-slate-500 font-semibold text-sm">Loading questions...</div>
     </div>
 
     <!-- Empty State -->
-    <v-card v-else-if="selectedExamId && filteredQuestions.length === 0" class="text-center py-16 border rounded-xl" flat>
+    <div v-else-if="selectedExamId && filteredQuestions.length === 0" class="empty-state-panel">
       <div class="empty-state-icon-box">
-        <v-icon size="32" color="#E31B23">mdi-database-alert-outline</v-icon>
+        <i class="mdi mdi-database-alert-outline"></i>
       </div>
-      <h3 class="text-h6 font-semibold mb-2">No Questions Found</h3>
-      <p class="text-body-2 text-secondary mb-4">No questions match your filter criteria or there are no questions in this exam yet.</p>
-    </v-card>
+      <h3 class="empty-state-title">No Questions Found</h3>
+      <p class="empty-state-desc">No questions match your filter criteria or there are no questions in this exam question bank yet.</p>
+      <button
+        type="button"
+        class="btn-header-primary mt-2"
+        @click="openQuestionDialog()"
+      >
+        <i class="mdi mdi-plus"></i>
+        <span>Add First Question</span>
+      </button>
+    </div>
 
-    <div v-else-if="!selectedExamId" class="text-center py-16 border rounded-xl bg-white" flat>
+    <div v-else-if="!selectedExamId" class="empty-state-panel">
       <div class="empty-state-icon-box">
-        <v-icon size="32" color="#E31B23">mdi-database-search-outline</v-icon>
+        <i class="mdi mdi-database-search-outline"></i>
       </div>
-      <h3 class="text-h6 font-semibold mb-2">No Exam Selected</h3>
-      <p class="text-body-2 text-secondary mb-4">You must select an exam from the All Exams list to manage its questions.</p>
-      <v-btn to="/dashboard/admin/public-exams" color="#E31B23" rounded="lg" class="text-capitalize text-white font-semibold">
-        Go to All Exams
-      </v-btn>
+      <h3 class="empty-state-title">No Exam Selected</h3>
+      <p class="empty-state-desc">You must select an exam from the All Exams list to manage its questions.</p>
+      <NuxtLink to="/dashboard/admin/public-exams" class="btn-header-primary mt-2">
+        <i class="mdi mdi-arrow-left"></i>
+        <span>Back to All Exams</span>
+      </NuxtLink>
     </div>
 
     <!-- Questions Listing -->
-    <div v-else>
-      <v-card
+    <div v-else class="questions-list-wrap">
+      <div
         v-for="(q, idx) in filteredQuestions"
         :key="q.id"
-        class="pa-6 border rounded-xl mb-4"
-        flat
+        class="question-item-card"
       >
-        <div class="d-flex align-center justify-space-between mb-3 flex-wrap gap-2">
-          <div class="d-flex align-center flex-wrap gap-2">
-            <span class="font-semibold text-body-1 text-dark">Question {{ idx + 1 }}</span>
-            <v-chip size="small" color="primary" variant="flat" class="text-white font-semibold text-uppercase">
-              {{ q.type }}
-            </v-chip>
-            <v-chip size="small" :color="getDifficultyColor(q.difficulty_level)" variant="tonal" class="font-semibold">
-              {{ q.difficulty_level }}
-            </v-chip>
-            <v-chip size="small" color="grey-lighten-4" text-color="grey-darken-3" class="font-semibold">
+        <div class="question-card-header">
+          <div class="question-meta-tags">
+            <span class="question-number-pill">Question {{ idx + 1 }}</span>
+            <span class="badge-type-tag text-uppercase">{{ q.type }}</span>
+            <span :class="['badge-difficulty-tag', 'diff-' + (q.difficulty_level || 'Medium').toLowerCase()]">
+              {{ q.difficulty_level || 'Medium' }}
+            </span>
+            <span class="badge-marks-tag">
+              <i class="mdi mdi-star-outline"></i>
               {{ q.marks }} Marks
-            </v-chip>
+            </span>
           </div>
 
           <!-- Question Controls -->
-          <div class="action-btn-group">
-            <v-btn icon variant="tonal" color="warning" size="small" class="rounded-lg" @click="duplicateQuestion(q)" title="Duplicate Question">
-              <v-icon size="18">mdi-content-copy</v-icon>
-            </v-btn>
-            <v-btn icon variant="tonal" color="indigo" size="small" class="rounded-lg" @click="openQuestionDialog(q)" title="Edit Question">
-              <v-icon size="18">mdi-pencil-outline</v-icon>
-            </v-btn>
-            <v-btn icon variant="tonal" color="error" size="small" class="rounded-lg" @click="confirmDelete(q)" title="Delete Question">
-              <v-icon size="18">mdi-delete-outline</v-icon>
-            </v-btn>
+          <div class="question-card-actions">
+            <button
+              type="button"
+              class="btn-card-action btn-copy"
+              title="Duplicate Question"
+              @click="duplicateQuestion(q)"
+            >
+              <i class="mdi mdi-content-copy"></i>
+            </button>
+            <button
+              type="button"
+              class="btn-card-action btn-edit"
+              title="Edit Question"
+              @click="openQuestionDialog(q)"
+            >
+              <i class="mdi mdi-pencil-outline"></i>
+            </button>
+            <button
+              type="button"
+              class="btn-card-action btn-delete"
+              title="Delete Question"
+              @click="confirmDelete(q)"
+            >
+              <i class="mdi mdi-trash-can-outline"></i>
+            </button>
           </div>
         </div>
 
         <!-- Question Text -->
-        <p class="text-body-2 text-dark font-medium mb-3" style="white-space: pre-line;">{{ q.question_text }}</p>
+        <div class="question-prompt-text">{{ q.question_text }}</div>
 
         <!-- Options (if MCQ/MSQ/TF) -->
-        <div v-if="q.options && q.options.length > 0" class="mb-3 pl-4">
+        <div v-if="q.options && q.options.length > 0" class="question-options-list">
           <div
             v-for="(opt, oIdx) in q.options"
             :key="oIdx"
-            class="text-caption mb-1 d-flex align-center"
-            :class="{'text-success font-semibold': isCorrectAns(q, opt)}"
+            :class="['option-row-item', { 'is-correct': isCorrectAns(q, opt) }]"
           >
-            <v-icon size="16" class="mr-2" :color="isCorrectAns(q, opt) ? 'success' : 'grey'">
-              {{ isCorrectAns(q, opt) ? 'mdi-check-circle-outline' : 'mdi-circle-outline' }}
-            </v-icon>
-            {{ opt }}
+            <i :class="['mdi', isCorrectAns(q, opt) ? 'mdi-check-circle text-emerald-600' : 'mdi-circle-outline text-slate-400']"></i>
+            <span>{{ opt }}</span>
           </div>
         </div>
 
         <!-- Correct Display for non-options -->
-        <div v-else class="text-caption text-success font-semibold mb-3 pl-4">
-          Correct Answer: {{ q.correct_answer }}
+        <div v-else class="option-row-item is-correct mb-3">
+          <i class="mdi mdi-check-circle text-emerald-600"></i>
+          <span><strong>Correct Answer:</strong> {{ q.correct_answer }}</span>
         </div>
 
         <!-- Explanation -->
-        <div v-if="q.explanation" class="text-caption text-secondary bg-grey-lighten-4 pa-3 rounded-lg border-l-4 border-indigo-accent-1">
-          <span class="font-semibold text-dark">Explanation:</span> {{ q.explanation }}
+        <div v-if="q.explanation" class="question-explanation-box">
+          <i class="mdi mdi-lightbulb-on-outline"></i>
+          <div>
+            <span class="font-semibold text-slate-800">Explanation:</span>
+            <span class="text-slate-600 ml-1">{{ q.explanation }}</span>
+          </div>
         </div>
-      </v-card>
+      </div>
     </div>
 
     <!-- Create / Edit Question Dialog -->
@@ -379,9 +418,15 @@
           ></v-textarea>
         </v-form>
 
-        <div class="d-flex justify-end gap-2 mt-6">
-          <v-btn variant="text" color="grey" @click="questionDialog = false">Cancel</v-btn>
-          <v-btn color="primary" rounded="lg" class="px-6 font-semibold" :loading="savingQuestion" @click="saveQuestion">
+        <div class="d-flex justify-end gap-3 mt-6">
+          <v-btn variant="text" class="text-none font-semibold text-slate-600" @click="questionDialog = false">Cancel</v-btn>
+          <v-btn
+            color="#E31B23"
+            class="px-6 text-none font-semibold text-white rounded-xl"
+            elevation="0"
+            :loading="savingQuestion"
+            @click="saveQuestion"
+          >
             Save Question
           </v-btn>
         </div>
@@ -389,19 +434,25 @@
     </v-dialog>
 
     <!-- Delete Confirmation Dialog -->
-    <v-dialog v-model="deleteConfirmDialog" max-width="400">
-      <v-card class="pa-6 rounded-xl">
-        <h3 class="text-h6 font-semibold mb-3 text-dark">Delete Question?</h3>
-        <p class="text-body-2 text-secondary mb-6">
+    <v-dialog v-model="deleteConfirmDialog" max-width="440">
+      <div class="bg-white rounded-3xl p-6 shadow-2xl border border-slate-200/80">
+        <h3 class="text-lg font-semibold text-slate-900 mb-2">Delete Question?</h3>
+        <p class="text-xs text-slate-600 mb-6 font-medium">
           Are you sure you want to delete this question? This will permanently remove it from the exam and cannot be undone.
         </p>
-        <div class="d-flex justify-end gap-2">
-          <v-btn variant="text" color="grey" @click="deleteConfirmDialog = false">Cancel</v-btn>
-          <v-btn color="error" rounded="lg" class="text-capitalize font-semibold" :loading="deleting" @click="deleteQuestion">
+        <div class="flex justify-end gap-3">
+          <v-btn variant="text" class="text-none font-semibold text-slate-600" @click="deleteConfirmDialog = false">Cancel</v-btn>
+          <v-btn
+            color="#E31B23"
+            class="text-none font-semibold text-white px-5 rounded-xl"
+            elevation="0"
+            :loading="deleting"
+            @click="deleteQuestion"
+          >
             Delete
           </v-btn>
         </div>
-      </v-card>
+      </div>
     </v-dialog>
     </div>
   </div>
@@ -813,16 +864,587 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.text-dark { color: #1e293b; }
-.gap-1 { gap: 4px; }
-.gap-2 { gap: 8px; }
-.gap-4 { gap: 16px; }
+/* Page Header Bar */
+.exam-header-bar {
+  background: #FFFFFF;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 20px 0;
+}
 
-.custom-table :deep(th) {
-  text-transform: uppercase;
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  color: #475569 !important;
-  letter-spacing: 0.5px;
+.header-inner-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.header-left-col {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-header-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid #CBD5E1;
+  background-color: #FFFFFF;
+  color: #334155;
+  font-size: 1.25rem;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.btn-header-back:hover {
+  background-color: #F8FAFC;
+  border-color: #94A3B8;
+  color: #0F172A;
+}
+
+.header-titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header-page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.badge-exam-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 50px;
+  background: rgba(227, 27, 35, 0.08);
+  color: #E31B23;
+  border: 1px solid rgba(227, 27, 35, 0.2);
+  white-space: nowrap;
+}
+
+.badge-exam-pill i {
+  color: #E31B23;
+  font-size: 0.85rem;
+}
+
+.header-page-subtitle {
+  font-size: 0.84rem;
+  color: #64748B;
+  margin: 4px 0 0 0;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.header-actions-col {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.btn-header-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 1px solid #CBD5E1;
+  background-color: #FFFFFF;
+  color: #334155;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-header-secondary:hover {
+  background-color: #F8FAFC;
+  border-color: #94A3B8;
+  color: #0F172A;
+}
+
+.btn-header-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 12px;
+  background-color: #E31B23;
+  color: #FFFFFF;
+  border: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(227, 27, 35, 0.25);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.btn-header-primary:hover:not(:disabled) {
+  background-color: #C4131B;
+}
+
+.btn-header-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Filter & Summary Bar */
+.filter-panel-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  padding: 14px 20px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+
+.filter-panel-grid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+  max-width: 440px;
+}
+
+.filter-search-input {
+  width: 100%;
+  height: 40px;
+  padding: 8px 14px 8px 38px;
+  border-radius: 10px;
+  border: 1px solid #E2E8F0;
+  font-size: 0.86rem;
+  font-weight: 500;
+  background: #F8FAFC;
+  outline: none;
+  transition: all 0.2s ease;
+  color: #1E293B;
+}
+
+.filter-search-input:focus {
+  background: #FFFFFF;
+  border-color: #E31B23;
+  box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94A3B8;
+  font-size: 1.15rem;
+  pointer-events: none;
+}
+
+.difficulty-wrap {
+  width: 180px;
+  flex-shrink: 0;
+}
+
+.summary-badges-col {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.summary-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+.summary-badge i {
+  font-size: 1.1rem;
+  color: #64748B;
+}
+
+.summary-label {
+  font-weight: 500;
+  color: #64748B;
+}
+
+.summary-value {
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.summary-badge.marks-badge {
+  background: rgba(245, 158, 11, 0.06);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+.summary-badge.marks-badge i {
+  color: #D97706;
+}
+
+.summary-badge.marks-badge .summary-value {
+  color: #B45309;
+}
+
+/* Question Cards */
+.questions-list-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.question-item-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+  transition: all 0.2s ease;
+}
+
+.question-item-card:hover {
+  border-color: rgba(15, 23, 42, 0.16);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.question-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.question-meta-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.question-number-pill {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0F172A;
+  background: #F1F5F9;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.badge-type-tag {
+  font-size: 0.70rem;
+  font-weight: 600;
+  color: #1D4ED8;
+  background: rgba(29, 78, 216, 0.08);
+  border: 1px solid rgba(29, 78, 216, 0.18);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.badge-difficulty-tag {
+  font-size: 0.70rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.badge-difficulty-tag.diff-easy {
+  color: #059669;
+  background: rgba(5, 150, 105, 0.08);
+  border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+.badge-difficulty-tag.diff-medium {
+  color: #D97706;
+  background: rgba(217, 119, 6, 0.08);
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.badge-difficulty-tag.diff-hard {
+  color: #DC2626;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.badge-marks-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.question-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-card-action {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.btn-card-action.btn-copy {
+  background: rgba(245, 158, 11, 0.08);
+  color: #D97706;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.btn-card-action.btn-copy:hover {
+  background: #D97706;
+  color: #FFFFFF;
+}
+
+.btn-card-action.btn-edit {
+  background: rgba(59, 130, 246, 0.08);
+  color: #2563EB;
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.btn-card-action.btn-edit:hover {
+  background: #2563EB;
+  color: #FFFFFF;
+}
+
+.btn-card-action.btn-delete {
+  background: rgba(239, 68, 68, 0.08);
+  color: #DC2626;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.btn-card-action.btn-delete:hover {
+  background: #DC2626;
+  color: #FFFFFF;
+}
+
+.question-prompt-text {
+  font-size: 0.94rem;
+  font-weight: 500;
+  color: #0F172A;
+  line-height: 1.55;
+  margin-bottom: 14px;
+  white-space: pre-line;
+}
+
+.question-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.option-row-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #334155;
+  background: #F8FAFC;
+  border: 1px solid #F1F5F9;
+}
+
+.option-row-item.is-correct {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.25);
+  color: #065F46;
+  font-weight: 600;
+}
+
+.question-explanation-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #F8FAFC;
+  border-left: 4px solid #6366F1;
+  font-size: 0.82rem;
+  color: #334155;
+}
+
+.question-explanation-box i {
+  color: #6366F1;
+  font-size: 1.15rem;
+  margin-top: 1px;
+}
+
+/* Bulk Import Panel */
+.bulk-import-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+
+.bulk-mode-pill {
+  font-size: 0.70rem;
+  font-weight: 600;
+  color: #4F46E5;
+  background: rgba(79, 70, 229, 0.08);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.btn-close-import {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #64748B;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-close-import:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+.import-json-textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #CBD5E1;
+  padding: 12px;
+  background: #F8FAFC;
+  outline: none;
+}
+
+.import-json-textarea:focus {
+  background: #FFFFFF;
+  border-color: #E31B23;
+}
+
+.btn-csv-upload-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 2px dashed #CBD5E1;
+  background: #F8FAFC;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-csv-upload-box:hover {
+  border-color: #E31B23;
+  background: #FFF5F5;
+}
+
+/* Empty States */
+.empty-state-panel {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.empty-state-icon-box {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: rgba(227, 27, 35, 0.08);
+  color: #E31B23;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  margin-bottom: 16px;
+}
+
+.empty-state-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin-bottom: 6px;
+}
+
+.empty-state-desc {
+  font-size: 0.85rem;
+  color: #64748B;
+  max-width: 420px;
+  margin: 0 auto 16px auto;
+  font-weight: 500;
+}
+
+.spin-icon {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .header-inner-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .header-actions-col {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .summary-badges-col {
+    width: 100%;
+    margin-left: 0;
+  }
 }
 </style>
