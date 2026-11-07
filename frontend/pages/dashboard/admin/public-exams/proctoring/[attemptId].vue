@@ -5,7 +5,7 @@
       <div class="d-flex align-center gap-4">
         <v-btn icon="mdi-arrow-left" variant="text" @click="router.back()"></v-btn>
         <div>
-          <h1 class="text-h4 font-weight-bold mb-1">Public Exam Proctoring Audit Review</h1>
+          <h1 class="text-h4 font-weight-semibold mb-1">Public Exam Proctoring Audit Review</h1>
           <p class="text-subtitle-1 text-medium-emphasis mb-0">Attempt ID: {{ attemptId }}</p>
         </div>
       </div>
@@ -16,7 +16,7 @@
           color="success"
           variant="flat"
           prepend-icon="mdi-certificate"
-          class="rounded-lg font-weight-bold"
+          class="rounded-lg font-weight-semibold"
           :loading="actionLoading"
           @click="approveCertificate"
         >
@@ -26,7 +26,7 @@
           color="error"
           variant="flat"
           prepend-icon="mdi-flag-outline"
-          class="rounded-lg font-weight-bold"
+          class="rounded-lg font-weight-semibold"
           :loading="actionLoading"
           @click="flagAttempt"
         >
@@ -36,7 +36,7 @@
           color="warning"
           variant="tonal"
           prepend-icon="mdi-check-all"
-          class="rounded-lg font-weight-bold"
+          class="rounded-lg font-weight-semibold"
           :loading="actionLoading"
           @click="clearViolations"
         >
@@ -46,7 +46,7 @@
           color="error"
           variant="outlined"
           prepend-icon="mdi-delete-outline"
-          class="rounded-lg font-weight-bold"
+          class="rounded-lg font-weight-semibold"
           :loading="actionLoading"
           @click="deleteLogs"
         >
@@ -64,7 +64,7 @@
       class="mb-6 rounded-xl border-error"
       icon="mdi-account-alert"
     >
-      <div class="font-weight-bold text-h6">High Risk Proxy Candidate Alert</div>
+      <div class="font-weight-semibold text-h6">High Risk Proxy Candidate Alert</div>
       <div>
         Facial geometry mismatch detected (`proxy_mismatch`). The candidate's live face vector deviated from their registered baseline selfie. Carefully inspect snapshot evidence before issuing a certificate.
       </div>
@@ -74,13 +74,13 @@
       <!-- Session & Biometric Summary -->
       <v-col cols="12" md="4">
         <div class="apple-card pa-5 mb-6">
-          <h3 class="text-h6 font-weight-bold mb-4 d-flex align-center">
+          <h3 class="text-h6 font-weight-semibold mb-4 d-flex align-center">
             <v-icon color="primary" class="mr-2">mdi-card-account-details</v-icon>
             Candidate Biometric Baseline
           </h3>
 
           <div v-if="details?.reference_selfie_url" class="mb-4 text-center">
-            <p class="text-caption text-secondary font-weight-bold mb-1">Registered Selfie Baseline</p>
+            <p class="text-caption text-secondary font-weight-semibold mb-1">Registered Selfie Baseline</p>
             <v-img
               :src="backendUrl(details.reference_selfie_url)"
               height="180"
@@ -93,20 +93,20 @@
           <v-list density="compact" class="bg-transparent pa-0">
             <v-list-item class="px-0">
               <template v-slot:prepend><v-icon color="grey">mdi-account</v-icon></template>
-              <v-list-item-title class="font-weight-bold">{{ details?.candidate_name || 'Candidate' }}</v-list-item-title>
+              <v-list-item-title class="font-weight-semibold">{{ details?.candidate_name || 'Candidate' }}</v-list-item-title>
               <v-list-item-subtitle>{{ details?.candidate_email || 'No email' }}</v-list-item-subtitle>
             </v-list-item>
             
             <v-list-item class="px-0">
               <template v-slot:prepend><v-icon color="grey">mdi-file-document-outline</v-icon></template>
-              <v-list-item-title class="font-weight-bold">{{ details?.exam_title || 'Public Exam' }}</v-list-item-title>
+              <v-list-item-title class="font-weight-semibold">{{ details?.exam_title || 'Public Exam' }}</v-list-item-title>
               <v-list-item-subtitle>Exam Title</v-list-item-subtitle>
             </v-list-item>
 
             <v-list-item class="px-0">
               <template v-slot:prepend><v-icon color="grey">mdi-shield-check</v-icon></template>
               <v-list-item-title>
-                <v-chip :color="getStatusColor(details?.proctoring_status)" size="small" label class="font-weight-bold text-uppercase">
+                <v-chip :color="getStatusColor(details?.proctoring_status)" size="small" label class="font-weight-semibold text-uppercase">
                   {{ details?.proctoring_status || 'pending_review' }}
                 </v-chip>
               </v-list-item-title>
@@ -118,11 +118,11 @@
 
           <div class="d-flex justify-space-between align-center text-center">
             <div class="pa-2 bg-grey-lighten-4 rounded-lg flex-grow-1 mr-2">
-              <div class="text-h5 font-weight-black text-primary">{{ events.length }}</div>
+              <div class="text-h5 font-weight-semibold text-primary">{{ events.length }}</div>
               <div class="text-caption text-secondary">Logged Events</div>
             </div>
             <div class="pa-2 bg-grey-lighten-4 rounded-lg flex-grow-1">
-              <div class="text-h5 font-weight-black text-error">{{ highSeverityCount }}</div>
+              <div class="text-h5 font-weight-semibold text-error">{{ highSeverityCount }}</div>
               <div class="text-caption text-secondary">High Severity</div>
             </div>
           </div>
@@ -133,7 +133,7 @@
       <v-col cols="12" md="8">
         <div class="apple-card d-flex flex-column h-100">
           <div class="pa-4 border-b d-flex align-center justify-space-between">
-            <div class="font-weight-bold d-flex align-center">
+            <div class="font-weight-semibold d-flex align-center">
               <v-icon color="warning" class="mr-2">mdi-shield-alert</v-icon> Violation Events &amp; Snapshot Evidence
             </div>
             <v-btn-toggle v-model="viewMode" mandatory density="compact" color="primary">
@@ -153,8 +153,8 @@
               >
                 <div class="d-flex flex-column">
                   <div class="d-flex align-center gap-2">
-                    <strong class="text-body-1 font-weight-bold">{{ formatType(event.type) }}</strong>
-                    <v-chip :color="getEventColor(event.type)" size="x-small" label class="text-uppercase font-weight-bold">
+                    <strong class="text-body-1 font-weight-semibold">{{ formatType(event.type) }}</strong>
+                    <v-chip :color="getEventColor(event.type)" size="x-small" label class="text-uppercase font-weight-semibold">
                       {{ getSeverityLabel(event.type) }}
                     </v-chip>
                   </div>
@@ -162,7 +162,7 @@
                   
                   <div v-if="event.metadata_json && event.metadata_json.screenshot" class="cursor-pointer" @click="openPreview(event.metadata_json.screenshot)">
                     <v-img :src="backendUrl(event.metadata_json.screenshot)" height="140" width="220" class="rounded-xl border bg-black shadow-sm" cover></v-img>
-                    <span class="text-caption text-primary font-weight-bold mt-1 d-inline-block">Click to zoom snapshot</span>
+                    <span class="text-caption text-primary font-weight-semibold mt-1 d-inline-block">Click to zoom snapshot</span>
                   </div>
                   <div v-else-if="event.metadata_json && Object.keys(event.metadata_json).length > 0" class="text-caption bg-grey-lighten-4 pa-2 rounded-lg" style="max-width: 400px;">
                     <pre style="margin:0; white-space: pre-wrap; font-family: monospace;">{{ JSON.stringify(event.metadata_json, null, 2) }}</pre>
@@ -182,7 +182,7 @@
                 <v-card class="rounded-xl border cursor-pointer overflow-hidden elevation-1" @click="openPreview(event.metadata_json.screenshot)">
                   <v-img :src="backendUrl(event.metadata_json.screenshot)" height="130" cover class="bg-black"></v-img>
                   <div class="pa-3 bg-white">
-                    <div class="text-caption font-weight-bold text-truncate text-error">{{ formatType(event.type) }}</div>
+                    <div class="text-caption font-weight-semibold text-truncate text-error">{{ formatType(event.type) }}</div>
                     <div class="text-caption text-secondary">{{ new Date(event.created_at).toLocaleTimeString() }}</div>
                   </div>
                 </v-card>

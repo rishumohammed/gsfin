@@ -1,5 +1,6 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import PDFDocument from 'pdfkit';
@@ -137,10 +138,40 @@ router.get('/:slug', async (req, res) => {
   }
 });
 
-// CANDIDATE LOGIN — POST /api/public/candidates/login
+// Candidate Registration Selfie Upload — POST /api/public/exams/upload-selfie
+const selfieStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const __filename = new URL(import.meta.url).pathname;
+    let __dirname = path.dirname(__filename);
+    if (process.platform === 'win32' && __dirname.startsWith('/')) __dirname = __dirname.substring(1);
+    const dir = path.join(__dirname, '../../uploads/candidates');
+    fs.promises.mkdir(dir, { recursive: true })
+      .then(() => cb(null, dir))
+      .catch((err) => cb(err));
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    cb(null, `selfie-${timestamp}-${uuidv4().substring(0, 8)}.jpg`);
+  }
+});
+const uploadSelfie = multer({ storage: selfieStorage });
+
+router.post('/upload-selfie', uploadSelfie.single('image'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image provided' });
+    }
+    const url = `/uploads/candidates/${req.file.filename}`;
+    res.json({ message: 'Selfie uploaded successfully', url, filename: req.file.filename });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// CANDIDATE LOGIN — POST /api/public/exams/candidates/login
 router.post('/candidates/login', async (req, res) => {
   try {
-    const { email, password, exam_slug } = req.body;
+    const { email, password, exam_slug, is_status_check } = req.body;
 
     if (!email || !password || !exam_slug) {
       return res.status(400).json({ message: 'Email, password, and exam slug are required.' });
@@ -148,7 +179,7 @@ router.post('/candidates/login', async (req, res) => {
 
     // Find exam by slug
     const [exams] = await pool.query(
-      'SELECT id, name, slug, status, exam_start_date, exam_end_date FROM public_exams WHERE slug = ?',
+      'SELECT id, name, slug, status, exam_start_date, exam_end_date, allow_retake, max_retakes, enable_proctoring FROM public_exams WHERE slug = ?',
       [exam_slug]
     );
     if (exams.length === 0) {
@@ -156,8 +187,8 @@ router.post('/candidates/login', async (req, res) => {
     }
     const exam = exams[0];
 
-    // Check exam start date
-    if (exam.exam_start_date && new Date() < new Date(exam.exam_start_date)) {
+    // Check exam start date (Only for exam attempt login, NOT for face verification status check)
+    if (!is_status_check && exam.exam_start_date && new Date() < new Date(exam.exam_start_date)) {
       const formattedDate = new Date(exam.exam_start_date).toLocaleString('en-US', {
         dateStyle: 'full',
         timeStyle: 'short'
@@ -168,8 +199,8 @@ router.post('/candidates/login', async (req, res) => {
       });
     }
 
-    // Check exam end date
-    if (exam.exam_end_date && new Date() > new Date(exam.exam_end_date)) {
+    // Check exam end date (Only for exam attempt login, NOT for face verification status check)
+    if (!is_status_check && exam.exam_end_date && new Date() > new Date(exam.exam_end_date)) {
       const formattedDate = new Date(exam.exam_end_date).toLocaleString('en-US', {
         dateStyle: 'full',
         timeStyle: 'short'
@@ -182,7 +213,7 @@ router.post('/candidates/login', async (req, res) => {
 
     // Find candidate for this exam
     const [candidates] = await pool.query(
-      'SELECT id, name, email, phone, password_hash, registration_status FROM public_exam_candidates WHERE email = ? AND exam_id = ?',
+      'SELECT id, name, email, phone, password_hash, registration_status, metadata FROM public_exam_candidates WHERE email = ? AND exam_id = ?',
       [email.trim().toLowerCase(), exam.id]
     );
 
@@ -211,6 +242,38 @@ router.post('/candidates/login', async (req, res) => {
       console.warn('Login stats update failed (missing columns?):', e.message);
     }
 
+    // Check candidate previous attempts and retake eligibility
+    const [candAttempts] = await pool.query(`
+      SELECT id, status, session_expires_at, started_at
+      FROM public_exam_attempts
+      WHERE exam_id = ? AND candidate_id = ?
+      ORDER BY started_at DESC
+    `, [exam.id, candidate.id]);
+
+    const activeAttempt = candAttempts.find(a => a.status === 'in_progress' && new Date(a.session_expires_at) > new Date());
+    const completedAttempts = candAttempts.filter(a => a.status === 'submitted' || (a.status === 'in_progress' && new Date(a.session_expires_at) <= new Date()));
+    const completedCount = completedAttempts.length;
+    const latestAttempt = candAttempts[0] || null;
+
+    let canAttempt = true;
+    let attemptBlockReason = '';
+    let attemptBlockCode = '';
+
+    if (!activeAttempt && completedCount > 0) {
+      if (!exam.allow_retake) {
+        canAttempt = false;
+        attemptBlockReason = 'You have already attempted this exam. Retakes are not allowed.';
+        attemptBlockCode = 'RETAKES_NOT_ALLOWED';
+      } else if (exam.max_retakes > 0) {
+        const totalAllowed = 1 + Number(exam.max_retakes);
+        if (completedCount >= totalAllowed) {
+          canAttempt = false;
+          attemptBlockReason = `You have reached the maximum allowed retakes (${exam.max_retakes}) for this exam.`;
+          attemptBlockCode = 'MAX_RETAKES_REACHED';
+        }
+      }
+    }
+
     // Issue JWT
     const token = jwt.sign(
       { candidateId: candidate.id, examId: exam.id, examSlug: exam.slug, name: candidate.name, email: candidate.email },
@@ -218,11 +281,38 @@ router.post('/candidates/login', async (req, res) => {
       { expiresIn: '8h' }
     );
 
+    const candMeta = (candidate.metadata && typeof candidate.metadata === 'string' ? JSON.parse(candidate.metadata) : candidate.metadata) || {};
+
     res.json({
       message: 'Login successful',
       token,
-      candidate: { id: candidate.id, name: candidate.name, email: candidate.email, phone: candidate.phone },
-      exam: { id: exam.id, name: exam.name, slug: exam.slug }
+      candidate: {
+        id: candidate.id,
+        name: candidate.name,
+        email: candidate.email,
+        phone: candidate.phone,
+        reference_photo_url: candMeta.reference_photo_url || null,
+        reference_photo_urls: candMeta.reference_photo_urls || (candMeta.reference_photo_url ? [candMeta.reference_photo_url] : []),
+        facial_descriptor: candMeta.facial_descriptor || null,
+        facial_descriptors: candMeta.facial_descriptors || (candMeta.facial_descriptor ? [candMeta.facial_descriptor] : null)
+      },
+      exam: {
+        id: exam.id,
+        name: exam.name,
+        slug: exam.slug,
+        allow_retake: !!exam.allow_retake,
+        max_retakes: exam.max_retakes || 0,
+        enable_proctoring: !!exam.enable_proctoring
+      },
+      attempt_info: {
+        can_attempt: canAttempt,
+        attempt_block_reason: attemptBlockReason,
+        attempt_block_code: attemptBlockCode,
+        has_active_attempt: !!activeAttempt,
+        active_attempt_id: activeAttempt?.id || null,
+        completed_attempts_count: completedCount,
+        latest_attempt_id: latestAttempt?.id || null
+      }
     });
   } catch (error) {
     console.error('Candidate login error:', error);
@@ -487,6 +577,25 @@ router.post('/:id/attempt', verifyCandidateToken, async (req, res) => {
       sessionExpiresAt,
       candidate_id || null
     ]);
+
+    // If registered candidate has reference_photo_url, auto-log reference_face_registered event
+    const effectiveCandidateId = candidate_id || candidateFromToken?.candidateId || null;
+    if (effectiveCandidateId) {
+      try {
+        const [candRows] = await pool.query('SELECT metadata FROM public_exam_candidates WHERE id = ?', [effectiveCandidateId]);
+        if (candRows.length > 0 && candRows[0].metadata) {
+          const meta = typeof candRows[0].metadata === 'string' ? JSON.parse(candRows[0].metadata) : candRows[0].metadata;
+          if (meta.reference_photo_url) {
+            await pool.query(
+              'INSERT INTO proctoring_events (id, attempt_id, type, metadata_json) VALUES (?, ?, ?, ?)',
+              [uuidv4(), attemptId, 'reference_face_registered', JSON.stringify({ screenshot: meta.reference_photo_url, source: 'registration' })]
+            );
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to auto-log registration reference photo:', e.message);
+      }
+    }
 
     // Fetch questions WITH optional randomization
     let [questions] = await pool.query(`
@@ -867,6 +976,191 @@ router.put('/attempts/:id/guest-info', async (req, res) => {
     res.json({ message: 'Guest info updated successfully' });
   } catch (error) {
     console.error('Update guest info error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// ─── CANDIDATE SINGLE-USE FACE RE-ENROLLMENT ENDPOINTS ──────────────────────
+
+// 11. GET /api/public/exams/candidates/validate-re-enroll-token
+router.get('/candidates/validate-re-enroll-token', async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ valid: false, message: 'Token is required' });
+
+    const [rows] = await pool.query(
+      'SELECT c.id, c.name, c.email, c.metadata, e.id as exam_id, e.name as exam_name, e.slug as exam_slug FROM public_exam_candidates c JOIN public_exams e ON c.exam_id = e.id'
+    );
+
+    let foundCandidate = null;
+    for (const c of rows) {
+      if (!c.metadata) continue;
+      const meta = typeof c.metadata === 'string' ? JSON.parse(c.metadata) : c.metadata;
+      if (meta.re_enroll_token === token) {
+        foundCandidate = { candidate: c, meta };
+        break;
+      }
+    }
+
+    if (!foundCandidate) {
+      return res.status(404).json({ valid: false, message: 'This re-enrollment link is invalid or has expired.' });
+    }
+
+    const { candidate, meta } = foundCandidate;
+
+    if (meta.re_enroll_token_used) {
+      return res.status(400).json({ valid: false, message: 'This single-use re-enrollment link has already been used. Please request a new link from the administrator.' });
+    }
+
+    if (meta.re_enroll_token_expires_at) {
+      const expTime = new Date(meta.re_enroll_token_expires_at).getTime();
+      if (!isNaN(expTime) && Date.now() > expTime) {
+        return res.status(400).json({ valid: false, message: 'This single-use re-enrollment link has expired (48 hours validity). Please request a new link from your administrator.' });
+      }
+    }
+
+    res.json({
+      valid: true,
+      candidate: { id: candidate.id, name: candidate.name, email: candidate.email },
+      exam: { id: candidate.exam_id, name: candidate.exam_name, slug: candidate.exam_slug },
+      expires_at: meta.re_enroll_token_expires_at
+    });
+  } catch (error) {
+    console.error('Validate re-enroll token error:', error);
+    res.status(500).json({ valid: false, message: 'Internal server error' });
+  }
+});
+
+// 12. POST /api/public/exams/candidates/re-enroll-verify-credentials
+router.post('/candidates/re-enroll-verify-credentials', async (req, res) => {
+  try {
+    const { token, email, password } = req.body;
+    if (!token) {
+      return res.status(400).json({ valid: false, message: 'Re-enrollment token is required.' });
+    }
+    if (!password) {
+      return res.status(400).json({ valid: false, message: 'Password is required to authenticate.' });
+    }
+
+    const [rows] = await pool.query(
+      'SELECT c.id, c.name, c.email, c.phone, c.password_hash, c.metadata, e.id as exam_id, e.name as exam_name, e.slug as exam_slug FROM public_exam_candidates c JOIN public_exams e ON c.exam_id = e.id'
+    );
+
+    let targetCandidate = null;
+    let targetMeta = null;
+
+    for (const c of rows) {
+      if (!c.metadata) continue;
+      const meta = typeof c.metadata === 'string' ? JSON.parse(c.metadata) : c.metadata;
+      if (meta.re_enroll_token === token) {
+        targetCandidate = c;
+        targetMeta = meta;
+        break;
+      }
+    }
+
+    if (!targetCandidate || !targetMeta) {
+      return res.status(404).json({ valid: false, message: 'This re-enrollment link is invalid or has expired.' });
+    }
+
+    if (targetMeta.re_enroll_token_used) {
+      return res.status(400).json({ valid: false, message: 'This single-use re-enrollment link has already been used. Please request a new link from the administrator.' });
+    }
+
+    if (targetMeta.re_enroll_token_expires_at) {
+      const expTime = new Date(targetMeta.re_enroll_token_expires_at).getTime();
+      if (!isNaN(expTime) && Date.now() > expTime) {
+        return res.status(400).json({ valid: false, message: 'This single-use re-enrollment link has expired (48 hours validity). Please request a new link from your administrator.' });
+      }
+    }
+
+    // Verify email/identifier if provided
+    if (email && email.trim()) {
+      const input = email.trim().toLowerCase();
+      const candEmail = (targetCandidate.email || '').toLowerCase();
+      const candPhone = (targetCandidate.phone || '').toLowerCase();
+      if (input !== candEmail && input !== candPhone) {
+        return res.status(401).json({ valid: false, message: 'The entered Username/Email does not match this re-enrollment link recipient.' });
+      }
+    }
+
+    // Verify password against bcrypt hash
+    const isValid = await bcrypt.compare(password, targetCandidate.password_hash);
+    if (!isValid) {
+      return res.status(401).json({ valid: false, message: 'Invalid Password. Please enter the password you created during registration.' });
+    }
+
+    res.json({
+      valid: true,
+      message: 'Candidate credentials verified successfully.',
+      candidate: {
+        id: targetCandidate.id,
+        name: targetCandidate.name,
+        email: targetCandidate.email,
+        phone: targetCandidate.phone
+      },
+      exam: {
+        id: targetCandidate.exam_id,
+        name: targetCandidate.exam_name,
+        slug: targetCandidate.exam_slug
+      }
+    });
+  } catch (error) {
+    console.error('Re-enroll verify credentials error:', error);
+    res.status(500).json({ valid: false, message: 'Internal server error' });
+  }
+});
+
+// 13. POST /api/public/exams/candidates/re-enroll-face
+router.post('/candidates/re-enroll-face', async (req, res) => {
+  try {
+    const { token, reference_photo_url, reference_photo_urls, facial_descriptor, facial_descriptors } = req.body;
+    if (!token || !facial_descriptor) {
+      return res.status(400).json({ message: 'Token and facial descriptor are required.' });
+    }
+
+    const [rows] = await pool.query('SELECT id, metadata FROM public_exam_candidates');
+    let targetCandidate = null;
+    let targetMeta = null;
+
+    for (const c of rows) {
+      if (!c.metadata) continue;
+      const meta = typeof c.metadata === 'string' ? JSON.parse(c.metadata) : c.metadata;
+      if (meta.re_enroll_token === token) {
+        targetCandidate = c;
+        targetMeta = meta;
+        break;
+      }
+    }
+
+    if (!targetCandidate || !targetMeta) {
+      return res.status(404).json({ message: 'Invalid or expired re-enrollment token.' });
+    }
+
+    if (targetMeta.re_enroll_token_used) {
+      return res.status(400).json({ message: 'This re-enrollment link was already consumed. Please request a new link from admin.' });
+    }
+
+    if (targetMeta.re_enroll_token_expires_at) {
+      const expTime = new Date(targetMeta.re_enroll_token_expires_at).getTime();
+      if (!isNaN(expTime) && Date.now() > expTime) {
+        return res.status(400).json({ message: 'This single-use face re-enrollment link has expired (48 hours validity). Please request a new link from your exam administrator.' });
+      }
+    }
+
+    // Update candidate metadata with new face profile and IMMEDIATELY CONSUME TOKEN
+    targetMeta.reference_photo_url = reference_photo_url || targetMeta.reference_photo_url;
+    if (reference_photo_urls) targetMeta.reference_photo_urls = reference_photo_urls;
+    targetMeta.facial_descriptor = facial_descriptor;
+    if (facial_descriptors) targetMeta.facial_descriptors = facial_descriptors;
+    targetMeta.re_enroll_token_used = true;
+    delete targetMeta.re_enroll_token; // Permanently consume token
+
+    await pool.query('UPDATE public_exam_candidates SET metadata = ? WHERE id = ?', [JSON.stringify(targetMeta), targetCandidate.id]);
+
+    res.json({ message: 'Face profile successfully re-enrolled and updated!' });
+  } catch (error) {
+    console.error('Re-enroll face error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

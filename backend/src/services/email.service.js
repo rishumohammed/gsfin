@@ -10,8 +10,8 @@ class EmailService {
   constructor() {
     this.ready = false;
     this.resendApiKey = '';
-    this.fromEmail = 'noreply@kefta.in';
-    this.fromName = 'Kefta Talent Hunt';
+    this.fromEmail = 'noreply@gsfin.org';
+    this.fromName = 'GSFIN Certifying Authority';
     this.sendMail = this.sendEmail.bind(this);
     this.init();
   }
@@ -28,8 +28,8 @@ class EmailService {
       }
 
       this.resendApiKey = configMap.resend_api_key || process.env.RESEND_API_KEY || '';
-      this.fromEmail = configMap.smtp_from_email || configMap.resend_from_email || process.env.RESEND_FROM || process.env.SMTP_FROM || 'noreply@kefta.in';
-      this.fromName = configMap.smtp_from_name || process.env.SMTP_FROM_NAME || 'Kefta Talent Hunt';
+      this.fromEmail = configMap.smtp_from_email || configMap.resend_from_email || process.env.RESEND_FROM || process.env.SMTP_FROM || 'noreply@gsfin.org';
+      this.fromName = configMap.smtp_from_name || process.env.SMTP_FROM_NAME || 'GSFIN Certifying Authority';
 
       if (this.resendApiKey && this.resendApiKey.trim().length > 0) {
         this.ready = true;
@@ -229,29 +229,89 @@ class EmailService {
     try {
       const html = `
         <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 12px;">
-          <h2 style="color: #4f46e5;">Congratulations! 🎉</h2>
+          <h2 style="color: #dc2626;">Congratulations! 🎉</h2>
           <p>Dear ${candidate.name},</p>
           <p>Thank you for participating in <strong>${exam.name}</strong>.</p>
-          <p>We have attached your Certificate of Participation to this email.</p>
+          <p>We have attached your Verified GSFIN Personnel Competency Certificate to this email.</p>
           <p style="font-size: 14px; color: #666;">If you have any questions, feel free to contact us.</p>
           <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="font-size: 12px; color: #999;">Kefta Talent Hunt Team</p>
+          <p style="font-size: 12px; color: #999;">GSFIN Certifying Authority Team</p>
         </div>
       `;
 
       await this.sendEmail({
         to: candidate.email,
-        subject: `Your Certificate for ${exam.name}`,
+        subject: `Your GSFIN Certificate for ${exam.name}`,
         html,
         attachments: [
           {
-            filename: `Certificate_${exam.name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
+            filename: `GSFIN_Certificate_${exam.name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
             content: pdfBuffer.toString('base64'),
           }
         ]
       });
     } catch (error) {
       console.error('Failed to send exam certificate email:', error);
+    }
+  }
+
+  async sendFaceReEnrollmentEmail(candidate, exam, reEnrollUrl, customMessage = '') {
+    try {
+      const customMessageHtml = customMessage ? `
+        <div style="background: #f1f5f9; border-left: 4px solid #dc2626; padding: 14px 18px; margin: 18px 0; border-radius: 6px;">
+          <strong style="color: #334155; display: block; margin-bottom: 4px;">Message from Administrator:</strong>
+          <span style="color: #475569; font-size: 14px; line-height: 1.5;">${customMessage}</span>
+        </div>
+      ` : '';
+
+      const html = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 32px 24px; color: #1e293b; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 16px; background: #ffffff;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <div style="display: inline-block; width: 60px; height: 60px; line-height: 60px; border-radius: 50%; background: #dc2626; color: #ffffff; font-size: 30px;">📷</div>
+            <h2 style="color: #0f172a; margin-top: 14px; margin-bottom: 4px; font-size: 22px;">Face Profile Re-Enrollment</h2>
+            <p style="color: #64748b; font-size: 15px; margin: 0; font-weight: 500;">${exam.name}</p>
+          </div>
+          
+          <p style="font-size: 15px; line-height: 1.6;">Dear <strong>${candidate.name}</strong>,</p>
+          <p style="font-size: 14px; line-height: 1.6; color: #334155;">The certification administration team has requested that you re-enroll your reference face profile for the examination: <strong>${exam.name}</strong>.</p>
+          
+          ${customMessageHtml}
+
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin: 20px 0;">
+            <div style="font-weight: bold; color: #1e293b; font-size: 14px; margin-bottom: 10px;">📋 Re-Enrollment Steps:</div>
+            <ol style="margin: 0; padding-left: 20px; font-size: 13px; color: #475569; line-height: 1.8;">
+              <li>Click the button below to open your secure re-enrollment link.</li>
+              <li>Verify your identity by entering your registered <strong>Username/Email and Password</strong>.</li>
+              <li>Allow camera access and capture <strong>3 reference face photos</strong> (Center, Slight Left, Slight Right).</li>
+              <li>Review and submit your updated profile.</li>
+            </ol>
+          </div>
+
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${reEnrollUrl}" style="display: inline-block; padding: 14px 36px; background: #dc2626; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);">
+              Re-Enroll Your Face Profile Now →
+            </a>
+          </div>
+
+          <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; margin: 20px 0; border-radius: 6px;">
+            <strong style="color: #92400e; font-size: 13px; display: block; margin-bottom: 2px;">⚠️ Important Note:</strong>
+            <span style="color: #78350f; font-size: 12px; line-height: 1.4;">This single-use link is valid for 48 hours and will automatically deactivate once your 3 photos are submitted.</span>
+          </div>
+
+          <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 24px;">If the button above does not work, copy and paste this link into your browser:<br><a href="${reEnrollUrl}" style="color: #dc2626; word-break: break-all;">${reEnrollUrl}</a></p>
+          
+          <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 24px 0;">
+          <p style="font-size: 12px; color: #94a3b8; text-align: center; margin: 0;">GSFIN Certifying Authority Security &amp; Proctoring Team</p>
+        </div>
+      `;
+
+      await this.sendEmail({
+        to: candidate.email,
+        subject: `[Action Required] Face Re-Enrollment Link for ${exam.name}`,
+        html
+      });
+    } catch (error) {
+      console.error('Failed to send face re-enrollment email:', error);
     }
   }
 }

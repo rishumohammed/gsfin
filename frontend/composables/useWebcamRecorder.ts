@@ -8,22 +8,40 @@ export const useWebcamRecorder = () => {
   const isRecording = ref(false);
   const cameraError = ref('');
   
+  let chunkIndex = 0;
   let attemptIdRef = '';
   let authHeadersRef: any = null;
-
-  // Screenshot cooldown and cap tracking
-  const lastScreenshotTimeMap = new Map<string, number>();
-  const totalScreenshotsCaptured = ref(0);
-  const MAX_SCREENSHOTS_PER_ATTEMPT = 15;
-  const SCREENSHOT_COOLDOWN_MS = 10000;
 
   const requestCamera = async (): Promise<boolean> => {
     try {
       cameraError.value = '';
-      stream.value = await navigator.mediaDevices.getUserMedia({ 
-        video: { width: 640, height: 480, frameRate: 15 },
-        audio: false
-      });
+      const videoConstraints: any = {
+        facingMode: 'user',
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+        frameRate: { ideal: 15, max: 30 }
+      };
+
+      try {
+        stream.value = await navigator.mediaDevices.getUserMedia({ 
+          video: videoConstraints,
+          audio: false
+        });
+      } catch (err1) {
+        console.warn('[useWebcamRecorder] Flexible constraints failed, trying facingMode fallback:', err1);
+        try {
+          stream.value = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'user' },
+            audio: false
+          });
+        } catch (err2) {
+          console.warn('[useWebcamRecorder] facingMode fallback failed, trying basic video:', err2);
+          stream.value = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+          });
+        }
+      }
       return true;
     } catch (err: any) {
       console.error('Camera access denied or failed', err);
@@ -32,55 +50,107 @@ export const useWebcamRecorder = () => {
     }
   };
 
-  // Continuous full video stream recording disabled to optimize server bandwidth & storage
   const startRecording = (attemptId: string, recordFullVideo: boolean = false, customHeaders?: any) => {
+    if (!stream.value) return;
+    
     attemptIdRef = attemptId;
     authHeadersRef = customHeaders;
-    totalScreenshotsCaptured.value = 0;
-    lastScreenshotTimeMap.clear();
+    chunkIndex = 0;
 
-    // Continuous video chunk streaming explicitly turned off to save bandwidth & disk storage
-    isRecording.value = false;
+    if (!recordFullVideo) {
+      isRecording.value = false;
+      return;
+    }
+
+    // Check supported mime types
+    let options = { mimeType: 'video/webm' };
+    if (MediaRecorder.isTypeSupported('video/webm; codecs=vp9')) {
+      options.mimeType = 'video/webm; codecs=vp9';
+    } else if (MediaRecorder.isTypeSupported('video/webm; codecs=vp8')) {
+      options.mimeType = 'video/webm; codecs=vp8';
+    }
+
+    try {
+      mediaRecorder.value = new MediaRecorder(stream.value, options);
+    } catch (e) {
+      console.warn('Fallback to default MediaRecorder options');
+      mediaRecorder.value = new MediaRecorder(stream.value);
+    }
+
+    mediaRecorder.value.ondataavailable = handleDataAvailable;
+    
+    // Start recording, slicing every 10 seconds (10000ms)
+    mediaRecorder.value.start(10000);
+    isRecording.value = true;
   };
 
-  const captureScreenshot = async (attemptId: string, eventType: string = 'general', customHeaders?: any): Promise<string | null> => {
+  const handleDataAvailable = async (event: BlobEvent) => {
+    if (event.data && event.data.size > 0 && attemptIdRef) {
+      const blob = event.data;
+      const formData = new FormData();
+      formData.append('attempt_id', attemptIdRef);
+      formData.append('chunk_index', chunkIndex.toString());
+      formData.append('video', blob, `chunk-${chunkIndex}.webm`);
+      
+      chunkIndex++;
+
+      try {
+        const requestHeaders = authHeadersRef ? { 'Content-Type': 'multipart/form-data', ...authHeadersRef } : { 'Content-Type': 'multipart/form-data' };
+        await api.post('/proctoring/recording-chunk', formData, {
+          headers: requestHeaders
+        });
+      } catch (err) {
+        console.error('Failed to upload video chunk', err);
+      }
+    }
+  };
+
+  const uploadedScreenshotCount = ref(0);
+  const MAX_SCREENSHOTS_PER_ATTEMPT = 15;
+
+  const captureScreenshot = async (attemptId: string, customHeaders?: any, targetVideoEl?: HTMLVideoElement | null): Promise<string | null> => {
     if (!stream.value) return null;
-    
-    // Check maximum cap limit (max 15 screenshots per attempt)
-    if (totalScreenshotsCaptured.value >= MAX_SCREENSHOTS_PER_ATTEMPT) {
-      console.warn('Maximum screenshot cap reached for this attempt');
+    if (uploadedScreenshotCount.value >= MAX_SCREENSHOTS_PER_ATTEMPT) {
+      console.info(`[Proctoring] Max screenshot cap reached (${MAX_SCREENSHOTS_PER_ATTEMPT}). Skipping upload to conserve bandwidth.`);
       return null;
     }
 
-    // Check 10s cooldown per event type
-    const now = Date.now();
-    const lastTime = lastScreenshotTimeMap.get(eventType) || 0;
-    if (now - lastTime < SCREENSHOT_COOLDOWN_MS) {
-      return null;
-    }
-
-    const videoEl = document.querySelector('video');
+    const videoEl = targetVideoEl || document.querySelector('video');
     if (!videoEl) return null;
 
     try {
-      lastScreenshotTimeMap.set(eventType, now);
-      totalScreenshotsCaptured.value++;
+      // Downscale image resolution to max width 480 to drastically reduce image file size
+      const maxTargetWidth = 480;
+      let rawWidth = videoEl.videoWidth || 0;
+      let rawHeight = videoEl.videoHeight || 0;
 
-      // Downscale max width to 480px while maintaining aspect ratio
-      const rawWidth = videoEl.videoWidth || 640;
-      const rawHeight = videoEl.videoHeight || 480;
-      const targetWidth = Math.min(480, rawWidth);
-      const targetHeight = Math.round((targetWidth / rawWidth) * rawHeight);
+      // Fallback for mobile devices if videoWidth/videoHeight isn't populated yet
+      if (!rawWidth || !rawHeight) {
+        const track = stream.value.getVideoTracks()[0];
+        if (track) {
+          const settings = track.getSettings();
+          rawWidth = settings.width || 640;
+          rawHeight = settings.height || 480;
+        } else {
+          rawWidth = 640;
+          rawHeight = 480;
+        }
+      }
+      
+      const scaleRatio = Math.min(1, maxTargetWidth / rawWidth);
+      const targetWidth = Math.round(rawWidth * scaleRatio);
+      const targetHeight = Math.round(rawHeight * scaleRatio);
 
       const canvas = document.createElement('canvas');
       canvas.width = targetWidth;
       canvas.height = targetHeight;
       const ctx = canvas.getContext('2d');
       if (!ctx) return null;
+
       ctx.drawImage(videoEl, 0, 0, targetWidth, targetHeight);
 
       return new Promise((resolve) => {
-        // Compress JPEG to 0.60 quality (~20-30KB lightweight file size)
+        // Compress JPEG to 0.60 quality (~20-30KB per image)
         canvas.toBlob(async (blob) => {
           if (!blob) {
             resolve(null);
@@ -88,13 +158,14 @@ export const useWebcamRecorder = () => {
           }
           const formData = new FormData();
           formData.append('attempt_id', attemptId);
-          formData.append('image', blob, `violation-${Date.now()}.jpg`);
+          formData.append('image', blob, 'screenshot.jpg');
 
           try {
             const requestHeaders = customHeaders ? { 'Content-Type': 'multipart/form-data', ...customHeaders } : { 'Content-Type': 'multipart/form-data' };
             const res = await api.post('/proctoring/violation-screenshot', formData, {
               headers: requestHeaders
             });
+            uploadedScreenshotCount.value++;
             resolve(res.data?.url || null);
           } catch (err) {
             console.error('Failed to upload screenshot', err);
@@ -108,57 +179,31 @@ export const useWebcamRecorder = () => {
     }
   };
 
-  const uploadReferenceSelfie = async (attemptId: string, baselineVector: number[] | null, customHeaders?: any): Promise<string | null> => {
-    if (!stream.value) return null;
-    const videoEl = document.querySelector('video');
-    if (!videoEl) return null;
-
-    try {
-      const canvas = document.createElement('canvas');
-      canvas.width = 480;
-      canvas.height = 360;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return null;
-      ctx.drawImage(videoEl, 0, 0, 480, 360);
-
-      return new Promise((resolve) => {
-        canvas.toBlob(async (blob) => {
-          if (!blob) return resolve(null);
-          const formData = new FormData();
-          formData.append('attempt_id', attemptId);
-          formData.append('image', blob, 'reference-selfie.jpg');
-          if (baselineVector) {
-            formData.append('baseline_vector', JSON.stringify(baselineVector));
-          }
-
-          try {
-            const requestHeaders = customHeaders ? { 'Content-Type': 'multipart/form-data', ...customHeaders } : { 'Content-Type': 'multipart/form-data' };
-            const res = await api.post('/proctoring/reference-selfie', formData, {
-              headers: requestHeaders
-            });
-            resolve(res.data?.selfieUrl || null);
-          } catch (err) {
-            console.error('Failed to upload reference selfie', err);
-            resolve(null);
-          }
-        }, 'image/jpeg', 0.85);
-      });
-    } catch (e) {
-      console.error('Error in uploadReferenceSelfie', e);
-      return null;
-    }
-  };
-
   const stopRecording = () => {
-    if (mediaRecorder.value && mediaRecorder.value.state !== 'inactive') {
-      mediaRecorder.value.stop();
+    try {
+      if (mediaRecorder.value && mediaRecorder.value.state !== 'inactive') {
+        mediaRecorder.value.stop();
+      }
+    } catch (e) {
+      console.warn('Error stopping media recorder:', e);
     }
     isRecording.value = false;
   };
 
   const releaseCamera = () => {
+    stopRecording();
     if (stream.value) {
-      stream.value.getTracks().forEach(track => track.stop());
+      try {
+        const tracks = stream.value.getTracks();
+        tracks.forEach(track => {
+          try {
+            track.stop();
+            track.enabled = false;
+          } catch (_) {}
+        });
+      } catch (e) {
+        console.warn('Error stopping stream tracks:', e);
+      }
       stream.value = null;
     }
   };
@@ -167,11 +212,10 @@ export const useWebcamRecorder = () => {
     stream,
     cameraError,
     isRecording,
-    totalScreenshotsCaptured,
+    uploadedScreenshotCount,
     requestCamera,
     startRecording,
     captureScreenshot,
-    uploadReferenceSelfie,
     stopRecording,
     releaseCamera
   };

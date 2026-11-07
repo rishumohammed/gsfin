@@ -163,10 +163,12 @@ router.get('/admin/public-violations', authenticateJWT, isAdminOrTutor, async (r
 router.get('/admin/:attemptId', authenticateJWT, isAdminOrTutor, async (req, res) => {
   try {
     const details = await proctoringService.getAttemptDetails(req.params.attemptId);
-    const events = await proctoringService.getEventsForAttempt(req.params.attemptId);
+    const eventData = await proctoringService.getEventsForAttempt(req.params.attemptId);
+    const rawEvents = Array.isArray(eventData) ? eventData : (eventData.events || []);
+    const proctoring_status = (eventData && eventData.proctoring_status) || (details && details.proctoring_status) || 'pending_review';
     const recordings = await proctoringService.getRecordingsForAttempt(req.params.attemptId);
     const screenshots = await proctoringService.getScreenshotsForAttempt(req.params.attemptId);
-    res.json({ details, events, recordings, screenshots });
+    res.json({ details, events: rawEvents, proctoring_status, recordings, screenshots });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

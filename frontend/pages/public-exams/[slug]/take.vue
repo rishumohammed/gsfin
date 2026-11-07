@@ -18,13 +18,13 @@
     <v-app-bar flat color="#1A1A2E" class="text-white border-b px-4" height="64">
       <div class="d-flex align-center cursor-pointer" @click="confirmExit">
         <v-icon color="primary" class="mr-2" size="28">mdi-rhombus-split</v-icon>
-        <span class="font-weight-black tracking-tight text-body-1">AEMS EXAM STUDIO</span>
+        <span class="font-weight-semibold tracking-tight text-body-1">AEMS EXAM STUDIO</span>
       </div>
 
       <v-divider vertical inset class="mx-4 border-grey-darken-3"></v-divider>
 
       <!-- Exam Name -->
-      <span class="font-weight-bold text-body-2 d-none d-sm-inline opacity-90">{{ examName }}</span>
+      <span class="font-weight-semibold text-body-2 d-none d-sm-inline opacity-90">{{ examName }}</span>
 
       <v-spacer></v-spacer>
 
@@ -37,7 +37,7 @@
       <!-- Timer Display -->
       <v-chip
         :color="timerColor"
-        class="font-weight-black px-4 text-white"
+        class="font-weight-semibold px-4 text-white"
         rounded="lg"
         height="40"
       >
@@ -57,10 +57,10 @@
             <div class="pa-8 flex-grow-1 overflow-y-auto" v-if="questions.length > 0">
               <!-- Question Header (Number & Marks) -->
               <div class="d-flex align-center justify-space-between mb-6">
-                <h2 class="text-h6 font-weight-black text-dark">
+                <h2 class="text-h6 font-weight-semibold text-dark">
                   Question {{ currentQuestionIndex + 1 }} of {{ questions.length }}
                 </h2>
-                <v-chip color="grey-lighten-4" text-color="grey-darken-3" class="font-weight-bold" size="small">
+                <v-chip color="grey-lighten-4" text-color="grey-darken-3" class="font-weight-semibold" size="small">
                   {{ currentQuestion.marks }} Marks
                 </v-chip>
               </div>
@@ -166,7 +166,7 @@
                   variant="outlined"
                   color="grey-darken-1"
                   rounded="lg"
-                  class="text-capitalize font-weight-bold"
+                  class="text-capitalize font-weight-semibold"
                   height="44"
                   :disabled="currentQuestionIndex === 0"
                   @click="prevQuestion"
@@ -178,7 +178,7 @@
                   variant="outlined"
                   color="primary"
                   rounded="lg"
-                  class="text-capitalize font-weight-bold"
+                  class="text-capitalize font-weight-semibold"
                   height="44"
                   @click="toggleMarkForReview"
                 >
@@ -192,7 +192,7 @@
                   v-if="currentQuestionIndex < questions.length - 1"
                   color="primary"
                   rounded="lg"
-                  class="text-capitalize font-weight-bold"
+                  class="text-capitalize font-weight-semibold"
                   height="44"
                   @click="nextQuestion"
                 >
@@ -202,7 +202,7 @@
                   v-else
                   color="primary"
                   rounded="lg"
-                  class="text-capitalize font-weight-bold"
+                  class="text-capitalize font-weight-semibold"
                   height="44"
                   @click="confirmSubmitDialog = true"
                 >
@@ -220,17 +220,17 @@
               <v-card class="pa-4 bg-white border rounded-xl mb-6" flat>
                 <div class="d-flex align-center">
                   <v-avatar color="primary" class="mr-3" size="40">
-                    <span class="text-white font-weight-bold">{{ guestInitials }}</span>
+                    <span class="text-white font-weight-semibold">{{ guestInitials }}</span>
                   </v-avatar>
                   <div>
-                    <div class="text-body-2 font-weight-black text-dark">{{ guestName }}</div>
+                    <div class="text-body-2 font-weight-semibold text-dark">{{ guestName }}</div>
                     <div class="text-caption text-secondary">Guest Candidate</div>
                   </div>
                 </div>
               </v-card>
 
               <!-- Question Palette Grid -->
-              <h3 class="text-subtitle-2 font-weight-bold text-dark mb-4">Question Palette</h3>
+              <h3 class="text-subtitle-2 font-weight-semibold text-dark mb-4">Question Palette</h3>
               
               <v-row class="palette-grid px-1 mb-6" no-gutters>
                 <v-col
@@ -244,7 +244,7 @@
                   <v-btn
                     :color="getPaletteColor(q.id)"
                     :variant="currentQuestionIndex === idx ? 'outlined' : 'flat'"
-                    :class="['palette-btn font-weight-black rounded-lg', getPaletteTextColor(q.id)]"
+                    :class="['palette-btn font-weight-semibold rounded-lg', getPaletteTextColor(q.id)]"
                     block
                     height="40"
                     @click="jumpToQuestion(idx)"
@@ -256,7 +256,7 @@
 
               <!-- Legend -->
               <v-divider class="mb-4 opacity-10"></v-divider>
-              <h4 class="text-caption font-weight-bold text-secondary mb-3">Legend</h4>
+              <h4 class="text-caption font-weight-semibold text-secondary mb-3">Legend</h4>
               <div class="legend-container">
                 <div class="legend-item mb-2">
                   <span class="legend-dot bg-success"></span>
@@ -291,13 +291,13 @@
     <!-- Exit Confirmation Dialog -->
     <v-dialog v-model="exitDialog" max-width="400">
       <v-card class="pa-6 rounded-xl">
-        <h3 class="text-h6 font-weight-bold mb-3 text-dark">Exit Exam?</h3>
+        <h3 class="text-h6 font-weight-semibold mb-3 text-dark">Exit Exam?</h3>
         <p class="text-body-2 text-secondary mb-6">
           Are you sure you want to leave this exam? Your timer is running and the exam will automatically submit when the timer ends.
         </p>
         <div class="d-flex justify-end gap-2">
           <v-btn variant="text" color="grey" class="text-capitalize" @click="exitDialog = false">Cancel</v-btn>
-          <v-btn color="error" rounded="lg" class="text-capitalize font-weight-bold" @click="confirmExitForce">Exit Exam</v-btn>
+          <v-btn color="error" rounded="lg" class="text-capitalize font-weight-semibold" @click="confirmExitForce">Exit Exam</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -305,7 +305,7 @@
     <!-- Submit Confirmation Dialog -->
     <v-dialog v-model="confirmSubmitDialog" max-width="450">
       <v-card class="pa-6 rounded-xl">
-        <h3 class="text-h6 font-weight-bold mb-3 text-dark">Submit Exam?</h3>
+        <h3 class="text-h6 font-weight-semibold mb-3 text-dark">Submit Exam?</h3>
         <p class="text-body-2 text-secondary mb-4">
           Are you sure you want to submit your answers? You cannot modify your answers after submitting.
         </p>
@@ -314,54 +314,45 @@
         <div class="bg-grey-lighten-4 pa-4 rounded-lg border mb-6 text-body-2">
           <div class="d-flex justify-space-between mb-1">
             <span>Total Questions:</span>
-            <span class="font-weight-bold">{{ questions.length }}</span>
+            <span class="font-weight-semibold">{{ questions.length }}</span>
           </div>
           <div class="d-flex justify-space-between mb-1 text-success">
             <span>Answered:</span>
-            <span class="font-weight-bold">{{ answeredCount }}</span>
+            <span class="font-weight-semibold">{{ answeredCount }}</span>
           </div>
           <div class="d-flex justify-space-between mb-1 text-error">
             <span>Unanswered:</span>
-            <span class="font-weight-bold">{{ unansweredCount }}</span>
+            <span class="font-weight-semibold">{{ unansweredCount }}</span>
           </div>
           <div class="d-flex justify-space-between text-indigo">
             <span>Marked for Review:</span>
-            <span class="font-weight-bold">{{ markedCount }}</span>
+            <span class="font-weight-semibold">{{ markedCount }}</span>
           </div>
         </div>
 
         <div class="d-flex justify-end gap-2">
           <v-btn variant="text" color="grey" class="text-capitalize" @click="confirmSubmitDialog = false">Cancel</v-btn>
-          <v-btn color="success" rounded="lg" class="text-capitalize font-weight-bold text-white px-6" :loading="submittingExam" @click="submitFinalAnswers">
+          <v-btn color="success" rounded="lg" class="text-capitalize font-weight-semibold text-white px-6" :loading="submittingExam" @click="submitFinalAnswers">
             Submit Exam
           </v-btn>
         </div>
       </v-card>
     </v-dialog>
 
-    <!-- Proctoring Warning Dialog -->
-    <v-dialog v-model="showProctorWarningDialog" max-width="450" persistent>
-      <v-card class="pa-6 rounded-xl border-error" style="border-width: 2px;">
-        <div class="d-flex align-center gap-3 mb-4 text-error">
-          <v-icon size="32">mdi-alert-octagon</v-icon>
-          <h3 class="text-h6 font-weight-bold mb-0">Violation Detected</h3>
-        </div>
-        <p class="text-body-1 font-weight-medium mb-2">{{ proctorViolationMessage }}</p>
-        <p class="text-body-2 text-secondary mb-6">
-          Warning {{ proctoringWarnings }} of {{ examConfig?.max_proctoring_warnings || 3 }}. 
-          If you reach the limit, your exam will be automatically submitted.
-        </p>
-        <v-btn color="error" rounded="lg" class="text-capitalize font-weight-bold px-6" block @click="dismissProctorWarning">
-          I Understand
-        </v-btn>
-      </v-card>
-    </v-dialog>
+    <!-- Proctoring Fullscreen Violation Overlay -->
+    <ProctoringOverlay 
+      v-if="examConfig?.enable_proctoring && proctoring.violationWarning.value.show"
+      :show="proctoring.violationWarning.value.show" 
+      :message="proctoring.violationWarning.value.message" 
+      :is-auto-submitting="proctoring.violationWarning.value.isAutoSubmitting || submittingExam"
+      @dismiss="proctoring.dismissWarning" 
+    />
 
     <!-- Fullscreen Enforcement Overlay -->
     <v-overlay v-model="requiresFullscreen" class="align-center justify-center" persistent>
       <v-card class="pa-8 text-center rounded-xl border" max-width="400" flat>
         <v-icon size="64" color="primary" class="mb-4">mdi-fullscreen</v-icon>
-        <h3 class="text-h5 font-weight-bold mb-2">Full Screen Required</h3>
+        <h3 class="text-h5 font-weight-semibold mb-2">Full Screen Required</h3>
         <p class="text-body-2 text-secondary mb-6">This exam requires you to be in full screen mode to continue.</p>
         <v-btn color="primary" rounded="lg" size="large" @click="toggleFullScreen">Enter Full Screen</v-btn>
       </v-card>
@@ -372,18 +363,24 @@
       <v-card class="pa-8 text-center rounded-xl border" max-width="400" min-width="320" flat>
         <template v-if="isInitializingProctoring">
           <v-progress-circular indeterminate color="primary" size="72" width="6" class="mb-6"></v-progress-circular>
-          <h3 class="text-h5 font-weight-bold mb-2">Initializing Security</h3>
+          <h3 class="text-h5 font-weight-semibold mb-2">Initializing Security</h3>
           <p class="text-body-2 text-secondary mb-0">Downloading AI proctoring models.<br>Please wait a moment...</p>
         </template>
         <template v-else>
           <v-icon size="64" color="primary" class="mb-4">mdi-camera</v-icon>
-          <h3 class="text-h5 font-weight-bold mb-2">Camera Required</h3>
+          <h3 class="text-h5 font-weight-semibold mb-2">Camera Required</h3>
           <p class="text-body-2 text-secondary mb-6">This exam is proctored. Please enable your camera to continue.</p>
           <v-btn color="primary" rounded="lg" size="large" :loading="isRequestingCamera" @click="setupCamera">Enable Camera</v-btn>
           <p v-if="recorder.cameraError.value" class="text-error text-caption mt-2">{{ recorder.cameraError.value }}</p>
         </template>
       </v-card>
     </v-overlay>
+
+    <!-- Draggable Webcam Feed with Realtime AI Proctoring Pipeline -->
+    <WebcamThumbnail :stream="recorder.stream.value" @video-ready="onVideoReady" />
+
+    <!-- Proctoring Live Debug Telemetry HUD -->
+    <ProctoringDebugHUD />
   </v-app>
 </template>
 
@@ -397,6 +394,7 @@ import { useObjectDetection } from '@/composables/useObjectDetection';
 import { useWebcamRecorder } from '@/composables/useWebcamRecorder';
 import ProctoringOverlay from '@/components/exam/ProctoringOverlay.vue';
 import WebcamThumbnail from '@/components/exam/WebcamThumbnail.vue';
+import ProctoringDebugHUD from '@/components/exam/ProctoringDebugHUD.vue';
 
 definePageMeta({
   layout: 'empty'
@@ -604,23 +602,36 @@ async function setupCamera() {
 }
 
 async function onVideoReady(videoEl: HTMLVideoElement) {
-  // 1. Register selfie baseline & upload reference selfie image
-  try {
-    const vector = await faceDetection.registerSelfieBaseline(videoEl);
-    if (vector) {
-      await recorder.uploadReferenceSelfie(attemptId.value, vector, authHeaders());
+  if (!faceDetection.referenceDescriptor.value) {
+    const candStr = localStorage.getItem(`public_exam_candidate_${examSlug.value}`);
+    if (candStr) {
+      try {
+        const candObj = JSON.parse(candStr);
+        if (candObj.facial_descriptor || candObj.facial_descriptors) {
+          faceDetection.setReferenceDescriptor(candObj.facial_descriptors || candObj.facial_descriptor);
+          console.info('[Public Proctoring] Loaded candidate reference face profile from registration.');
+        }
+      } catch (e) {}
     }
-  } catch (err) {
-    console.warn('Reference selfie capture notice:', err);
   }
 
-  // 2. Start face & object detection loops
+  // Fallback if no registration descriptor found
+  if (!faceDetection.referenceDescriptor.value) {
+    const descriptor = await faceDetection.captureReferenceDescriptor(videoEl, 3);
+    if (descriptor) {
+      console.info('[Public Proctoring] 3-sample candidate reference face profile registered.');
+      const selfieUrl = await recorder.captureScreenshot(attemptId.value, authHeaders());
+      if (selfieUrl) {
+        proctoring.logEvent('reference_face_registered', { screenshot: selfieUrl, samples_count: 3 });
+      }
+    }
+  }
+
   faceDetection.startDetection(
     videoEl, 
     proctoring.logEvent, 
     (msg) => {
-      proctoring.violationWarning.value = { show: true, message: msg };
-      proctoring.speakWarning(msg);
+      proctoring.recordViolation('face_violation', msg);
     },
     proctoringConfig.value
   );
@@ -628,14 +639,19 @@ async function onVideoReady(videoEl: HTMLVideoElement) {
     videoEl, 
     proctoring.logEvent, 
     (msg) => {
-      proctoring.violationWarning.value = { show: true, message: msg };
-      proctoring.speakWarning(msg);
+      proctoring.recordViolation('mobile_phone_detected', msg);
     }
   );
 }
 
 function initAdvancedProctoring() {
-  proctoring.initProctoring(attemptId.value, submitOnTimeout, proctoringConfig.value, () => recorder.captureScreenshot(attemptId.value, 'proctoring', authHeaders()), authHeaders());
+  proctoring.initProctoring(
+    attemptId.value, 
+    submitOnTimeout, 
+    proctoringConfig.value, 
+    () => recorder.captureScreenshot(attemptId.value, authHeaders()), 
+    authHeaders()
+  );
   if (!recorder.isRecording.value) {
     recorder.startRecording(attemptId.value, proctoringConfig.value.record_full_video, authHeaders());
   }

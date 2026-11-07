@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="d-flex justify-space-between align-center mb-6">
       <div>
-        <h1 class="text-h4 font-weight-bold mb-1 text-dark">Talent Exams Proctoring Logs</h1>
-        <p class="text-subtitle-1 text-medium-emphasis mb-0">Select a talent exam to review proctoring violations and candidate recordings.</p>
+        <h1 class="text-h4 font-weight-semibold mb-1 text-dark">Certification Exams Proctoring Logs</h1>
+        <p class="text-subtitle-1 text-medium-emphasis mb-0">Select an exam to review proctoring violations and candidate recordings.</p>
       </div>
     </div>
 
@@ -17,7 +17,7 @@
               <v-icon icon="mdi-shield-check" color="white" size="20"></v-icon>
             </v-avatar>
             <div>
-              <div class="text-h5 font-weight-bold">{{ stats.totalExamsMonitored }}</div>
+              <div class="text-h5 font-weight-semibold">{{ stats.totalExamsMonitored }}</div>
               <div class="text-caption text-medium-emphasis">Exams Monitored</div>
             </div>
           </div>
@@ -30,7 +30,7 @@
               <v-icon icon="mdi-alert" color="white" size="20"></v-icon>
             </v-avatar>
             <div>
-              <div class="text-h5 font-weight-bold">{{ stats.totalViolations }}</div>
+              <div class="text-h5 font-weight-semibold">{{ stats.totalViolations }}</div>
               <div class="text-caption text-medium-emphasis">Total Violations</div>
             </div>
           </div>
@@ -43,7 +43,7 @@
               <v-icon icon="mdi-alert-octagon" color="white" size="20"></v-icon>
             </v-avatar>
             <div>
-              <div class="text-h5 font-weight-bold">{{ stats.highSeverityViolations }}</div>
+              <div class="text-h5 font-weight-semibold">{{ stats.highSeverityViolations }}</div>
               <div class="text-caption text-medium-emphasis">High Severity</div>
             </div>
           </div>
@@ -56,7 +56,7 @@
               <v-icon icon="mdi-account-alert" color="white" size="20"></v-icon>
             </v-avatar>
             <div>
-              <div class="text-h5 font-weight-bold">{{ stats.candidatesFlagged }}</div>
+              <div class="text-h5 font-weight-semibold">{{ stats.candidatesFlagged }}</div>
               <div class="text-caption text-medium-emphasis">Candidates Flagged</div>
             </div>
           </div>
@@ -105,7 +105,7 @@
             <v-avatar color="primary" variant="tonal" size="36" class="mr-3">
               <v-icon size="18">mdi-file-document-outline</v-icon>
             </v-avatar>
-            <span class="font-weight-bold text-subtitle-1">{{ item.title }}</span>
+            <span class="font-weight-semibold text-subtitle-1">{{ item.title }}</span>
           </div>
         </template>
         

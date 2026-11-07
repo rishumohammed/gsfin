@@ -9,7 +9,7 @@
 
     <div class="d-flex justify-space-between align-center mb-6">
       <div>
-        <h1 class="text-h4 font-weight-bold mb-1 text-dark">{{ examTitle }}</h1>
+        <h1 class="text-h4 font-weight-semibold mb-1 text-dark">{{ examTitle }}</h1>
         <p class="text-subtitle-1 text-medium-emphasis mb-0">Review candidates and their proctoring flags for this exam.</p>
       </div>
     </div>
@@ -57,9 +57,9 @@
         <template v-slot:item.name="{ item }">
           <div class="d-flex align-center py-3">
             <v-avatar color="grey-lighten-3" size="36" class="mr-3">
-              <span class="text-caption font-weight-bold">{{ item.name.substring(0, 2).toUpperCase() }}</span>
+              <span class="text-caption font-weight-semibold">{{ item.name.substring(0, 2).toUpperCase() }}</span>
             </v-avatar>
-            <span class="font-weight-bold text-subtitle-2">{{ item.name }}</span>
+            <span class="font-weight-semibold text-subtitle-2">{{ item.name }}</span>
           </div>
         </template>
         
@@ -92,7 +92,7 @@
             size="small" 
             variant="flat" 
             :color="getCandidateViolationsCount(item) > 0 ? 'error' : 'success'"
-            class="text-white font-weight-bold"
+            class="text-white font-weight-semibold"
           >
             <v-icon start size="14">{{ getCandidateViolationsCount(item) > 0 ? 'mdi-alert-octagon' : 'mdi-check-circle' }}</v-icon>
             {{ getCandidateViolationsCount(item) > 0 ? 'Flagged' : 'Clean' }}

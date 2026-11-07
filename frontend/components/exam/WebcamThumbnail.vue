@@ -24,18 +24,46 @@ const emit = defineEmits(['video-ready']);
 const videoEl = ref<HTMLVideoElement | null>(null);
 
 // Make draggable
-const position = ref({ x: window.innerWidth - 180, y: 20 });
+const position = ref({ x: typeof window !== 'undefined' ? window.innerWidth - 180 : 0, y: 20 });
 const isDragging = ref(false);
 const dragOffset = ref({ x: 0, y: 0 });
 
+let hasEmittedReady = false;
+
 watchEffect(() => {
-  if (videoEl.value && props.stream) {
-    videoEl.value.srcObject = props.stream;
-    // Wait for video to be playing before emitting ready (for TFjs)
-    videoEl.value.onloadedmetadata = () => {
-      videoEl.value?.play();
-      emit('video-ready', videoEl.value);
-    };
+  if (videoEl.value) {
+    if (props.stream) {
+      if (videoEl.value.srcObject !== props.stream) {
+        videoEl.value.srcObject = props.stream;
+        hasEmittedReady = false;
+      }
+      
+      const triggerReady = () => {
+        if (videoEl.value && !hasEmittedReady) {
+          hasEmittedReady = true;
+          videoEl.value.play().catch(() => {});
+          emit('video-ready', videoEl.value);
+        }
+      };
+
+      if (videoEl.value.readyState >= 1) {
+        triggerReady();
+      } else {
+        videoEl.value.onloadedmetadata = triggerReady;
+        videoEl.value.onloadeddata = triggerReady;
+        videoEl.value.oncanplay = triggerReady;
+      }
+    } else {
+      if (videoEl.value.srcObject) {
+        try {
+          const tracks = (videoEl.value.srcObject as MediaStream).getTracks();
+          tracks.forEach(track => {
+            try { track.stop(); } catch (_) {}
+          });
+        } catch (_) {}
+        videoEl.value.srcObject = null;
+      }
+    }
   }
 });
 
@@ -69,17 +97,29 @@ const stopDrag = () => {
 };
 
 onMounted(() => {
-  // Ensure it starts in top right
-  position.value = { x: window.innerWidth - 180, y: 20 };
-  window.addEventListener('resize', () => {
-    position.value.x = Math.min(position.value.x, window.innerWidth - 160);
-    position.value.y = Math.min(position.value.y, window.innerHeight - 120);
-  });
+  if (typeof window !== 'undefined') {
+    position.value = { x: window.innerWidth - 180, y: 20 };
+    window.addEventListener('resize', () => {
+      position.value.x = Math.min(position.value.x, window.innerWidth - 160);
+      position.value.y = Math.min(position.value.y, window.innerHeight - 120);
+    });
+  }
 });
 
 onUnmounted(() => {
-  document.removeEventListener('mousemove', doDrag);
-  document.removeEventListener('mouseup', stopDrag);
+  if (typeof document !== 'undefined') {
+    document.removeEventListener('mousemove', doDrag);
+    document.removeEventListener('mouseup', stopDrag);
+  }
+  if (videoEl.value && videoEl.value.srcObject) {
+    try {
+      const tracks = (videoEl.value.srcObject as MediaStream).getTracks();
+      tracks.forEach(track => {
+        try { track.stop(); } catch (_) {}
+      });
+    } catch (_) {}
+    videoEl.value.srcObject = null;
+  }
 });
 </script>
 
@@ -90,7 +130,6 @@ onUnmounted(() => {
   height: 120px;
   border-radius: 12px;
   overflow: hidden;
-  
   border: 2px solid rgba(255,255,255,0.1);
   background: #000;
   z-index: 9990; /* below overlay */
@@ -111,14 +150,14 @@ video {
 
 .recording-indicator {
   position: absolute;
-  top: 6px;
-  right: 8px;
-  background: rgba(0,0,0,0.6);
-  color: white;
+  top: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 2px 6px;
+  border-radius: 4px;
   font-size: 10px;
   font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 10px;
+  color: white;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -128,13 +167,13 @@ video {
 .red-dot {
   width: 6px;
   height: 6px;
-  background: #ef4444;
   border-radius: 50%;
-  animation: blink 1s infinite;
+  background: #ef4444;
+  animation: pulse 1s infinite;
 }
 
-@keyframes blink {
+@keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  50% { opacity: 0.3; }
 }
 </style>

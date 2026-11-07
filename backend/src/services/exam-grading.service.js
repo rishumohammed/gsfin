@@ -55,7 +55,7 @@ export async function submitExamAttempt(attemptId, guestAnswers = []) {
     await connection.beginTransaction();
 
     const [attempts] = await connection.query(`
-      SELECT a.*, e.passing_marks, e.total_marks, e.negative_marking, e.pass_percentage, e.name as exam_name, e.enable_certificate,
+      SELECT a.*, e.passing_marks, e.total_marks, e.negative_marking, e.pass_percentage, e.name as exam_name, e.enable_certificate, e.enable_proctoring,
              c.name as candidate_name, c.email as candidate_email
       FROM public_exam_attempts a
       JOIN public_exams e ON a.exam_id = e.id
@@ -130,12 +130,27 @@ export async function submitExamAttempt(attemptId, guestAnswers = []) {
 
     const timeTakenSec = Math.max(0, Math.floor((submittedAt - startedAt) / 1000));
 
+    const initialProctoringStatus = attempt.enable_proctoring ? 'pending_review' : 'not_applicable';
+
     // Update attempt
-    await connection.query(`
-      UPDATE public_exam_attempts 
-      SET status = 'submitted', submitted_at = ?, answers_json = ?
-      WHERE id = ?
-    `, [new Date(), JSON.stringify(guestAnswers), attemptId]);
+    try {
+      await connection.query(`
+        UPDATE public_exam_attempts 
+        SET status = 'submitted', submitted_at = ?, answers_json = ?, proctoring_status = ?
+        WHERE id = ?
+      `, [new Date(), JSON.stringify(guestAnswers), initialProctoringStatus, attemptId]);
+    } catch (updateErr) {
+      if (updateErr.code === 'ER_BAD_FIELD_ERROR' || updateErr.errno === 1054) {
+        // Fallback if proctoring_status column does not exist on DB schema yet
+        await connection.query(`
+          UPDATE public_exam_attempts 
+          SET status = 'submitted', submitted_at = ?, answers_json = ?
+          WHERE id = ?
+        `, [new Date(), JSON.stringify(guestAnswers), attemptId]);
+      } else {
+        throw updateErr;
+      }
+    }
 
     // Create result
     const resultId = uuidv4();
@@ -156,12 +171,12 @@ export async function submitExamAttempt(attemptId, guestAnswers = []) {
 
     await connection.commit();
 
-    // Trigger participation certificate asynchronously
+    // Trigger participation certificate asynchronously (ONLY if non-proctored or proctoring disabled)
     const finalCandidateName = attempt.candidate_name || attempt.guest_name;
     const finalCandidateEmail = attempt.candidate_email || attempt.guest_email;
     const finalExamName = attempt.exam_name;
 
-    if (finalCandidateEmail && attempt.enable_certificate) {
+    if (finalCandidateEmail && attempt.enable_certificate && !attempt.enable_proctoring) {
       // Fetch the certificate logo path from config
       let logoAbsPath = null;
       try {
@@ -170,21 +185,29 @@ export async function submitExamAttempt(attemptId, guestAnswers = []) {
         );
         if (logoRow && logoRow.value) {
           const relPath = logoRow.value.startsWith('/') ? logoRow.value : '/' + logoRow.value;
-          const absPath = path.join(__dirname, '../../', relPath);
+          const absPath = path.join(process.cwd(), relPath);
           if (fsSync.existsSync(absPath)) logoAbsPath = absPath;
         }
       } catch (_) { /* ignore – logo is optional */ }
 
       CertificateService.generateParticipationCertificate(finalCandidateName, finalExamName, new Date(), logoAbsPath)
-        .then(async ({ buffer, pdfUrl }) => {
+        .then(async ({ buffer, pdfUrl, certificateNumber }) => {
           try {
             // Save to DB
             const certId = uuidv4();
-            await pool.query(`
-              INSERT INTO public_exam_issued_certificates 
-                (id, exam_id, attempt_id, candidate_name, candidate_email, pdf_url) 
-              VALUES (?, ?, ?, ?, ?, ?)
-            `, [certId, attempt.exam_id, attemptId, finalCandidateName, finalCandidateEmail, pdfUrl]);
+            try {
+              await pool.query(`
+                INSERT INTO public_exam_issued_certificates 
+                  (id, exam_id, attempt_id, candidate_name, candidate_email, pdf_url, certificate_number) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+              `, [certId, attempt.exam_id, attemptId, finalCandidateName, finalCandidateEmail, pdfUrl, certificateNumber || null]);
+            } catch (_) {
+              await pool.query(`
+                INSERT INTO public_exam_issued_certificates 
+                  (id, exam_id, attempt_id, candidate_name, candidate_email, pdf_url) 
+                VALUES (?, ?, ?, ?, ?, ?)
+              `, [certId, attempt.exam_id, attemptId, finalCandidateName, finalCandidateEmail, pdfUrl]);
+            }
 
             // Send email
             await EmailService.sendExamCertificateEmail(

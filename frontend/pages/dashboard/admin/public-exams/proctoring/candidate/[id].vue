@@ -4,10 +4,10 @@
     <div class="d-flex align-center mb-6">
       <v-btn icon="mdi-arrow-left" variant="text" class="mr-4" @click="$router.back()"></v-btn>
       <v-avatar :color="getAvatarColor(candidate?.name || '')" size="48" class="mr-4">
-        <span class="text-h6 font-weight-bold text-white">{{ initials(candidate?.name || '') }}</span>
+        <span class="text-h6 font-weight-semibold text-white">{{ initials(candidate?.name || '') }}</span>
       </v-avatar>
       <div>
-        <h1 class="text-h4 font-weight-bold mb-1 text-dark">{{ candidate?.name || 'Loading...' }}</h1>
+        <h1 class="text-h4 font-weight-semibold mb-1 text-dark">{{ candidate?.name || 'Loading...' }}</h1>
         <p class="text-subtitle-1 text-medium-emphasis mb-0">Select an exam attempt to view detailed proctoring logs.</p>
       </div>
       <v-spacer></v-spacer>
@@ -45,7 +45,7 @@
       >
         <template v-slot:item.exam_title="{ item }">
           <div class="d-flex flex-column py-3">
-            <span class="font-weight-bold text-subtitle-1">{{ item.exam_title }}</span>
+            <span class="font-weight-semibold text-subtitle-1">{{ item.exam_title }}</span>
             <span class="text-caption text-medium-emphasis font-mono">Attempt ID: {{ item.attempt_id }}</span>
           </div>
         </template>

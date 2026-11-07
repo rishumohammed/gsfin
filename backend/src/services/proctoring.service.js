@@ -1,7 +1,10 @@
 import { pool } from '../db/connection.js';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs/promises';
+import fsSync from 'fs';
 import path from 'path';
+import { CertificateService } from './certificate.service.js';
+import EmailService from './email.service.js';
 
 class ProctoringService {
   async logEvent(attemptId, type, metadata = {}) {
@@ -18,10 +21,24 @@ class ProctoringService {
       'SELECT * FROM proctoring_events WHERE attempt_id = ? ORDER BY created_at ASC',
       [attemptId]
     );
-    return events.map(e => ({
-      ...e,
-      metadata_json: typeof e.metadata_json === 'string' ? JSON.parse(e.metadata_json || '{}') : (e.metadata_json || {})
-    }));
+    const parsedEvents = (events || []).map(e => {
+      let meta = e.metadata_json;
+      if (typeof meta === 'string') {
+        try { meta = JSON.parse(meta); } catch (_) { meta = {}; }
+      }
+      return {
+        ...e,
+        metadata_json: meta || {}
+      };
+    });
+
+    let proctoring_status = 'pending_review';
+    try {
+      const [[att]] = await pool.query('SELECT proctoring_status FROM public_exam_attempts WHERE id = ?', [attemptId]);
+      if (att && att.proctoring_status) proctoring_status = att.proctoring_status;
+    } catch (_) {}
+
+    return { events: parsedEvents, proctoring_status };
   }
 
   async getRecordingsForAttempt(attemptId) {
@@ -90,7 +107,8 @@ class ProctoringService {
     // Try fetching from public_exam_attempts first
     const [publicAttempts] = await pool.query(
       `SELECT ea.*, e.name as exam_title, e.enable_proctoring, e.max_proctoring_warnings,
-              COALESCE(c.name, ea.guest_name) as candidate_name, COALESCE(c.email, ea.guest_email) as candidate_email
+              COALESCE(c.name, ea.guest_name) as candidate_name, COALESCE(c.email, ea.guest_email) as candidate_email,
+              c.metadata as candidate_metadata
        FROM public_exam_attempts ea
        JOIN public_exams e ON ea.exam_id = e.id
        LEFT JOIN public_exam_candidates c ON ea.candidate_id = c.id
@@ -99,7 +117,16 @@ class ProctoringService {
     );
 
     if (publicAttempts.length > 0) {
-      return { type: 'public', ...publicAttempts[0] };
+      const att = publicAttempts[0];
+      if (!att.reference_selfie_url && att.candidate_metadata) {
+        try {
+          const m = typeof att.candidate_metadata === 'string' ? JSON.parse(att.candidate_metadata) : att.candidate_metadata;
+          if (m && m.reference_photo_url) {
+            att.reference_selfie_url = m.reference_photo_url;
+          }
+        } catch (_) {}
+      }
+      return { type: 'public', ...att };
     }
 
     // Otherwise try exam_attempts
@@ -120,39 +147,99 @@ class ProctoringService {
     return null;
   }
 
-  async approveCertificate(attemptId) {
-    // 1. Update proctoring_status in DB
-    await pool.query('UPDATE public_exam_attempts SET proctoring_status = "approved" WHERE id = ?', [attemptId]);
-    await pool.query('UPDATE exam_attempts SET proctoring_status = "approved" WHERE id = ?', [attemptId]);
+  async approveCertificateAndRelease(attemptId) {
+    const [attempts] = await pool.query(`
+      SELECT a.*, e.name as exam_name, e.enable_certificate,
+             c.name as candidate_name, c.email as candidate_email
+      FROM public_exam_attempts a
+      JOIN public_exams e ON a.exam_id = e.id
+      LEFT JOIN public_exam_candidates c ON a.candidate_id = c.id
+      WHERE a.id = ?
+    `, [attemptId]);
 
-    // 2. Issue Certificate if passed
-    const details = await this.getAttemptDetails(attemptId);
-    if (details && (details.passed || details.status === 'passed' || details.status === 'completed')) {
-      if (details.type === 'public') {
+    if (attempts.length === 0) {
+      // Fallback for standard course exam attempts
+      await pool.query('UPDATE exam_attempts SET proctoring_status = "approved" WHERE id = ?', [attemptId]);
+      const details = await this.getAttemptDetails(attemptId);
+      if (details && (details.passed || details.status === 'passed' || details.status === 'completed')) {
         const certId = uuidv4();
         await pool.query(
-          `INSERT IGNORE INTO public_exam_issued_certificates (id, candidate_id, exam_id, candidate_name, created_at)
-           VALUES (?, ?, ?, ?, NOW())`,
-          [certId, details.candidate_id || details.id, details.exam_id, details.candidate_name]
-        );
-      } else {
-        const certId = uuidv4();
-        await pool.query(
-          `INSERT IGNORE INTO certificates (id, assignment_id, issued_at)
-           VALUES (?, ?, NOW())`,
+          `INSERT IGNORE INTO certificates (id, assignment_id, issued_at) VALUES (?, ?, NOW())`,
           [certId, details.id]
         );
       }
+      return { success: true, proctoring_status: 'approved' };
     }
 
-    return { success: true, proctoring_status: 'approved' };
+    const attempt = attempts[0];
+    const finalCandidateName = attempt.candidate_name || attempt.guest_name;
+    const finalCandidateEmail = attempt.candidate_email || attempt.guest_email;
+    const finalExamName = attempt.exam_name;
+
+    // Mark as approved
+    await pool.query('UPDATE public_exam_attempts SET proctoring_status = ? WHERE id = ?', ['approved', attemptId]);
+
+    let certInfo = null;
+    // Generate certificate if enabled and candidate has email
+    if (finalCandidateEmail && attempt.enable_certificate) {
+      let logoAbsPath = null;
+      try {
+        const [[logoRow]] = await pool.query("SELECT `value` FROM system_config WHERE `key` = 'certificate_logo'");
+        if (logoRow && logoRow.value) {
+          const relPath = logoRow.value.startsWith('/') ? logoRow.value : '/' + logoRow.value;
+          const absPath = path.join(process.cwd(), relPath);
+          if (fsSync.existsSync(absPath)) logoAbsPath = absPath;
+        }
+      } catch (_) {}
+
+      const { buffer, pdfUrl, certificateNumber } = await CertificateService.generateParticipationCertificate(
+        finalCandidateName,
+        finalExamName,
+        new Date(),
+        logoAbsPath
+      );
+
+      // Check if already issued
+      const [existing] = await pool.query('SELECT id FROM public_exam_issued_certificates WHERE attempt_id = ?', [attemptId]);
+      if (existing.length === 0) {
+        const certId = uuidv4();
+        try {
+          await pool.query(`
+            INSERT INTO public_exam_issued_certificates 
+              (id, exam_id, attempt_id, candidate_name, candidate_email, pdf_url, certificate_number) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+          `, [certId, attempt.exam_id, attemptId, finalCandidateName, finalCandidateEmail, pdfUrl, certificateNumber || null]);
+        } catch (_) {
+          await pool.query(`
+            INSERT INTO public_exam_issued_certificates 
+              (id, exam_id, attempt_id, candidate_name, candidate_email, pdf_url) 
+            VALUES (?, ?, ?, ?, ?, ?)
+          `, [certId, attempt.exam_id, attemptId, finalCandidateName, finalCandidateEmail, pdfUrl]);
+        }
+      }
+
+      await EmailService.sendExamCertificateEmail(
+        { name: finalCandidateName, email: finalCandidateEmail },
+        { name: finalExamName },
+        buffer
+      );
+
+      certInfo = { pdfUrl, certificateNumber };
+    }
+
+    await this.logEvent(attemptId, 'proctoring_approved', { approved_at: new Date() });
+    return { success: true, proctoring_status: 'approved', certificate: certInfo };
   }
 
-  async flagAttempt(attemptId, reason = 'Flagged by administrator') {
+  async approveCertificate(attemptId) {
+    return this.approveCertificateAndRelease(attemptId);
+  }
+
+  async flagAttempt(attemptId, reason = 'Flagged by proctor') {
     await pool.query('UPDATE public_exam_attempts SET proctoring_status = "flagged" WHERE id = ?', [attemptId]);
     await pool.query('UPDATE exam_attempts SET proctoring_status = "flagged" WHERE id = ?', [attemptId]);
     
-    await this.logEvent(attemptId, 'flagged_by_admin', { reason });
+    await this.logEvent(attemptId, 'attempt_flagged', { reason, flagged_at: new Date() });
     return { success: true, proctoring_status: 'flagged' };
   }
 

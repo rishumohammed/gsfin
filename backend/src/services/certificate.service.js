@@ -68,14 +68,37 @@ export class CertificateService {
   }
 
   /**
-   * Generates a KEFTA-styled participation certificate as a PDF matching the reference design
+   * Generates a unique certificate number in GSFIN-YYMM-XXXXX format
+   */
+  static async generateCertificateNumber() {
+    try {
+      const now = new Date();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const yy = String(now.getFullYear()).slice(-2);
+      
+      const [[res]] = await pool.query('SELECT COUNT(*) as count FROM public_exam_issued_certificates');
+      const count = (res && res.count) ? res.count : 0;
+      const seq = String(count + 1).padStart(4, '0');
+      return `GSFIN-${yy}${mm}-${seq}`;
+    } catch (e) {
+      const now = new Date();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const yy = String(now.getFullYear()).slice(-2);
+      const rand = String(Math.floor(1000 + Math.random() * 9000));
+      return `GSFIN-${yy}${mm}-${rand}`;
+    }
+  }
+
+  /**
+   * Generates a GSFIN-styled verified certificate as a PDF
    * @param {string} candidateName 
    * @param {string} examName 
    * @param {Date} date 
    * @param {Object|string|null} customOptions Or logoAbsPath string for backwards compatibility
-   * @returns {Promise<{ buffer: Buffer, pdfUrl: string }>}
+   * @param {string|null} certificateNumber Custom certificate number or auto-generated if null
+   * @returns {Promise<{ buffer: Buffer, pdfUrl: string, certificateNumber: string }>}
    */
-  static async generateParticipationCertificate(candidateName, examName, date, customOptions = null) {
+  static async generateParticipationCertificate(candidateName, examName, date, customOptions = null, certificateNumber = null) {
     let opts = {};
     if (typeof customOptions === 'string') {
       opts = { logoAbsPath: customOptions };
@@ -85,6 +108,7 @@ export class CertificateService {
 
     const sysConfig = await CertificateService.getCertificateConfig();
     const config = { ...sysConfig, ...opts };
+    const certNo = certificateNumber || await CertificateService.generateCertificateNumber();
 
     return new Promise((resolve, reject) => {
       try {
@@ -103,7 +127,7 @@ export class CertificateService {
           try {
             await fs.writeFile(filepath, pdfData);
             const pdfUrl = `/uploads/certificates/${filename}`;
-            resolve({ buffer: pdfData, pdfUrl });
+            resolve({ buffer: pdfData, pdfUrl, certificateNumber: certNo });
           } catch (writeErr) {
             reject(writeErr);
           }
@@ -138,8 +162,8 @@ export class CertificateService {
         doc.save();
         doc.translate(28, H);
         doc.rotate(-90);
-        doc.fontSize(11).fillColor(DARK_GOLD).font('Helvetica')
-          .text('Igniting Scientific Temper, Inspiring Future Innovators.', 0, 0, { width: H, align: 'center' });
+        doc.fontSize(10).fillColor(DARK_GOLD).font('Helvetica')
+          .text('Validating Professional Competence. Establishing Global Trust.', 0, 0, { width: H, align: 'center' });
         doc.restore();
 
         // 4. Top-right Logo
@@ -151,12 +175,12 @@ export class CertificateService {
 
         // 5. Exam Title
         doc.fontSize(16).fillColor(NAVY).font('Helvetica-Bold')
-          .text('KEFTA - NATIONAL LEVEL', 0, 110, { align: 'center' });
-        doc.fontSize(16).fillColor(NAVY).font('Helvetica-Bold')
-          .text('TALENT HUNT', 0, 130, { align: 'center' });
+          .text('GSFIN CERTIFICATION AUTHORITY', 0, 110, { align: 'center' });
+        doc.fontSize(14).fillColor(NAVY).font('Helvetica-Bold')
+          .text(examName ? examName.toUpperCase() : 'PROFESSIONAL CERTIFICATION', 0, 130, { align: 'center' });
 
         // 6. Gold Rule + Ornament
-        const midY = 160;
+        const midY = 158;
         doc.moveTo(140, midY).lineTo(230, midY).lineWidth(1).stroke(DARK_GOLD);
         doc.moveTo(250, midY).lineTo(340, midY).lineWidth(1).stroke(DARK_GOLD);
         doc.save();
@@ -165,29 +189,34 @@ export class CertificateService {
         doc.rect(-3, -3, 6, 6).stroke(DARK_GOLD);
         doc.restore();
 
-        // 7. CERTIFICATE OF PARTICIPATION
-        doc.fontSize(28).fillColor(GOLD).font('Times-Roman')
-          .text('CERTIFICATE', 0, 190, { align: 'center' });
-        doc.fontSize(12).fillColor(GOLD).font('Times-Roman')
-          .text('— OF PARTICIPATION —', 0, 225, { align: 'center' });
+        // 7. CERTIFICATE OF COMPETENCE
+        doc.fontSize(26).fillColor(GOLD).font('Times-Roman')
+          .text('CERTIFICATE', 0, 185, { align: 'center' });
+        doc.fontSize(11).fillColor(GOLD).font('Times-Roman')
+          .text('— OF PERSONNEL COMPETENCE —', 0, 218, { align: 'center' });
+
+        doc.fontSize(8.5).fillColor(NAVY).font('Helvetica-Bold')
+          .text(`Certificate No: ${certNo}`, 0, 240, { align: 'center' });
 
         // 8. Certification Body
         doc.fontSize(10).fillColor(LIGHT_NAVY).font('Helvetica')
-          .text('This is to certify that', 0, 280, { align: 'center' });
+          .text('This is to certify that', 0, 275, { align: 'center' });
 
-        doc.fontSize(24).fillColor(DARK_GOLD).font('Times-BoldItalic')
-          .text(candidateName || 'Participant', 0, 315, { align: 'center' });
+        doc.fontSize(23).fillColor(DARK_GOLD).font('Times-BoldItalic')
+          .text(candidateName || 'Candidate', 0, 305, { align: 'center' });
 
-        doc.moveTo(140, 345).lineTo(340, 345).lineWidth(1).stroke('#AAAAAA');
+        doc.moveTo(140, 335).lineTo(340, 335).lineWidth(1).stroke('#AAAAAA');
 
         doc.fontSize(9).fillColor(LIGHT_NAVY).font('Helvetica')
-          .text('has participated in the National Level Talent Hunt organized by', 0, 370, { align: 'center' });
-        doc.fontSize(9).fillColor(LIGHT_NAVY).font('Helvetica')
-          .text('Kerala Food Technologists Association - KEFTA.', 0, 385, { align: 'center' });
+          .text('has successfully demonstrated the required professional competency for', 0, 360, { align: 'center' });
+        doc.fontSize(9.5).fillColor(NAVY).font('Helvetica-Bold')
+          .text(`${examName || 'Food Safety & Quality Assurance Standard'}`, 0, 375, { align: 'center' });
+        doc.fontSize(8.5).fillColor(LIGHT_NAVY).font('Helvetica')
+          .text('accredited and administered under the GSFIN Certifying Authority Framework.', 0, 390, { align: 'center' });
 
         // 9. Seal (Center)
         const sealX = W / 2;
-        const sealY = 485;
+        const sealY = 480;
         if (config.sealAbsPath && fsSync.existsSync(config.sealAbsPath)) {
           try {
             doc.image(config.sealAbsPath, sealX - 35, sealY - 35, { width: 70, height: 70, fit: [70, 70] });
@@ -232,10 +261,10 @@ export class CertificateService {
         doc.rect(0, footerY, W, 50).fill('#EAE6DC');
         doc.moveTo(0, footerY).lineTo(W, footerY).lineWidth(1).dash(2, { space: 2 }).stroke('#CCCCCC');
         doc.undash();
-        doc.fontSize(10).fillColor('#333333').font('Helvetica-Bold')
-          .text('Kerala Food Technologists Association - KEFTA', 0, footerY + 15, { align: 'center' });
+        doc.fontSize(9.5).fillColor('#333333').font('Helvetica-Bold')
+          .text('Global Standard Food Safety & Integrity Network - GSFIN', 0, footerY + 15, { align: 'center' });
         doc.fontSize(8).fillColor('#666666').font('Helvetica')
-          .text('Kozhikode - Kerala, www.kefta.in, kefta.kerala@gmail.com', 0, footerY + 30, { align: 'center' });
+          .text('Verified Personnel Certification Registry | www.gsfin.org', 0, footerY + 30, { align: 'center' });
 
         doc.end();
       } catch (error) {

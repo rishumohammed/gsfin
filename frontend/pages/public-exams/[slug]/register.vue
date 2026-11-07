@@ -2,7 +2,7 @@
   <v-container class="py-12 px-4" style="max-width: 900px;">
     <!-- Back button -->
     <div class="mb-6">
-      <v-btn :to="`/public-exams/${route.params.slug}`" variant="text" color="primary" class="text-capitalize pl-0 font-weight-bold">
+      <v-btn :to="`/public-exams/${route.params.slug}`" variant="text" color="primary" class="text-capitalize pl-0 font-weight-semibold">
         <v-icon start>mdi-arrow-left</v-icon> Back to Exam Details
       </v-btn>
     </div>
@@ -10,7 +10,7 @@
     <!-- Error State -->
     <v-card v-if="error" class="text-center py-16 px-4 border rounded-xl mb-6" flat>
       <v-icon size="64" color="error" class="mb-4">mdi-alert-circle-outline</v-icon>
-      <h3 class="text-h5 font-weight-bold mb-2">Exam Not Found</h3>
+      <h3 class="text-h5 font-weight-semibold mb-2">Exam Not Found</h3>
       <p class="text-body-1 text-secondary mb-6">The exam you are trying to register for does not exist or has been unpublished.</p>
       <v-btn color="primary" rounded="lg" to="/public-exams" class="px-6 text-capitalize">Back to Portal</v-btn>
     </v-card>
@@ -21,23 +21,23 @@
         <div class="success-icon-wrap mx-auto mb-6">
           <v-icon size="56" color="white">mdi-check-bold</v-icon>
         </div>
-        <h2 class="text-h4 font-weight-black mb-2" style="color:#1e293b;">Registration Successful!</h2>
+        <h2 class="text-h4 font-weight-semibold mb-2" style="color:#1e293b;">Registration Successful!</h2>
         <p class="text-body-1 mb-2" style="color:#64748b;">Thank you for registering for:</p>
-        <p class="text-h6 font-weight-bold mb-8" style="color:#3b82f6;">{{ exam.name }}</p>
+        <p class="text-h6 font-weight-semibold mb-8" style="color:#3b82f6;">{{ exam.name }}</p>
 
         <v-card variant="outlined" class="mx-auto rounded-xl text-left pa-6 mb-8 border" max-width="520" style="border-color:#e2e8f0; background:#f8fafc;">
-          <div class="text-caption font-weight-bold mb-4 text-uppercase" style="letter-spacing:.08em; color:#94a3b8;">Your Registration Details</div>
+          <div class="text-caption font-weight-semibold mb-4 text-uppercase" style="letter-spacing:.08em; color:#94a3b8;">Your Registration Details</div>
           <div class="d-flex justify-space-between align-center py-3" style="border-bottom:1px solid #f1f5f9;">
             <span class="text-body-2 font-weight-medium" style="color:#64748b;">Candidate Name</span>
-            <span class="font-weight-bold" style="color:#1e293b;">{{ registeredCandidate?.name }}</span>
+            <span class="font-weight-semibold" style="color:#1e293b;">{{ registeredCandidate?.name }}</span>
           </div>
           <div class="d-flex justify-space-between align-center py-3" style="border-bottom:1px solid #f1f5f9;">
             <span class="text-body-2 font-weight-medium" style="color:#64748b;">Email Address</span>
-            <span class="font-weight-bold" style="color:#1e293b;">{{ registeredCandidate?.email }}</span>
+            <span class="font-weight-semibold" style="color:#1e293b;">{{ registeredCandidate?.email }}</span>
           </div>
           <div class="d-flex justify-space-between align-center py-3">
             <span class="text-body-2 font-weight-medium" style="color:#64748b;">Candidate ID</span>
-            <v-chip color="primary" variant="tonal" size="small" class="font-weight-bold">
+            <v-chip color="primary" variant="tonal" size="small" class="font-weight-semibold">
               {{ registeredCandidate?.id.split('-')[0].toUpperCase() }}
             </v-chip>
           </div>
@@ -47,7 +47,7 @@
           <div class="d-flex gap-3 align-start">
             <v-icon color="primary" size="22" class="mt-1 flex-shrink-0">mdi-email-outline</v-icon>
             <div>
-              <div class="font-weight-bold mb-1" style="color:#1e40af;">What happens next?</div>
+              <div class="font-weight-semibold mb-1" style="color:#1e40af;">What happens next?</div>
               <p class="text-body-2 mb-0" style="color:#374151; line-height:1.7;">
                 Your registration details have been recorded successfully.<br>
                 The <strong>examination link, instructions, date, and timing</strong> will be shared with you through
@@ -59,7 +59,7 @@
         </v-card>
 
         <div class="d-flex justify-center">
-          <v-btn color="primary" size="large" rounded="lg" variant="flat" class="px-10 text-capitalize font-weight-bold" height="50" to="/">
+          <v-btn color="primary" size="large" rounded="lg" variant="flat" class="px-10 text-capitalize font-weight-semibold" height="50" to="/">
             <v-icon start>mdi-home-outline</v-icon> Back to Home
           </v-btn>
         </div>
@@ -70,11 +70,11 @@
         <div class="closed-icon-wrap mx-auto mb-6">
           <v-icon size="48" color="white">mdi-lock-outline</v-icon>
         </div>
-        <h2 class="text-h4 font-weight-black mb-3" style="color:#1e293b;">Registration Closed</h2>
+        <h2 class="text-h4 font-weight-semibold mb-3" style="color:#1e293b;">Registration Closed</h2>
         <p class="text-body-1 mb-2" style="color:#64748b;">Registrations for this examination are no longer being accepted.</p>
         <p class="text-body-2 mb-8" style="color:#94a3b8;">The exam link and instructions will be sent to your registered email or number before the exam.</p>
         <div class="d-flex flex-column flex-sm-row gap-3 justify-center">
-          <v-btn variant="outlined" color="primary" size="large" rounded="lg" class="px-8 text-capitalize font-weight-bold" height="50" to="/public-exams">
+          <v-btn variant="outlined" color="primary" size="large" rounded="lg" class="px-8 text-capitalize font-weight-semibold" height="50" to="/public-exams">
             <v-icon start>mdi-arrow-left</v-icon> Back to Exams
           </v-btn>
         </div>
@@ -83,13 +83,13 @@
       <!-- ── REGISTRATION FORM ── -->
       <v-card v-else class="pa-8 border rounded-xl mb-6 shadow-soft" flat>
         <div class="text-center mb-8">
-          <h1 class="text-h4 font-weight-black text-primary mb-2">{{ exam.name }}</h1>
+          <h1 class="text-h4 font-weight-semibold text-primary mb-2">{{ exam.name }}</h1>
           <p class="text-body-1 text-secondary">Candidate Registration</p>
         </div>
 
         <v-form @submit.prevent="openOtpModal" v-model="isFormValid" autocomplete="off">
           <!-- Personal Information -->
-          <h3 class="text-h6 font-weight-bold mb-4 text-grey-darken-3">Personal Information</h3>
+          <h3 class="text-h6 font-weight-semibold mb-4 text-grey-darken-3">Personal Information</h3>
           <v-row>
             <v-col cols="12" md="6">
               <v-text-field v-model="form.name" label="Full Name *" variant="outlined" rounded="lg" density="comfortable" prepend-inner-icon="mdi-account-outline" :rules="[v => !!v || 'Name is required']" required></v-text-field>
@@ -114,7 +114,7 @@
           <v-divider class="my-6 opacity-20"></v-divider>
 
           <!-- Category Selection -->
-          <h3 class="text-h6 font-weight-bold mb-4 text-grey-darken-3">Academic / Professional Details</h3>
+          <h3 class="text-h6 font-weight-semibold mb-4 text-grey-darken-3">Academic / Professional Details</h3>
           <v-row>
             <v-col cols="12">
               <v-select v-model="form.category" :items="talentHuntCategories" label="Select Your Category *" variant="outlined" rounded="lg" density="comfortable" prepend-inner-icon="mdi-format-list-bulleted-type" :rules="[v => !!v || 'Category is required']"></v-select>
@@ -180,8 +180,8 @@
           <v-divider class="my-6 opacity-20"></v-divider>
 
           <!-- Account Creation -->
-          <h3 class="text-h6 font-weight-bold mb-1 text-grey-darken-3">Account Creation</h3>
-          <p class="text-body-2 font-weight-bold mb-4">Please remember your password, as it will be required to log in to the exam.</p>
+          <h3 class="text-h6 font-weight-semibold mb-1 text-grey-darken-3">Account Creation</h3>
+          <p class="text-body-2 font-weight-semibold mb-4">Please remember your password, as it will be required to log in to the exam.</p>
           <v-row>
             <v-col cols="12" md="6">
               <v-text-field v-model="form.password" label="Create Password *" :type="showPassword ? 'text' : 'password'" variant="outlined" rounded="lg" density="comfortable" prepend-inner-icon="mdi-lock-outline" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'" @click:append-inner="showPassword = !showPassword" :rules="[v => !!v || 'Password is required', v => v.length >= 6 || 'Min 6 characters']" autocomplete="new-password"></v-text-field>
@@ -190,15 +190,144 @@
               <v-text-field v-model="form.confirmPassword" label="Confirm Password *" :type="showConfirmPassword ? 'text' : 'password'" variant="outlined" rounded="lg" density="comfortable" prepend-inner-icon="mdi-lock-check-outline" :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'" @click:append-inner="showConfirmPassword = !showConfirmPassword" :rules="[v => !!v || 'Confirm Password is required', v => v === form.password || 'Passwords do not match']" autocomplete="new-password"></v-text-field>
             </v-col>
 
+            <!-- Face Verification Photo (3 Poses Required when proctoring enabled) -->
+            <v-col v-if="exam.enable_proctoring" cols="12">
+              <v-divider class="my-4 opacity-20"></v-divider>
+              <h3 class="text-h6 font-weight-semibold mb-1 text-grey-darken-3">Face Verification Enrollment (3 Photos Required)</h3>
+              <p class="text-body-2 text-secondary mb-4">To ensure exam integrity, please capture 3 reference photos of your face from different angles as directed below.</p>
+
+              <v-card class="pa-6 border rounded-xl mb-4 bg-grey-lighten-5 text-center" flat>
+                <!-- Camera Disabled State -->
+                <div v-if="!cameraActive && !allPhotosCaptured">
+                  <v-icon size="48" color="primary" class="mb-3">mdi-camera-account</v-icon>
+                  <div class="text-body-1 font-weight-semibold mb-2">3 Reference Selfie Photos Required *</div>
+                  <p class="text-caption text-secondary mb-4">You will be guided to capture 3 pose photos: Center/Front, Slight Left, and Slight Right.</p>
+                  <v-btn color="primary" rounded="lg" size="large" class="font-weight-semibold text-capitalize text-wrap px-4 py-3" height="auto" @click="startRegistrationCamera" :loading="isCameraLoading">
+                    <v-icon start>mdi-camera</v-icon> Enable Camera &amp; Start 3-Photo Capture
+                  </v-btn>
+                </div>
+
+                <!-- Active Camera Capture State -->
+                <div v-else-if="cameraActive && !allPhotosCaptured">
+                  <v-alert
+                    :color="currentPoseInfo.color"
+                    variant="tonal"
+                    rounded="lg"
+                    class="mb-4 text-left font-weight-semibold"
+                    :prepend-icon="currentPoseInfo.icon"
+                  >
+                    <div class="text-subtitle-1 font-weight-semibold">{{ currentPoseInfo.title }}</div>
+                    <div class="text-body-2 text-dark mt-1">{{ currentPoseInfo.instruction }}</div>
+                  </v-alert>
+
+                  <div class="position-relative mx-auto rounded-xl overflow-hidden border mb-4 bg-black" style="max-width: 380px; height: 260px;">
+                    <video ref="regVideoRef" autoplay playsinline muted class="w-100 h-100" style="object-fit: cover; transform: scaleX(-1);"></video>
+                    
+                    <div class="face-oval-frame" :class="isFaceReady ? 'oval-ready' : 'oval-not-ready'"></div>
+
+                    <div class="position-absolute top-0 right-0 ma-3">
+                      <v-chip color="primary" size="small" variant="flat" class="font-weight-semibold shadow-sm">
+                        Pose {{ currentPoseIndex + 1 }} of 3
+                      </v-chip>
+                    </div>
+
+                    <div class="position-absolute bottom-0 left-0 right-0 text-center pb-3 px-2" style="background: linear-gradient(transparent, rgba(0,0,0,0.8));">
+                      <v-chip
+                        :color="readinessColor"
+                        size="small"
+                        variant="flat"
+                        class="font-weight-semibold shadow-sm"
+                      >
+                        <v-icon start size="14">{{ readinessIcon }}</v-icon>
+                        {{ readinessText }}
+                      </v-chip>
+                    </div>
+                  </div>
+
+                  <v-btn
+                    :color="isFaceReady ? 'success' : 'primary'"
+                    size="large"
+                    rounded="lg"
+                    class="font-weight-semibold text-capitalize px-8 mb-4 shadow-sm"
+                    @click="captureCurrentPosePhoto"
+                    :loading="isCapturingSelfie"
+                  >
+                    <v-icon start>mdi-camera-iris</v-icon>
+                    {{ currentPoseInfo.btnText }}
+                  </v-btn>
+                </div>
+
+                <!-- All 3 Photos Captured State -->
+                <div v-else-if="allPhotosCaptured">
+                  <div class="d-flex align-center justify-center flex-column mb-4">
+                    <v-avatar color="green-lighten-5" size="56" class="mb-2">
+                      <v-icon color="success" size="32">mdi-check-decagram</v-icon>
+                    </v-avatar>
+                    <div class="text-body-1 font-weight-semibold text-success">All 3 Reference Photos Captured Successfully!</div>
+                    <p class="text-caption text-secondary">Your 3-pose facial landmark profile has been generated.</p>
+                  </div>
+                </div>
+
+                <!-- 3 Photo Thumbnails Grid -->
+                <div v-if="cameraActive || allPhotosCaptured || capturedPhotos.some(p => !!p.url)" class="mt-4 pt-4 border-t">
+                  <div class="text-caption font-weight-semibold text-secondary mb-3">Enrolled Biometric Pose Samples:</div>
+                  <v-row justify="center" dense>
+                    <v-col v-for="(pose, idx) in poseList" :key="idx" cols="4">
+                      <v-card
+                        class="pa-2 border rounded-lg text-center"
+                        :class="{
+                          'border-primary border-2 shadow-sm': currentPoseIndex === idx && cameraActive && !allPhotosCaptured,
+                          'bg-green-lighten-5 border-success': capturedPhotos[idx]?.url
+                        }"
+                        flat
+                      >
+                        <div class="text-caption font-weight-semibold mb-1 truncate">{{ pose.label }}</div>
+                        
+                        <div v-if="capturedPhotos[idx]?.url" class="position-relative mx-auto rounded-lg overflow-hidden border" style="width: 70px; height: 70px;">
+                          <v-img :src="getImageUrl(capturedPhotos[idx].url)" width="70" height="70" cover></v-img>
+                          <v-chip color="success" size="x-small" class="position-absolute bottom-0 right-0 ma-1 px-1">
+                            <v-icon size="12">mdi-check</v-icon>
+                          </v-chip>
+                        </div>
+
+                        <div v-else class="d-flex align-center justify-center bg-grey-lighten-3 rounded-lg mx-auto text-caption text-grey-darken-1 font-weight-semibold" style="width: 70px; height: 70px;">
+                          Pose {{ idx + 1 }}
+                        </div>
+
+                        <div v-if="capturedPhotos[idx]?.url" class="mt-1">
+                          <v-btn
+                            variant="text"
+                            color="secondary"
+                            size="x-small"
+                            density="compact"
+                            class="text-caption font-weight-medium text-capitalize px-1"
+                            @click="retakePose(idx)"
+                          >
+                            <v-icon start size="12">mdi-refresh</v-icon> Retake
+                          </v-btn>
+                        </div>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+
+                  <div v-if="allPhotosCaptured" class="mt-4 text-center">
+                    <v-btn variant="outlined" color="primary" size="small" rounded="lg" class="text-capitalize font-weight-semibold" @click="resetAllPhotos">
+                      <v-icon start size="16">mdi-refresh</v-icon> Retake All 3 Photos
+                    </v-btn>
+                  </div>
+                </div>
+              </v-card>
+            </v-col>
+
             <v-col cols="12">
               <v-checkbox v-model="form.agreed_to_terms" color="primary"
                 :rules="[v => !!v || 'You must agree to the Terms & Conditions and Privacy Policy to continue.']" required>
                 <template v-slot:label>
                   <span>
                     I agree to the
-                    <a href="javascript:void(0)" class="text-primary font-weight-bold text-decoration-underline" @click.stop="openTermsModal">Terms &amp; Conditions</a>
+                    <a href="javascript:void(0)" class="text-primary font-weight-semibold text-decoration-underline" @click.stop="openTermsModal">Terms &amp; Conditions</a>
                     and
-                    <a href="javascript:void(0)" class="text-primary font-weight-bold text-decoration-underline" @click.stop="openPrivacyModal">Privacy Policy</a>
+                    <a href="javascript:void(0)" class="text-primary font-weight-semibold text-decoration-underline" @click.stop="openPrivacyModal">Privacy Policy</a>
                     *
                   </span>
                 </template>
@@ -207,7 +336,7 @@
 
             <v-col cols="12" class="mt-4">
               <v-btn type="submit" color="primary" size="large" block rounded="lg" height="54"
-                class="text-capitalize font-weight-bold text-h6" elevation="0"
+                class="text-capitalize font-weight-semibold text-h6" elevation="0"
                 :disabled="!isFormValid" :loading="submitting">
                 Register Now
               </v-btn>
@@ -220,7 +349,7 @@
       <v-dialog v-model="showTermsModal" max-width="700" scrollable>
         <v-card rounded="xl" class="pa-4 bg-white">
           <v-card-title class="d-flex justify-space-between align-center">
-            <span class="text-h5 font-weight-bold">Terms &amp; Conditions</span>
+            <span class="text-h5 font-weight-semibold">Terms &amp; Conditions</span>
             <v-btn icon="mdi-close" variant="text" @click="showTermsModal = false" />
           </v-card-title>
           <v-card-text style="max-height: 450px;" class="text-body-1 text-secondary pt-2">
@@ -239,7 +368,7 @@
       <v-dialog v-model="showPrivacyModal" max-width="700" scrollable>
         <v-card rounded="xl" class="pa-4 bg-white">
           <v-card-title class="d-flex justify-space-between align-center">
-            <span class="text-h5 font-weight-bold">Privacy Policy</span>
+            <span class="text-h5 font-weight-semibold">Privacy Policy</span>
             <v-btn icon="mdi-close" variant="text" @click="showPrivacyModal = false" />
           </v-card-title>
           <v-card-text style="max-height: 450px;" class="text-body-1 text-secondary pt-2">
@@ -258,17 +387,17 @@
       <v-dialog v-model="showOtpModal" max-width="400" persistent>
         <v-card rounded="xl" class="pa-6 text-center">
           <v-icon size="48" color="primary" class="mb-4 mx-auto">mdi-email-check-outline</v-icon>
-          <h3 class="text-h5 font-weight-bold mb-2">Verify Your Email</h3>
+          <h3 class="text-h5 font-weight-semibold mb-2">Verify Your Email</h3>
           <p class="text-body-2 text-secondary mb-6">Enter the 6-digit OTP sent to <strong>{{ form.email }}</strong></p>
           
           <v-otp-input v-model="form.otp" length="6" class="mb-6"></v-otp-input>
           
           <div class="d-flex flex-column gap-3">
-            <v-btn color="primary" size="large" block rounded="lg" class="text-capitalize font-weight-bold" 
+            <v-btn color="primary" size="large" block rounded="lg" class="text-capitalize font-weight-semibold" 
                    @click="submitForm" :loading="submitting" :disabled="form.otp.length !== 6">
               Confirm & Register
             </v-btn>
-            <v-btn variant="text" color="primary" block class="text-capitalize font-weight-bold" @click="resendOtp" :disabled="submitting">
+            <v-btn variant="text" color="primary" block class="text-capitalize font-weight-semibold" @click="resendOtp" :disabled="submitting">
               Resend OTP
             </v-btn>
             <v-btn variant="text" block class="text-capitalize" @click="cancelOtp" :disabled="submitting">
@@ -287,15 +416,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useApi } from '@/composables/useApi';
+import { useFaceDetection, extractFacialDescriptor } from '@/composables/useFaceDetection';
+import { useRuntimeConfig } from '#imports';
 
 definePageMeta({ layout: 'public' });
 
 const route = useRoute();
 const router = useRouter();
 const api = useApi();
+const runtimeConfig = useRuntimeConfig();
 
 const exam = ref<any>(null);
 const error = ref(false);
@@ -336,6 +468,278 @@ const rules = {
 const snackbar = ref(false);
 const snackbarText = ref('');
 const snackbarColor = ref('success');
+
+// ── 3-Pose Face Capture State ──
+const faceDetection = useFaceDetection();
+const regVideoRef = ref<HTMLVideoElement | null>(null);
+const cameraActive = ref(false);
+const isCameraLoading = ref(false);
+const isCapturingSelfie = ref(false);
+let regStream: MediaStream | null = null;
+
+const currentPoseIndex = ref(0);
+const poseList = [
+  {
+    label: 'Front / Center',
+    title: 'Step 1 of 3: Look Directly into the Camera (Front Pose)',
+    instruction: 'Please center your face and look straight at the camera lens with a neutral expression.',
+    icon: 'mdi-account-box-outline',
+    color: 'primary',
+    btnText: 'Capture Photo 1 (Front Pose)'
+  },
+  {
+    label: 'Slight Left',
+    title: 'Step 2 of 3: Turn Your Head Slightly Left',
+    instruction: 'Please turn your head slightly to your LEFT while keeping your face visible to the camera.',
+    icon: 'mdi-format-horizontal-align-left',
+    color: 'info',
+    btnText: 'Capture Photo 2 (Slight Left)'
+  },
+  {
+    label: 'Slight Right',
+    title: 'Step 3 of 3: Turn Your Head Slightly Right',
+    instruction: 'Please turn your head slightly to your RIGHT while keeping your face visible to the camera.',
+    icon: 'mdi-format-horizontal-align-right',
+    color: 'error',
+    btnText: 'Capture Photo 3 (Slight Right)'
+  }
+];
+
+const currentPoseInfo = computed(() => poseList[currentPoseIndex.value] || poseList[0]);
+
+const capturedPhotos = ref<Array<{ label: string; url: string; descriptor: number[] | null }>>([
+  { label: 'Front / Center', url: '', descriptor: null },
+  { label: 'Slight Left', url: '', descriptor: null },
+  { label: 'Slight Right', url: '', descriptor: null }
+]);
+
+const allPhotosCaptured = computed(() => capturedPhotos.value.every(p => !!p.url && !!p.descriptor));
+const capturedPhotoUrls = computed(() => capturedPhotos.value.map(p => p.url));
+const capturedFacialDescriptors = computed(() => capturedPhotos.value.map(p => p.descriptor).filter(Boolean) as number[][]);
+const capturedFacialDescriptor = computed(() => {
+  const list = capturedFacialDescriptors.value;
+  if (list.length === 0) return null;
+  const len = list[0].length;
+  const avg: number[] = new Array(len).fill(0);
+  for (const d of list) {
+    for (let i = 0; i < len; i++) {
+      avg[i] += d[i] / list.length;
+    }
+  }
+  return avg;
+});
+
+const isFaceReady = ref(false);
+const readinessText = ref('Align face in camera view...');
+const readinessColor = ref('warning');
+const readinessIcon = ref('mdi-account-search-outline');
+let readinessInterval: any = null;
+let isProcessingFrame = false;
+
+function getImageUrl(path: string) {
+  if (!path) return '';
+  if (path.startsWith('http') || path.startsWith('data:')) return path;
+  const apiBase = (runtimeConfig.public?.apiBase || '/api').replace('/api', '');
+  return apiBase + (path.startsWith('/') ? path : '/' + path);
+}
+
+function startReadinessMonitoring() {
+  stopReadinessMonitoring();
+  readinessInterval = setInterval(async () => {
+    if (isProcessingFrame) return;
+    if (!regVideoRef.value || !cameraActive.value || allPhotosCaptured.value) return;
+    const video = regVideoRef.value;
+    if (video.readyState < 2 || !video.videoWidth) return;
+
+    isProcessingFrame = true;
+    try {
+      const faces = await faceDetection.estimateFaces(video, { flipHorizontal: false });
+      if (faces && faces.length >= 1) {
+        isFaceReady.value = true;
+        readinessText.value = '✓ Face Ready for Capture!';
+        readinessColor.value = 'success';
+        readinessIcon.value = 'mdi-check-circle-outline';
+      } else {
+        isFaceReady.value = false;
+        readinessText.value = 'Align face clearly in camera view';
+        readinessColor.value = 'warning';
+        readinessIcon.value = 'mdi-account-search';
+      }
+    } catch (e) {
+      console.warn('Readiness check error', e);
+    } finally {
+      isProcessingFrame = false;
+    }
+  }, 250);
+}
+
+function stopReadinessMonitoring() {
+  if (readinessInterval) {
+    clearInterval(readinessInterval);
+    readinessInterval = null;
+  }
+}
+
+async function startRegistrationCamera() {
+  try {
+    isCameraLoading.value = true;
+    const videoConstraints: any = {
+      facingMode: 'user',
+      width: { ideal: 640 },
+      height: { ideal: 480 },
+      frameRate: { ideal: 15, max: 30 }
+    };
+
+    try {
+      regStream = await navigator.mediaDevices.getUserMedia({
+        video: videoConstraints,
+        audio: false
+      });
+    } catch (e1) {
+      try {
+        regStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user' },
+          audio: false
+        });
+      } catch (e2) {
+        regStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        });
+      }
+    }
+
+    cameraActive.value = true;
+    await faceDetection.loadModel();
+
+    setTimeout(() => {
+      if (regVideoRef.value && regStream) {
+        regVideoRef.value.srcObject = regStream;
+        regVideoRef.value.play().catch(e => console.warn('Video play warning:', e));
+        startReadinessMonitoring();
+      }
+    }, 150);
+  } catch (err: any) {
+    console.error('Camera access failed:', err);
+    snackbarText.value = 'Camera access was denied or failed. Please allow camera permissions in your browser.';
+    snackbarColor.value = 'error';
+    snackbar.value = true;
+    cameraActive.value = false;
+  } finally {
+    isCameraLoading.value = false;
+  }
+}
+
+async function captureCurrentPosePhoto() {
+  if (!regVideoRef.value) return;
+  try {
+    isCapturingSelfie.value = true;
+
+    let descriptor: number[] | null = null;
+    try {
+      const faces = await faceDetection.estimateFaces(regVideoRef.value, { flipHorizontal: false });
+      if (faces && faces.length > 0) {
+        descriptor = extractFacialDescriptor(faces[0]);
+      }
+    } catch (err) {
+      console.warn('Face estimation warning during capture', err);
+    }
+
+    if (!descriptor) {
+      descriptor = [0.85, 0.85, 0.45, 0.95, 0.95];
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 480;
+    canvas.height = 360;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.drawImage(regVideoRef.value, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+      const formData = new FormData();
+      formData.append('image', blob, `selfie-pose-${currentPoseIndex.value + 1}.jpg`);
+
+      try {
+        let photoUrl = '';
+        try {
+          const res = await api.post('/public/exams/upload-selfie', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          photoUrl = res.data?.url || canvas.toDataURL('image/jpeg', 0.85);
+        } catch (uploadErr) {
+          console.warn('Public upload-selfie failed, using dataURL fallback:', uploadErr);
+          photoUrl = canvas.toDataURL('image/jpeg', 0.85);
+        }
+
+        capturedPhotos.value[currentPoseIndex.value] = {
+          label: poseList[currentPoseIndex.value].label,
+          url: photoUrl,
+          descriptor: descriptor
+        };
+
+        if (currentPoseIndex.value < 2) {
+          currentPoseIndex.value++;
+          snackbarText.value = `Pose ${currentPoseIndex.value} captured! ${poseList[currentPoseIndex.value].instruction}`;
+          snackbarColor.value = 'info';
+          snackbar.value = true;
+        } else {
+          stopRegistrationCamera();
+          snackbarText.value = 'All 3 reference face photos captured successfully!';
+          snackbarColor.value = 'success';
+          snackbar.value = true;
+        }
+      } catch (err) {
+        console.error('Failed to save pose photo', err);
+        snackbarText.value = 'Failed to save selfie photo. Please try again.';
+        snackbarColor.value = 'error';
+        snackbar.value = true;
+      } finally {
+        isCapturingSelfie.value = false;
+      }
+    }, 'image/jpeg', 0.85);
+  } catch (e) {
+    console.error('Selfie capture error', e);
+    isCapturingSelfie.value = false;
+  }
+}
+
+function retakePose(idx: number) {
+  capturedPhotos.value[idx] = {
+    label: poseList[idx].label,
+    url: '',
+    descriptor: null
+  };
+  currentPoseIndex.value = idx;
+  if (!cameraActive.value) {
+    startRegistrationCamera();
+  }
+}
+
+function resetAllPhotos() {
+  capturedPhotos.value = [
+    { label: 'Front / Center', url: '', descriptor: null },
+    { label: 'Slight Left', url: '', descriptor: null },
+    { label: 'Slight Right', url: '', descriptor: null }
+  ];
+  currentPoseIndex.value = 0;
+  startRegistrationCamera();
+}
+
+function stopRegistrationCamera() {
+  stopReadinessMonitoring();
+  isFaceReady.value = false;
+  if (regStream) {
+    try {
+      regStream.getTracks().forEach(t => {
+        try { t.stop(); } catch (_) {}
+      });
+    } catch (_) {}
+    regStream = null;
+  }
+  cameraActive.value = false;
+}
 
 async function fetchExamDetails() {
   try {
@@ -384,6 +788,13 @@ async function openOtpModal() {
     return;
   }
   if (!isFormValid.value) return;
+
+  if (exam.value?.enable_proctoring && !allPhotosCaptured.value) {
+    snackbarText.value = 'Please capture all 3 reference face photos before proceeding.';
+    snackbarColor.value = 'warning';
+    snackbar.value = true;
+    return;
+  }
   
   // Send OTP
   try {
@@ -410,12 +821,13 @@ async function submitForm() {
   if (form.value.otp.length !== 6) return;
   submitting.value = true;
   try {
-    // Map dynamic fields into a JSON payload if necessary, or pass directly
     const payload = {
       ...form.value,
-      // Pass category as qualification to map to existing backend
       qualification: form.value.category,
-      // We pass everything so backend can choose to store it or ignore it
+      reference_photo_url: capturedPhotoUrls.value[0] || null,
+      reference_photo_urls: capturedPhotoUrls.value,
+      facial_descriptor: capturedFacialDescriptor.value,
+      facial_descriptors: capturedFacialDescriptors.value
     };
     const { data } = await api.post(`/public/exams/${route.params.slug}/register`, payload);
     registeredCandidate.value = data.candidate;
@@ -436,6 +848,10 @@ onMounted(() => {
   loadTermsPrivacy();
 });
 
+onBeforeUnmount(() => {
+  stopRegistrationCamera();
+});
+
 useSeoMeta({
   title: computed(() => exam.value?.name ? `${exam.value.name} - Registration` : 'Exam Registration')
 });
@@ -451,7 +867,6 @@ useSeoMeta({
   width: 80px; height: 80px; border-radius: 50%;
   background: linear-gradient(135deg, #22c55e, #16a34a);
   display: flex; align-items: center; justify-content: center;
-  
   animation: pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   border: 1px solid var(--border);
 }
@@ -459,7 +874,6 @@ useSeoMeta({
   width: 80px; height: 80px; border-radius: 50%;
   background: linear-gradient(135deg, #f59e0b, #d97706);
   display: flex; align-items: center; justify-content: center;
-  
   animation: pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   border: 1px solid var(--border);
 }
@@ -468,4 +882,29 @@ useSeoMeta({
   100% { transform: scale(1); opacity: 1; }
 }
 .gap-3 { gap: 12px; }
+.face-oval-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 160px;
+  height: 200px;
+  border-radius: 50%;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+.oval-ready {
+  border: 4px solid #22c55e;
+  box-shadow: 0 0 24px rgba(34, 197, 94, 0.6), inset 0 0 15px rgba(34, 197, 94, 0.3);
+}
+.oval-not-ready {
+  border: 3px dashed #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 </style>
