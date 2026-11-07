@@ -73,16 +73,34 @@ export async function submitExamAttempt(attemptId, guestAnswers = []) {
     }
 
     // Fetch all questions with correct answers to grade
-    const [questions] = await connection.query(
+    const [allQuestions] = await connection.query(
       'SELECT id, type, correct_answer, marks FROM public_exam_questions WHERE exam_id = ?',
       [attempt.exam_id]
     );
 
+    // If attempt has assigned_question_ids, grade ONLY those assigned questions
+    let targetQuestions = allQuestions;
+    if (attempt.assigned_question_ids) {
+      try {
+        const assignedIds = typeof attempt.assigned_question_ids === 'string'
+          ? JSON.parse(attempt.assigned_question_ids)
+          : attempt.assigned_question_ids;
+        if (Array.isArray(assignedIds) && assignedIds.length > 0) {
+          const idSet = new Set(assignedIds);
+          targetQuestions = allQuestions.filter(q => idSet.has(q.id));
+        }
+      } catch (e) {
+        console.warn('Failed to parse assigned_question_ids in grading:', e.message);
+      }
+    }
+
     let correctAnswersCount = 0;
     let wrongAnswersCount = 0;
     let calculatedScore = 0;
+    let calculatedTotalMarks = 0;
 
-    for (const q of questions) {
+    for (const q of targetQuestions) {
+      calculatedTotalMarks += (q.marks || 1);
       const gAns = guestAnswers.find(ga => ga.question_id === q.id);
       
       if (gAns && gAns.answer !== undefined && gAns.answer !== null && gAns.answer !== '') {
@@ -106,7 +124,7 @@ export async function submitExamAttempt(attemptId, guestAnswers = []) {
     // Capping score to 0 to avoid negative totals
     calculatedScore = Math.max(0, calculatedScore);
 
-    const totalMarks = attempt.total_marks || 1;
+    const totalMarks = attempt.total_marks > 0 ? attempt.total_marks : (calculatedTotalMarks || 1);
     const percentage = parseFloat(((calculatedScore / totalMarks) * 100).toFixed(2));
     
     // Evaluate pass status based on score or pass percentage

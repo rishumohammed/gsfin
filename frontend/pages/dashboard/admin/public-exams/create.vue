@@ -64,15 +64,39 @@
               </div>
 
               <div class="form-body">
+                <!-- Certification Standard Selector -->
+                <div class="form-group mb-4">
+                  <div class="category-header-row mb-1">
+                    <label class="form-label mb-0">Certification Standard <span class="text-red-500">*</span></label>
+                    <span class="text-[11px] text-slate-500 font-medium">1-to-1 Certification Exam Mapping</span>
+                  </div>
+                  <select 
+                    v-model="fields.qualification_id" 
+                    class="form-select w-full"
+                    @change="onQualificationChange"
+                  >
+                    <option value="">-- Select Certification Standard --</option>
+                    <option v-for="q in qualifications" :key="q.id" :value="q.id">
+                      {{ q.name }} ({{ q.category || 'Food Safety Standard' }})
+                    </option>
+                  </select>
+                  <p class="text-[11px] text-slate-500 mt-1 font-medium">
+                    Select the official GSFIN Certification this examination is conducted for. Exam title automatically syncs with the certification standard.
+                  </p>
+                </div>
+
                 <div class="form-group mb-4">
                   <label class="form-label">Exam Title <span class="text-red-500">*</span></label>
                   <input
                     v-model="fields.name"
                     type="text"
-                    placeholder="e.g. KEAM Physics Certification Test"
+                    placeholder="e.g. CODEX HACCP"
                     class="form-input"
                     @input="onTitleChange(fields.name)"
                   />
+                  <p class="text-[11px] text-slate-500 mt-1 font-medium">
+                    Exam name corresponds directly to the certification credential issued.
+                  </p>
                 </div>
 
                 <v-row class="mb-4">
@@ -112,7 +136,101 @@
                       <input
                         v-model="fields.slug"
                         type="text"
-                        placeholder="e.g. keam-physics-mock"
+                        placeholder="e.g. codex-haccp"
+                        class="form-input"
+                      />
+                    </div>
+                  </v-col>
+                </v-row>
+
+                <!-- Questions & Marks Configuration -->
+                <v-row dense class="mb-2">
+                  <v-col cols="12" sm="3">
+                    <div class="form-group">
+                      <label class="form-label">Exam Questions <span class="text-red-500">*</span></label>
+                      <input
+                        v-model.number="fields.total_questions"
+                        type="number"
+                        min="1"
+                        placeholder="10"
+                        class="form-input"
+                      />
+                    </div>
+                  </v-col>
+                  <v-col cols="12" sm="3">
+                    <div class="form-group">
+                      <label class="form-label">Total Marks <span class="text-red-500">*</span></label>
+                      <input
+                        v-model.number="fields.total_marks"
+                        type="number"
+                        min="1"
+                        placeholder="10"
+                        class="form-input"
+                      />
+                    </div>
+                  </v-col>
+                  <v-col cols="12" sm="3">
+                    <div class="form-group">
+                      <label class="form-label">Passing Marks <span class="text-red-500">*</span></label>
+                      <input
+                        v-model.number="fields.passing_marks"
+                        type="number"
+                        min="1"
+                        placeholder="5"
+                        class="form-input"
+                      />
+                    </div>
+                  </v-col>
+                  <v-col cols="12" sm="3">
+                    <div class="form-group">
+                      <label class="form-label">Duration (Mins) <span class="text-red-500">*</span></label>
+                      <input
+                        v-model.number="fields.duration_minutes"
+                        type="number"
+                        min="1"
+                        placeholder="60"
+                        class="form-input"
+                      />
+                    </div>
+                  </v-col>
+                </v-row>
+
+                <!-- 3x Question Bank Pool Notice -->
+                <div class="p-3.5 rounded-xl border border-blue-200/80 bg-blue-50/60 mb-4">
+                  <div class="flex items-start gap-2.5">
+                    <i class="mdi mdi-information-outline text-blue-600 text-lg mt-0.5"></i>
+                    <div>
+                      <div class="text-xs font-semibold text-blue-900 mb-0.5">
+                        3× Question Bank Requirement for Publishing
+                      </div>
+                      <div class="text-[11px] text-blue-800 leading-relaxed font-medium">
+                        This exam conducts <span class="font-semibold text-blue-950">{{ fields.total_questions || 0 }} questions</span> for candidates. To publish, the Question Bank must contain at least <span class="font-semibold text-blue-950">{{ (fields.total_questions || 0) * 3 }} questions (3× pool)</span>. During an exam, {{ fields.total_questions || 0 }} questions will be randomly sampled from the bank.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <v-row dense class="mb-4">
+                  <v-col cols="12" sm="6">
+                    <div class="form-group">
+                      <label class="form-label">Pass Percentage (%) <span class="text-red-500">*</span></label>
+                      <input
+                        v-model.number="fields.pass_percentage"
+                        type="number"
+                        min="0"
+                        max="100"
+                        class="form-input"
+                      />
+                    </div>
+                  </v-col>
+                  <v-col cols="12" sm="6">
+                    <div class="form-group">
+                      <label class="form-label">Negative Marks per Wrong Answer</label>
+                      <input
+                        v-model.number="fields.negative_marking"
+                        type="number"
+                        step="0.25"
+                        placeholder="0.00"
                         class="form-input"
                       />
                     </div>
@@ -138,44 +256,6 @@
                     class="form-textarea"
                   ></textarea>
                 </div>
-
-                <v-row dense>
-                  <v-col cols="12" sm="4">
-                    <div class="form-group">
-                      <label class="form-label">Duration (Minutes) <span class="text-red-500">*</span></label>
-                      <input
-                        v-model.number="fields.duration_minutes"
-                        type="number"
-                        min="1"
-                        class="form-input"
-                      />
-                    </div>
-                  </v-col>
-                  <v-col cols="12" sm="4">
-                    <div class="form-group">
-                      <label class="form-label">Pass Percentage (%) <span class="text-red-500">*</span></label>
-                      <input
-                        v-model.number="fields.pass_percentage"
-                        type="number"
-                        min="0"
-                        max="100"
-                        class="form-input"
-                      />
-                    </div>
-                  </v-col>
-                  <v-col cols="12" sm="4">
-                    <div class="form-group">
-                      <label class="form-label">Negative Marks</label>
-                      <input
-                        v-model.number="fields.negative_marking"
-                        type="number"
-                        step="0.25"
-                        placeholder="0.00"
-                        class="form-input"
-                      />
-                    </div>
-                  </v-col>
-                </v-row>
 
                 <div class="form-group mt-4">
                   <label class="form-label">Exam Cover Artwork</label>
@@ -988,14 +1068,19 @@ const formValid = ref(false);
 const examForm = ref<any>(null);
 
 const categories = ref<any[]>([]);
+const qualifications = ref<any[]>([]);
 
 const fields = ref<any>({
+  qualification_id: '',
   name: '',
   category_id: '',
   slug: '',
   description: '',
   instructions: '',
   duration_minutes: 60,
+  total_questions: 10,
+  total_marks: 10,
+  passing_marks: 5,
   pass_percentage: 50,
   negative_marking: 0.00,
   randomize_questions: false,
@@ -1023,7 +1108,7 @@ const fields = ref<any>({
     prevent_clipboard: true,
     hold_certificate: true
   },
-  status: 'published',
+  status: 'draft',
   image_url: ''
 });
 
@@ -1186,6 +1271,35 @@ async function fetchCategories() {
   }
 }
 
+async function fetchQualifications() {
+  try {
+    const { data } = await api.get('/admin/qualifications');
+    qualifications.value = data;
+  } catch (err) {
+    try {
+      const { data } = await api.get('/public/qualifications');
+      qualifications.value = data;
+    } catch (fallbackErr) {
+      console.error('Failed to load qualifications:', fallbackErr);
+    }
+  }
+}
+
+function onQualificationChange() {
+  if (!fields.value.qualification_id) return;
+  const qual = qualifications.value.find((q: any) => q.id === fields.value.qualification_id);
+  if (qual) {
+    fields.value.name = qual.name;
+    fields.value.slug = qual.slug;
+    if (!fields.value.description) {
+      fields.value.description = qual.short_description || '';
+    }
+    if (!fields.value.instructions) {
+      fields.value.instructions = 'Standard proctored examination for GSFIN Certification. 10 questions randomly sampled from question bank pool. 50% required to pass.';
+    }
+  }
+}
+
 async function fetchExamDetails() {
   if (!isEditMode.value) return;
   loading.value = true;
@@ -1196,14 +1310,18 @@ async function fetchExamDetails() {
 
     if (examMatch) {
       fields.value = {
+        qualification_id: examMatch.qualification_id || '',
         name: examMatch.name,
         category_id: examMatch.category_id,
         slug: examMatch.slug,
         description: examMatch.description || '',
         instructions: examMatch.instructions || '',
-        duration_minutes: examMatch.duration_minutes,
-        pass_percentage: examMatch.pass_percentage,
-        negative_marking: examMatch.negative_marking,
+        duration_minutes: examMatch.duration_minutes || 60,
+        total_questions: examMatch.total_questions !== undefined ? examMatch.total_questions : 10,
+        total_marks: examMatch.total_marks !== undefined ? examMatch.total_marks : 10,
+        passing_marks: examMatch.passing_marks !== undefined ? examMatch.passing_marks : 5,
+        pass_percentage: examMatch.pass_percentage !== undefined ? examMatch.pass_percentage : 50,
+        negative_marking: examMatch.negative_marking || 0.00,
         randomize_questions: !!examMatch.randomize_questions,
         randomize_options: !!examMatch.randomize_options,
         show_correct_answers: !!examMatch.show_correct_answers,
@@ -1282,9 +1400,9 @@ async function saveExam() {
         router.push(`/dashboard/admin/public-exams/questions?examId=${examId}`);
       }, 900);
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to save exam configurations:', err);
-    snackbarText.value = 'Failed to save exam. Please check all fields.';
+    snackbarText.value = err.response?.data?.message || 'Failed to save exam. Please check all fields.';
     snackbarColor.value = 'error';
     snackbar.value = true;
   } finally {
@@ -1293,8 +1411,11 @@ async function saveExam() {
 }
 
 onMounted(async () => {
-  await fetchCategories();
-  await fetchExamDetails();
+  await Promise.all([
+    fetchCategories(),
+    fetchQualifications(),
+    fetchExamDetails()
+  ]);
 });
 </script>
 

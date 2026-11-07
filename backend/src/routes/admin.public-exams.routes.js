@@ -218,10 +218,10 @@ router.post('/:id/duplicate', async (req, res) => {
     // Insert duplicated exam
     await connection.query(`
       INSERT INTO public_exams (
-        id, name, category_id, description, syllabus, duration_minutes, total_questions, total_marks, passing_marks, difficulty_level, status, slug, instructions, pass_percentage, negative_marking, randomize_questions, randomize_options, show_correct_answers, show_explanations, allow_retake, enable_certificate, anonymous_access, require_name, require_email, require_mobile, enable_proctoring, max_proctoring_warnings, enforce_fullscreen, proctoring_config
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, name, qualification_id, category_id, description, syllabus, duration_minutes, total_questions, total_marks, passing_marks, difficulty_level, status, slug, instructions, pass_percentage, negative_marking, randomize_questions, randomize_options, show_correct_answers, show_explanations, allow_retake, enable_certificate, anonymous_access, require_name, require_email, require_mobile, enable_proctoring, max_proctoring_warnings, enforce_fullscreen, proctoring_config
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
-      newExamId, newName, exam.category_id, exam.description, exam.syllabus, exam.duration_minutes, exam.total_questions, exam.total_marks, exam.passing_marks, exam.difficulty_level, 'draft', newSlug,
+      newExamId, newName, exam.qualification_id || null, exam.category_id, exam.description, exam.syllabus, exam.duration_minutes, exam.total_questions, exam.total_marks, exam.passing_marks, exam.difficulty_level, 'draft', newSlug,
       exam.instructions, exam.pass_percentage, exam.negative_marking, exam.randomize_questions, exam.randomize_options, exam.show_correct_answers, exam.show_explanations, exam.allow_retake, exam.enable_certificate, exam.anonymous_access, exam.require_name, exam.require_email, exam.require_mobile, exam.enable_proctoring, exam.max_proctoring_warnings, exam.enforce_fullscreen, exam.proctoring_config || null
     ]);
 
@@ -520,12 +520,14 @@ router.get('/', async (req, res) => {
   try {
     const [exams] = await pool.query(`
       SELECT e.*, c.name as category_name, c.slug as category_slug,
+        q.name as qualification_name, q.slug as qualification_slug, q.category as qualification_category,
         e.registration_status,
         (SELECT COUNT(*) FROM public_exam_questions WHERE exam_id = e.id) as question_count,
         (SELECT COUNT(*) FROM public_exam_attempts WHERE exam_id = e.id AND status = 'submitted') as attempts_count,
         (SELECT COUNT(*) FROM public_exam_candidates WHERE exam_id = e.id) as candidate_count
       FROM public_exams e
-      JOIN public_exam_categories c ON e.category_id = c.id
+      LEFT JOIN public_exam_categories c ON e.category_id = c.id
+      LEFT JOIN qualifications q ON e.qualification_id = q.id
       WHERE e.deleted_at IS NULL
       ORDER BY e.created_at DESC
     `);
@@ -539,10 +541,30 @@ router.get('/', async (req, res) => {
 // POST /api/admin/public-exams
 router.post('/', async (req, res) => {
   try {
-    const { name, category_id, description, syllabus, duration_minutes, total_questions, total_marks, passing_marks, difficulty_level, status, slug, instructions, pass_percentage, negative_marking, randomize_questions, randomize_options, show_correct_answers, show_explanations, allow_retake, max_retakes, enable_certificate, anonymous_access, require_name, require_email, require_mobile, enable_proctoring, max_proctoring_warnings, enforce_fullscreen, proctoring_config, registration_start_date, registration_end_date, exam_start_date, exam_end_date, image_url } = req.body;
+    const {
+      name, category_id, qualification_id, description, syllabus, duration_minutes, total_questions,
+      total_marks, passing_marks, difficulty_level, status, slug, instructions, pass_percentage,
+      negative_marking, randomize_questions, randomize_options, show_correct_answers, show_explanations,
+      allow_retake, max_retakes, enable_certificate, anonymous_access, require_name, require_email,
+      require_mobile, enable_proctoring, max_proctoring_warnings, enforce_fullscreen, proctoring_config,
+      registration_start_date, registration_end_date, exam_start_date, exam_end_date, image_url
+    } = req.body;
 
     if (!name || !category_id || !slug) {
       return res.status(400).json({ message: 'Name, Category, and SEO Slug are required' });
+    }
+
+    const targetTotalQuestions = total_questions !== undefined && total_questions !== '' ? parseInt(total_questions) : 0;
+
+    // 3x Question Bank Rule for Publishing: Cannot publish with fewer than 3x total_questions in the bank
+    if (status === 'published') {
+      if (targetTotalQuestions <= 0) {
+        return res.status(400).json({ message: 'Cannot publish exam: Total questions must be greater than 0.' });
+      }
+      const requiredPool = targetTotalQuestions * 3;
+      return res.status(400).json({
+        message: `Cannot publish exam. The Question Bank must have at least 3× the exam question count (${requiredPool} required for ${targetTotalQuestions} questions, currently has 0). Please save as draft, add questions to the Question Bank, and then publish.`
+      });
     }
 
     if (registration_end_date && exam_start_date && registration_end_date !== 'null' && exam_start_date !== 'null') {
@@ -558,12 +580,12 @@ router.post('/', async (req, res) => {
 
     await pool.query(`
       INSERT INTO public_exams (
-        id, name, category_id, description, syllabus, duration_minutes, total_questions, total_marks, passing_marks, difficulty_level, status, slug, instructions, pass_percentage, negative_marking, randomize_questions, randomize_options, show_correct_answers, show_explanations, allow_retake, max_retakes, enable_certificate, anonymous_access, require_name, require_email, require_mobile, enable_proctoring, max_proctoring_warnings, enforce_fullscreen, proctoring_config, registration_start_date, registration_end_date, exam_start_date, exam_end_date, image_url
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, name, qualification_id, category_id, description, syllabus, duration_minutes, total_questions, total_marks, passing_marks, difficulty_level, status, slug, instructions, pass_percentage, negative_marking, randomize_questions, randomize_options, show_correct_answers, show_explanations, allow_retake, max_retakes, enable_certificate, anonymous_access, require_name, require_email, require_mobile, enable_proctoring, max_proctoring_warnings, enforce_fullscreen, proctoring_config, registration_start_date, registration_end_date, exam_start_date, exam_end_date, image_url
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
-      id, name, category_id, description || null, syllabus || null,
+      id, name, qualification_id || null, category_id, description || null, syllabus || null,
       duration_minutes !== undefined && duration_minutes !== '' ? duration_minutes : 60,
-      total_questions !== undefined && total_questions !== '' ? total_questions : 0,
+      targetTotalQuestions,
       total_marks !== undefined && total_marks !== '' ? total_marks : 0,
       passing_marks !== undefined && passing_marks !== '' ? passing_marks : 0,
       difficulty_level || 'Medium', status || 'draft', slug,
@@ -590,7 +612,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const fields = [
-      'name', 'category_id', 'description', 'syllabus', 'duration_minutes',
+      'name', 'category_id', 'qualification_id', 'description', 'syllabus', 'duration_minutes',
       'total_questions', 'total_marks', 'passing_marks', 'difficulty_level', 'status', 'slug',
       'instructions', 'pass_percentage', 'negative_marking', 'randomize_questions', 'randomize_options',
       'show_correct_answers', 'show_explanations', 'allow_retake', 'max_retakes', 'enable_certificate', 'anonymous_access',
@@ -603,9 +625,36 @@ router.put('/:id', async (req, res) => {
       return res.json({ message: 'Nothing to update' });
     }
 
-    const [existing] = await pool.query('SELECT registration_end_date, exam_start_date FROM public_exams WHERE id = ?', [req.params.id]);
+    const [existing] = await pool.query('SELECT registration_end_date, exam_start_date, status, total_questions FROM public_exams WHERE id = ?', [req.params.id]);
     if (existing.length === 0) {
       return res.status(404).json({ message: 'Exam not found' });
+    }
+
+    const currentExam = existing[0];
+    const targetStatus = req.body.status !== undefined ? req.body.status : currentExam.status;
+
+    // 3x Question Bank Rule for Publishing:
+    // If the exam is being published or updated while published, verify question count >= 3x total_questions
+    if (targetStatus === 'published') {
+      const totalQ = req.body.total_questions !== undefined 
+        ? (parseInt(req.body.total_questions) || 0) 
+        : (currentExam.total_questions || 0);
+
+      if (totalQ <= 0) {
+        return res.status(400).json({ 
+          message: 'Cannot publish exam: Total questions must be greater than 0.' 
+        });
+      }
+
+      const [countRows] = await pool.query('SELECT COUNT(*) as q_count FROM public_exam_questions WHERE exam_id = ?', [req.params.id]);
+      const currentBankCount = countRows[0]?.q_count || 0;
+      const requiredBankCount = totalQ * 3;
+
+      if (currentBankCount < requiredBankCount) {
+        return res.status(400).json({
+          message: `Cannot publish exam. The Question Bank must have at least 3× the exam question count (${requiredBankCount} required for ${totalQ} questions, currently has ${currentBankCount}). Please add ${requiredBankCount - currentBankCount} more question(s) to the Question Bank before publishing.`
+        });
+      }
     }
 
     const newRegEnd = req.body.registration_end_date !== undefined ? (req.body.registration_end_date || null) : existing[0].registration_end_date;
@@ -1113,16 +1162,31 @@ router.get('/candidates/:id/attempt', async (req, res) => {
     }
     const attempt = attempts[0];
 
-    const [questions] = await pool.query(`
+    const [allQuestions] = await pool.query(`
       SELECT id, question_text, type, options_json, correct_answer, explanation, marks
       FROM public_exam_questions
       WHERE exam_id = ?
       ORDER BY order_index ASC
     `, [attempt.exam_id]);
 
-    const parsedAnswers = typeof attempt.answers_json === 'string' ? JSON.parse(attempt.answers_json) : attempt.answers_json;
+    let targetQuestions = allQuestions;
+    if (attempt.assigned_question_ids) {
+      try {
+        const assignedIds = typeof attempt.assigned_question_ids === 'string'
+          ? JSON.parse(attempt.assigned_question_ids)
+          : attempt.assigned_question_ids;
+        if (Array.isArray(assignedIds) && assignedIds.length > 0) {
+          const idSet = new Set(assignedIds);
+          targetQuestions = allQuestions.filter(q => idSet.has(q.id));
+        }
+      } catch (e) {
+        console.warn('Failed to parse assigned_question_ids for candidate attempt review:', e.message);
+      }
+    }
 
-    const reviewQuestions = questions.map(q => {
+    const parsedAnswers = typeof attempt.answers_json === 'string' ? JSON.parse(attempt.answers_json) : (attempt.answers_json || []);
+
+    const reviewQuestions = targetQuestions.map(q => {
       const gAns = parsedAnswers.find(ga => ga.question_id === q.id);
       return {
         id: q.id,

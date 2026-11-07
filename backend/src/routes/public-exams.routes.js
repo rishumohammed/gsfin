@@ -597,15 +597,34 @@ router.post('/:id/attempt', verifyCandidateToken, async (req, res) => {
       }
     }
 
-    // Fetch questions WITH optional randomization
-    let [questions] = await pool.query(`
+    // Fetch questions from Question Bank pool
+    let [allQuestions] = await pool.query(`
       SELECT id, question_text, type, options_json, marks, order_index
       FROM public_exam_questions
       WHERE exam_id = ?
       ORDER BY order_index ASC
     `, [examId]);
 
-    let formattedQuestions = questions.map(q => {
+    // Random Question Sampling:
+    // If pool has more questions than exam.total_questions, randomly select exam.total_questions from the bank
+    const targetCount = exam.total_questions > 0 ? exam.total_questions : allQuestions.length;
+    let selectedQuestions = [...allQuestions];
+
+    if (selectedQuestions.length > targetCount) {
+      selectedQuestions.sort(() => Math.random() - 0.5);
+      selectedQuestions = selectedQuestions.slice(0, targetCount);
+    } else if (exam.randomize_questions) {
+      selectedQuestions.sort(() => Math.random() - 0.5);
+    }
+
+    // Persist assigned question IDs for this attempt
+    const assignedIds = selectedQuestions.map(q => q.id);
+    await pool.query(
+      'UPDATE public_exam_attempts SET assigned_question_ids = ? WHERE id = ?',
+      [JSON.stringify(assignedIds), attemptId]
+    );
+
+    let formattedQuestions = selectedQuestions.map(q => {
       let opts = q.options_json ? (typeof q.options_json === 'string' ? JSON.parse(q.options_json) : q.options_json) : [];
       if (exam.randomize_options && Array.isArray(opts)) {
         opts = [...opts].sort(() => Math.random() - 0.5);
@@ -619,10 +638,6 @@ router.post('/:id/attempt', verifyCandidateToken, async (req, res) => {
         options: opts
       };
     });
-
-    if (exam.randomize_questions) {
-      formattedQuestions = [...formattedQuestions].sort(() => Math.random() - 0.5);
-    }
 
     res.status(201).json({
       attempt_id: attemptId,
@@ -696,7 +711,7 @@ router.get('/attempts/:id/result', async (req, res) => {
 
     // Fetch attempt details and graded results
     const [results] = await pool.query(`
-      SELECT r.*, a.guest_name, a.guest_email, a.is_anonymous, a.answers_json, e.name as exam_name, e.passing_marks, e.total_marks, e.duration_minutes,
+      SELECT r.*, a.guest_name, a.guest_email, a.is_anonymous, a.answers_json, a.assigned_question_ids, e.name as exam_name, e.passing_marks, e.total_marks, e.duration_minutes,
              e.show_correct_answers, e.show_explanations, e.allow_retake, e.enable_certificate
       FROM public_exam_results r
       JOIN public_exam_attempts a ON r.attempt_id = a.id
@@ -710,17 +725,32 @@ router.get('/attempts/:id/result', async (req, res) => {
 
     const result = results[0];
 
-    // Fetch questions to render reviews
-    const [questions] = await pool.query(`
+    // Fetch questions to render reviews (filtered to assigned questions for this attempt)
+    const [allQuestions] = await pool.query(`
       SELECT id, question_text, type, options_json, correct_answer, explanation, marks
       FROM public_exam_questions
       WHERE exam_id = ?
       ORDER BY order_index ASC
     `, [result.exam_id]);
 
-    const parsedAnswers = typeof result.answers_json === 'string' ? JSON.parse(result.answers_json) : result.answers_json;
+    let targetQuestions = allQuestions;
+    if (result.assigned_question_ids) {
+      try {
+        const assignedIds = typeof result.assigned_question_ids === 'string'
+          ? JSON.parse(result.assigned_question_ids)
+          : result.assigned_question_ids;
+        if (Array.isArray(assignedIds) && assignedIds.length > 0) {
+          const idSet = new Set(assignedIds);
+          targetQuestions = allQuestions.filter(q => idSet.has(q.id));
+        }
+      } catch (e) {
+        console.warn('Failed to parse assigned_question_ids in result review:', e.message);
+      }
+    }
 
-    const reviewQuestions = questions.map(q => {
+    const parsedAnswers = typeof result.answers_json === 'string' ? JSON.parse(result.answers_json) : (result.answers_json || []);
+
+    const reviewQuestions = targetQuestions.map(q => {
       const gAns = parsedAnswers.find(ga => ga.question_id === q.id);
       
       const val = {

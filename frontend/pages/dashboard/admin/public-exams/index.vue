@@ -94,11 +94,17 @@
           <!-- Exam Details Column -->
           <template v-slot:item.name="{ item }">
             <div class="py-2.5">
-              <div class="font-semibold text-slate-900 text-sm mb-1.5">{{ item.name }}</div>
+              <div class="font-semibold text-slate-900 text-sm mb-1.5 flex items-center gap-2 flex-wrap">
+                <span>{{ item.name }}</span>
+                <span v-if="item.qualification_id" class="badge-cert-pill" title="Official Certification Standard">
+                  <i class="mdi mdi-certificate-outline"></i>
+                  Certification
+                </span>
+              </div>
               <div class="programs-badges-wrap">
                 <span class="badge-program-tag">
                   <i class="mdi mdi-shape-outline"></i>
-                  {{ item.category_name || 'General Certification' }}
+                  {{ item.category_name || item.qualification_category || 'Food Safety Standard' }}
                 </span>
                 <span
                   v-if="item.enable_proctoring"
@@ -111,12 +117,31 @@
             </div>
           </template>
 
-          <!-- Configuration Column -->
+          <!-- Configuration / Question Bank Pool Column -->
           <template v-slot:item.settings="{ item }">
-            <div class="py-2.5 whitespace-nowrap">
-              <div class="font-semibold text-slate-900 text-xs">{{ item.question_count || 0 }} Questions</div>
-              <div class="text-xs text-slate-500 mt-0.5">
-                {{ item.duration_minutes }} Mins • Pass Score: <span class="font-semibold text-slate-800">{{ item.passing_marks }} ({{ item.pass_percentage }}%)</span>
+            <div class="py-2.5">
+              <div class="font-semibold text-slate-900 text-xs">
+                {{ item.total_questions || 0 }} Questions on Exam
+              </div>
+              <div class="text-xs text-slate-500 mt-0.5 whitespace-nowrap">
+                {{ item.duration_minutes }} Mins • Pass: <span class="font-semibold text-slate-800">{{ item.passing_marks }} ({{ item.pass_percentage }}%)</span>
+              </div>
+              <!-- 3x Question Bank Pool Status Indicator -->
+              <div class="mt-1.5">
+                <div 
+                  :class="[
+                    'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[11px] font-semibold border',
+                    (item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                      : 'bg-amber-50 text-amber-700 border-amber-200/80'
+                  ]"
+                  :title="`Requires at least 3× questions in Question Bank (${(item.total_questions || 0) * 3} required)`"
+                >
+                  <i :class="['mdi', (item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0 ? 'mdi-check-circle' : 'mdi-alert-circle-outline']"></i>
+                  <span>Bank: {{ item.question_count || 0 }} / {{ (item.total_questions || 0) * 3 }}</span>
+                  <span v-if="(item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0" class="opacity-80 font-medium">Ready</span>
+                  <span v-else class="opacity-90 font-medium">(Need {{ Math.max(0, ((item.total_questions || 0) * 3) - (item.question_count || 0)) }})</span>
+                </div>
               </div>
             </div>
           </template>
@@ -230,7 +255,45 @@
       </div>
     </v-dialog>
 
-
+    <!-- 3x Question Bank Pool Warning Dialog -->
+    <v-dialog v-model="publishWarningDialog" max-width="480">
+      <div class="bg-white rounded-3xl p-6 shadow-2xl border border-slate-200/80">
+        <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
+          <i class="mdi mdi-alert-circle-outline text-2xl"></i>
+        </div>
+        <h3 class="text-base font-semibold text-slate-900 mb-2">Question Bank Pool Incomplete</h3>
+        <p class="text-xs text-slate-600 leading-relaxed mb-4">
+          Cannot publish <span class="font-semibold text-slate-800">"{{ publishWarningExam?.name }}"</span>.
+          Every certification exam requires at least <span class="font-semibold text-slate-800">3× questions</span> in the Question Bank before publishing.
+        </p>
+        <div class="bg-amber-50/70 border border-amber-200/70 rounded-xl p-3 mb-6">
+          <div class="flex justify-between text-xs text-slate-700 font-medium mb-1.5">
+            <span>Exam Questions Conducted:</span>
+            <span class="font-semibold text-slate-900">{{ publishWarningExam?.total_questions || 0 }}</span>
+          </div>
+          <div class="flex justify-between text-xs text-slate-700 font-medium mb-1.5">
+            <span>Required in Question Bank (3×):</span>
+            <span class="font-semibold text-amber-800">{{ (publishWarningExam?.total_questions || 0) * 3 }}</span>
+          </div>
+          <div class="flex justify-between text-xs text-slate-700 font-medium">
+            <span>Currently in Question Bank:</span>
+            <span class="font-semibold text-slate-900">{{ publishWarningExam?.question_count || 0 }}</span>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3">
+          <v-btn variant="text" class="text-none font-semibold text-slate-600" @click="publishWarningDialog = false">Cancel</v-btn>
+          <v-btn
+            color="#E31B23"
+            class="font-semibold text-white text-none rounded-xl"
+            prepend-icon="mdi-database-plus-outline"
+            :to="`/dashboard/admin/public-exams/questions?examId=${publishWarningExam?.id}`"
+            @click="publishWarningDialog = false"
+          >
+            Open Question Bank
+          </v-btn>
+        </div>
+      </div>
+    </v-dialog>
 
     <!-- Snackbar -->
     <v-snackbar v-model="snackbar" :color="snackbarColor" rounded="lg">
@@ -262,6 +325,10 @@ const statusFilter = ref('All');
 const deleteDialog = ref(false);
 const targetExam = ref<any>(null);
 const deleting = ref(false);
+
+// 3x Question Pool Warning Dialog State
+const publishWarningDialog = ref(false);
+const publishWarningExam = ref<any>(null);
 
 const snackbar = ref(false);
 const snackbarText = ref('');
@@ -318,19 +385,44 @@ async function loadData() {
 async function duplicateExam(id: string) {
   try {
     await api.post(`/admin/public-exams/${id}/duplicate`);
-    alert('Exam duplicated successfully as a Draft!');
+    snackbarText.value = 'Exam duplicated successfully as a Draft!';
+    snackbarColor.value = 'success';
+    snackbar.value = true;
     loadData();
-  } catch (err) {
+  } catch (err: any) {
     console.error('Duplication failed:', err);
+    snackbarText.value = err.response?.data?.message || 'Duplication failed';
+    snackbarColor.value = 'error';
+    snackbar.value = true;
   }
 }
 
 async function changeStatus(id: string, newStatus: string) {
+  const exam = exams.value.find(e => e.id === id);
+  if (newStatus === 'published' && exam) {
+    const totalQ = exam.total_questions || 0;
+    const requiredPool = totalQ * 3;
+    const currentPool = exam.question_count || 0;
+    if (totalQ <= 0 || currentPool < requiredPool) {
+      publishWarningExam.value = exam;
+      publishWarningDialog.value = true;
+      return;
+    }
+  }
+
   try {
     await api.put(`/admin/public-exams/${id}`, { status: newStatus });
+    snackbarText.value = newStatus === 'published'
+      ? `Exam "${exam?.name || ''}" is now Published!`
+      : `Exam "${exam?.name || ''}" reverted to Draft mode.`;
+    snackbarColor.value = 'success';
+    snackbar.value = true;
     loadData();
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to toggle status:', err);
+    snackbarText.value = err.response?.data?.message || 'Failed to toggle status';
+    snackbarColor.value = 'error';
+    snackbar.value = true;
   }
 }
 
@@ -458,6 +550,25 @@ onMounted(() => {
 .badge-proctor-tag i {
   color: #E31B23;
   font-size: 0.78rem;
+}
+
+.badge-cert-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #EEF2FF;
+  color: #4F46E5;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge-cert-pill i {
+  font-size: 0.72rem;
 }
 </style>
 

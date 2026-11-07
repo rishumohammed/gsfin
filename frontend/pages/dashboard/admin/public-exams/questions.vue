@@ -154,13 +154,29 @@
         <div class="summary-badges-col">
           <div class="summary-badge">
             <i class="mdi mdi-help-circle-outline"></i>
-            <span class="summary-label">Total Questions:</span>
+            <span class="summary-label">Bank Questions:</span>
             <span class="summary-value">{{ filteredQuestions.length }}</span>
           </div>
           <div class="summary-badge marks-badge">
             <i class="mdi mdi-star-circle-outline"></i>
             <span class="summary-label">Total Marks:</span>
             <span class="summary-value">{{ totalCalculatedMarks }}</span>
+          </div>
+          <!-- 3x Pool Progress Badge -->
+          <div 
+            :class="[
+              'summary-badge pool-badge',
+              questionsList.length >= (selectedExam?.total_questions || 0) * 3 && (selectedExam?.total_questions || 0) > 0
+                ? 'pool-ready'
+                : 'pool-needed'
+            ]"
+            :title="`Exam conducts ${selectedExam?.total_questions || 0} questions. Requires 3× (${(selectedExam?.total_questions || 0) * 3}) questions in the Question Bank before publishing.`"
+          >
+            <i :class="['mdi', questionsList.length >= (selectedExam?.total_questions || 0) * 3 && (selectedExam?.total_questions || 0) > 0 ? 'mdi-check-decagram' : 'mdi-alert-circle-outline']"></i>
+            <span class="summary-label">3× Pool:</span>
+            <span class="summary-value">{{ questionsList.length }} / {{ (selectedExam?.total_questions || 0) * 3 }}</span>
+            <span v-if="questionsList.length >= (selectedExam?.total_questions || 0) * 3 && (selectedExam?.total_questions || 0) > 0" class="pool-tag-ready">Ready</span>
+            <span v-else class="pool-tag-needed">Need {{ Math.max(0, ((selectedExam?.total_questions || 0) * 3) - questionsList.length) }} more</span>
           </div>
         </div>
       </div>
@@ -1117,6 +1133,51 @@ onMounted(() => {
 
 .summary-badge.marks-badge .summary-value {
   color: #B45309;
+}
+
+.summary-badge.pool-badge {
+  padding: 6px 12px;
+  border-radius: 10px;
+}
+
+.summary-badge.pool-ready {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #065F46;
+}
+
+.summary-badge.pool-ready i {
+  color: #059669;
+}
+
+.summary-badge.pool-needed {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #92400E;
+}
+
+.summary-badge.pool-needed i {
+  color: #D97706;
+}
+
+.pool-tag-ready {
+  font-size: 0.65rem;
+  background: #D1FAE5;
+  color: #065F46;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.pool-tag-needed {
+  font-size: 0.65rem;
+  background: #FEF3C7;
+  color: #92400E;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-left: 4px;
 }
 
 /* Question Cards */
