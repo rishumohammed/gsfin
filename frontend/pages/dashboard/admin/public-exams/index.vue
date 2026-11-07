@@ -234,63 +234,147 @@
     </div>
   </div>
 
-    <!-- Delete Confirmation Dialog -->
-    <v-dialog v-model="deleteDialog" max-width="440">
-      <div class="bg-white rounded-3xl p-6 shadow-2xl border border-slate-200/80">
-        <h3 class="text-lg font-semibold text-slate-900 mb-2">Delete Certification Exam?</h3>
-        <p class="text-xs text-slate-600 mb-6">
-          Are you sure you want to delete <span class="font-semibold text-slate-800">"{{ targetExam?.name }}"</span>? This action will permanently remove questions and student attempts.
-        </p>
-        <div class="flex justify-end gap-3">
-          <v-btn variant="text" class="text-none font-semibold text-slate-600" @click="deleteDialog = false">Cancel</v-btn>
-          <v-btn
-            color="#E31B23"
-            class="font-semibold text-white text-none rounded-xl"
-            :loading="deleting"
+    <!-- ═══ DELETE CONFIRMATION MODAL (GSFIN Global Style) ═══ -->
+    <v-dialog v-model="deleteDialog" max-width="500">
+      <div class="modal-card">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-header-icon bg-red-50 text-red-600">
+              <i class="mdi mdi-alert-octagon-outline"></i>
+            </div>
+            <div class="modal-title-text">
+              <h3>Delete Certification Exam?</h3>
+              <p>Permanent action • cannot be undone</p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" @click="deleteDialog = false" title="Close">
+            <i class="mdi mdi-close"></i>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <p class="modal-lead-text">
+            Are you sure you want to delete this certification exam from the portal?
+          </p>
+
+          <!-- Exam Highlight Card -->
+          <div class="modal-info-card border-red">
+            <div class="modal-info-card-title">{{ targetExam?.name }}</div>
+            <div class="modal-info-card-meta">
+              <span class="badge-program-tag">
+                <i class="mdi mdi-shape-outline"></i>
+                {{ targetExam?.category_name || targetExam?.qualification_category || 'Food Safety Standard' }}
+              </span>
+              <span v-if="targetExam?.qualification_id" class="badge-cert-pill">
+                <i class="mdi mdi-certificate-outline"></i> Certification
+              </span>
+            </div>
+            <div class="modal-info-card-stats">
+              <span>{{ targetExam?.total_questions || 0 }} Questions on Exam</span>
+              <span class="dot">•</span>
+              <span>{{ targetExam?.question_count || 0 }} in Bank</span>
+              <span class="dot">•</span>
+              <span>{{ targetExam?.attempts_count || 0 }} Attempts</span>
+            </div>
+          </div>
+
+          <!-- Danger Warning Callout -->
+          <div class="modal-danger-callout">
+            <i class="mdi mdi-alert-circle text-red-500"></i>
+            <div>
+              <strong>Warning:</strong> Deleting this exam will permanently erase all questions in its Question Bank, candidate registrations, and student attempt histories.
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn-glass" @click="deleteDialog = false">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn-danger-confirm"
+            :disabled="deleting"
             @click="deleteExam"
           >
-            Delete Exam
-          </v-btn>
+            <i :class="['mdi', deleting ? 'mdi-loading spin-icon' : 'mdi-trash-can-outline']"></i>
+            <span>{{ deleting ? 'Deleting Exam...' : 'Delete Exam' }}</span>
+          </button>
         </div>
       </div>
     </v-dialog>
 
-    <!-- 3x Question Bank Pool Warning Dialog -->
-    <v-dialog v-model="publishWarningDialog" max-width="480">
-      <div class="bg-white rounded-3xl p-6 shadow-2xl border border-slate-200/80">
-        <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
-          <i class="mdi mdi-alert-circle-outline text-2xl"></i>
+    <!-- ═══ 3X QUESTION POOL INCOMPLETE MODAL (GSFIN Global Style) ═══ -->
+    <v-dialog v-model="publishWarningDialog" max-width="520">
+      <div class="modal-card">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-header-icon bg-amber-50 text-amber-600">
+              <i class="mdi mdi-database-alert-outline"></i>
+            </div>
+            <div class="modal-title-text">
+              <h3>Question Bank Pool Incomplete</h3>
+              <p>3× Question Bank Requirement for Publishing</p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" @click="publishWarningDialog = false" title="Close">
+            <i class="mdi mdi-close"></i>
+          </button>
         </div>
-        <h3 class="text-base font-semibold text-slate-900 mb-2">Question Bank Pool Incomplete</h3>
-        <p class="text-xs text-slate-600 leading-relaxed mb-4">
-          Cannot publish <span class="font-semibold text-slate-800">"{{ publishWarningExam?.name }}"</span>.
-          Every certification exam requires at least <span class="font-semibold text-slate-800">3× questions</span> in the Question Bank before publishing.
-        </p>
-        <div class="bg-amber-50/70 border border-amber-200/70 rounded-xl p-3 mb-6">
-          <div class="flex justify-between text-xs text-slate-700 font-medium mb-1.5">
-            <span>Exam Questions Conducted:</span>
-            <span class="font-semibold text-slate-900">{{ publishWarningExam?.total_questions || 0 }}</span>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <p class="modal-lead-text">
+            Cannot publish <strong class="text-slate-900">"{{ publishWarningExam?.name }}"</strong>.
+            Every certification exam requires at least <strong class="text-slate-900">3× questions</strong> in the Question Bank before publishing.
+          </p>
+
+          <!-- Pool Calculation Table -->
+          <div class="pool-calc-card">
+            <div class="pool-calc-row">
+              <span class="pool-calc-label">Questions Conducted on Exam:</span>
+              <span class="pool-calc-val">{{ publishWarningExam?.total_questions || 0 }} Questions</span>
+            </div>
+            <div class="pool-calc-row highlight">
+              <span class="pool-calc-label">Required in Question Bank (3× Pool):</span>
+              <span class="pool-calc-val">{{ (publishWarningExam?.total_questions || 0) * 3 }} Questions</span>
+            </div>
+            <div class="pool-calc-row">
+              <span class="pool-calc-label">Currently in Question Bank:</span>
+              <span class="pool-calc-val text-amber-700">{{ publishWarningExam?.question_count || 0 }} Questions</span>
+            </div>
+            <div class="pool-calc-divider"></div>
+            <div class="pool-calc-row deficit">
+              <span class="pool-calc-label">Questions Needed to Publish:</span>
+              <span class="pool-calc-val text-red-600 font-semibold">+{{ Math.max(0, ((publishWarningExam?.total_questions || 0) * 3) - (publishWarningExam?.question_count || 0)) }} More</span>
+            </div>
           </div>
-          <div class="flex justify-between text-xs text-slate-700 font-medium mb-1.5">
-            <span>Required in Question Bank (3×):</span>
-            <span class="font-semibold text-amber-800">{{ (publishWarningExam?.total_questions || 0) * 3 }}</span>
-          </div>
-          <div class="flex justify-between text-xs text-slate-700 font-medium">
-            <span>Currently in Question Bank:</span>
-            <span class="font-semibold text-slate-900">{{ publishWarningExam?.question_count || 0 }}</span>
+
+          <div class="modal-info-callout">
+            <i class="mdi mdi-information-outline text-blue-500"></i>
+            <div>
+              When candidates take this exam, questions are randomly drawn from this 3× pool so each candidate receives a randomized question set.
+            </div>
           </div>
         </div>
-        <div class="flex justify-end gap-3">
-          <v-btn variant="text" class="text-none font-semibold text-slate-600" @click="publishWarningDialog = false">Cancel</v-btn>
-          <v-btn
-            color="#E31B23"
-            class="font-semibold text-white text-none rounded-xl"
-            prepend-icon="mdi-database-plus-outline"
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn-glass" @click="publishWarningDialog = false">
+            Close
+          </button>
+          <NuxtLink
             :to="`/dashboard/admin/public-exams/questions?examId=${publishWarningExam?.id}`"
+            class="btn-red flex items-center gap-1.5"
             @click="publishWarningDialog = false"
           >
-            Open Question Bank
-          </v-btn>
+            <i class="mdi mdi-database-plus-outline"></i>
+            <span>Open Question Bank</span>
+          </NuxtLink>
         </div>
       </div>
     </v-dialog>
@@ -569,6 +653,243 @@ onMounted(() => {
 
 .badge-cert-pill i {
   font-size: 0.72rem;
+}
+
+/* ── GSFIN Global Modal Architecture ── */
+.modal-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FAFAFD;
+}
+
+.modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-header-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.modal-title-text h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.modal-title-text p {
+  font-size: 0.75rem;
+  color: #64748B;
+  margin: 2px 0 0 0;
+  line-height: 1.2;
+}
+
+.modal-close-btn {
+  background: #F1F5F9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #64748B;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+.modal-body {
+  padding: 22px 24px;
+}
+
+.modal-lead-text {
+  font-size: 0.85rem;
+  color: #334155;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.modal-info-card {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  margin-bottom: 16px;
+}
+
+.modal-info-card.border-red {
+  border-left: 4px solid #E31B23;
+}
+
+.modal-info-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin-bottom: 6px;
+}
+
+.modal-info-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.modal-info-card-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.modal-info-card-stats .dot {
+  color: #CBD5E1;
+}
+
+.modal-danger-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  color: #991B1B;
+  line-height: 1.45;
+}
+
+.modal-danger-callout i {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.modal-info-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  color: #1E40AF;
+  line-height: 1.45;
+  margin-top: 14px;
+}
+
+.modal-info-callout i {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.pool-calc-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.pool-calc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #475569;
+  padding: 5px 0;
+}
+
+.pool-calc-row.highlight {
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.pool-calc-row.deficit {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.pool-calc-divider {
+  height: 1px;
+  background: #E2E8F0;
+  margin: 6px 0;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  background: #FAFAFD;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-danger-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  background: #E31B23;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(227, 27, 35, 0.25);
+}
+
+.btn-danger-confirm:hover:not(:disabled) {
+  background: #C41219;
+  transform: translateY(-1px);
+}
+
+.btn-danger-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style>
 

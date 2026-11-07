@@ -298,175 +298,245 @@
       </div>
     </div>
 
-    <!-- Create / Edit Question Dialog -->
-    <v-dialog v-model="questionDialog" max-width="650" persistent>
-      <v-card class="pa-6 rounded-xl" elevation="24">
-        <h3 class="text-h5 font-semibold text-dark mb-6">
-          {{ editingQuestionId ? 'Edit Question' : 'Add Question' }}
-        </h3>
-
-        <v-form ref="questionForm" v-model="questionFormValid" lazy-validation>
-          <v-textarea
-            v-model="questionFields.question_text"
-            label="Question Text"
-            placeholder="Write question content..."
-            required
-            :rules="[v => !!v || 'Question Text is required']"
-            rows="3"
-            class="mb-3"
-          ></v-textarea>
-
-          <v-row>
-            <v-col cols="12" sm="6">
-              <v-select
-                v-model="questionFields.type"
-                :items="[
-                  {title: 'MCQ (Single Select)', value: 'mcq'},
-                  {title: 'Multiple Select (MSQ)', value: 'msq'},
-                  {title: 'True / False', value: 'truefalse'},
-                  {title: 'Fill in the Blank', value: 'fib'}
-                ]"
-                item-title="title"
-                item-value="value"
-                label="Question Type"
-                required
-                :rules="[v => !!v || 'Question Type is required']"
-                @update:model-value="onTypeChanged"
-                class="mb-3"
-              ></v-select>
-            </v-col>
-            <v-col cols="12" sm="3">
-              <v-text-field
-                v-model.number="questionFields.marks"
-                label="Marks"
-                type="number"
-                required
-                :rules="[v => v !== undefined || 'Marks are required']"
-                class="mb-3"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="3">
-              <v-select
-                v-model="questionFields.difficulty_level"
-                :items="['Easy', 'Medium', 'Hard']"
-                label="Difficulty"
-                class="mb-3"
-              ></v-select>
-            </v-col>
-          </v-row>
-
-          <!-- Options Editor (MCQ / MSQ) -->
-          <div v-if="['mcq', 'msq'].includes(questionFields.type)" class="mb-4">
-            <div class="d-flex align-center justify-space-between mb-2">
-              <span class="text-subtitle-2 font-semibold text-dark">Options</span>
-              <v-btn variant="text" color="primary" size="small" @click="addOptionField">
-                <v-icon start>mdi-plus</v-icon> Add Option
-              </v-btn>
+    <!-- ═══ CREATE / EDIT QUESTION MODAL (GSFIN Global Style) ═══ -->
+    <v-dialog v-model="questionDialog" max-width="680" persistent>
+      <div class="modal-card">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-header-icon bg-red-50 text-red-600">
+              <i :class="['mdi', editingQuestionId ? 'mdi-pencil-outline' : 'mdi-plus-circle-outline']"></i>
             </div>
-            
-            <div v-for="(opt, idx) in questionFields.options" :key="idx" class="d-flex align-center mb-2">
-              <v-text-field
-                v-model="questionFields.options[idx]"
-                placeholder="Option text"
-                hide-details
-                density="compact"
-                class="mr-2"
-              ></v-text-field>
-              <v-btn icon variant="text" color="error" size="small" @click="removeOptionField(idx)" :disabled="questionFields.options.length <= 2">
-                <v-icon>mdi-delete-outline</v-icon>
-              </v-btn>
+            <div class="modal-title-text">
+              <h3>{{ editingQuestionId ? 'Edit Question' : 'Add Question to Bank' }}</h3>
+              <p>Configure question prompt, answer choices, marking scheme, and explanations</p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" @click="questionDialog = false" title="Close">
+            <i class="mdi mdi-close"></i>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <v-form ref="questionForm" v-model="questionFormValid" lazy-validation>
+            <div class="form-group mb-4">
+              <label class="form-label">Question Content <span class="text-red-500">*</span></label>
+              <textarea
+                v-model="questionFields.question_text"
+                placeholder="Enter question text or scenario..."
+                rows="3"
+                class="form-textarea"
+                required
+              ></textarea>
+            </div>
+
+            <v-row class="mb-2">
+              <v-col cols="12" sm="6">
+                <div class="form-group">
+                  <label class="form-label">Question Type <span class="text-red-500">*</span></label>
+                  <select 
+                    v-model="questionFields.type" 
+                    class="form-select"
+                    @change="onTypeChanged(questionFields.type)"
+                  >
+                    <option value="mcq">MCQ (Single Select)</option>
+                    <option value="msq">Multiple Select (MSQ)</option>
+                    <option value="truefalse">True / False</option>
+                    <option value="fib">Fill in the Blank</option>
+                  </select>
+                </div>
+              </v-col>
+              <v-col cols="12" sm="3">
+                <div class="form-group">
+                  <label class="form-label">Marks <span class="text-red-500">*</span></label>
+                  <input
+                    v-model.number="questionFields.marks"
+                    type="number"
+                    min="1"
+                    placeholder="1"
+                    class="form-input"
+                    required
+                  />
+                </div>
+              </v-col>
+              <v-col cols="12" sm="3">
+                <div class="form-group">
+                  <label class="form-label">Difficulty</label>
+                  <select v-model="questionFields.difficulty_level" class="form-select">
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                  </select>
+                </div>
+              </v-col>
+            </v-row>
+
+            <!-- Options Editor (MCQ / MSQ) -->
+            <div v-if="['mcq', 'msq'].includes(questionFields.type)" class="mb-4">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <label class="form-label mb-0">Answer Options <span class="text-red-500">*</span></label>
+                <button type="button" class="btn-text-action text-xs text-red-600 font-semibold" @click="addOptionField">
+                  <i class="mdi mdi-plus"></i> Add Option
+                </button>
+              </div>
+              
+              <div v-for="(opt, idx) in questionFields.options" :key="idx" class="d-flex align-center mb-2 gap-2">
+                <input
+                  v-model="questionFields.options[idx]"
+                  placeholder="Option text..."
+                  class="form-input flex-grow-1"
+                />
+                <button 
+                  type="button" 
+                  class="btn-icon-danger"
+                  @click="removeOptionField(idx)" 
+                  :disabled="questionFields.options.length <= 2"
+                  title="Remove option"
+                >
+                  <i class="mdi mdi-trash-can-outline"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Correct Answer Selection -->
+            <!-- A. MCQ Selector -->
+            <div v-if="questionFields.type === 'mcq'" class="form-group mb-4">
+              <label class="form-label">Correct Answer <span class="text-red-500">*</span></label>
+              <select v-model="questionFields.correct_answer" class="form-select">
+                <option value="" disabled>-- Select Correct Answer --</option>
+                <option v-for="opt in filteredOptions" :key="opt" :value="opt">{{ opt }}</option>
+              </select>
+            </div>
+
+            <!-- B. MSQ Selector -->
+            <div v-if="questionFields.type === 'msq'" class="form-group mb-4">
+              <label class="form-label">Correct Answers (Check all that apply) <span class="text-red-500">*</span></label>
+              <div class="msq-options-wrap">
+                <label v-for="opt in filteredOptions" :key="opt" class="msq-option-label">
+                  <input
+                    type="checkbox"
+                    :value="opt"
+                    v-model="questionFields.correct_answer_msq"
+                    class="msq-checkbox"
+                  />
+                  <span>{{ opt }}</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- C. True / False Selector -->
+            <div v-if="questionFields.type === 'truefalse'" class="form-group mb-4">
+              <label class="form-label">Correct Answer <span class="text-red-500">*</span></label>
+              <select v-model="questionFields.correct_answer" class="form-select">
+                <option value="True">True</option>
+                <option value="False">False</option>
+              </select>
+            </div>
+
+            <!-- D. FIB Text Input -->
+            <div v-if="questionFields.type === 'fib'" class="form-group mb-4">
+              <label class="form-label">Correct Blank Text (Case-insensitive) <span class="text-red-500">*</span></label>
+              <input
+                v-model="questionFields.correct_answer"
+                type="text"
+                placeholder="Enter exact blank text..."
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group mb-2">
+              <label class="form-label">Answer Explanation (Shown in review)</label>
+              <textarea
+                v-model="questionFields.explanation"
+                placeholder="Explain why this answer is correct..."
+                rows="3"
+                class="form-textarea"
+              ></textarea>
+            </div>
+          </v-form>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn-glass" @click="questionDialog = false">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn-red"
+            :disabled="savingQuestion"
+            @click="saveQuestion"
+          >
+            <i :class="['mdi', savingQuestion ? 'mdi-loading spin-icon' : 'mdi-check-circle-outline']"></i>
+            <span>{{ savingQuestion ? 'Saving Question...' : 'Save Question' }}</span>
+          </button>
+        </div>
+      </div>
+    </v-dialog>
+
+    <!-- ═══ DELETE CONFIRMATION MODAL (GSFIN Global Style) ═══ -->
+    <v-dialog v-model="deleteConfirmDialog" max-width="500">
+      <div class="modal-card">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-header-icon bg-red-50 text-red-600">
+              <i class="mdi mdi-alert-octagon-outline"></i>
+            </div>
+            <div class="modal-title-text">
+              <h3>Delete Question?</h3>
+              <p>Permanent action • cannot be undone</p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" @click="deleteConfirmDialog = false" title="Close">
+            <i class="mdi mdi-close"></i>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <p class="modal-lead-text">
+            Are you sure you want to permanently delete this question from the Question Bank?
+          </p>
+
+          <div class="modal-info-card border-red">
+            <div class="modal-info-card-meta">
+              <span class="badge-program-tag">
+                <i class="mdi mdi-help-circle-outline"></i>
+                {{ targetQuestion?.type?.toUpperCase() || 'MCQ' }}
+              </span>
+              <span class="text-xs text-slate-500 font-semibold">{{ targetQuestion?.marks || 1 }} Marks</span>
+              <span class="text-xs text-slate-400">•</span>
+              <span class="text-xs text-slate-500 font-semibold">{{ targetQuestion?.difficulty_level || 'Medium' }}</span>
+            </div>
+            <div class="modal-info-card-title text-sm line-clamp-3 leading-relaxed">
+              {{ targetQuestion?.question_text }}
             </div>
           </div>
 
-          <!-- Correct Answer Selection -->
-          <!-- A. MCQ Selector -->
-          <v-select
-            v-if="questionFields.type === 'mcq'"
-            v-model="questionFields.correct_answer"
-            :items="filteredOptions"
-            label="Correct Answer"
-            required
-            :rules="[v => !!v || 'Correct Answer is required']"
-            class="mb-3"
-          ></v-select>
-
-          <!-- B. MSQ Selector -->
-          <v-select
-            v-if="questionFields.type === 'msq'"
-            v-model="questionFields.correct_answer_msq"
-            :items="filteredOptions"
-            label="Correct Answers (Select Multiple)"
-            multiple
-            chips
-            required
-            :rules="[v => (v && v.length > 0) || 'At least one correct answer is required']"
-            class="mb-3"
-          ></v-select>
-
-          <!-- C. True / False Selector -->
-          <v-select
-            v-if="questionFields.type === 'truefalse'"
-            v-model="questionFields.correct_answer"
-            :items="['True', 'False']"
-            label="Correct Answer"
-            required
-            :rules="[v => !!v || 'Correct Answer is required']"
-            class="mb-3"
-          ></v-select>
-
-          <!-- D. FIB Text Input -->
-          <v-text-field
-            v-if="questionFields.type === 'fib'"
-            v-model="questionFields.correct_answer"
-            label="Correct Answer Text (Case-insensitive exact match)"
-            placeholder="Enter correct blank text"
-            required
-            :rules="[v => !!v || 'Correct Answer is required']"
-            class="mb-3"
-          ></v-text-field>
-
-          <v-textarea
-            v-model="questionFields.explanation"
-            label="Explanation"
-            placeholder="Describe why this answer is correct..."
-            rows="3"
-            class="mb-3"
-          ></v-textarea>
-        </v-form>
-
-        <div class="d-flex justify-end gap-3 mt-6">
-          <v-btn variant="text" class="text-none font-semibold text-slate-600" @click="questionDialog = false">Cancel</v-btn>
-          <v-btn
-            color="#E31B23"
-            class="px-6 text-none font-semibold text-white rounded-xl"
-            elevation="0"
-            :loading="savingQuestion"
-            @click="saveQuestion"
-          >
-            Save Question
-          </v-btn>
+          <div class="modal-danger-callout">
+            <i class="mdi mdi-alert-circle text-red-500"></i>
+            <div>
+              <strong>Pool Alert:</strong> Removing questions reduces the Question Bank pool. If the pool drops below 3× ({{ (selectedExam?.total_questions || 0) * 3 }} questions), this exam cannot be published.
+            </div>
+          </div>
         </div>
-      </v-card>
-    </v-dialog>
 
-    <!-- Delete Confirmation Dialog -->
-    <v-dialog v-model="deleteConfirmDialog" max-width="440">
-      <div class="bg-white rounded-3xl p-6 shadow-2xl border border-slate-200/80">
-        <h3 class="text-lg font-semibold text-slate-900 mb-2">Delete Question?</h3>
-        <p class="text-xs text-slate-600 mb-6 font-medium">
-          Are you sure you want to delete this question? This will permanently remove it from the exam and cannot be undone.
-        </p>
-        <div class="flex justify-end gap-3">
-          <v-btn variant="text" class="text-none font-semibold text-slate-600" @click="deleteConfirmDialog = false">Cancel</v-btn>
-          <v-btn
-            color="#E31B23"
-            class="text-none font-semibold text-white px-5 rounded-xl"
-            elevation="0"
-            :loading="deleting"
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn-glass" @click="deleteConfirmDialog = false">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn-danger-confirm"
+            :disabled="deleting"
             @click="deleteQuestion"
           >
-            Delete
-          </v-btn>
+            <i :class="['mdi', deleting ? 'mdi-loading spin-icon' : 'mdi-trash-can-outline']"></i>
+            <span>{{ deleting ? 'Deleting...' : 'Delete Question' }}</span>
+          </button>
         </div>
       </div>
     </v-dialog>
@@ -1507,5 +1577,261 @@ onMounted(() => {
     width: 100%;
     margin-left: 0;
   }
+}
+
+/* ── GSFIN Global Modal Architecture in Questions ── */
+.modal-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FAFAFD;
+}
+
+.modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-header-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.modal-title-text h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.modal-title-text p {
+  font-size: 0.75rem;
+  color: #64748B;
+  margin: 2px 0 0 0;
+  line-height: 1.2;
+}
+
+.modal-close-btn {
+  background: #F1F5F9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #64748B;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+.modal-body {
+  padding: 22px 24px;
+  max-height: 75vh;
+  overflow-y: auto;
+}
+
+.modal-lead-text {
+  font-size: 0.85rem;
+  color: #334155;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.modal-info-card {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  margin-bottom: 16px;
+}
+
+.modal-info-card.border-red {
+  border-left: 4px solid #E31B23;
+}
+
+.modal-info-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.modal-info-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.modal-danger-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  color: #991B1B;
+  line-height: 1.45;
+}
+
+.modal-danger-callout i {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  background: #FAFAFD;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-danger-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  background: #E31B23;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(227, 27, 35, 0.25);
+}
+
+.btn-danger-confirm:hover:not(:disabled) {
+  background: #C41219;
+  transform: translateY(-1px);
+}
+
+.btn-danger-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-label {
+  font-size: 0.80rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: 9px 13px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #F8FAFC;
+  font-size: 0.85rem;
+  color: #0F172A;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: #E31B23;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.08);
+}
+
+.btn-text-action {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-icon-danger {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #FEE2E2;
+  background: #FEF2F2;
+  color: #EF4444;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-icon-danger:hover:not(:disabled) {
+  background: #EF4444;
+  color: #FFFFFF;
+}
+
+.btn-icon-danger:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.msq-options-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #F8FAFC;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 10px;
+}
+
+.msq-option-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #334155;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.msq-checkbox {
+  accent-color: #E31B23;
+  width: 16px;
+  height: 16px;
 }
 </style>

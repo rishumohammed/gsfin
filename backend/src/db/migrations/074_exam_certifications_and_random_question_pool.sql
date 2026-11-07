@@ -77,3 +77,4 @@ INSERT IGNORE INTO public_exams (
  60, 10, 10, 5, 50, 'Medium', 'draft', 'food-microbiology',
  'Standard proctored examination for GSFIN Certification. 10 questions randomly sampled from question bank pool. 50% required to pass.',
  1, 1);
+

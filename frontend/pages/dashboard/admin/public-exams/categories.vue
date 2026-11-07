@@ -130,104 +130,133 @@
       </div>
     </div>
 
-    <!-- Add / Edit Modal Dialog -->
+    <!-- ═══ ADD / EDIT CATEGORY MODAL (GSFIN Global Style) ═══ -->
     <v-dialog v-model="modal.show" max-width="520">
-      <v-card class="modal-card pa-6 rounded-2xl bg-white border border-slate-200">
-        <div class="modal-header-row">
-          <h3 class="modal-header-title">
-            {{ modal.isEdit ? 'Edit Category' : 'Add New Category' }}
-          </h3>
-          <v-btn
-            icon="mdi-close"
-            variant="tonal"
-            size="x-small"
-            color="slate"
-            class="rounded-lg"
-            @click="modal.show = false"
-          />
+      <div class="modal-card">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-header-icon bg-red-50 text-red-600">
+              <i :class="['mdi', modal.isEdit ? 'mdi-pencil-outline' : 'mdi-plus-circle-outline']"></i>
+            </div>
+            <div class="modal-title-text">
+              <h3>{{ modal.isEdit ? 'Edit Category' : 'Add New Category' }}</h3>
+              <p>Configure category name, description, and catalog visibility</p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" @click="modal.show = false" title="Close">
+            <i class="mdi mdi-close"></i>
+          </button>
         </div>
 
         <form @submit.prevent="saveCategory">
-          <div class="form-group mb-5">
-            <label class="form-label">Category Name <span class="text-red-500">*</span></label>
-            <input
-              v-model="modal.data.name"
-              type="text"
-              placeholder="e.g. UPSC Prelims or Food Safety"
-              required
-              class="form-input"
-            />
-          </div>
+          <!-- Modal Body -->
+          <div class="modal-body">
+            <div class="form-group mb-4">
+              <label class="form-label">Category Name <span class="text-red-500">*</span></label>
+              <input
+                v-model="modal.data.name"
+                type="text"
+                placeholder="e.g. Food Safety Standards"
+                required
+                class="form-input"
+              />
+            </div>
 
-          <div class="form-group mb-5">
-            <label class="form-label">Description</label>
-            <textarea
-              v-model="modal.data.description"
-              rows="3"
-              placeholder="Brief summary of exams under this category..."
-              class="form-textarea"
-            ></textarea>
-          </div>
+            <div class="form-group mb-4">
+              <label class="form-label">Description</label>
+              <textarea
+                v-model="modal.data.description"
+                rows="3"
+                placeholder="Brief summary of exams under this category..."
+                class="form-textarea"
+              ></textarea>
+            </div>
 
-          <div class="form-group mb-6">
-            <label class="form-label">Initial Visibility Status</label>
-            <div class="select-input-box">
-              <select v-model="modal.data.status" class="gsfin-select">
+            <div class="form-group mb-2">
+              <label class="form-label">Catalog Visibility Status</label>
+              <select v-model="modal.data.status" class="form-select">
                 <option value="active">Active (Visible in Catalog Filters)</option>
                 <option value="inactive">Inactive (Hidden from Filters)</option>
               </select>
-              <v-icon icon="mdi-chevron-down" size="18" class="select-chevron-inside"></v-icon>
             </div>
           </div>
 
-          <div class="d-flex justify-end gap-3 pt-3 border-t border-slate-100">
-            <v-btn
-              variant="outlined"
-              color="slate"
-              class="text-none font-semibold rounded-xl border-slate-300 me-3 mr-3"
+          <!-- Modal Footer -->
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-glass"
               @click="modal.show = false"
             >
               Cancel
-            </v-btn>
-            <v-btn
-              color="#E31B23"
-              class="font-semibold text-white text-none rounded-xl shadow-md"
-              :loading="modal.loading"
+            </button>
+            <button
               type="submit"
+              class="btn-red"
+              :disabled="modal.loading"
             >
-              {{ modal.isEdit ? 'Update Category' : 'Create Category' }}
-            </v-btn>
+              <i :class="['mdi', modal.loading ? 'mdi-loading spin-icon' : (modal.isEdit ? 'mdi-content-save-outline' : 'mdi-check-circle-outline')]"></i>
+              <span>{{ modal.isEdit ? 'Update Category' : 'Create Category' }}</span>
+            </button>
           </div>
         </form>
-      </v-card>
+      </div>
     </v-dialog>
 
-    <!-- Delete Confirmation Dialog -->
-    <v-dialog v-model="deleteDialog" max-width="440">
-      <v-card class="modal-card pa-6 rounded-2xl bg-white border border-slate-200">
-        <h3 class="text-lg font-semibold text-slate-900 mb-2">Delete Category?</h3>
-        <p class="text-xs text-slate-600 mb-6">
-          Are you sure you want to delete category <strong>"{{ targetCategory?.name }}"</strong>? This action is permanent and cannot be undone.
-        </p>
-        <div class="d-flex justify-end gap-3 pt-2 border-t border-slate-100">
-          <v-btn
-            variant="outlined"
-            color="slate"
-            class="text-none font-semibold rounded-xl border-slate-300 me-3 mr-3"
+    <!-- ═══ DELETE CATEGORY CONFIRMATION MODAL (GSFIN Global Style) ═══ -->
+    <v-dialog v-model="deleteDialog" max-width="480">
+      <div class="modal-card">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-header-icon bg-red-50 text-red-600">
+              <i class="mdi mdi-alert-octagon-outline"></i>
+            </div>
+            <div class="modal-title-text">
+              <h3>Delete Category?</h3>
+              <p>Permanent action • cannot be undone</p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" @click="deleteDialog = false" title="Close">
+            <i class="mdi mdi-close"></i>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <p class="modal-lead-text">
+            Are you sure you want to delete category <strong class="text-slate-900">"{{ targetCategory?.name }}"</strong>? This action cannot be undone.
+          </p>
+
+          <div class="modal-danger-callout">
+            <i class="mdi mdi-alert-circle text-red-500"></i>
+            <div>
+              <strong>Note:</strong> Categories referenced by existing public certification exams cannot be deleted until those exams are reassigned.
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn-glass"
             @click="deleteDialog = false"
           >
             Cancel
-          </v-btn>
-          <v-btn
-            color="#E31B23"
-            class="font-semibold text-white text-none rounded-xl shadow-md"
-            :loading="deleting"
+          </button>
+          <button
+            type="button"
+            class="btn-danger-confirm"
+            :disabled="deleting"
             @click="deleteCategory"
           >
-            Delete Category
-          </v-btn>
+            <i :class="['mdi', deleting ? 'mdi-loading spin-icon' : 'mdi-trash-can-outline']"></i>
+            <span>{{ deleting ? 'Deleting...' : 'Delete Category' }}</span>
+          </button>
         </div>
-      </v-card>
+      </div>
     </v-dialog>
   </div>
 </template>
