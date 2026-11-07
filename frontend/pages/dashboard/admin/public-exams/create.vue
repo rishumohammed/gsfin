@@ -181,43 +181,8 @@
                     </div>
                   </v-col>
                 </v-row>
-              </div>
-            </div>
 
-            <!-- Section 2: Catalog Media & Delivery Model -->
-            <div class="form-card mb-6">
-              <div class="card-header-wrap">
-                <div class="card-icon-box bg-blue-50 text-blue-600">
-                  <v-icon icon="mdi-certificate-outline" size="20" color="#2563EB"></v-icon>
-                </div>
-                <div>
-                  <h3 class="card-title">2. Catalog Media & Availability</h3>
-                  <p class="card-subtitle">Accreditation artwork and Certifying Authority on-demand delivery model.</p>
-                </div>
-              </div>
-
-              <div class="form-body">
-                <!-- Certifying Authority On-Demand Delivery Model Card -->
-                <div class="delivery-model-notice mb-5">
-                  <div class="notice-icon-wrap">
-                    <v-icon icon="mdi-shield-check" size="22" color="#059669"></v-icon>
-                  </div>
-                  <div class="notice-text-wrap">
-                    <div class="notice-title">Certifying Authority • On-Demand Partner Delivery</div>
-                    <p class="notice-desc">
-                      As the personnel certifying authority, GSFIN standardizes exam curriculum, question banks, and verifiable credentials.
-                      Authorized Partner Centers enroll their students and conduct proctored exams on demand using their center token wallets — without rigid calendar windows.
-                    </p>
-                    <div class="notice-badges">
-                      <span class="notice-badge"><i class="mdi mdi-all-inclusive mr-1"></i> Continuous On-Demand Delivery</span>
-                      <span class="notice-badge"><i class="mdi mdi-wallet-outline mr-1"></i> Partner Center Token Redemption</span>
-                      <span class="notice-badge"><i class="mdi mdi-calendar-clock mr-1"></i> Flexible Center Scheduling</span>
-                      <span class="notice-badge"><i class="mdi mdi-file-certificate-outline mr-1"></i> Automated GSFIN Credentials</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="form-group">
+                <div class="form-group mt-4">
                   <label class="form-label">Exam Cover Artwork</label>
                   
                   <!-- Hidden native file input -->
@@ -309,14 +274,14 @@
               </div>
             </div>
 
-            <!-- Section 3: Simulator Rules & Integrity -->
+            <!-- Section 2: Simulator Rules & Integrity -->
             <div class="form-card mb-6">
               <div class="card-header-wrap">
                 <div class="card-icon-box bg-purple-50 text-purple-600">
                   <v-icon icon="mdi-tune-variant" size="20" color="#9333EA"></v-icon>
                 </div>
                 <div>
-                  <h3 class="card-title">3. Test Simulator & Proctoring Settings</h3>
+                  <h3 class="card-title">2. Test Simulator & Proctoring Settings</h3>
                   <p class="card-subtitle">Configure question ordering, explanations, retakes, and tab monitoring.</p>
                 </div>
               </div>
@@ -1612,67 +1577,6 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
-}
-
-/* Certifying Authority Delivery Model Banner */
-.delivery-model-notice {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 18px 20px;
-  background-color: #F0FDF4;
-  border: 1px solid #BBF7D0;
-  border-radius: 14px;
-}
-
-.notice-icon-wrap {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background-color: #DCFCE7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.notice-text-wrap {
-  flex: 1;
-  min-width: 0;
-}
-
-.notice-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #166534;
-  margin-bottom: 4px;
-}
-
-.notice-desc {
-  font-size: 0.8rem;
-  line-height: 1.5;
-  color: #15803D;
-  margin: 0 0 12px 0;
-  font-weight: 500;
-}
-
-.notice-badges {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.notice-badge {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 9999px;
-  background-color: #FFFFFF;
-  color: #166534;
-  border: 1px solid #86EFAC;
 }
 
 /* Authority Hub Quick Navigation Links */
