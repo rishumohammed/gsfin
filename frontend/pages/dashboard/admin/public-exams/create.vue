@@ -1,50 +1,45 @@
 <template>
   <div class="exam-create-page min-h-screen pb-16" style="background-color: #FAFAFD;">
     <!-- Page Header -->
-    <div class="bg-white border-b border-slate-200/80 shadow-xs mb-8">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div class="d-flex align-center justify-space-between flex-wrap gap-4">
-          <div class="d-flex align-center gap-4">
-            <v-btn
+    <div class="exam-header-bar mb-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="header-inner-row">
+          <!-- Left: Back Button + Title & Subtitle -->
+          <div class="header-left-col">
+            <NuxtLink
               to="/dashboard/admin/public-exams"
-              icon="mdi-arrow-left"
-              variant="outlined"
-              color="slate"
-              size="small"
-              class="rounded-xl border-slate-300"
+              class="btn-header-back"
               title="Back to All Exams"
-            />
-            <div>
-              <div class="d-flex align-center gap-2 mb-1 flex-wrap">
-                <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
-                  {{ isEditMode ? 'Edit Certification Exam' : 'Create Certification Exam' }}
-                </h1>
-              </div>
-              <p class="text-xs sm:text-sm text-slate-500 font-medium">
+            >
+              <i class="mdi mdi-arrow-left"></i>
+            </NuxtLink>
+            <div class="header-titles">
+              <h1 class="header-page-title">
+                {{ isEditMode ? 'Edit Certification Exam' : 'Create Certification Exam' }}
+              </h1>
+              <p class="header-page-subtitle">
                 {{ isEditMode ? 'Modify qualification curriculum, passing criteria, and proctoring rules for this exam.' : 'Set up certification course standards, question parameters, proctoring options, and credential rules for Partner Centers.' }}
               </p>
             </div>
           </div>
 
-          <div class="d-flex align-center gap-3">
-            <v-btn
-              variant="outlined"
-              color="slate"
-              class="text-none font-semibold rounded-xl border-slate-300 text-slate-700 me-3 mr-3"
+          <!-- Right: Action Buttons -->
+          <div class="header-actions-col">
+            <NuxtLink
               to="/dashboard/admin/public-exams"
+              class="btn-header-cancel"
             >
               Cancel
-            </v-btn>
-            <v-btn
-              color="#E31B23"
-              size="large"
-              class="font-semibold text-white text-none rounded-xl shadow-md hover:bg-red-700"
-              prepend-icon="mdi-check-circle-outline"
-              :loading="saving"
+            </NuxtLink>
+            <button
+              type="button"
+              class="btn-header-save"
+              :disabled="saving"
               @click="saveExam"
             >
-              {{ isEditMode ? 'Save Settings' : 'Create Exam' }}
-            </v-btn>
+              <i :class="['mdi', saving ? 'mdi-loading spin-icon' : (isEditMode ? 'mdi-content-save-outline' : 'mdi-check-circle-outline')]"></i>
+              <span>{{ isEditMode ? 'Save Settings' : 'Create Exam' }}</span>
+            </button>
           </div>
         </div>
       </div>
@@ -981,6 +976,138 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Top Page Header Bar */
+.exam-header-bar {
+  background: #FFFFFF;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 20px 0;
+}
+
+.header-inner-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.header-left-col {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-header-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid #CBD5E1;
+  background-color: #FFFFFF;
+  color: #334155;
+  font-size: 1.25rem;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.btn-header-back:hover {
+  background-color: #F8FAFC;
+  border-color: #94A3B8;
+  color: #0F172A;
+}
+
+.header-titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.header-page-subtitle {
+  font-size: 0.82rem;
+  color: #64748B;
+  margin: 4px 0 0 0;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.header-actions-col {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.btn-header-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1px solid #CBD5E1;
+  background-color: #FFFFFF;
+  color: #334155;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-header-cancel:hover {
+  background-color: #F8FAFC;
+  border-color: #94A3B8;
+  color: #0F172A;
+}
+
+.btn-header-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 12px;
+  background-color: #E31B23;
+  color: #FFFFFF;
+  border: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(227, 27, 35, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-header-save:hover:not(:disabled) {
+  background-color: #C4131B;
+}
+
+.btn-header-save:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .header-inner-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .header-actions-col {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
 .form-card {
   background: #FFFFFF;
   border-radius: 16px;
