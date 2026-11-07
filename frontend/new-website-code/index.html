@@ -1,0 +1,2345 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>GSFIN | Global Standards for Food Industries</title>
+  <meta name="description"
+    content="Global Standards for Food Industries (GSFIN) is an autonomous personnel conformity assessment body operating under international personnel certification standards for food safety, HACCP, and compliance auditors.">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --font-heading: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+      /* Modern Clean Light Tokens */
+      --bg: #ffffff;
+      --bg-alt: #f8fafc;
+      --surf: #ffffff;
+      --surf-glass: rgba(255, 255, 255, 0.92);
+      --tx: #0b132a;
+      --tx-sec: #475569;
+      --mu: #64748b;
+      --bd: #e8ecf2;
+      --bd-hover: #cbd5e1;
+
+      /* Refined Accent */
+      --ac: #e11d2a;
+      --ac-hover: #c8131e;
+      --ac-subtle: rgba(225, 29, 42, 0.05);
+      --ac-glow: rgba(225, 29, 42, 0.2);
+      --ac-gradient: linear-gradient(135deg, #e11d2a 0%, #c8131e 100%);
+
+      /* Status & Luxury Accents */
+      --gold: #d4af37;
+      --gold-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+      --gold-subtle: rgba(212, 175, 55, 0.1);
+      --emerald: #10b981;
+      --emerald-subtle: rgba(16, 185, 129, 0.1);
+
+      /* Subtle Clean Gradients & Shadows */
+      --hero-glow: radial-gradient(1200px 500px at 15% -10%, #f1f5ff, transparent 65%),
+        radial-gradient(900px 450px at 90% 10%, #fff1f2, transparent 65%),
+        radial-gradient(800px 400px at 50% 100%, #f0fdf4, transparent 65%);
+      --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 8px 24px -4px rgba(15, 23, 42, 0.04);
+      --card-shadow-hover: 0 4px 6px -2px rgba(0, 0, 0, 0.02), 0 18px 36px -6px rgba(15, 23, 42, 0.08);
+
+      color-scheme: light;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0b0f19;
+      --bg-alt: #111827;
+      --surf: #162032;
+      --surf-glass: rgba(22, 32, 50, 0.92);
+      --tx: #f8fafc;
+      --tx-sec: #cbd5e1;
+      --mu: #94a3b8;
+      --bd: #1f293d;
+      --bd-hover: #334155;
+
+      --ac: #f2444b;
+      --ac-hover: #ff575d;
+      --ac-subtle: rgba(242, 68, 75, 0.12);
+      --ac-glow: rgba(242, 68, 75, 0.3);
+      --ac-gradient: linear-gradient(135deg, #f2444b 0%, #e11d2a 100%);
+
+      --hero-glow: radial-gradient(1200px 500px at 15% -10%, #151d38, transparent 65%),
+        radial-gradient(900px 450px at 90% 10%, #2a1116, transparent 65%),
+        radial-gradient(800px 400px at 50% 100%, #0d2621, transparent 65%);
+      --card-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4);
+      --card-shadow-hover: 0 18px 36px -4px rgba(0, 0, 0, 0.6);
+
+      color-scheme: dark;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 80px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--tx);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.68;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      font-family: var(--font-heading);
+      color: var(--tx);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.22;
+    }
+
+    .w {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* HEADER & NAVBAR */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 99;
+      background: var(--surf-glass);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid var(--bd);
+      transition: all 0.25s ease;
+    }
+
+    .nav-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+      gap: 16px;
+    }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+    }
+
+    .brand-img {
+      height: 46px;
+      width: auto;
+      display: block;
+    }
+
+    [data-theme="dark"] .brand-img {
+      background: #ffffff;
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    nav a {
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--tx-sec);
+      display: inline-flex;
+      align-items: center;
+      transition: color 0.15s ease;
+      position: relative;
+    }
+
+    nav a:hover {
+      color: var(--tx);
+      background: transparent;
+    }
+
+    nav a.on {
+      font-weight: 600;
+      color: var(--ac);
+      background: transparent;
+    }
+
+    nav a.on::after {
+      content: "";
+      position: absolute;
+      bottom: -2px;
+      left: 14px;
+      right: 14px;
+      height: 2px;
+      background: var(--ac);
+      border-radius: 2px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: 9999px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--font-heading);
+      border: 1px solid var(--bd);
+      background: var(--surf);
+      color: var(--tx);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: var(--tx-sec);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .btn.p {
+      background: var(--ac);
+      color: #ffffff;
+      border-color: var(--ac);
+      box-shadow: 0 3px 10px rgba(225, 29, 42, 0.22);
+    }
+
+    .btn.p:hover {
+      background: var(--ac-hover);
+      border-color: var(--ac-hover);
+      box-shadow: 0 6px 18px rgba(225, 29, 42, 0.35);
+    }
+
+    .btn.sm {
+      padding: 7px 16px;
+      font-size: 13px;
+      border-radius: 9999px;
+    }
+
+    .btn.lg {
+      padding: 13px 28px;
+      font-size: 15px;
+    }
+
+    /* THEME TOGGLE & HAMBURGER */
+    .icon-btn {
+      background: none;
+      border: 1px solid var(--bd);
+      border-radius: 9999px;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--tx-sec);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .icon-btn:hover {
+      background: var(--bg-alt);
+      color: var(--tx);
+    }
+
+    .menu-btn {
+      display: none;
+    }
+
+    /* HERO SECTION */
+    .hero-section {
+      background: var(--hero-glow);
+      padding: 84px 0 76px;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--bd);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      align-items: center;
+      gap: 50px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ac);
+      margin-bottom: 14px;
+    }
+
+    .eyebrow-line {
+      width: 14px;
+      height: 2px;
+      background: var(--ac);
+      border-radius: 2px;
+    }
+
+    h1.hero-title {
+      font-size: clamp(34px, 4.2vw, 52px);
+      line-height: 1.12;
+      margin-bottom: 18px;
+      color: var(--tx);
+    }
+
+    .lead {
+      font-size: 17px;
+      color: var(--tx-sec);
+      line-height: 1.68;
+      margin-bottom: 28px;
+      max-width: 560px;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+
+    /* HERO VISUAL CARD */
+    .hero-visual-card {
+      position: relative;
+    }
+
+    .hero-image-wrap {
+      position: relative;
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.18);
+      border: 1px solid var(--bd);
+    }
+
+    .hero-image-wrap img {
+      width: 100%;
+      height: 100%;
+      aspect-ratio: 16/11;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .hero-image-wrap:hover img {
+      transform: scale(1.03);
+    }
+
+    .floating-pill {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      color: #ffffff;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .floating-pill .live-dot {
+      width: 7px;
+      height: 7px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 6px #10b981;
+    }
+
+    .floating-card-bottom {
+      position: absolute;
+      bottom: -18px;
+      right: -16px;
+      background: var(--surf);
+      padding: 16px 20px;
+      border-radius: 16px;
+      border: 1px solid var(--bd);
+      box-shadow: var(--card-shadow-hover);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      max-width: 310px;
+      animation: float 5s ease-in-out infinite;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-6px);
+      }
+    }
+
+    .floating-card-bottom .seal-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--ac-subtle);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ac);
+      flex-shrink: 0;
+    }
+
+    .floating-card-bottom h5 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .floating-card-bottom p {
+      font-size: 12px;
+      color: var(--mu);
+    }
+
+    /* SECTION STRUCTURE */
+    section.s {
+      padding: 88px 0;
+      position: relative;
+    }
+
+    section.s.alt {
+      background: var(--bg-alt);
+    }
+
+    section.s.bordered {
+      border-top: 1px solid var(--bd);
+      border-bottom: 1px solid var(--bd);
+    }
+
+    .section-head {
+      max-width: 680px;
+      margin-bottom: 44px;
+    }
+
+    .section-head h2 {
+      font-size: clamp(26px, 3vw, 36px);
+      margin-bottom: 10px;
+    }
+
+    .section-head p {
+      font-size: 16px;
+      color: var(--tx-sec);
+      line-height: 1.65;
+    }
+
+    .grid {
+      display: grid;
+      gap: 22px;
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .card {
+      background: var(--surf);
+      border: 1px solid var(--bd);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: var(--card-shadow);
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(225, 29, 42, 0.22);
+      box-shadow: var(--card-shadow-hover);
+    }
+
+    .card-vector-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(225, 29, 42, 0.05);
+      border: 1px solid rgba(225, 29, 42, 0.1);
+      color: var(--ac);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      transition: transform 0.25s ease;
+    }
+
+    .card:hover .card-vector-icon {
+      transform: scale(1.06);
+    }
+
+    .card h3 {
+      font-size: 19px;
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      color: var(--tx-sec);
+      font-size: 14.5px;
+      line-height: 1.62;
+    }
+
+    /* SECTOR IMAGE CARDS */
+    .sector-card {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sector-thumb {
+      height: 180px;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--bd);
+    }
+
+    .sector-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .sector-card:hover .sector-thumb img {
+      transform: scale(1.05);
+    }
+
+    .sector-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .sector-body {
+      padding: 22px;
+      flex-grow: 1;
+    }
+
+    /* ABOUT GOVERNANCE SHOWCASE */
+    .gov-showcase {
+      background: var(--surf);
+      border: 1px solid var(--bd);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      align-items: center;
+      gap: 36px;
+      margin-bottom: 36px;
+      transition: all 0.3s ease;
+    }
+
+    .gov-showcase:hover {
+      box-shadow: var(--card-shadow-hover);
+      border-color: rgba(225, 29, 42, 0.25);
+    }
+
+    .gov-content {
+      padding: 38px 42px;
+    }
+
+    .gov-content h3 {
+      font-size: 24px;
+      margin-bottom: 12px;
+      color: var(--tx);
+    }
+
+    .gov-content p {
+      color: var(--tx-sec);
+      font-size: 15px;
+      line-height: 1.65;
+      margin-bottom: 20px;
+    }
+
+    .gov-points {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .gov-points li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--tx);
+      font-weight: 500;
+    }
+
+    .gov-points svg {
+      color: var(--ac);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .gov-visual {
+      height: 100%;
+      min-height: 320px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .gov-visual img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .gov-showcase:hover .gov-visual img {
+      transform: scale(1.03);
+    }
+
+    .gov-badge {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(8px);
+      color: #ffffff;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 12.5px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* CERTIFICATION PROGRAM CARDS WITH IMAGERY */
+    .program-card {
+      background: var(--surf);
+      border: 1px solid var(--bd);
+      border-radius: 16px;
+      padding: 0 !important;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--card-shadow);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+      position: relative;
+    }
+
+    .program-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(225, 29, 42, 0.28);
+      box-shadow: var(--card-shadow-hover);
+    }
+
+    .program-thumb {
+      height: 160px;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg-alt);
+      border-bottom: 1px solid var(--bd);
+    }
+
+    .program-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .program-card:hover .program-thumb img {
+      transform: scale(1.06);
+    }
+
+    .program-thumb-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      color: #ffffff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .program-body {
+      padding: 22px 20px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      justify-content: space-between;
+    }
+
+    .program-body h3 {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--tx);
+      margin-bottom: 4px;
+      line-height: 1.25;
+    }
+
+    .program-sub {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ac);
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .program-desc {
+      font-size: 13px;
+      color: var(--tx-sec);
+      line-height: 1.58;
+      margin-bottom: 14px;
+      flex-grow: 1;
+    }
+
+    .program-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--bd);
+    }
+
+    .program-tags span {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--mu);
+      background: var(--bg-alt);
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--bd);
+    }
+
+    .program-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid var(--bd);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--tx);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .program-card:hover .program-footer {
+      color: var(--ac);
+    }
+
+    .program-footer svg {
+      transition: transform 0.2s ease;
+    }
+
+    .program-card:hover .program-footer svg {
+      transform: translateX(4px);
+    }
+
+    /* FOUR-STAGE TIMELINE */
+    .steps-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      position: relative;
+      margin-top: 32px;
+    }
+
+    .step-box {
+      background: var(--surf);
+      border: 1px solid var(--bd);
+      border-radius: 14px;
+      padding: 24px 20px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.25s ease;
+    }
+
+    .step-box:hover {
+      transform: translateY(-2px);
+      border-color: rgba(225, 29, 42, 0.3);
+      box-shadow: var(--card-shadow-hover);
+    }
+
+    .step-number {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: var(--ac);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .step-vector {
+      color: var(--mu);
+      transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .step-box:hover .step-vector {
+      color: var(--ac);
+      transform: scale(1.1);
+    }
+
+    .step-box b {
+      display: block;
+      font-size: 16px;
+      font-family: var(--font-heading);
+      margin-bottom: 8px;
+      color: var(--tx);
+      line-height: 1.35;
+    }
+
+    .step-subtext {
+      display: inline-flex;
+      align-items: center;
+      align-self: flex-start;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      color: var(--ac);
+      background: var(--ac-subtle);
+      border: 1px solid rgba(225, 29, 42, 0.18);
+      padding: 3px 9px;
+      border-radius: 6px;
+      margin-bottom: 14px;
+      line-height: 1.3;
+    }
+
+    .step-box p,
+    .step-box .step-desc {
+      font-size: 13.5px;
+      color: var(--mu);
+      line-height: 1.6;
+      margin: 0;
+      flex-grow: 1;
+    }
+
+    /* IMPARTIALITY SHIELD */
+    .shield-banner {
+      background: var(--surf);
+      border: 1px solid var(--bd);
+      border-left: 4px solid var(--ac);
+      border-radius: 14px;
+      padding: 30px 34px;
+      display: flex;
+      align-items: flex-start;
+      gap: 22px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .shield-icon-wrap {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: rgba(225, 29, 42, 0.05);
+      border: 1px solid rgba(225, 29, 42, 0.1);
+      color: var(--ac);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .shield-content h3 {
+      font-size: 20px;
+      margin-bottom: 8px;
+      color: var(--tx);
+    }
+
+    .shield-content p {
+      color: var(--tx-sec);
+      font-size: 14.5px;
+      line-height: 1.65;
+    }
+
+    /* VERIFICATION PORTAL SECTION */
+    .portal-card {
+      background: var(--surf);
+      border: 1px solid var(--bd);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .portal-card:hover {
+      box-shadow: 0 24px 50px -12px rgba(15, 23, 42, 0.12);
+      border-color: rgba(225, 29, 42, 0.25);
+    }
+
+    .portal-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 0.95fr;
+      align-items: center;
+      gap: 40px;
+      padding: 44px;
+    }
+
+    .portal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--emerald);
+      background: var(--emerald-subtle);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 5px 13px;
+      border-radius: 9999px;
+      margin-bottom: 16px;
+    }
+
+    .portal-content h3 {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--tx);
+      margin-bottom: 12px;
+      line-height: 1.25;
+    }
+
+    .portal-content p {
+      color: var(--tx-sec);
+      font-size: 15px;
+      line-height: 1.65;
+      margin-bottom: 22px;
+    }
+
+    .portal-features {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 26px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .portal-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--tx);
+      font-weight: 500;
+      line-height: 1.45;
+    }
+
+    .portal-features svg {
+      color: var(--ac);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .portal-meta-note {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      font-size: 13.5px;
+      color: var(--mu);
+    }
+
+    .portal-meta-note svg {
+      color: var(--emerald);
+      flex-shrink: 0;
+    }
+
+    .portal-meta-note a {
+      color: var(--tx-sec);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      font-weight: 600;
+    }
+
+    .portal-meta-note a:hover {
+      color: var(--ac);
+    }
+
+    .portal-preview {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid var(--bd);
+      background: var(--bg-alt);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08);
+    }
+
+    .portal-preview img {
+      width: 100%;
+      height: 100%;
+      aspect-ratio: 16/11;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .portal-preview:hover img {
+      transform: scale(1.03);
+    }
+
+    .portal-preview-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0) 50%, rgba(15, 23, 42, 0.85) 100%);
+      pointer-events: none;
+    }
+
+    .portal-preview-caption {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      right: 14px;
+      color: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .portal-security-bar {
+      padding: 16px 44px;
+      background: var(--bg-alt);
+      border-top: 1px solid var(--bd);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--mu);
+    }
+
+    .portal-security-bar strong {
+      color: var(--tx);
+    }
+
+    select {
+      width: 100%;
+      padding: 13px 18px 13px 20px;
+      border-radius: 9999px;
+      border: 1px solid var(--bd);
+      background: var(--surf);
+      color: var(--tx);
+      font-family: inherit;
+      font-size: 14.5px;
+      transition: all 0.2s;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: var(--ac);
+      box-shadow: 0 0 0 3px rgba(225, 29, 42, 0.1);
+    }
+
+    /* LISTS & TAGS */
+    ul.c {
+      padding-left: 18px;
+      color: var(--tx-sec);
+      margin: 12px 0;
+    }
+
+    ul.c li {
+      margin: 6px 0;
+      font-size: 14.5px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 9999px;
+      background: var(--bg-alt);
+      color: var(--tx-sec);
+      border: 1px solid var(--bd);
+    }
+
+    /* BACK TO TOP BUTTON */
+    .back-to-top {
+      position: fixed;
+      bottom: 26px;
+      right: 26px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--surf);
+      border: 1px solid var(--bd);
+      color: var(--tx);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 90;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+    }
+
+    .back-to-top.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .back-to-top:hover {
+      background: var(--ac);
+      color: #ffffff;
+      border-color: var(--ac);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px var(--ac-glow);
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--surf);
+      border-top: 1px solid var(--bd);
+      padding: 68px 0 34px;
+      color: var(--tx-sec);
+      font-size: 14px;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 36px;
+      margin-bottom: 44px;
+    }
+
+    .footer-brand p {
+      color: var(--mu);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-top: 14px;
+      max-width: 320px;
+    }
+
+    .footer-col h4 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--tx);
+    }
+
+    .footer-col a {
+      display: block;
+      padding: 5px 0;
+      color: var(--mu);
+      transition: all 0.15s;
+    }
+
+    .footer-col a:hover {
+      color: var(--ac);
+      transform: translateX(2px);
+    }
+
+    .footer-bottom {
+      padding-top: 22px;
+      border-top: 1px solid var(--bd);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      font-size: 13px;
+      color: var(--mu);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 36px;
+      }
+
+      .floating-card-bottom {
+        position: relative;
+        bottom: auto;
+        right: auto;
+        margin-top: 16px;
+        max-width: 100%;
+      }
+
+      .steps-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .footer-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .portal-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+        padding: 32px;
+      }
+
+      .gov-showcase {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+
+      .gov-visual {
+        height: 280px;
+        min-height: 280px;
+      }
+
+      .scheme-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .scheme-image-wrap {
+        height: 220px;
+        min-height: 220px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-container nav {
+        display: none;
+        position: absolute;
+        top: 72px;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        background: var(--surf);
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--bd);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+      }
+
+      .nav-container nav.o {
+        display: flex;
+      }
+
+      .menu-btn {
+        display: flex;
+      }
+
+      .hb {
+        display: none;
+      }
+
+      .steps-container {
+        grid-template-columns: 1fr;
+      }
+
+      .grid-3,
+      .grid-2,
+      .grid-4 {
+        grid-template-columns: 1fr;
+      }
+
+      .portal-grid {
+        padding: 24px 18px;
+      }
+
+      .portal-security-bar {
+        padding: 14px 18px;
+      }
+
+      .gov-content {
+        padding: 24px 20px;
+      }
+
+      .scheme-content-wrap {
+        padding: 22px 18px;
+      }
+
+      .footer-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SVG SYMBOL SPRITE -->
+  <svg style="display:none;" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Shield Check -->
+      <g id="v-shield-check">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" />
+        <path d="m9 12 2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </g>
+      <!-- Scale of Justice / Impartiality -->
+      <g id="v-scale">
+        <path d="m16 16 3-8 3 8a3 3 0 0 1-6 0zM2 16l3-8 3 8a3 3 0 0 1-6 0zM7 21h10M12 3v18M3 7h18" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </g>
+      <!-- Target / Psychometrics -->
+      <g id="v-target">
+        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" />
+        <circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2" />
+        <circle cx="12" cy="12" r="2" fill="currentColor" />
+      </g>
+      <!-- Globe / Global Portability -->
+      <g id="v-globe">
+        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+          fill="none" stroke="currentColor" stroke-width="2" />
+      </g>
+      <!-- Checklist -->
+      <g id="v-checklist">
+        <path d="M9 11l3 3L22 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" />
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" />
+      </g>
+      <!-- Fingerprint / Biometric -->
+      <g id="v-fingerprint">
+        <path
+          d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4M14 13.12c0 2.38 0 6.38-1 8.88M2 12a10 10 0 0 1 18-6M2 16a14 14 0 0 1 4-10M16 17a14 14 0 0 1-2 5M10 20a10 10 0 0 0 2-8 2 2 0 0 1 4 0 7 7 0 0 1-.36 2.22"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </g>
+      <!-- CCTV Camera -->
+      <g id="v-camera">
+        <path d="M2 10h15a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3H2l3-8z" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M7 10v6M12 10v6M17 13l5-3v8l-5-3M7 21h4M9 18v3" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" />
+      </g>
+      <!-- Lock / Offline Encrypted -->
+      <g id="v-lock">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke="currentColor" stroke-width="2" />
+      </g>
+      <!-- Acoustic Barrier -->
+      <g id="v-sound">
+        <path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </g>
+      <!-- Award / Gold Seal -->
+      <g id="v-award">
+        <circle cx="12" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" />
+      </g>
+      <!-- Search Magnifier -->
+      <g id="v-search">
+        <circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="m21 21-4.35-4.35" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </g>
+      <!-- QR Code Vector -->
+      <g id="v-qr">
+        <rect x="3" y="3" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2" />
+        <rect x="14" y="3" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2" />
+        <rect x="3" y="14" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="M14 14h3v3h-3zM18 18h3v3h-3zM14 21h3M21 14v3" fill="none" stroke="currentColor" stroke-width="2" />
+      </g>
+      <!-- Sun -->
+      <g id="v-sun">
+        <circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2" />
+        <path
+          d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </g>
+      <!-- Moon -->
+      <g id="v-moon">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" />
+      </g>
+      <!-- Arrow Up -->
+      <g id="v-arrow-up">
+        <path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </g>
+      <!-- Arrow Right -->
+      <g id="v-arrow-right">
+        <path d="M5 12h14M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </g>
+      <!-- Flask / Laboratory -->
+      <g id="v-flask">
+        <path d="M10 2v5.5L4.4 18.2A2 2 0 0 0 6.1 21h11.8a2 2 0 0 0 1.7-2.8L14 7.5V2" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M8.5 2h7M7 16h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </g>
+    </defs>
+  </svg>
+
+  <!-- HEADER & NAVBAR (ONE-PAGE SCROLL) -->
+  <header>
+    <div class="w nav-container">
+      <a href="#hero" class="logo-group" aria-label="GSFIN home">
+        <img class="brand-img" src="assets/images/logo.png" alt="GSFIN Logo">
+      </a>
+
+      <nav id="nav">
+        <a href="#hero" class="nav-link on">Home</a>
+        <a href="#about" class="nav-link">About Us</a>
+        <a href="#schemes" class="nav-link">Certifications</a>
+        <a href="#process" class="nav-link">How It Works</a>
+        <a href="#verify" class="nav-link">Verify Certificate</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="icon-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+          <svg id="theme-icon" width="18" height="18" viewBox="0 0 24 24">
+            <use href="#v-moon" />
+          </svg>
+        </button>
+        <a class="btn p hb" href="#process">Apply Now</a>
+        <button class="icon-btn menu-btn" onclick="document.getElementById('nav').classList.toggle('o')"
+          aria-label="Open menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ================== SECTION 1: HERO ================== -->
+    <section class="hero-section" id="hero">
+      <div class="w hero-grid">
+        <div>
+          <div class="eyebrow">
+            <span class="eyebrow-line"></span>
+            GLOBAL STANDARDS & CERTIFICATION FRAMEWORK
+          </div>
+          <h1 class="hero-title">Validating Professional Competence.Establishing Global Trust</h1>
+          <!-- <p class="lead">GSFIN delivers independent third-party personnel certification in strict conformance with
+            international conformity assessment standards. We establish objective competency benchmarks that empower food safety
+            practitioners and safeguard industry integrity.
+          </p> -->
+
+          <div class="row">
+            <a class="btn p" href="#schemes">
+              Explore Certifications
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+
+        </div>
+
+        <!-- Hero Visual with Modern Food Safety Facility & Floating Badges -->
+        <div class="hero-visual-card">
+          <div class="hero-image-wrap">
+            <img src="assets/images/hero_auditor.jpg"
+              alt="High-standards food safety inspection and conformity assessment in modern production facility">
+            <div class="floating-pill">
+              <span class="live-dot"></span>
+              <span>Certification Assessment In Progress</span>
+            </div>
+          </div>
+          <div class="floating-card-bottom">
+            <div class="seal-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <use href="#v-shield-check" />
+              </svg>
+            </div>
+            <div>
+              <h5>Verified Personnel Certification</h5>
+              <p>Conformity Assessment &bull; Active Standard</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================== SECTION 2: VALUE PILLARS & SECTORS ================== -->
+    <section class="s alt bordered" id="pillars">
+      <div class="w">
+        <div class="section-head">
+          <div class="eyebrow"><span class="eyebrow-line"></span>Core Foundations</div>
+          <h2>The GSFIN Value Pillars</h2>
+          <p>Committed to fair assessments, practical industry standards, and internationally respected credentials.</p>
+        </div>
+        <div class="grid grid-3">
+          <div class="card">
+            <div class="card-vector-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24">
+                <use href="#v-scale" />
+              </svg>
+            </div>
+            <h3>Pillar 1: Impartial &amp; Transparent</h3>
+            <p>Our certification decisions are made independently of training delivery, ensuring a fair,
+              objective evaluation of each candidate’s demonstrated capability.</p>
+          </div>
+          <div class="card">
+            <div class="card-vector-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24">
+                <use href="#v-target" />
+              </svg>
+            </div>
+            <h3>Pillar 2: Practical Competence Focus</h3>
+            <p>Assessments are built around real-world industry tasks, core regulatory requirements, and
+              established workplace standards to verify applied knowledge.</p>
+          </div>
+          <div class="card">
+            <div class="card-vector-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24">
+                <use href="#v-globe" />
+              </svg>
+            </div>
+            <h3>Pillar 3: Professional Portability</h3>
+            <p>Structured to reflect international conformity assessment best practices, providing clear
+              evidence of capability recognized by employers and clients across borders.</p>
+          </div>
+        </div>
+
+        <!-- Critical Sectors -->
+        <div class="section-head" style="margin-top: 76px;">
+          <div class="eyebrow"><span class="eyebrow-line"></span>Industry Impact</div>
+          <h2>Focus Industry Sectors</h2>
+          <p>Setting competency benchmarks for professionals across vital global operations.</p>
+        </div>
+        <div class="grid grid-4">
+          <div class="card sector-card">
+            <div class="sector-thumb">
+              <img src="assets/images/sector_food_safety.jpg"
+                alt="Food Chain Safety and Automated Bottling Facility Inspection">
+              <span class="sector-badge">ISO 22000</span>
+            </div>
+            <div class="sector-body">
+              <h3>Food Chain Safety &amp; Processing</h3>
+              <p>Validating the competence of professionals who design, implement, and verify food safety
+                management systems, HACCP plans, and hygiene controls across the supply chain.
+              </p>
+            </div>
+          </div>
+
+          <div class="card sector-card">
+            <div class="sector-thumb">
+              <img src="assets/images/lab_testing.jpg" alt="Quality Control and Microbiology Laboratory Testing">
+              <span class="sector-badge">ISO 9001 / 17025</span>
+            </div>
+            <div class="sector-body">
+              <h3>Quality &amp; Technical compliance</h3>
+              <p>Certifying practitioners responsible for internal auditing, continuous quality verification,
+                and management system conformance across industrial environments.</p>
+            </div>
+          </div>
+
+          <div class="card sector-card">
+            <div class="sector-thumb">
+              <img src="assets/images/sector_health_safety.jpg"
+                alt="Occupational Plant Health and Safety Officer Inspection">
+              <span class="sector-badge">ISO 45001</span>
+            </div>
+            <div class="sector-body">
+              <h3>Workplace Health &amp; Industrial Safety</h3>
+              <p>Verification of competencies in plant safety, hazard mitigation, and environmental compliance
+                governance.</p>
+            </div>
+          </div>
+
+          <div class="card sector-card">
+            <div class="sector-thumb">
+              <img src="assets/images/sector_industrial_hygiene.jpg"
+                alt="Industrial Hygiene Swab Testing and Sanitation Audit">
+              <span class="sector-badge">ISO 19011</span>
+            </div>
+            <div class="sector-body">
+              <h3>Hospitality &amp; Commercial Catering</h3>
+              <p>Standardizing hygiene protocols, kitchen safety verification, and operational compliance for
+                hospitality and institutional food service providers.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Institutional Impartiality Statement Shield -->
+        <div class="shield-banner" style="margin-top: 56px;">
+          <div class="shield-icon-wrap">
+            <svg width="28" height="28" viewBox="0 0 24 24">
+              <use href="#v-shield-check" />
+            </svg>
+          </div>
+          <div class="shield-content">
+            <h3>Institutional Impartiality Commitment</h3>
+            <p>GSFIN structures its personnel certification governance, schemes, and assessment procedures in
+              alignment with international conformity assessment standards and personnel certification principles. GSFIN does not deliver preparatory
+              training courses, does not require completion of specific commercial training programs as a mandatory
+              prerequisite for certification, and does not state or imply that certification can be simplified,
+              expedited, or guaranteed through any third-party training vendor.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================== SECTION 3: ABOUT US ================== -->
+    <section class="s" id="about">
+      <div class="w">
+        <!-- 1. Institutional Mandate (About GSFIN) -->
+        <div class="section-head">
+          <div class="eyebrow"><span class="eyebrow-line"></span>About GSFIN</div>
+          <h2>Institutional Mandate</h2>
+          <p>GSFIN operates as an independent Personnel Certification Body establishing objective competency benchmarks and administering standardized assessments to validate professionals across vital technical industries.</p>
+        </div>
+
+        <!-- Governance Showcase Feature -->
+        <div class="gov-showcase">
+          <div class="gov-content">
+            <span class="portal-badge">
+              <span class="live-dot"></span>
+              Institutional Mandate
+            </span>
+            <h3>Independent Competency Benchmarks</h3>
+            <p>GSFIN operates as an independent Personnel Certification Body establishing objective competency benchmarks and administering standardized assessments to validate professionals across vital technical industries.</p>
+
+            <ul class="gov-points">
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                  <use href="#v-scale" />
+                </svg>
+                <span>Objective, empirical competency benchmarks aligned with international personnel certification standards</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                  <use href="#v-target" />
+                </svg>
+                <span>Standardized, psychometrically validated assessments across technical industries</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                  <use href="#v-shield-check" />
+                </svg>
+                <span>Complete operational separation with zero commercial training interests</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="gov-visual">
+            <img src="assets/images/about_governance.jpg" alt="GSFIN International Governance Committee Board Review">
+            <div class="gov-badge">
+              <span>Personnel Certification Body</span>
+              <span style="color: var(--gold); font-weight: 700;">100% Impartial</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Governance Architecture (The Neutrality Structure) -->
+        <div style="margin-top: 52px; margin-bottom: 24px;">
+          <div class="eyebrow"><span class="eyebrow-line"></span>The Neutrality Structure</div>
+          <h2 style="font-size: 28px; margin-top: 6px; margin-bottom: 10px;">Governance Architecture</h2>
+          <p style="color: var(--mu); font-size: 15px; max-width: 680px;">A robust multi-tier neutrality structure guaranteeing complete operational separation between governance, standards development, examination delivery, and certification awards.</p>
+        </div>
+
+        <div class="grid grid-4">
+          <div class="card" style="display: flex; flex-direction: column;">
+            <div class="card-vector-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <use href="#v-scale" />
+              </svg>
+            </div>
+            <div class="step-subtext" style="margin-bottom: 10px;">Strategic Oversight</div>
+            <h3 style="font-size: 17px; margin-bottom: 8px;">Governing Body</h3>
+            <p style="font-size: 13.5px; color: var(--mu); line-height: 1.6; margin: 0; flex-grow: 1;">Guides strategic resources and legal compliance without involvement in technical exam decisions.</p>
+          </div>
+
+          <div class="card" style="display: flex; flex-direction: column;">
+            <div class="card-vector-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <use href="#v-shield-check" />
+              </svg>
+            </div>
+            <div class="step-subtext" style="margin-bottom: 10px;">Clause 4.3</div>
+            <h3 style="font-size: 17px; margin-bottom: 8px;">Independent Impartiality Committee</h3>
+            <p style="font-size: 13.5px; color: var(--mu); line-height: 1.6; margin: 0; flex-grow: 1;">A balanced panel of external industry practitioners and regulatory stakeholders that oversees assessment neutrality and conflict-of-interest safeguards (Clause 4.3).</p>
+          </div>
+
+          <div class="card" style="display: flex; flex-direction: column;">
+            <div class="card-vector-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <use href="#v-checklist" />
+              </svg>
+            </div>
+            <div class="step-subtext" style="margin-bottom: 10px;">Clause 8</div>
+            <h3 style="font-size: 17px; margin-bottom: 8px;">Scheme Committees</h3>
+            <p style="font-size: 13.5px; color: var(--mu); line-height: 1.6; margin: 0; flex-grow: 1;">Technical committees responsible for defining prerequisites, job role competencies, and exam blueprints without commercial vendor influence (Clause 8).</p>
+          </div>
+
+          <div class="card" style="display: flex; flex-direction: column;">
+            <div class="card-vector-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <use href="#v-award" />
+              </svg>
+            </div>
+            <div class="step-subtext" style="margin-bottom: 10px;">Clause 9.5</div>
+            <h3 style="font-size: 17px; margin-bottom: 8px;">Independent Decision Unit</h3>
+            <p style="font-size: 13.5px; color: var(--mu); line-height: 1.6; margin: 0; flex-grow: 1;">Authorized evaluators making final certification determinations completely separate from test administration or training activities (Clause 9.5).</p>
+          </div>
+        </div>
+
+        <!-- 3. Commitment to Impartiality Public Declaration -->
+        <div class="shield-banner" style="margin-top: 40px;">
+          <div class="shield-icon-wrap">
+            <svg width="28" height="28" viewBox="0 0 24 24">
+              <use href="#v-shield-check" />
+            </svg>
+          </div>
+          <div class="shield-content">
+            <div class="eyebrow" style="color: var(--ac); margin-bottom: 6px;"><span class="eyebrow-line" style="background: var(--ac);"></span>Public Declaration</div>
+            <h3 style="font-size: 22px; margin-bottom: 10px;">Commitment to Impartiality</h3>
+            <p style="font-size: 15.5px; line-height: 1.7; color: var(--tx); font-weight: 500;">
+              &ldquo;GSFIN management understands the critical importance of impartiality in carrying out personnel certification. We ensure open access to all qualified applicants, prevent conflicts of interest, and maintain strict operational separation from external training programs.&rdquo;
+            </p>
+          </div>
+        </div>
+
+        <!-- Due Process: Appeals & Complaints -->
+        <div class="grid grid-2" style="margin-top: 32px;">
+          <div class="card">
+            <div class="card-vector-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <use href="#v-scale" />
+              </svg>
+            </div>
+            <h3>Appeals Procedure</h3>
+            <p>Any applicant or certified professional may formally challenge an adverse decision (e.g., examination
+              failure, suspension, or denial of eligibility). Appeals are investigated by an independent ad-hoc tribunal
+              with zero prior involvement in the evaluation.</p>
+            <div style="margin-top: 18px;">
+              <button class="btn sm"
+                onclick="alert('GSFIN-POL-APP-04 Appeals Procedure (PDF) documentation placeholder.')">
+                Download Appeal Procedure (PDF)
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-vector-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <use href="#v-shield-check" />
+              </svg>
+            </div>
+            <h3>Complaints Handling</h3>
+            <p>Any stakeholder may file a complaint regarding the ethical conduct of a GSFIN-certified person or the
+              operational standards of our personnel. All complaints trigger a documented, confidential inquiry tracked
+              to formal resolution.</p>
+            <div style="margin-top: 18px;">
+              <button class="btn sm" onclick="alert('Opening GSFIN Secure Ethics Submission Portal')">
+                Access Ethics Submission Portal
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================== SECTION 4: CERTIFICATIONS ================== -->
+    <section class="s alt bordered" id="schemes">
+      <div class="w">
+        <div class="section-head">
+          <div class="eyebrow"><span class="eyebrow-line"></span>Professional Certifications</div>
+          <h2>Our Certification Programs</h2>
+          <p>Industry-recognized personnel certification schemes covering food safety, HACCP, ISO management systems,
+            and laboratory conformity, governed under international personnel certification standards.</p>
+        </div>
+
+        <div class="grid grid-4">
+          <!-- 1. GMP & GHP -->
+          <div class="card program-card">
+            <div class="program-thumb">
+              <img src="assets/images/prog_gmp.jpg" alt="GMP & GHP Sanitation and Food Processing Hygiene Inspection">
+              <span class="program-thumb-badge">Prerequisite</span>
+            </div>
+            <div class="program-body">
+              <div>
+                <h3>GMP &amp; GHP</h3>
+                <div class="program-sub">Good Manufacturing &amp; Hygiene Practices</div>
+                <p class="program-desc">Validates personnel competency in facility sanitation, prerequisite programs
+                  (PRPs), personal hygiene controls, and contamination prevention protocols.</p>
+                <div class="program-tags">
+                  <span>Sanitary Controls</span>
+                  <span>PRP Compliance</span>
+                  <span>Hygiene Audits</span>
+                </div>
+              </div>
+              <a href="#process" class="program-footer">
+                <span>Certification Workflow</span>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <use href="#v-arrow-right" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- 2. HACCP -->
+          <div class="card program-card">
+            <div class="program-thumb">
+              <img src="assets/images/scheme_haccp.jpg"
+                alt="Certified HACCP Practitioner Conducting Critical Control Point Monitoring">
+              <span class="program-thumb-badge">Hazard Control</span>
+            </div>
+            <div class="program-body">
+              <div>
+                <h3>HACCP</h3>
+                <div class="program-sub">Hazard Analysis Critical Control Points</div>
+                <p class="program-desc">Certification of practitioners leading hazard identification, critical control
+                  point (CCP) determination, monitoring systems, and validation procedures.</p>
+                <div class="program-tags">
+                  <span>Hazard Analysis</span>
+                  <span>CCP Monitoring</span>
+                  <span>Codex Principles</span>
+                </div>
+              </div>
+              <a href="#process" class="program-footer">
+                <span>Certification Workflow</span>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <use href="#v-arrow-right" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- 3. ISO 22000:2018 -->
+          <div class="card program-card">
+            <div class="program-thumb">
+              <img src="assets/images/scheme_fsms.jpg" alt="Certified FSMS Lead Auditor Production Facility Assessment">
+              <span class="program-thumb-badge">Management Systems</span>
+            </div>
+            <div class="program-body">
+              <div>
+                <h3>ISO 22000:2018</h3>
+                <div class="program-sub">Food Safety Management Systems</div>
+                <p class="program-desc">International qualification for lead auditors and system implementers governing
+                  food chain safety, interactive communication, and prerequisite programs.</p>
+                <div class="program-tags">
+                  <span>FSMS Auditing</span>
+                  <span>Traceability</span>
+                  <span>ISO 19011</span>
+                </div>
+              </div>
+              <a href="#process" class="program-footer">
+                <span>Certification Workflow</span>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <use href="#v-arrow-right" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- 4. Food Safety -->
+          <div class="card program-card">
+            <div class="program-thumb">
+              <img src="assets/images/prog_food_safety.jpg"
+                alt="Food Safety Quality Assurance Specialist Packaged Product Inspection">
+              <span class="program-thumb-badge">Core Defense</span>
+            </div>
+            <div class="program-body">
+              <div>
+                <h3>Food Safety</h3>
+                <div class="program-sub">Food Safety &amp; Quality Assurance</div>
+                <p class="program-desc">Comprehensive evaluation of food safety officers managing biological, chemical,
+                  and physical risk mitigation across food processing and manufacturing.</p>
+                <div class="program-tags">
+                  <span>Risk Mitigation</span>
+                  <span>Quality Assurance</span>
+                  <span>Facility Safety</span>
+                </div>
+              </div>
+              <a href="#process" class="program-footer">
+                <span>Certification Workflow</span>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <use href="#v-arrow-right" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- 5. ISO 17025:2017 -->
+          <div class="card program-card">
+            <div class="program-thumb">
+              <img src="assets/images/prog_iso17025.jpg"
+                alt="Testing and Calibration Laboratory Specialist Operating Precision Analytical Equipment">
+              <span class="program-thumb-badge">Laboratory</span>
+            </div>
+            <div class="program-body">
+              <div>
+                <h3>ISO 17025:2017</h3>
+                <div class="program-sub">Testing &amp; Calibration Laboratories</div>
+                <p class="program-desc">Validates technical competence for laboratory analysts, calibration specialists,
+                  and quality managers ensuring empirical measurement accuracy and testing integrity.</p>
+                <div class="program-tags">
+                  <span>Testing Accuracy</span>
+                  <span>Calibration</span>
+                  <span>Method Validation</span>
+                </div>
+              </div>
+              <a href="#process" class="program-footer">
+                <span>Certification Workflow</span>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <use href="#v-arrow-right" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- 6. ISO 9001:2026 -->
+          <div class="card program-card">
+            <div class="program-thumb">
+              <img src="assets/images/prog_iso9001.jpg"
+                alt="Quality Management Systems Auditor Reviewing Production Metrics with Plant Manager">
+              <span class="program-thumb-badge">Quality Systems</span>
+            </div>
+            <div class="program-body">
+              <div>
+                <h3>ISO 9001:2026</h3>
+                <div class="program-sub">Quality Management Systems</div>
+                <p class="program-desc">Verification of competencies in organizational quality management, process
+                  optimization, risk-based thinking, and continuous conformity improvement.</p>
+                <div class="program-tags">
+                  <span>QMS Auditing</span>
+                  <span>Process Control</span>
+                  <span>Continuous Improvement</span>
+                </div>
+              </div>
+              <a href="#process" class="program-footer">
+                <span>Certification Workflow</span>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <use href="#v-arrow-right" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- 7. FSSC 22000 -->
+          <div class="card program-card">
+            <div class="program-thumb">
+              <img src="assets/images/prog_fssc22000.jpg"
+                alt="Food Safety Auditor Conducting Compliance Assessment in Automated Bottling Facility">
+              <span class="program-thumb-badge">GFSI Benchmark</span>
+            </div>
+            <div class="program-body">
+              <div>
+                <h3>FSSC 22000</h3>
+                <div class="program-sub">Food Safety System Certification</div>
+                <p class="program-desc">Rigorous credential for lead auditors and food industry professionals operating
+                  under GFSI-benchmarked requirements for processing and packaging.</p>
+                <div class="program-tags">
+                  <span>GFSI Benchmark</span>
+                  <span>Scheme Integrity</span>
+                  <span>Food Defense</span>
+                </div>
+              </div>
+              <a href="#process" class="program-footer">
+                <span>Certification Workflow</span>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <use href="#v-arrow-right" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- 8. BRCGS -->
+          <div class="card program-card">
+            <div class="program-thumb">
+              <img src="assets/images/prog_brcgs.jpg"
+                alt="Packaging and Storage Warehouse Compliance Inspector Examining Palletized Goods">
+              <span class="program-thumb-badge">Global Standard</span>
+            </div>
+            <div class="program-body">
+              <div>
+                <h3>BRCGS</h3>
+                <div class="program-sub">Brand Reputation Compliance Global Standard</div>
+                <p class="program-desc">Competency certification for specialists implementing and auditing benchmarked
+                  global standards for food safety, packaging materials, and storage logistics.</p>
+                <div class="program-tags">
+                  <span>BRCGS Standards</span>
+                  <span>Packaging &amp; Storage</span>
+                  <span>Supplier Integrity</span>
+                </div>
+              </div>
+              <a href="#process" class="program-footer">
+                <span>Certification Workflow</span>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <use href="#v-arrow-right" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================== SECTION 5: HOW IT WORKS ================== -->
+    <section class="s" id="process">
+      <div class="w">
+        <div class="section-head">
+          <div class="eyebrow"><span class="eyebrow-line"></span>Step-by-Step Guide</div>
+          <h2>How Certification Works</h2>
+          <p>A simple, transparent 4-stage journey from application review to ongoing recertification.
+          </p>
+        </div>
+
+        <!-- 4-Stage Workflow -->
+        <div class="steps-container" style="margin-top: 0; margin-bottom: 36px;">
+          <div class="step-box">
+            <div class="step-number"><span>STAGE 01</span><svg class="step-vector" width="18" height="18"
+                viewBox="0 0 24 24">
+                <use href="#v-checklist" />
+              </svg></div>
+            <b>Application &amp; Eligibility Review</b>
+            <div class="step-subtext">Governed by Clause 9.1</div>
+            <p class="step-desc">Candidates submit verifiable documentation of their educational background,
+              professional experience, and signed commitment to the GSFIN Code of Ethics. Applications undergo an
+              objective desk review against published scheme prerequisites to confirm eligibility.</p>
+          </div>
+          <div class="step-box">
+            <div class="step-number"><span>STAGE 02</span><svg class="step-vector" width="18" height="18"
+                viewBox="0 0 24 24">
+                <use href="#v-camera" />
+              </svg></div>
+            <b>Standardized Examination</b>
+            <div class="step-subtext">Governed by Clauses 9.2 &amp; 9.3</div>
+            <p class="step-desc">Eligible candidates sit for fair, structured examinations administered at Approved
+              Assessment Centers under secure invigilation. Assessments test theoretical knowledge and practical
+              workplace application against established scheme benchmarks.</p>
+          </div>
+          <div class="step-box">
+            <div class="step-number"><span>STAGE 03</span><svg class="step-vector" width="18" height="18"
+                viewBox="0 0 24 24">
+                <use href="#v-scale" />
+              </svg></div>
+            <b>Independent Certification Decision</b>
+            <div class="step-subtext">Governed by Clause 9.5</div>
+            <p class="step-desc">Assessment results and candidate portfolios are evaluated by authorized certification
+              decision-makers who were not involved in test administration or training delivery, ensuring a completely
+              impartial determination.</p>
+          </div>
+          <div class="step-box">
+            <div class="step-number"><span>STAGE 04</span><svg class="step-vector" width="18" height="18"
+                viewBox="0 0 24 24">
+                <use href="#v-award" />
+              </svg></div>
+            <b>Maintenance &amp; Recertification</b>
+            <div class="step-subtext">Governed by Clause 9.6</div>
+            <p class="step-desc">Certified practitioners maintain their active standing through ongoing professional
+              practice, structured Continuing Professional Development (CPD) logging, and periodic recertification at
+              the end of each 3-year cycle.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-vector-icon"><svg width="22" height="22" viewBox="0 0 24 24">
+                <use href="#v-shield-check" />
+              </svg></div>
+            <h3>Special Accommodations</h3>
+            <p>GSFIN provides reasonable, verified testing accommodations for candidates with documented medical or
+              learning requirements without compromising the security or psychometric validity of the examination.</p>
+          </div>
+          <div class="card">
+            <div class="card-vector-icon"><svg width="22" height="22" viewBox="0 0 24 24">
+                <use href="#v-scale" />
+              </svg></div>
+            <h3>Disciplinary Code of Ethics</h3>
+            <p>All certified personnel must adhere strictly to professional standards. Falsification of audit findings,
+              conflict concealment, or criminal negligence triggers immediate suspension or revocation.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- ================== SECTION 6: VERIFY CERTIFICATE ================== -->
+    <section class="s alt bordered" id="verify">
+      <div class="w" style="max-width: 960px;">
+        <div class="section-head" style="text-align: center; margin: 0 auto 36px;">
+          <div class="eyebrow" style="justify-content: center;"><span class="eyebrow-line"></span>Official Registry
+          </div>
+          <h2>Verify a Certificate</h2>
+          <p>Instant online verification to confirm the active status and authenticity of any certificate.</p>
+        </div>
+
+        <!-- Official Verification Portal Gateway Card -->
+        <div class="portal-card">
+          <div class="portal-grid">
+            <div class="portal-content">
+              <span class="portal-badge">
+                <span class="live-dot"></span>
+                Official Registry Portal
+              </span>
+              <h3>Centralized Credential Verification</h3>
+              <p>GSFIN provides a dedicated, official online portal where employers, certification bodies, and
+                regulatory agencies can directly validate certified personnel credentials in real time.</p>
+
+              <ul class="portal-features">
+                <li>
+                  <svg width="18" height="18" viewBox="0 0 24 24">
+                    <use href="#v-shield-check" />
+                  </svg>
+                  <span>Instant lookup using Certificate Number or QR code</span>
+                </li>
+                <li>
+                  <svg width="18" height="18" viewBox="0 0 24 24">
+                    <use href="#v-checklist" />
+                  </svg>
+                  <span>Direct confirmation of active status, validity, and scope</span>
+                </li>
+                <li>
+                  <svg width="18" height="18" viewBox="0 0 24 24">
+                    <use href="#v-lock" />
+                  </svg>
+                  <span>Cryptographically verified under international conformity assessment standards</span>
+                </li>
+              </ul>
+
+              <div style="margin-top: 24px;">
+                <a class="btn p lg" href="https://exam.gsfin.uk/verify-certificate/" target="_blank"
+                  rel="noopener noreferrer">
+                  <span>Go to Verification Portal</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M7 17L17 7M17 7H7M17 7V17" />
+                  </svg>
+                </a>
+              </div>
+
+              <div class="portal-meta-note">
+                <svg width="15" height="15" viewBox="0 0 24 24">
+                  <use href="#v-lock" />
+                </svg>
+                <span>Direct portal link: <a href="https://exam.gsfin.uk/verify-certificate/" target="_blank"
+                    rel="noopener noreferrer">https://exam.gsfin.uk/verify-certificate/</a></span>
+              </div>
+            </div>
+
+            <div class="portal-preview">
+              <img src="assets/images/credential_badge.jpg" alt="GSFIN Verified Credential Security Badge">
+              <div class="portal-preview-overlay"></div>
+              <div class="portal-preview-caption">
+                <span style="font-weight: 600;">Secure Portal Gateway</span>
+                <span style="color: var(--gold); font-weight: 700;">256-Bit SSL Encrypted</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Integrated Credential Security Notice -->
+          <div class="portal-security-bar">
+            <svg width="18" height="18" viewBox="0 0 24 24" style="color: var(--ac); flex-shrink: 0;">
+              <use href="#v-shield-check" />
+            </svg>
+            <span>All official GSFIN certificates embed encrypted QR tokens and unique IDs. For authenticity inquiries
+              or discrepancies, contact <strong>ethics@gsfin.org</strong>.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FLOATING BACK TO TOP BUTTON -->
+  <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+    aria-label="Back to top">
+    <svg width="20" height="20" viewBox="0 0 24 24">
+      <use href="#v-arrow-up" />
+    </svg>
+  </button>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="w">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo-group">
+            <img class="brand-img" src="assets/images/logo.png" alt="GSFIN Logo">
+          </div>
+          <p>Global Standards for Food Industries operates as an autonomous Personnel Certification Body governed under
+            international personnel certification standards.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Navigation</h4>
+          <a href="#hero">Home</a>
+          <a href="#about">About Us</a>
+          <a href="#schemes">Certifications</a>
+          <a href="#process">How It Works</a>
+          <a href="#verify">Verify Certificate</a>
+        </div>
+
+        <div class="footer-col">
+          <h4>Governance &amp; Trust</h4>
+          <a href="#about">Impartiality Policy</a>
+          <a href="#about">Appeals &amp; Complaints</a>
+          <a href="#process">Code of Professional Ethics</a>
+          <a href="#verify">Verify Certificate</a>
+          <a href="#about">Special Accommodations</a>
+        </div>
+
+        <div class="footer-col">
+          <h4>Certification Standards</h4>
+          <p style="font-size: 13px; color: var(--mu); line-height: 1.6; margin-bottom: 8px;">Operating pursuant to
+            international conformity standards:</p>
+          <p style="font-size: 13px; color: var(--tx); line-height: 1.6; font-weight: 600; margin-bottom: 6px;">Personnel Conformity Assessment</p>
+          <p style="font-size: 13px; color: var(--mu); line-height: 1.5;">Objective benchmarks and independent requirements for bodies operating
+            certification of persons.</p>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 Global Standards for Food Industries (GSFIN). All rights reserved.</div>
+        <div style="display: flex; gap: 20px;">
+          <a href="#hero">Privacy Policy</a>
+          <a href="#hero">Terms of Registration</a>
+          <a href="#verify">Registry Access</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPT: SMOOTH SCROLLSPY, THEME -->
+  <script>
+
+    /* ScrollSpy for One-Page Navigation */
+    var navLinks = document.querySelectorAll('nav a.nav-link');
+    var sections = document.querySelectorAll('section[id]');
+
+    function onScroll() {
+      var scrollPos = window.scrollY + 100;
+
+      /* Toggle Back to Top Button */
+      var topBtn = document.getElementById('backToTop');
+      if (topBtn) {
+        if (window.scrollY > 350) {
+          topBtn.classList.add('visible');
+        } else {
+          topBtn.classList.remove('visible');
+        }
+      }
+
+      /* Highlight Active Nav Link */
+      sections.forEach(function (section) {
+        var top = section.offsetTop;
+        var height = section.offsetHeight;
+        var id = section.getAttribute('id');
+
+        if (scrollPos >= top && scrollPos < top + height) {
+          navLinks.forEach(function (link) {
+            link.classList.remove('on');
+            if (link.getAttribute('href') === '#' + id) {
+              link.classList.add('on');
+            }
+          });
+        }
+      });
+    }
+
+    window.addEventListener('scroll', onScroll);
+
+    /* Handle mobile menu close upon click */
+    navLinks.forEach(function (link) {
+      link.addEventListener('click', function () {
+        document.getElementById('nav').classList.remove('o');
+      });
+    });
+
+    /* Theme Toggle */
+    function toggleTheme() {
+      var html = document.documentElement;
+      var current = html.getAttribute('data-theme') || 'light';
+      var next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('gsfin_theme', next);
+      updateThemeIcon(next);
+    }
+
+    function updateThemeIcon(t) {
+      var icon = document.getElementById('theme-icon');
+      if (icon) {
+        icon.innerHTML = '<use href="#v-' + (t === 'dark' ? 'sun' : 'moon') + '"/>';
+      }
+    }
+
+    /* Init */
+    (function () {
+      var saved = localStorage.getItem('gsfin_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', saved);
+      updateThemeIcon(saved);
+      onScroll();
+    })();
+  </script>
+</body>
+
+</html>

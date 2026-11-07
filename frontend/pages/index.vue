@@ -1,419 +1,1016 @@
 <template>
-  <div class="gsfin-page">
+  <div class="gsfin-landing-root" :data-theme="currentTheme">
 
-    <!-- ═══ NAVBAR ═══ -->
-    <PublicNavbar @open-partner-modal="openPartnerModal()" />
 
-    <!-- ═══ HERO ═══ -->
-    <section class="hero">
-      <!-- Full-Bleed Fluid Background Layer from uploaded branding (Left to Right) -->
-      <div class="hero-bg-animated-layer" style="background-image: url('/hero-bk.png');"></div>
-      <div class="hero-glass-overlay"></div>
+  <!-- SVG SYMBOL SPRITE -->
+  <svg style="display:none;" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Shield Check -->
+      <g id="v-shield-check">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" />
+        <path d="m9 12 2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </g>
+      <!-- Scale of Justice / Impartiality -->
+      <g id="v-scale">
+        <path d="m16 16 3-8 3 8a3 3 0 0 1-6 0zM2 16l3-8 3 8a3 3 0 0 1-6 0zM7 21h10M12 3v18M3 7h18" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </g>
+      <!-- Target / Psychometrics -->
+      <g id="v-target">
+        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" />
+        <circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2" />
+        <circle cx="12" cy="12" r="2" fill="currentColor" />
+      </g>
+      <!-- Globe / Global Portability -->
+      <g id="v-globe">
+        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+          fill="none" stroke="currentColor" stroke-width="2" />
+      </g>
+      <!-- Checklist -->
+      <g id="v-checklist">
+        <path d="M9 11l3 3L22 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" />
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" />
+      </g>
+      <!-- Fingerprint / Biometric -->
+      <g id="v-fingerprint">
+        <path
+          d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4M14 13.12c0 2.38 0 6.38-1 8.88M2 12a10 10 0 0 1 18-6M2 16a14 14 0 0 1 4-10M16 17a14 14 0 0 1-2 5M10 20a10 10 0 0 0 2-8 2 2 0 0 1 4 0 7 7 0 0 1-.36 2.22"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </g>
+      <!-- CCTV Camera -->
+      <g id="v-camera">
+        <path d="M2 10h15a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3H2l3-8z" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M7 10v6M12 10v6M17 13l5-3v8l-5-3M7 21h4M9 18v3" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" />
+      </g>
+      <!-- Lock / Offline Encrypted -->
+      <g id="v-lock">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke="currentColor" stroke-width="2" />
+      </g>
+      <!-- Acoustic Barrier -->
+      <g id="v-sound">
+        <path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </g>
+      <!-- Award / Gold Seal -->
+      <g id="v-award">
+        <circle cx="12" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" />
+      </g>
+      <!-- Search Magnifier -->
+      <g id="v-search">
+        <circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="m21 21-4.35-4.35" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </g>
+      <!-- QR Code Vector -->
+      <g id="v-qr">
+        <rect x="3" y="3" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2" />
+        <rect x="14" y="3" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2" />
+        <rect x="3" y="14" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="M14 14h3v3h-3zM18 18h3v3h-3zM14 21h3M21 14v3" fill="none" stroke="currentColor" stroke-width="2" />
+      </g>
+      <!-- Sun -->
+      <g id="v-sun">
+        <circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2" />
+        <path
+          d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </g>
+      <!-- Moon -->
+      <g id="v-moon">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" />
+      </g>
+      <!-- Arrow Up -->
+      <g id="v-arrow-up">
+        <path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </g>
+      <!-- Arrow Right -->
+      <g id="v-arrow-right">
+        <path d="M5 12h14M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </g>
+      <!-- Flask / Laboratory -->
+      <g id="v-flask">
+        <path d="M10 2v5.5L4.4 18.2A2 2 0 0 0 6.1 21h11.8a2 2 0 0 0 1.7-2.8L14 7.5V2" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M8.5 2h7M7 16h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </g>
+    </defs>
+  </svg>
 
-      <!-- Ambient Soft Lighting Orbs -->
-      <div class="hero-blur hero-blur-1"></div>
-      <div class="hero-blur hero-blur-2"></div>
+  <!-- HEADER & NAVBAR (ONE-PAGE SCROLL) -->
+  <header>
+    <div class="w nav-container">
+      <a href="#hero" class="logo-group" aria-label="GSFIN home">
+        <img class="brand-img" src="/assets/images/logo.png" alt="GSFIN Logo">
+      </a>
 
-      <div class="hero-wrap">
-        <!-- Left Column -->
-        <div class="hero-content">
-          <div class="hero-eyebrow">
-            GLOBALLY ACCREDITED CERTIFICATION FRAMEWORK
+      <nav id="nav" :class="{ 'o': mobileNavOpen }">
+        <a href="#hero" :class="['nav-link', { on: activeSection === 'hero' }]" @click.prevent="scrollToSection('hero')">Home</a>
+        <a href="#about" :class="['nav-link', { on: activeSection === 'about' }]" @click.prevent="scrollToSection('about')">About Us</a>
+        <a href="#schemes" :class="['nav-link', { on: activeSection === 'schemes' }]" @click.prevent="scrollToSection('schemes')">Certifications</a>
+        <a href="#process" :class="['nav-link', { on: activeSection === 'process' }]" @click.prevent="scrollToSection('process')">How It Works</a>
+        <a href="#verify" :class="['nav-link', { on: activeSection === 'verify' }]" @click.prevent="scrollToSection('verify')">Verify Certificate</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="icon-btn" id="theme-btn" @click="toggleTheme" aria-label="Toggle theme">
+          <svg id="theme-icon" width="18" height="18" viewBox="0 0 24 24">
+            <use :href="'#v-' + (currentTheme === 'dark' ? 'sun' : 'moon')" />
+          </svg>
+        </button>
+        <button type="button" class="btn p hb" @click="openPartnerModal()">Apply Now</button>
+        <NuxtLink to="/login" class="btn sm hb" style="margin-left: 10px;">Partner Login</NuxtLink>
+        <button class="icon-btn menu-btn" @click="mobileNavOpen = !mobileNavOpen"
+          aria-label="Open menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ================== SECTION 1: HERO ================== -->
+    <section class="hero-section" id="hero">
+      <div class="w hero-grid">
+        <div>
+          <div class="eyebrow">
+            <span class="eyebrow-line"></span>
+            GLOBAL STANDARDS & CERTIFICATION FRAMEWORK
           </div>
+          <h1 class="hero-title">Validating Professional Competence.Establishing Global Trust</h1>
+          <!-- <p class="lead">GSFIN delivers independent third-party personnel certification in strict conformance with
+            international conformity assessment standards. We establish objective competency benchmarks that empower food safety
+            practitioners and safeguard industry integrity.
+          </p> -->
 
-          <h1 class="hero-title">
-            <span class="hero-title-top">Food Safety &amp; Quality</span><br />
-            <span class="text-red">Certifications</span>
-          </h1>
-
-          <p class="hero-body">
-            GSFIN is an independent international standards body conducting globally recognized qualification exams in food safety and related disciplines — delivered through a network of authorized partner centers worldwide.
-          </p>
-
-          <div class="hero-actions">
-            <button class="btn-red" @click="openPartnerModal()">
-              Partner with GSFIN <i class="mdi mdi-arrow-right"></i>
-            </button>
-            <a href="#certifications" class="btn-glass" @click.prevent="scrollTo('certifications')">
-              Explore Qualifications
+          <div class="row">
+            <a class="btn p" href="#schemes">
+              Explore Certifications
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
             </a>
           </div>
 
-          <!-- Micro-Trust Floating Dark Glass Strip -->
-          <div class="hero-trust-row glass-panel-dark">
-            <div class="hero-trust-item">
-              <i class="mdi mdi-earth"></i>
-              <span>Global<br />Recognition</span>
+        </div>
+
+        <!-- Hero Visual with Modern Food Safety Facility & Floating Badges -->
+        <div class="hero-visual-card">
+          <div class="hero-image-wrap">
+            <img src="/assets/images/hero_auditor.jpg"
+              alt="High-standards food safety inspection and conformity assessment in modern production facility">
+            <div class="floating-pill">
+              <span class="live-dot"></span>
+              <span>Certification Assessment In Progress</span>
             </div>
-            <div class="hero-trust-item">
-              <i class="mdi mdi-shield-check-outline"></i>
-              <span>Trusted<br />Assessments</span>
+          </div>
+          <div class="floating-card-bottom">
+            <div class="seal-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <use href="#v-shield-check" />
+              </svg>
             </div>
-            <div class="hero-trust-item">
-              <i class="mdi mdi-file-document-outline"></i>
-              <span>Industry Aligned<br />Standards</span>
-            </div>
-            <div class="hero-trust-item">
-              <i class="mdi mdi-account-group-outline"></i>
-              <span>Worldwide<br />Partner Network</span>
+            <div>
+              <h5>Verified Personnel Certification</h5>
+              <p>Conformity Assessment &bull; Active Standard</p>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ═══ CERTIFICATIONS ═══ -->
-    <section id="certifications" class="section certs-section">
-      <div class="page-wrap">
-        <div class="certs-header-row">
-          <div>
-            <div class="eyebrow-red">GLOBAL QUALIFICATIONS</div>
-            <h2 class="section-title">Globally Recognized <span class="text-red">Standards</span></h2>
-          </div>
-          <NuxtLink to="/qualifications" class="link-view-all">
-            Explore All Programs <i class="mdi mdi-arrow-right"></i>
-          </NuxtLink>
-        </div>
-
-        <!-- 2x4 Certifications Grid (Solid/Flat Cards for Maximum Legibility) -->
-        <div class="certs-grid">
-          <NuxtLink
-            v-for="cert in certifications"
-            :key="cert.id"
-            :to="`/qualifications/${cert.slug}`"
-            class="cert-card cursor-pointer block no-underline text-inherit"
-          >
-            <div class="cert-img-wrap border-0">
-              <img :src="cert.image" :alt="cert.name" class="cert-card-img" />
-              <div class="cert-badge-tag">GSFIN Standard</div>
-            </div>
-            <div class="cert-card-content">
-              <h3 class="cert-title">
-                <span class="text-slate-900 hover:text-red transition-colors">
-                  {{ cert.name }}
-                </span>
-              </h3>
-              <p class="cert-desc">{{ cert.desc }}</p>
-              <span class="cert-link-more">
-                Learn More <i class="mdi mdi-arrow-right"></i>
-              </span>
-            </div>
-          </NuxtLink>
-        </div>
-      </div>
-    </section>
-
-    <!-- ═══ HOW IT WORKS ═══ -->
-    <section id="how-it-works" class="section steps-section">
-      <div class="page-wrap">
+    <!-- ================== SECTION 2: VALUE PILLARS & SECTORS ================== -->
+    <section class="s alt bordered" id="pillars">
+      <div class="w">
         <div class="section-head">
-          <div class="eyebrow-red">HOW IT WORKS</div>
-          <h2 class="section-title">The GSFIN Qualification Process</h2>
-          <p class="section-sub">Delivered through our authorized training centers</p>
+          <div class="eyebrow"><span class="eyebrow-line"></span>Core Foundations</div>
+          <h2>The GSFIN Value Pillars</h2>
+          <p>Committed to fair assessments, practical industry standards, and internationally respected credentials.</p>
         </div>
-
-        <div class="steps-track">
-          <div class="steps-line"></div>
-          <div class="steps-line-active"></div>
-
-          <div class="steps-grid">
-            <div
-              v-for="(step, index) in steps"
-              :key="step.step"
-              class="step-col"
-              :class="`step-node-${index + 1}`"
-            >
-              <div class="step-node-glass">
-                <i :class="['mdi', step.icon]"></i>
-              </div>
-              <div class="step-num">{{ step.step }}</div>
-              <h3 class="step-title">{{ step.title }}</h3>
-              <p class="step-desc">{{ step.desc }}</p>
+        <div class="grid grid-3">
+          <div class="card">
+            <div class="card-vector-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24">
+                <use href="#v-scale" />
+              </svg>
             </div>
+            <h3>Pillar 1: Impartial &amp; Transparent</h3>
+            <p>Our certification decisions are made independently of training delivery, ensuring a fair,
+              objective evaluation of each candidate’s demonstrated capability.</p>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ═══ WHY PARTNER WITH GSFIN ═══ -->
-    <section id="why-gsfin" class="section why-section">
-      <div class="page-wrap why-split-grid">
-        <!-- Left Content -->
-        <div class="why-left">
-          <div class="eyebrow-red">WHY PARTNER WITH GSFIN</div>
-          <h2 class="section-title why-main-title">More Value for<br />Your Organization</h2>
-          <p class="why-body">
-            Partner with an international standards authority that adds global credibility to your institution and empowers your students with accredited credentials.
-          </p>
-          <button class="btn-red" @click="openPartnerModal()">
-            Partner with GSFIN <i class="mdi mdi-arrow-right"></i>
-          </button>
-        </div>
-
-        <!-- Right 6 Glass Cards Grid -->
-        <div class="why-cards-grid">
-          <div v-for="feat in whyFeatures" :key="feat.title" class="why-feat-card glass-panel">
-            <div class="why-icon-box">
-              <i :class="['mdi', feat.icon]"></i>
+          <div class="card">
+            <div class="card-vector-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24">
+                <use href="#v-target" />
+              </svg>
             </div>
-            <h3 class="why-feat-title">{{ feat.title }}</h3>
-            <p class="why-feat-desc">{{ feat.desc }}</p>
+            <h3>Pillar 2: Practical Competence Focus</h3>
+            <p>Assessments are built around real-world industry tasks, core regulatory requirements, and
+              established workplace standards to verify applied knowledge.</p>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ═══ TESTIMONIALS ═══ -->
-    <section class="section testimonials-section">
-      <div class="page-wrap">
-        <div class="testi-header-row">
-          <div>
-            <div class="eyebrow-red">TRUSTED BY OUR PARTNERS</div>
-            <h2 class="section-title">Voices from Our Global Network</h2>
-          </div>
-          <div class="testi-arrows">
-            <button class="testi-arrow-btn" aria-label="Previous"><i class="mdi mdi-chevron-left"></i></button>
-            <button class="testi-arrow-btn" aria-label="Next"><i class="mdi mdi-chevron-right"></i></button>
-          </div>
-        </div>
-
-        <div class="testi-grid">
-          <div v-for="t in testimonials" :key="t.name" class="testi-card glass-panel">
-            <p class="testi-text">{{ t.text }}</p>
-            <div class="testi-author">
-              <div class="testi-avatar-img">
-                <i class="mdi mdi-account-circle-outline"></i>
-              </div>
-              <div class="testi-info">
-                <div class="testi-name">{{ t.name }}</div>
-                <div class="testi-role">{{ t.role }}</div>
-                <div class="testi-stars">★★★★★</div>
-              </div>
+          <div class="card">
+            <div class="card-vector-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24">
+                <use href="#v-globe" />
+              </svg>
             </div>
+            <h3>Pillar 3: Professional Portability</h3>
+            <p>Structured to reflect international conformity assessment best practices, providing clear
+              evidence of capability recognized by employers and clients across borders.</p>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- ═══ JOIN OUR GLOBAL NETWORK CTA BANNER ═══ -->
-    <section class="section cta-section">
-      <div class="page-wrap">
-        <div class="cta-glass-banner">
-          <div class="cta-bg-image" style="background-image: url('/gsfin-hero-bg.jpg');"></div>
-          <div class="cta-left">
-            <div class="eyebrow-red cta-eyebrow">JOIN OUR GLOBAL NETWORK</div>
-            <h2 class="cta-title">Become an Authorized Training Center</h2>
-            <p class="cta-sub">Expand your opportunities. Offer globally recognized certifications.</p>
-            <div class="cta-actions">
-              <button class="btn-red" @click="openPartnerModal()">
-                Apply to Become a Partner <i class="mdi mdi-arrow-right"></i>
-              </button>
-              <button class="btn-glass-secondary" @click="openPartnerModal()">
-                Contact Us
-              </button>
-            </div>
-          </div>
-          <div class="cta-right">
-            <div class="cta-slogan-box">
-              <div class="cta-slogan-line">Safer Food</div>
-              <div class="cta-slogan-line">Stronger People</div>
-              <div class="cta-slogan-line text-slate">Brighter Tomorrow</div>
-            </div>
-          </div>
+        <!-- Critical Sectors -->
+        <div class="section-head" style="margin-top: 76px;">
+          <div class="eyebrow"><span class="eyebrow-line"></span>Industry Impact</div>
+          <h2>Focus Industry Sectors</h2>
+          <p>Setting competency benchmarks for professionals across vital global operations.</p>
         </div>
-      </div>
-    </section>
-
-    <!-- ═══ GLOBAL PRODUCT FOOTER ═══ -->
-    <PublicFooter />
-
-    <!-- ═══ PARTNER APPLICATION MODAL ═══ -->
-    <Transition name="modal-fade">
-      <div v-if="showPartnerModal" class="modal-overlay" @click.self="closePartnerModal">
-        <div class="modal-card glass-modal">
-          <button class="modal-close-btn" @click="closePartnerModal" aria-label="Close">
-            <i class="mdi mdi-close"></i>
-          </button>
-
-          <div v-if="!partnerSuccess" class="modal-body-wrap">
-            <div class="modal-header">
-              <div class="eyebrow-red">JOIN OUR GLOBAL NETWORK</div>
-              <h2 class="modal-title">Become an Authorized Training Center</h2>
-              <p class="modal-sub">
-                Partner with GSFIN to offer globally recognized food safety certification exams and empower your students with international qualifications.
+        <div class="grid grid-4">
+          <div class="card sector-card">
+            <div class="sector-thumb">
+              <img src="/assets/images/sector_food_safety.jpg"
+                alt="Food Chain Safety and Automated Bottling Facility Inspection">
+              <span class="sector-badge">ISO 22000</span>
+            </div>
+            <div class="sector-body">
+              <h3>Food Chain Safety &amp; Processing</h3>
+              <p>Validating the competence of professionals who design, implement, and verify food safety
+                management systems, HACCP plans, and hygiene controls across the supply chain.
               </p>
             </div>
-
-            <form @submit.prevent="submitPartnerApplication" class="partner-form">
-              <div v-if="partnerError" class="form-alert error">
-                <i class="mdi mdi-alert-circle-outline"></i> {{ partnerError }}
-              </div>
-
-              <div class="form-grid">
-                <div class="form-group">
-                  <label class="form-label">Organization / Center Name <span class="req">*</span></label>
-                  <input
-                    v-model="partnerForm.organizationName"
-                    type="text"
-                    class="form-input"
-                    placeholder="e.g. Global Food Safety Institute"
-                    required
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Contact Person Name <span class="req">*</span></label>
-                  <input
-                    v-model="partnerForm.contactName"
-                    type="text"
-                    class="form-input"
-                    placeholder="e.g. Dr. Rajeev Menon"
-                    required
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Official Email Address <span class="req">*</span></label>
-                  <input
-                    v-model="partnerForm.email"
-                    type="email"
-                    class="form-input"
-                    placeholder="e.g. partner@institution.com"
-                    required
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Phone / WhatsApp <span class="req">*</span></label>
-                  <input
-                    v-model="partnerForm.phone"
-                    type="tel"
-                    class="form-input"
-                    placeholder="e.g. +91 98765 43210"
-                    required
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Country / Region <span class="req">*</span></label>
-                  <input
-                    v-model="partnerForm.country"
-                    type="text"
-                    class="form-input"
-                    placeholder="e.g. United Kingdom"
-                    required
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">City <span class="req">*</span></label>
-                  <input
-                    v-model="partnerForm.city"
-                    type="text"
-                    class="form-input"
-                    placeholder="e.g. London"
-                    required
-                  />
-                </div>
-
-                <div class="form-group full-width">
-                  <label class="form-label">Institution Type <span class="req">*</span></label>
-                  <select v-model="partnerForm.institutionType" class="form-select">
-                    <option value="Authorized Training Center">Training Center / Academy</option>
-                    <option value="College / University">College / University</option>
-                    <option value="Testing & Inspection Body">Testing / Inspection Body</option>
-                    <option value="Corporate Enterprise">Corporate Enterprise</option>
-                    <option value="Government Agency">Government Agency</option>
-                  </select>
-                </div>
-
-                <div class="form-group full-width">
-                  <label class="form-label">Accreditation Programs <span class="req">*</span></label>
-                  <p class="form-hint-sub">Select the accreditation qualifications your center wishes to deliver:</p>
-                  <div class="programs-chips-container">
-                    <button
-                      v-for="prog in availablePrograms"
-                      :key="prog.id"
-                      type="button"
-                      class="program-chip-btn"
-                      :class="{ 'is-selected': partnerForm.programs.includes(prog.id) }"
-                      @click="toggleProgram(prog.id)"
-                    >
-                      <i :class="['mdi', partnerForm.programs.includes(prog.id) ? 'mdi-check-circle' : 'mdi-plus-circle-outline']"></i>
-                      <span>{{ prog.label }}</span>
-                    </button>
-                  </div>
-                  <span v-if="partnerError && partnerForm.programs.length === 0" class="field-error-msg">
-                    * Please select at least one accreditation program (e.g. ISO 22000, CODEX HACCP).
-                  </span>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Additional Details / Message</label>
-                <textarea
-                  v-model="partnerForm.message"
-                  rows="3"
-                  class="form-textarea"
-                  placeholder="Tell us briefly about your center, current student volume, or questions..."
-                ></textarea>
-              </div>
-
-              <div class="form-actions-wrap">
-                <button type="button" class="btn-glass-secondary" @click="closePartnerModal">Cancel</button>
-                <button type="submit" class="btn-red" :disabled="partnerSubmitting">
-                  <span v-if="partnerSubmitting">
-                    <i class="mdi mdi-loading mdi-spin"></i> Submitting Application...
-                  </span>
-                  <span v-else>
-                    Submit Application <i class="mdi mdi-arrow-right"></i>
-                  </span>
-                </button>
-              </div>
-            </form>
           </div>
 
-          <!-- Success View -->
-          <div v-else class="modal-success-wrap">
-            <div class="success-icon-box">
-              <i class="mdi mdi-check-circle-outline"></i>
+          <div class="card sector-card">
+            <div class="sector-thumb">
+              <img src="/assets/images/lab_testing.jpg" alt="Quality Control and Microbiology Laboratory Testing">
+              <span class="sector-badge">ISO 9001 / 17025</span>
             </div>
-            <h3 class="success-title">Application Submitted!</h3>
-            <p class="success-text">
-              Thank you for applying to become an Authorized GSFIN Partner Center. Our partnership director will review your details and contact you within 24 hours.
-            </p>
-            <button class="btn-red" @click="closePartnerModal">
-              Close &amp; Return to Website
-            </button>
+            <div class="sector-body">
+              <h3>Quality &amp; Technical compliance</h3>
+              <p>Certifying practitioners responsible for internal auditing, continuous quality verification,
+                and management system conformance across industrial environments.</p>
+            </div>
+          </div>
+
+          <div class="card sector-card">
+            <div class="sector-thumb">
+              <img src="/assets/images/sector_health_safety.jpg"
+                alt="Occupational Plant Health and Safety Officer Inspection">
+              <span class="sector-badge">ISO 45001</span>
+            </div>
+            <div class="sector-body">
+              <h3>Workplace Health &amp; Industrial Safety</h3>
+              <p>Verification of competencies in plant safety, hazard mitigation, and environmental compliance
+                governance.</p>
+            </div>
+          </div>
+
+          <div class="card sector-card">
+            <div class="sector-thumb">
+              <img src="/assets/images/sector_industrial_hygiene.jpg"
+                alt="Industrial Hygiene Swab Testing and Sanitation Audit">
+              <span class="sector-badge">ISO 19011</span>
+            </div>
+            <div class="sector-body">
+              <h3>Hospitality &amp; Commercial Catering</h3>
+              <p>Standardizing hygiene protocols, kitchen safety verification, and operational compliance for
+                hospitality and institutional food service providers.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Institutional Impartiality Statement Shield -->
+        <div class="shield-banner" style="margin-top: 56px;">
+          <div class="shield-icon-wrap">
+            <svg width="28" height="28" viewBox="0 0 24 24">
+              <use href="#v-shield-check" />
+            </svg>
+          </div>
+          <div class="shield-content">
+            <h3>Institutional Impartiality Commitment</h3>
+            <p>GSFIN structures its personnel certification governance, schemes, and assessment procedures in
+              alignment with international conformity assessment standards and personnel certification principles. GSFIN does not deliver preparatory
+              training courses, does not require completion of specific commercial training programs as a mandatory
+              prerequisite for certification, and does not state or imply that certification can be simplified,
+              expedited, or guaranteed through any third-party training vendor.</p>
           </div>
         </div>
       </div>
-    </Transition>
+    </section>
+
+    <!-- ================== SECTION 3: ABOUT US ================== -->
+    <section class="s" id="about">
+      <div class="w">
+        <!-- 1. Institutional Mandate (About GSFIN) -->
+        <div class="section-head">
+          <div class="eyebrow"><span class="eyebrow-line"></span>About GSFIN</div>
+          <h2>Institutional Mandate</h2>
+          <p>GSFIN operates as an independent Personnel Certification Body establishing objective competency benchmarks and administering standardized assessments to validate professionals across vital technical industries.</p>
+        </div>
+
+        <!-- Governance Showcase Feature -->
+        <div class="gov-showcase">
+          <div class="gov-content">
+            <span class="portal-badge">
+              <span class="live-dot"></span>
+              Institutional Mandate
+            </span>
+            <h3>Independent Competency Benchmarks</h3>
+            <p>GSFIN operates as an independent Personnel Certification Body establishing objective competency benchmarks and administering standardized assessments to validate professionals across vital technical industries.</p>
+
+            <ul class="gov-points">
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                  <use href="#v-scale" />
+                </svg>
+                <span>Objective, empirical competency benchmarks aligned with international personnel certification standards</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                  <use href="#v-target" />
+                </svg>
+                <span>Standardized, psychometrically validated assessments across technical industries</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                  <use href="#v-shield-check" />
+                </svg>
+                <span>Complete operational separation with zero commercial training interests</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="gov-visual">
+            <img src="/assets/images/about_governance.jpg" alt="GSFIN International Governance Committee Board Review">
+            <div class="gov-badge">
+              <span>Personnel Certification Body</span>
+              <span style="color: var(--gold); font-weight: 600;">100% Impartial</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Governance Architecture (The Neutrality Structure) -->
+        <div style="margin-top: 52px; margin-bottom: 24px;">
+          <div class="eyebrow"><span class="eyebrow-line"></span>The Neutrality Structure</div>
+          <h2 style="font-size: 28px; margin-top: 6px; margin-bottom: 10px;">Governance Architecture</h2>
+          <p style="color: var(--mu); font-size: 15px; max-width: 680px;">A robust multi-tier neutrality structure guaranteeing complete operational separation between governance, standards development, examination delivery, and certification awards.</p>
+        </div>
+
+        <div class="grid grid-4">
+          <div class="card" style="display: flex; flex-direction: column;">
+            <div class="card-vector-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <use href="#v-scale" />
+              </svg>
+            </div>
+            <div class="step-subtext" style="margin-bottom: 10px;">Strategic Oversight</div>
+            <h3 style="font-size: 17px; margin-bottom: 8px;">Governing Body</h3>
+            <p style="font-size: 13.5px; color: var(--mu); line-height: 1.6; margin: 0; flex-grow: 1;">Guides strategic resources and legal compliance without involvement in technical exam decisions.</p>
+          </div>
+
+          <div class="card" style="display: flex; flex-direction: column;">
+            <div class="card-vector-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <use href="#v-shield-check" />
+              </svg>
+            </div>
+            <div class="step-subtext" style="margin-bottom: 10px;">Clause 4.3</div>
+            <h3 style="font-size: 17px; margin-bottom: 8px;">Independent Impartiality Committee</h3>
+            <p style="font-size: 13.5px; color: var(--mu); line-height: 1.6; margin: 0; flex-grow: 1;">A balanced panel of external industry practitioners and regulatory stakeholders that oversees assessment neutrality and conflict-of-interest safeguards (Clause 4.3).</p>
+          </div>
+
+          <div class="card" style="display: flex; flex-direction: column;">
+            <div class="card-vector-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <use href="#v-checklist" />
+              </svg>
+            </div>
+            <div class="step-subtext" style="margin-bottom: 10px;">Clause 8</div>
+            <h3 style="font-size: 17px; margin-bottom: 8px;">Scheme Committees</h3>
+            <p style="font-size: 13.5px; color: var(--mu); line-height: 1.6; margin: 0; flex-grow: 1;">Technical committees responsible for defining prerequisites, job role competencies, and exam blueprints without commercial vendor influence (Clause 8).</p>
+          </div>
+
+          <div class="card" style="display: flex; flex-direction: column;">
+            <div class="card-vector-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <use href="#v-award" />
+              </svg>
+            </div>
+            <div class="step-subtext" style="margin-bottom: 10px;">Clause 9.5</div>
+            <h3 style="font-size: 17px; margin-bottom: 8px;">Independent Decision Unit</h3>
+            <p style="font-size: 13.5px; color: var(--mu); line-height: 1.6; margin: 0; flex-grow: 1;">Authorized evaluators making final certification determinations completely separate from test administration or training activities (Clause 9.5).</p>
+          </div>
+        </div>
+
+        <!-- 3. Commitment to Impartiality Public Declaration -->
+        <div class="shield-banner" style="margin-top: 40px;">
+          <div class="shield-icon-wrap">
+            <svg width="28" height="28" viewBox="0 0 24 24">
+              <use href="#v-shield-check" />
+            </svg>
+          </div>
+          <div class="shield-content">
+            <div class="eyebrow" style="color: var(--ac); margin-bottom: 6px;"><span class="eyebrow-line" style="background: var(--ac);"></span>Public Declaration</div>
+            <h3 style="font-size: 22px; margin-bottom: 10px;">Commitment to Impartiality</h3>
+            <p style="font-size: 15.5px; line-height: 1.7; color: var(--tx); font-weight: 500;">
+              &ldquo;GSFIN management understands the critical importance of impartiality in carrying out personnel certification. We ensure open access to all qualified applicants, prevent conflicts of interest, and maintain strict operational separation from external training programs.&rdquo;
+            </p>
+          </div>
+        </div>
+
+        <!-- Due Process: Appeals & Complaints -->
+        <div class="grid grid-2" style="margin-top: 32px;">
+          <div class="card">
+            <div class="card-vector-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <use href="#v-scale" />
+              </svg>
+            </div>
+            <h3>Appeals Procedure</h3>
+            <p>Any applicant or certified professional may formally challenge an adverse decision (e.g., examination
+              failure, suspension, or denial of eligibility). Appeals are investigated by an independent ad-hoc tribunal
+              with zero prior involvement in the evaluation.</p>
+            <div style="margin-top: 18px;">
+              <button class="btn sm"
+                onclick="alert('GSFIN-POL-APP-04 Appeals Procedure (PDF) documentation placeholder.')">
+                Download Appeal Procedure (PDF)
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-vector-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <use href="#v-shield-check" />
+              </svg>
+            </div>
+            <h3>Complaints Handling</h3>
+            <p>Any stakeholder may file a complaint regarding the ethical conduct of a GSFIN-certified person or the
+              operational standards of our personnel. All complaints trigger a documented, confidential inquiry tracked
+              to formal resolution.</p>
+            <div style="margin-top: 18px;">
+              <button class="btn sm" onclick="alert('Opening GSFIN Secure Ethics Submission Portal')">
+                Access Ethics Submission Portal
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================== SECTION 4: CERTIFICATIONS ================== -->
+    <section class="s alt bordered" id="schemes">
+      <div class="w">
+        <div class="section-head">
+          <div class="eyebrow"><span class="eyebrow-line"></span>Professional Certifications</div>
+          <h2>Our Certification Programs</h2>
+          <p>Industry-recognized personnel certification schemes covering food safety, HACCP, ISO management systems,
+            and laboratory conformity, governed under international personnel certification standards.</p>
+        </div>
+
+        <div class="grid grid-4">
+          <!-- 1. GMP & GHP -->
+          <div class="card program-card">
+            <div class="program-thumb">
+              <img src="/assets/images/prog_gmp.jpg" alt="GMP & GHP Sanitation and Food Processing Hygiene Inspection">
+              <span class="program-thumb-badge">Prerequisite</span>
+            </div>
+            <div class="program-body">
+              <div>
+                <h3>GMP &amp; GHP</h3>
+                <div class="program-sub">Good Manufacturing &amp; Hygiene Practices</div>
+                <p class="program-desc">Validates personnel competency in facility sanitation, prerequisite programs
+                  (PRPs), personal hygiene controls, and contamination prevention protocols.</p>
+                <div class="program-tags">
+                  <span>Sanitary Controls</span>
+                  <span>PRP Compliance</span>
+                  <span>Hygiene Audits</span>
+                </div>
+              </div>
+              <a href="#process" class="program-footer">
+                <span>Certification Workflow</span>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <use href="#v-arrow-right" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- 2. HACCP -->
+          <div class="card program-card">
+            <div class="program-thumb">
+              <img src="/assets/images/scheme_haccp.jpg"
+                alt="Certified HACCP Practitioner Conducting Critical Control Point Monitoring">
+              <span class="program-thumb-badge">Hazard Control</span>
+            </div>
+            <div class="program-body">
+              <div>
+                <h3>HACCP</h3>
+                <div class="program-sub">Hazard Analysis Critical Control Points</div>
+                <p class="program-desc">Certification of practitioners leading hazard identification, critical control
+                  point (CCP) determination, monitoring systems, and validation procedures.</p>
+                <div class="program-tags">
+                  <span>Hazard Analysis</span>
+                  <span>CCP Monitoring</span>
+                  <span>Codex Principles</span>
+                </div>
+              </div>
+              <a href="#process" class="program-footer">
+                <span>Certification Workflow</span>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <use href="#v-arrow-right" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- 3. ISO 22000:2018 -->
+          <div class="card program-card">
+            <div class="program-thumb">
+              <img src="/assets/images/scheme_fsms.jpg" alt="Certified FSMS Lead Auditor Production Facility Assessment">
+              <span class="program-thumb-badge">Management Systems</span>
+            </div>
+            <div class="program-body">
+              <div>
+                <h3>ISO 22000:2018</h3>
+                <div class="program-sub">Food Safety Management Systems</div>
+                <p class="program-desc">International qualification for lead auditors and system implementers governing
+                  food chain safety, interactive communication, and prerequisite programs.</p>
+                <div class="program-tags">
+                  <span>FSMS Auditing</span>
+                  <span>Traceability</span>
+                  <span>ISO 19011</span>
+                </div>
+              </div>
+              <a href="#process" class="program-footer">
+                <span>Certification Workflow</span>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <use href="#v-arrow-right" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- 4. Food Safety -->
+          <div class="card program-card">
+            <div class="program-thumb">
+              <img src="/assets/images/prog_food_safety.jpg"
+                alt="Food Safety Quality Assurance Specialist Packaged Product Inspection">
+              <span class="program-thumb-badge">Core Defense</span>
+            </div>
+            <div class="program-body">
+              <div>
+                <h3>Food Safety</h3>
+                <div class="program-sub">Food Safety &amp; Quality Assurance</div>
+                <p class="program-desc">Comprehensive evaluation of food safety officers managing biological, chemical,
+                  and physical risk mitigation across food processing and manufacturing.</p>
+                <div class="program-tags">
+                  <span>Risk Mitigation</span>
+                  <span>Quality Assurance</span>
+                  <span>Facility Safety</span>
+                </div>
+              </div>
+              <a href="#process" class="program-footer">
+                <span>Certification Workflow</span>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <use href="#v-arrow-right" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- 5. ISO 17025:2017 -->
+          <div class="card program-card">
+            <div class="program-thumb">
+              <img src="/assets/images/prog_iso17025.jpg"
+                alt="Testing and Calibration Laboratory Specialist Operating Precision Analytical Equipment">
+              <span class="program-thumb-badge">Laboratory</span>
+            </div>
+            <div class="program-body">
+              <div>
+                <h3>ISO 17025:2017</h3>
+                <div class="program-sub">Testing &amp; Calibration Laboratories</div>
+                <p class="program-desc">Validates technical competence for laboratory analysts, calibration specialists,
+                  and quality managers ensuring empirical measurement accuracy and testing integrity.</p>
+                <div class="program-tags">
+                  <span>Testing Accuracy</span>
+                  <span>Calibration</span>
+                  <span>Method Validation</span>
+                </div>
+              </div>
+              <a href="#process" class="program-footer">
+                <span>Certification Workflow</span>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <use href="#v-arrow-right" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- 6. ISO 9001:2026 -->
+          <div class="card program-card">
+            <div class="program-thumb">
+              <img src="/assets/images/prog_iso9001.jpg"
+                alt="Quality Management Systems Auditor Reviewing Production Metrics with Plant Manager">
+              <span class="program-thumb-badge">Quality Systems</span>
+            </div>
+            <div class="program-body">
+              <div>
+                <h3>ISO 9001:2026</h3>
+                <div class="program-sub">Quality Management Systems</div>
+                <p class="program-desc">Verification of competencies in organizational quality management, process
+                  optimization, risk-based thinking, and continuous conformity improvement.</p>
+                <div class="program-tags">
+                  <span>QMS Auditing</span>
+                  <span>Process Control</span>
+                  <span>Continuous Improvement</span>
+                </div>
+              </div>
+              <a href="#process" class="program-footer">
+                <span>Certification Workflow</span>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <use href="#v-arrow-right" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- 7. FSSC 22000 -->
+          <div class="card program-card">
+            <div class="program-thumb">
+              <img src="/assets/images/prog_fssc22000.jpg"
+                alt="Food Safety Auditor Conducting Compliance Assessment in Automated Bottling Facility">
+              <span class="program-thumb-badge">GFSI Benchmark</span>
+            </div>
+            <div class="program-body">
+              <div>
+                <h3>FSSC 22000</h3>
+                <div class="program-sub">Food Safety System Certification</div>
+                <p class="program-desc">Rigorous credential for lead auditors and food industry professionals operating
+                  under GFSI-benchmarked requirements for processing and packaging.</p>
+                <div class="program-tags">
+                  <span>GFSI Benchmark</span>
+                  <span>Scheme Integrity</span>
+                  <span>Food Defense</span>
+                </div>
+              </div>
+              <a href="#process" class="program-footer">
+                <span>Certification Workflow</span>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <use href="#v-arrow-right" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- 8. BRCGS -->
+          <div class="card program-card">
+            <div class="program-thumb">
+              <img src="/assets/images/prog_brcgs.jpg"
+                alt="Packaging and Storage Warehouse Compliance Inspector Examining Palletized Goods">
+              <span class="program-thumb-badge">Global Standard</span>
+            </div>
+            <div class="program-body">
+              <div>
+                <h3>BRCGS</h3>
+                <div class="program-sub">Brand Reputation Compliance Global Standard</div>
+                <p class="program-desc">Competency certification for specialists implementing and auditing benchmarked
+                  global standards for food safety, packaging materials, and storage logistics.</p>
+                <div class="program-tags">
+                  <span>BRCGS Standards</span>
+                  <span>Packaging &amp; Storage</span>
+                  <span>Supplier Integrity</span>
+                </div>
+              </div>
+              <a href="#process" class="program-footer">
+                <span>Certification Workflow</span>
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <use href="#v-arrow-right" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================== SECTION 5: HOW IT WORKS ================== -->
+    <section class="s" id="process">
+      <div class="w">
+        <div class="section-head">
+          <div class="eyebrow"><span class="eyebrow-line"></span>Step-by-Step Guide</div>
+          <h2>How Certification Works</h2>
+          <p>A simple, transparent 4-stage journey from application review to ongoing recertification.
+          </p>
+        </div>
+
+        <!-- 4-Stage Workflow -->
+        <div class="steps-container" style="margin-top: 0; margin-bottom: 36px;">
+          <div class="step-box">
+            <div class="step-number"><span>STAGE 01</span><svg class="step-vector" width="18" height="18"
+                viewBox="0 0 24 24">
+                <use href="#v-checklist" />
+              </svg></div>
+            <b>Application &amp; Eligibility Review</b>
+            <div class="step-subtext">Governed by Clause 9.1</div>
+            <p class="step-desc">Candidates submit verifiable documentation of their educational background,
+              professional experience, and signed commitment to the GSFIN Code of Ethics. Applications undergo an
+              objective desk review against published scheme prerequisites to confirm eligibility.</p>
+          </div>
+          <div class="step-box">
+            <div class="step-number"><span>STAGE 02</span><svg class="step-vector" width="18" height="18"
+                viewBox="0 0 24 24">
+                <use href="#v-camera" />
+              </svg></div>
+            <b>Standardized Examination</b>
+            <div class="step-subtext">Governed by Clauses 9.2 &amp; 9.3</div>
+            <p class="step-desc">Eligible candidates sit for fair, structured examinations administered at Approved
+              Assessment Centers under secure invigilation. Assessments test theoretical knowledge and practical
+              workplace application against established scheme benchmarks.</p>
+          </div>
+          <div class="step-box">
+            <div class="step-number"><span>STAGE 03</span><svg class="step-vector" width="18" height="18"
+                viewBox="0 0 24 24">
+                <use href="#v-scale" />
+              </svg></div>
+            <b>Independent Certification Decision</b>
+            <div class="step-subtext">Governed by Clause 9.5</div>
+            <p class="step-desc">Assessment results and candidate portfolios are evaluated by authorized certification
+              decision-makers who were not involved in test administration or training delivery, ensuring a completely
+              impartial determination.</p>
+          </div>
+          <div class="step-box">
+            <div class="step-number"><span>STAGE 04</span><svg class="step-vector" width="18" height="18"
+                viewBox="0 0 24 24">
+                <use href="#v-award" />
+              </svg></div>
+            <b>Maintenance &amp; Recertification</b>
+            <div class="step-subtext">Governed by Clause 9.6</div>
+            <p class="step-desc">Certified practitioners maintain their active standing through ongoing professional
+              practice, structured Continuing Professional Development (CPD) logging, and periodic recertification at
+              the end of each 3-year cycle.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-vector-icon"><svg width="22" height="22" viewBox="0 0 24 24">
+                <use href="#v-shield-check" />
+              </svg></div>
+            <h3>Special Accommodations</h3>
+            <p>GSFIN provides reasonable, verified testing accommodations for candidates with documented medical or
+              learning requirements without compromising the security or psychometric validity of the examination.</p>
+          </div>
+          <div class="card">
+            <div class="card-vector-icon"><svg width="22" height="22" viewBox="0 0 24 24">
+                <use href="#v-scale" />
+              </svg></div>
+            <h3>Disciplinary Code of Ethics</h3>
+            <p>All certified personnel must adhere strictly to professional standards. Falsification of audit findings,
+              conflict concealment, or criminal negligence triggers immediate suspension or revocation.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- ================== SECTION 6: VERIFY CERTIFICATE ================== -->
+    <section class="s alt bordered" id="verify">
+      <div class="w" style="max-width: 960px;">
+        <div class="section-head" style="text-align: center; margin: 0 auto 36px;">
+          <div class="eyebrow" style="justify-content: center;"><span class="eyebrow-line"></span>Official Registry
+          </div>
+          <h2>Verify a Certificate</h2>
+          <p>Instant online verification to confirm the active status and authenticity of any certificate.</p>
+        </div>
+
+        <!-- Official Verification Portal Gateway Card -->
+        <div class="portal-card">
+          <div class="portal-grid">
+            <div class="portal-content">
+              <span class="portal-badge">
+                <span class="live-dot"></span>
+                Official Registry Portal
+              </span>
+              <h3>Centralized Credential Verification</h3>
+              <p>GSFIN provides a dedicated, official online portal where employers, certification bodies, and
+                regulatory agencies can directly validate certified personnel credentials in real time.</p>
+
+              <ul class="portal-features">
+                <li>
+                  <svg width="18" height="18" viewBox="0 0 24 24">
+                    <use href="#v-shield-check" />
+                  </svg>
+                  <span>Instant lookup using Certificate Number or QR code</span>
+                </li>
+                <li>
+                  <svg width="18" height="18" viewBox="0 0 24 24">
+                    <use href="#v-checklist" />
+                  </svg>
+                  <span>Direct confirmation of active status, validity, and scope</span>
+                </li>
+                <li>
+                  <svg width="18" height="18" viewBox="0 0 24 24">
+                    <use href="#v-lock" />
+                  </svg>
+                  <span>Cryptographically verified under international conformity assessment standards</span>
+                </li>
+              </ul>
+
+              <div style="margin-top: 24px;">
+                <NuxtLink class="btn p lg" to="/verify">
+                  <span>Go to Verification Portal</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M7 17L17 7M17 7H7M17 7V17" />
+                  </svg>
+                </NuxtLink>
+              </div>
+
+              <div class="portal-meta-note">
+                <svg width="15" height="15" viewBox="0 0 24 24">
+                  <use href="#v-lock" />
+                </svg>
+                <span>Direct portal link: <NuxtLink to="/verify">https://exam.gsfin.uk/verify-certificate/</NuxtLink></span>
+              </div>
+            </div>
+
+            <div class="portal-preview">
+              <img src="/assets/images/credential_badge.jpg" alt="GSFIN Verified Credential Security Badge">
+              <div class="portal-preview-overlay"></div>
+              <div class="portal-preview-caption">
+                <span style="font-weight: 600;">Secure Portal Gateway</span>
+                <span style="color: var(--gold); font-weight: 600;">256-Bit SSL Encrypted</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Integrated Credential Security Notice -->
+          <div class="portal-security-bar">
+            <svg width="18" height="18" viewBox="0 0 24 24" style="color: var(--ac); flex-shrink: 0;">
+              <use href="#v-shield-check" />
+            </svg>
+            <span>All official GSFIN certificates embed encrypted QR tokens and unique IDs. For authenticity inquiries
+              or discrepancies, contact <strong>ethics@gsfin.org</strong>.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FLOATING BACK TO TOP BUTTON -->
+  <button :class="['back-to-top', { visible: showBackToTop }]" id="backToTop" @click="scrollToTop"
+    aria-label="Back to top">
+    <svg width="20" height="20" viewBox="0 0 24 24">
+      <use href="#v-arrow-up" />
+    </svg>
+  </button>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="w">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo-group">
+            <img class="brand-img" src="/assets/images/logo.png" alt="GSFIN Logo">
+          </div>
+          <p>Global Standards for Food Industries operates as an autonomous Personnel Certification Body governed under
+            international personnel certification standards.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Navigation</h4>
+          <a href="#hero">Home</a>
+          <a href="#about">About Us</a>
+          <a href="#schemes">Certifications</a>
+          <a href="#process">How It Works</a>
+          <a href="#verify">Verify Certificate</a>
+        </div>
+
+        <div class="footer-col">
+          <h4>Governance &amp; Trust</h4>
+          <a href="#about">Impartiality Policy</a>
+          <a href="#about">Appeals &amp; Complaints</a>
+          <a href="#process">Code of Professional Ethics</a>
+          <a href="#verify">Verify Certificate</a>
+          <a href="#about">Special Accommodations</a>
+        </div>
+
+        <div class="footer-col">
+          <h4>Certification Standards</h4>
+          <p style="font-size: 13px; color: var(--mu); line-height: 1.6; margin-bottom: 8px;">Operating pursuant to
+            international conformity standards:</p>
+          <p style="font-size: 13px; color: var(--tx); line-height: 1.6; font-weight: 600; margin-bottom: 6px;">Personnel Conformity Assessment</p>
+          <p style="font-size: 13px; color: var(--mu); line-height: 1.5;">Objective benchmarks and independent requirements for bodies operating
+            certification of persons.</p>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 Global Standards for Food Industries (GSFIN). All rights reserved.</div>
+        <div style="display: flex; gap: 20px;">
+          <a href="#hero">Privacy Policy</a>
+          <a href="#hero">Terms of Registration</a>
+          <a href="#verify">Registry Access</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPT: SMOOTH SCROLLSPY, THEME -->
+  
+
+
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 
 definePageMeta({ layout: false });
 
-// ── State ───────────────────────────────────────────────────────
-const scrolled        = ref(false);
-const mobileMenu      = ref(false);
-const appLogo         = useState('appLogo',         () => '');
-const contactPhone    = useState('contactPhone',    () => '');
-const contactEmail    = useState('contactEmail',    () => '');
-const contactWhatsapp = useState('contactWhatsapp', () => '');
-const contactAddress  = useState('contactAddress',  () => '');
-const runtimeCfg      = useRuntimeConfig();
-const api             = useApi();
-const currentYear     = new Date().getFullYear();
+useHead({
+  title: 'GSFIN | Global Standards for Food Industries',
+  meta: [
+    {
+      name: 'description',
+      content: 'Global Standards for Food Industries (GSFIN) is an autonomous personnel conformity assessment body operating under international personnel certification standards for food safety, HACCP, and compliance auditors.'
+    }
+  ],
+  link: [
+    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+    { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600&family=Inter:wght@400;500;600&display=swap' }
+  ]
+});
 
-// ── Partner Modal State ──────────────────────────────────────────
-const showPartnerModal  = ref(false);
+// ── Theme State ──
+const currentTheme = ref('light');
+
+function toggleTheme() {
+  currentTheme.value = currentTheme.value === 'dark' ? 'light' : 'dark';
+  if (process.client) {
+    document.documentElement.setAttribute('data-theme', currentTheme.value);
+    localStorage.setItem('gsfin_theme', currentTheme.value);
+  }
+}
+
+// ── Navigation & Scroll State ──
+const mobileNavOpen = ref(false);
+const showBackToTop = ref(false);
+const activeSection = ref('hero');
+const sectionIds = ['hero', 'pillars', 'about', 'schemes', 'process', 'verify'];
+
+function onScroll() {
+  if (!process.client) return;
+  const scrollPos = window.scrollY + 120;
+  showBackToTop.value = window.scrollY > 350;
+
+  for (const id of sectionIds) {
+    const el = document.getElementById(id);
+    if (el) {
+      const top = el.offsetTop;
+      const height = el.offsetHeight;
+      if (scrollPos >= top && scrollPos < top + height) {
+        activeSection.value = id;
+        break;
+      }
+    }
+  }
+}
+
+function scrollToSection(id: string) {
+  mobileNavOpen.value = false;
+  if (!process.client) return;
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+function scrollToTop() {
+  if (process.client) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+// ── Partner Modal State & Form ──
+const showPartnerModal = ref(false);
 const partnerSubmitting = ref(false);
-const partnerSuccess    = ref(false);
-const partnerError      = ref('');
+const partnerSuccess = ref(false);
+const partnerError = ref('');
 
 const partnerForm = ref({
   organizationName: '',
@@ -424,852 +1021,86 @@ const partnerForm = ref({
   city: '',
   programs: [] as string[],
   institutionType: 'Authorized Training Center',
-  message: '',
+  message: ''
 });
 
 const availablePrograms = [
-  { id: 'ISO 22000', label: 'ISO 22000' },
+  { id: 'ISO 22000', label: 'ISO 22000 FSMS' },
   { id: 'CODEX HACCP', label: 'CODEX HACCP' },
-  { id: 'GMP', label: 'GMP' },
-  { id: 'BRCGS', label: 'BRCGS' },
+  { id: 'GMP', label: 'GMP & GHP' },
+  { id: 'BRCGS', label: 'BRCGS Standards' },
   { id: 'FSSC 22000', label: 'FSSC 22000' },
-  { id: 'FSMA', label: 'FSMA' }
+  { id: 'ISO 17025', label: 'ISO 17025 Testing' }
 ];
 
-const toggleProgram = (progId: string) => {
+function toggleProgram(progId: string) {
   const index = partnerForm.value.programs.indexOf(progId);
   if (index > -1) {
     partnerForm.value.programs.splice(index, 1);
   } else {
     partnerForm.value.programs.push(progId);
   }
-};
+}
 
-const openPartnerModal = () => {
+function openPartnerModal() {
   showPartnerModal.value = true;
-  partnerSuccess.value    = false;
-  partnerError.value      = '';
-};
+  partnerSuccess.value = false;
+  partnerError.value = '';
+}
 
-const closePartnerModal = () => {
+function closePartnerModal() {
   showPartnerModal.value = false;
-};
+}
 
-const submitPartnerApplication = async () => {
-  if (!partnerForm.value.organizationName || 
-      !partnerForm.value.contactName || 
-      !partnerForm.value.email || 
-      !partnerForm.value.phone || 
-      !partnerForm.value.country || 
-      !partnerForm.value.city) {
-    partnerError.value = 'Please complete all required fields (*).';
-    return;
-  }
+const api = useApi();
 
+async function submitPartnerInquiry() {
   if (partnerForm.value.programs.length === 0) {
-    partnerError.value = 'Please select at least one Accreditation Program (e.g. ISO 22000, CODEX HACCP).';
+    partnerError.value = 'Please select at least one accreditation program.';
     return;
   }
-
   partnerSubmitting.value = true;
-  partnerError.value      = '';
-
+  partnerError.value = '';
   try {
-    const payload = {
-      name: partnerForm.value.contactName,
+    await api.post('/public/inquiries', {
+      type: 'partner',
+      organization_name: partnerForm.value.organizationName,
+      contact_name: partnerForm.value.contactName,
       email: partnerForm.value.email,
       phone: partnerForm.value.phone,
-      subject: `Training Center Accreditation: ${partnerForm.value.organizationName} (${partnerForm.value.country} - ${partnerForm.value.city})`,
-      message: `[AUTHORIZED TRAINING CENTER ACCREDITATION APPLICATION]\nOrganization Name: ${partnerForm.value.organizationName}\nContact Person: ${partnerForm.value.contactName}\nEmail: ${partnerForm.value.email}\nPhone: ${partnerForm.value.phone}\nCountry: ${partnerForm.value.country}\nCity: ${partnerForm.value.city}\nAccreditation Programs: ${partnerForm.value.programs.join(', ')}\nInstitution Type: ${partnerForm.value.institutionType}\nAdditional Message: ${partnerForm.value.message || 'N/A'}`
-    };
-
-    await api.post('/public/contact', payload);
+      country: partnerForm.value.country,
+      city: partnerForm.value.city,
+      institution_type: partnerForm.value.institutionType,
+      programs: partnerForm.value.programs,
+      message: partnerForm.value.message
+    });
     partnerSuccess.value = true;
-    partnerForm.value = {
-      organizationName: '',
-      contactName: '',
-      email: '',
-      phone: '',
-      country: '',
-      city: '',
-      programs: [],
-      institutionType: 'Authorized Training Center',
-      message: '',
-    };
   } catch (err: any) {
-    partnerError.value = err?.response?.data?.message || 'Failed to submit application. Please try again.';
+    partnerError.value = err.response?.data?.message || err.message || 'Failed to submit application.';
   } finally {
     partnerSubmitting.value = false;
   }
-};
-
-// ── Computed ────────────────────────────────────────────────────
-const fullLogoUrl = computed(() => {
-  if (!appLogo.value) return '/logo.webp';
-  return runtimeCfg.public.apiBase.replace('/api', '') + appLogo.value;
-});
-
-const whatsappHref = computed(() => {
-  if (!contactWhatsapp.value) return '#';
-  return 'https://wa.me/' + contactWhatsapp.value.replace(/\D/g, '');
-});
-
-// ── Lifecycle ───────────────────────────────────────────────────
-const onScroll = () => { scrolled.value = window.scrollY > 64; };
+}
 
 onMounted(() => {
-  window.addEventListener('scroll', onScroll, { passive: true });
-  api.get('/public/config').then(({ data }: any) => {
-    if (data?.contact_phone)    contactPhone.value    = data.contact_phone;
-    if (data?.contact_email)    contactEmail.value    = data.contact_email;
-    if (data?.contact_whatsapp) contactWhatsapp.value = data.contact_whatsapp;
-    if (data?.contact_address)  contactAddress.value  = data.contact_address;
-    if (data?.logo_url)         appLogo.value         = data.logo_url;
-  }).catch(() => {});
+  if (process.client) {
+    const savedTheme = localStorage.getItem('gsfin_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    currentTheme.value = savedTheme;
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
 });
 
-onUnmounted(() => window.removeEventListener('scroll', onScroll));
-
-const scrollTo = (id: string) => {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  mobileMenu.value = false;
-};
-
-// ── Data Arrays ─────────────────────────────────────────────────
-const certifications = [
-  { id: 1, slug: 'codex-haccp',       image: '/img/course-haccp.jpg',        name: 'CODEX HACCP',       desc: 'Hazard Analysis & Critical Control Points — the cornerstone of food safety management.' },
-  { id: 2, slug: 'iso-22000',          image: '/img/course-iso22000.jpg',     name: 'ISO 22000:2018',    desc: 'International standard for food safety management systems.' },
-  { id: 3, slug: 'food-safety',        image: '/img/course-food-safety.jpg',  name: 'Food Safety',       desc: 'Comprehensive food safety principles, hygiene, contamination prevention and compliance.' },
-  { id: 4, slug: 'food-technology',    image: '/img/course-food-tech.png',    name: 'Food Technology',   desc: 'A blend of food science and technology principles for modern food processing and innovation.' },
-  { id: 5, slug: 'brcgs',              image: '/img/course-brcgs.jpg',        name: 'BRCGS',             desc: 'Global standard for retailers and foodservice sectors.' },
-  { id: 6, slug: 'fssc-22000',         image: '/img/course-fssc.jpg',         name: 'FSSC 22000',        desc: 'Food Safety System Certification recognized by GSFI worldwide.' },
-  { id: 7, slug: 'ghp-gmp',            image: '/img/course-ghp-gmp.jpg',      name: 'GHP & GMP',         desc: 'Good Hygiene and Manufacturing Practices for safe food production.' },
-  { id: 8, slug: 'food-microbiology',  image: '/img/course-microbiology.jpg', name: 'Food Microbiology', desc: 'Understanding microbial hazards, hygiene practices and testing methods.' },
-];
-
-const whyFeatures = [
-  { icon: 'mdi-earth',                   title: 'Global Credibility',       desc: 'Enhance your institutional prestige with GSFIN accreditation.' },
-  { icon: 'mdi-chart-areaspline',        title: 'Grow Your Reach',          desc: 'Attract more students with internationally recognized credentials.' },
-  { icon: 'mdi-laptop',                  title: 'Easy Partner Portal',      desc: 'Simple registration and batch management.' },
-  { icon: 'mdi-headset',                 title: 'Dedicated Support',        desc: 'Training resources and ongoing assistance.' },
-  { icon: 'mdi-bullhorn-outline',        title: 'Marketing Support',        desc: 'Co-branded resources to promote your center.' },
-  { icon: 'mdi-leaf',                    title: 'Be Part of a Safer World', desc: 'Contribute to higher food safety standards globally.' },
-];
-
-const steps = [
-  { step: '01', icon: 'mdi-shield-check-outline',        title: 'Become an Authorized Center', desc: 'Organizations apply and get approved as GSFIN training partners.' },
-  { step: '02', icon: 'mdi-account-group-outline',       title: 'Register Your Students',       desc: 'Authorize and register student batches for GSFIN exams through the partner portal.' },
-  { step: '03', icon: 'mdi-file-document-edit-outline',  title: 'Students Take Exams',          desc: 'Students appear for secure online exams on the GSFIN platform.' },
-  { step: '04', icon: 'mdi-certificate-outline',        title: 'Get Certified',                desc: 'Successful candidates receive globally recognized GSFIN certificates.' },
-];
-
-const testimonials = [
-  { name: 'Rajeev Menon',  role: 'Director, Food Safety Institute, India', text: 'Partnering with GSFIN has added enormous value to our training programs. Their qualification framework is highly respected in the industry.' },
-  { name: 'Priya Sharma', role: 'Training Manager, Kerala, India',        text: 'The GSFIN credential gives our students a global advantage and strengthens our position as a trusted training provider.' },
-  { name: 'Dr. Anees K.', role: 'Academic Director, UAE',                  text: 'A professional and well-structured assessment process. Our students value the global recognition.' },
-];
+onUnmounted(() => {
+  if (process.client) {
+    window.removeEventListener('scroll', onScroll);
+  }
+});
 </script>
 
+<style>
+@import '~/assets/css/landing.css';
 
-<style scoped>
-/* ═══════════════════════════════════════════════════════════
-   APPLE SF PRO & MINIMALIST GLASSMORPHISM DESIGN SYSTEM
-══════════════════════════════════════════════════════════ */
-.gsfin-page {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Inter", "Plus Jakarta Sans", system-ui, sans-serif;
-  background: #FFFFFF;
-  color: #0F172A;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  letter-spacing: -0.011em;
-}
 
-/* ── Shared Utilities ─────────────────────────────────────── */
-.page-wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
-.section   { padding: 100px 0; position: relative; }
-
-/* ── Minimal Brand Crimson Red Palette ───────────────────── */
-.text-red { color: #E31B23 !important; font-weight: 600; }
-.eyebrow-red {
-  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
-  color: #E31B23; margin-bottom: 12px;
-}
-
-/* ── Shared Glassmorphism Utilities ────────────────────── */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.72) !important;
-  backdrop-filter: blur(12px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.85) !important;
-  border-radius: 18px !important;
-  box-shadow: 0 4px 16px 0 rgba(15, 23, 42, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.9) !important;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-.glass-panel:hover {
-  background: rgba(255, 255, 255, 0.92) !important;
-  border-color: rgba(227, 27, 35, 0.3) !important;
-  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.07), inset 0 1px 0 0 #FFFFFF !important;
-  transform: translateY(-4px);
-}
-
-.glass-panel-dark {
-  background: rgba(15, 23, 42, 0.78) !important;
-  backdrop-filter: blur(24px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  border-radius: 20px !important;
-  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.14), inset 0 1px 0 0 rgba(255, 255, 255, 0.15) !important;
-  color: #FFFFFF !important;
-}
-
-/* ── Buttons ────────────────────────────────────────────── */
-.btn-red {
-  display: inline-flex !important; align-items: center !important; gap: 8px;
-  background: #E31B23 !important; color: #FFFFFF !important;
-  text-decoration: none; padding: 12px 26px; border-radius: 12px;
-  font-weight: 600; font-size: 0.88rem; border: 1px solid #E31B23 !important;
-  box-shadow: 0 2px 8px rgba(227, 27, 35, 0.18);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer; white-space: nowrap;
-}
-.btn-red:hover {
-  background: #C4131B !important; border-color: #C4131B !important; color: #FFFFFF !important;
-  transform: translateY(-1px); box-shadow: 0 5px 14px rgba(227, 27, 35, 0.25);
-}
-
-.btn-glass {
-  display: inline-flex !important; align-items: center !important; gap: 8px;
-  background: rgba(248, 250, 252, 0.8) !important; color: #0F172A !important;
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(15, 23, 42, 0.1) !important; text-decoration: none;
-  padding: 12px 26px; border-radius: 12px; font-weight: 600; font-size: 0.88rem;
-  transition: all 0.25s ease; cursor: pointer; white-space: nowrap;
-}
-.btn-glass:hover {
-  background: rgba(255, 255, 255, 1) !important; border-color: #0F172A !important;
-  transform: translateY(-2px);
-}
-
-.btn-glass-white {
-  display: inline-flex !important; align-items: center !important; gap: 8px;
-  background: rgba(255, 255, 255, 0.12) !important; color: #FFFFFF !important;
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.25) !important; text-decoration: none;
-  padding: 12px 26px; border-radius: 12px; font-weight: 600; font-size: 0.88rem;
-  transition: all 0.25s ease; cursor: pointer; white-space: nowrap;
-}
-.btn-glass-white:hover {
-  background: rgba(255, 255, 255, 0.25) !important; border-color: #FFFFFF !important;
-}
-
-/* ── Section Headings ───────────────────────────────────── */
-.section-head { text-align: center; margin-bottom: 56px; }
-.section-title {
-  font-size: clamp(1.8rem, 3vw, 2.5rem); font-weight: 600;
-  line-height: 1.2; letter-spacing: -0.03em; color: #0F172A; margin-bottom: 12px;
-}
-.section-sub { font-size: 1rem; color: #64748B; max-width: 520px; margin: 0 auto; line-height: 1.6; }
-
-/* ═══════════════════════════════════════════════════════════
-   NAVBAR
-══════════════════════════════════════════════════════════ */
-.gsfin-nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 999;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06); transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.gsfin-nav--scrolled {
-  background: rgba(255, 255, 255, 0.72) !important;
-  backdrop-filter: blur(16px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05) !important;
-}
-.nav-wrap {
-  max-width: 1200px; margin: 0 auto; padding: 0 32px;
-  height: 72px; display: flex; align-items: center; justify-content: space-between;
-}
-.nav-logo { display: flex; align-items: center; text-decoration: none; }
-.nav-logo-img { height: 42px; object-fit: contain; }
-.nav-logo-text { font-size: 1.4rem; font-weight: 600; color: #0F172A !important; letter-spacing: -0.02em; }
-.nav-links { display: flex; align-items: center; gap: 28px; }
-@media (max-width: 900px) { .nav-links { display: none; } }
-.nav-link {
-  color: #334155 !important; text-decoration: none !important;
-  font-size: 0.84rem; font-weight: 600; transition: color 0.2s; cursor: pointer;
-}
-.nav-link:hover { color: #E31B23 !important; }
-.nav-right { display: flex; align-items: center; gap: 16px; }
-.nav-search-btn {
-  background: none; border: none; font-size: 1.25rem; color: #475569;
-  cursor: pointer; padding: 6px; display: flex; align-items: center; transition: color 0.2s;
-}
-.nav-search-btn:hover { color: #0F172A; }
-.nav-cta-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: #E31B23 !important; color: #FFFFFF !important;
-  text-decoration: none; padding: 9px 20px; border-radius: 50px;
-  font-weight: 600; font-size: 0.82rem;
-  box-shadow: 0 2px 8px rgba(227, 27, 35, 0.18); transition: all 0.2s; white-space: nowrap;
-}
-.nav-cta-btn:hover { background: #C4131B !important; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(227, 27, 35, 0.25); }
-@media (max-width: 900px) { .nav-cta-btn { display: none; } }
-
-.nav-hamburger {
-  display: none; flex-direction: column; justify-content: space-between;
-  width: 22px; height: 16px; background: none; border: none; cursor: pointer; padding: 0;
-}
-@media (max-width: 900px) { .nav-hamburger { display: flex; } }
-.nav-hamburger span { display: block; height: 2px; background: #0F172A; border-radius: 2px; }
-.nav-drawer {
-  max-height: 0; overflow: hidden; background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px); border-top: 1px solid rgba(15, 23, 42, 0.06); transition: max-height 0.3s ease;
-}
-.nav-drawer--open { max-height: 340px; }
-.nav-drawer-link {
-  display: block; padding: 12px 32px; color: #0F172A !important;
-  text-decoration: none; font-weight: 600; font-size: 0.88rem; border-bottom: 1px solid rgba(15, 23, 42, 0.04);
-}
-.nav-drawer-cta-wrap { padding: 16px 32px; }
-
-/* ═══════════════════════════════════════════════════════════
-   HERO SECTION (Full-Bleed Animated Fluid Background)
-══════════════════════════════════════════════════════════ */
-.hero {
-  position: relative; overflow: hidden; background: #F8FAFC;
-  padding-top: 120px; padding-bottom: 80px; min-height: 88vh; display: flex; align-items: center;
-  width: 100%;
-}
-
-.hero-bg-animated-layer {
-  position: absolute; top: -6%; left: -6%; right: -6%; bottom: -6%;
-  background-size: contain; background-position: right center; background-repeat: no-repeat;
-  opacity: 1; pointer-events: none; z-index: 0;
-  animation: heroFluidPan 25s ease-in-out infinite alternate;
-  filter: contrast(1.05) saturate(1.1);
-}
-
-@keyframes heroFluidPan {
-  0% { transform: scale(1) translate(0%, 0%) rotate(0deg); }
-  50% { transform: scale(1.04) translate(-1%, -0.8%) rotate(0.2deg); }
-  100% { transform: scale(1.01) translate(0.5%, -1%) rotate(-0.2deg); }
-}
-
-.hero-glass-overlay {
-  position: absolute; inset: 0;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.88) 42%, rgba(255, 255, 255, 0.25) 65%, rgba(255, 255, 255, 0) 90%);
-  pointer-events: none; z-index: 0;
-}
-
-.hero-blur { position: absolute; border-radius: 50%; filter: blur(100px); pointer-events: none; opacity: 0.35; z-index: 0; }
-.hero-blur-1 { width: 500px; height: 500px; background: rgba(227, 27, 35, 0.06); top: -100px; right: -50px; }
-.hero-blur-2 { width: 400px; height: 400px; background: rgba(56, 189, 248, 0.05); bottom: 0; left: -80px; }
-
-.hero-wrap {
-  max-width: 1200px; margin: 0 auto; padding: 0 32px; width: 100%;
-  display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 1;
-}
-
-.hero-content { max-width: 580px; }
-
-.hero-eyebrow {
-  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
-  color: #E31B23; margin-bottom: 16px;
-}
-.hero-title {
-  font-size: clamp(2.1rem, 3.8vw, 3.1rem); font-weight: 600; line-height: 1.15;
-  letter-spacing: -0.035em; color: #0F172A; margin-bottom: 20px;
-}
-.hero-title-top { display: inline-block; white-space: nowrap; }
-.hero-body { font-size: 0.98rem; line-height: 1.68; color: #475569; margin-bottom: 32px; max-width: 500px; }
-.hero-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 48px; }
-
-.hero-trust-row {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
-  padding: 20px 24px !important; margin-top: 36px; border-top: none;
-  max-width: 530px; border-radius: 18px !important;
-}
-@media (max-width: 600px) { .hero-trust-row { grid-template-columns: repeat(2, 1fr); gap: 16px; } }
-.hero-trust-item { display: flex; align-items: center; gap: 10px; }
-.hero-trust-item .mdi { font-size: 1.4rem; color: #FF4D55; flex-shrink: 0; }
-.hero-trust-item span { font-size: 0.72rem; font-weight: 600; color: #F1F5F9; line-height: 1.3; }
-
-
-
-
-
-/* ═══════════════════════════════════════════════════════════
-   CERTIFICATIONS SECTION
-══════════════════════════════════════════════════════════ */
-.certs-section { background: #FFFFFF; }
-.certs-header-row { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 48px; }
-.link-view-all {
-  color: #E31B23 !important; text-decoration: none; font-size: 0.85rem; font-weight: 600;
-  display: inline-flex; align-items: center; gap: 4px; transition: gap 0.2s;
-}
-.link-view-all:hover { gap: 8px; }
-
-.certs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-@media (max-width: 1024px) { .certs-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 600px)  { .certs-grid { grid-template-columns: 1fr; } }
-
-.cert-card {
-  padding: 0 !important; border-radius: 20px !important; overflow: hidden !important;
-  display: flex; flex-direction: column; height: 100%;
-  background: #FFFFFF !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
-  box-shadow: 0 2px 10px 0 rgba(15, 23, 42, 0.03) !important;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-.cert-card:hover {
-  border-color: rgba(227, 27, 35, 0.25) !important;
-  box-shadow: 0 6px 20px -4px rgba(15, 23, 42, 0.07) !important;
-  transform: translateY(-4px);
-}
-
-.cert-img-wrap {
-  position: relative; width: 100%; height: 170px; overflow: hidden;
-  background: #F1F5F9;
-}
-.cert-card-img {
-  width: 100%; height: 100%; object-fit: cover;
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.cert-card:hover .cert-card-img {
-  transform: scale(1.06);
-}
-
-.cert-badge-tag {
-  position: absolute; top: 12px; right: 12px;
-  background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(10px);
-  color: #FFFFFF; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.05em;
-  padding: 4px 10px; border-radius: 50px; text-transform: uppercase;
-}
-
-.cert-card-content {
-  padding: 24px; display: flex; flex-direction: column; flex-grow: 1;
-}
-.cert-title { font-size: 1.08rem; font-weight: 600; color: #0F172A; margin-bottom: 8px; }
-.cert-desc { font-size: 0.83rem; line-height: 1.6; color: #64748B; margin-bottom: 20px; flex-grow: 1; }
-.cert-link-more {
-  display: inline-flex; align-items: center; gap: 4px;
-  color: #E31B23 !important; text-decoration: none; font-size: 0.82rem; font-weight: 600;
-  margin-top: auto; transition: gap 0.2s;
-}
-.cert-card:hover .cert-link-more { gap: 8px; }
-
-/* ═══════════════════════════════════════════════════════════
-   HOW IT WORKS (CLEAN DESIGN + NOTICEABLE ANIMATION)
-══════════════════════════════════════════════════════════ */
-.steps-section { background: #F8FAFC; position: relative; overflow: hidden; }
-.steps-section::before {
-  content: ""; position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(227, 27, 35, 0.03) 0%, rgba(248, 250, 252, 0) 75%);
-  pointer-events: none; z-index: 0;
-}
-
-.steps-track { position: relative; margin-top: 36px; padding: 10px 0; }
-
-.steps-line {
-  position: absolute; top: 32px; left: 10%; right: 10%; height: 4px;
-  background: rgba(15, 23, 42, 0.08); border-radius: 4px; z-index: 0;
-}
-
-.steps-line-active {
-  position: absolute; top: 31px; left: 10%; height: 6px; width: 180px;
-  background: linear-gradient(90deg, rgba(227, 27, 35, 0) 0%, #E31B23 50%, #FF6B6B 85%, #FFFFFF 100%);
-  border-radius: 4px; filter: drop-shadow(0 0 10px rgba(227, 27, 35, 0.85));
-  z-index: 1; pointer-events: none;
-  animation: stepLaserFlow 6.5s ease-in-out infinite;
-}
-
-@keyframes stepLaserFlow {
-  0% { left: 8%; opacity: 0; width: 50px; }
-  15% { opacity: 1; width: 160px; }
-  85% { opacity: 1; width: 160px; }
-  100% { left: 78%; opacity: 0; width: 50px; }
-}
-
-@media (max-width: 768px) {
-  .steps-line, .steps-line-active { display: none; }
-}
-
-.steps-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
-  position: relative; z-index: 2;
-}
-@media (max-width: 768px) { .steps-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 480px) { .steps-grid { grid-template-columns: 1fr; } }
-
-.step-col {
-  text-align: center; display: flex; flex-direction: column; align-items: center;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer;
-}
-.step-col:hover { transform: translateY(-4px); }
-.step-col:hover .step-title { color: #E31B23; }
-
-.step-node-glass {
-  width: 64px; height: 64px; border-radius: 50%;
-  background: rgba(255, 255, 255, 0.55) !important;
-  backdrop-filter: blur(10px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(10px) saturate(180%) !important;
-  border: 2px solid #0F172A;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.6rem; color: #0F172A; margin-bottom: 14px; position: relative; z-index: 2;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  animation: nodeGlowPulse 6.5s ease-in-out infinite;
-}
-
-.step-node-1 .step-node-glass { animation-delay: 0.4s; }
-.step-node-2 .step-node-glass { animation-delay: 1.9s; }
-.step-node-3 .step-node-glass { animation-delay: 3.4s; }
-.step-node-4 .step-node-glass { animation-delay: 4.9s; }
-
-@keyframes nodeGlowPulse {
-  0%, 100% {
-    transform: scale(1);
-    border-color: #0F172A;
-    color: #0F172A;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
-  }
-  15% {
-    transform: scale(1.16);
-    border-color: #E31B23;
-    background: #FFFFFF;
-    color: #E31B23;
-    box-shadow: 0 0 0 6px rgba(227, 27, 35, 0.15), 0 6px 18px rgba(227, 27, 35, 0.2);
-  }
-  30% {
-    transform: scale(1);
-    border-color: #0F172A;
-    color: #0F172A;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
-  }
-}
-
-.step-col:hover .step-node-glass {
-  transform: translateY(-4px) scale(1.15) !important;
-  background: #E31B23 !important; color: #FFFFFF !important;
-  box-shadow: 0 6px 18px rgba(227, 27, 35, 0.3) !important;
-  border-color: #E31B23 !important;
-}
-
-.step-num { font-size: 0.75rem; font-weight: 600; color: #0F172A; margin-bottom: 6px; letter-spacing: 0.05em; }
-.step-title { font-size: 0.98rem; font-weight: 600; color: #0F172A; margin-bottom: 6px; transition: color 0.2s ease; }
-.step-desc { font-size: 0.8rem; line-height: 1.55; color: #64748B; max-width: 220px; }
-
-/* ═══════════════════════════════════════════════════════════
-   WHY PARTNER WITH GSFIN
-══════════════════════════════════════════════════════════ */
-.why-section {
-  background: #FFFFFF; position: relative; overflow: hidden;
-}
-.why-section::before {
-  content: ""; position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(227, 27, 35, 0.03) 0%, rgba(255, 255, 255, 0) 80%);
-  pointer-events: none; z-index: 0;
-}
-
-.why-split-grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1.3fr; gap: 64px; align-items: center; }
-@media (max-width: 900px) { .why-split-grid { grid-template-columns: 1fr; gap: 40px; } }
-
-.why-main-title { margin-bottom: 18px; }
-.why-body { font-size: 0.96rem; line-height: 1.7; color: #475569; margin-bottom: 32px; }
-
-.why-cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-@media (max-width: 1024px) { .why-cards-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 480px)  { .why-cards-grid { grid-template-columns: 1fr; } }
-
-.why-feat-card {
-  padding: 24px 20px !important;
-  border-radius: 18px !important;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 240, 240, 0.65),
-    rgba(255, 255, 255, 0.5)
-  ) !important;
-  backdrop-filter: blur(12px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.8) !important;
-  box-shadow: 0 3px 12px 0 rgba(15, 23, 42, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.9) !important;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-.why-feat-card:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 235, 235, 0.85),
-    rgba(255, 255, 255, 0.7)
-  ) !important;
-  border-color: rgba(227, 27, 35, 0.25) !important;
-  box-shadow: 0 8px 22px -4px rgba(15, 23, 42, 0.07), inset 0 1px 0 0 #FFFFFF !important;
-  transform: translateY(-4px);
-}
-
-.why-icon-box {
-  width: 40px; height: 40px; background: rgba(254, 242, 242, 0.8);
-  border: 1px solid rgba(254, 202, 202, 0.8); border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.25rem; color: #E31B23; margin-bottom: 14px;
-}
-.why-feat-title { font-size: 0.95rem; font-weight: 600; color: #0F172A; margin-bottom: 6px; }
-.why-feat-desc { font-size: 0.8rem; line-height: 1.5; color: #64748B; }
-
-/* ═══════════════════════════════════════════════════════════
-   TESTIMONIALS
-══════════════════════════════════════════════════════════ */
-.testimonials-section {
-  background: #F8FAFC; position: relative; overflow: hidden;
-}
-.testimonials-section::before {
-  content: ""; position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(227, 27, 35, 0.04) 0%, rgba(248, 250, 252, 0) 75%);
-  pointer-events: none; z-index: 0;
-}
-.testimonials-section .page-wrap { position: relative; z-index: 1; }
-
-.testi-header-row { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 40px; }
-.testi-arrows { display: flex; gap: 8px; }
-.testi-arrow-btn {
-  width: 38px; height: 38px; border-radius: 50%;
-  background: #FFFFFF; border: 1px solid rgba(15, 23, 42, 0.1);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.1rem; color: #0F172A; cursor: pointer; transition: all 0.2s;
-}
-.testi-arrow-btn:hover { background: #0F172A; color: #FFFFFF; }
-
-.testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-@media (max-width: 900px) { .testi-grid { grid-template-columns: 1fr; } }
-
-.testi-card {
-  padding: 28px !important; border-radius: 20px !important;
-  display: flex; flex-direction: column; justify-content: space-between;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 240, 240, 0.6),
-    rgba(255, 255, 255, 0.4)
-  ) !important;
-  backdrop-filter: blur(12px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.7) !important;
-  box-shadow: 0 3px 12px 0 rgba(15, 23, 42, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.9) !important;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-.testi-card:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 235, 235, 0.85),
-    rgba(255, 255, 255, 0.7)
-  ) !important;
-  border-color: rgba(227, 27, 35, 0.25) !important;
-  box-shadow: 0 8px 22px -4px rgba(15, 23, 42, 0.07) !important;
-  transform: translateY(-4px);
-}
-.testi-text { font-size: 0.88rem; line-height: 1.75; color: #334155; margin-bottom: 24px; font-style: italic; }
-.testi-author { display: flex; align-items: center; gap: 12px; }
-.testi-avatar-img { font-size: 2.2rem; color: #94A3B8; display: flex; align-items: center; }
-.testi-name { font-size: 0.88rem; font-weight: 600; color: #0F172A; }
-.testi-role { font-size: 0.75rem; color: #64748B; margin-top: 1px; }
-.testi-stars { color: #F59E0B; font-size: 0.75rem; margin-top: 3px; letter-spacing: 2px; }
-
-/* ═══════════════════════════════════════════════════════════
-   CTA BANNER
-══════════════════════════════════════════════════════════ */
-.cta-section { background: #FFFFFF; padding: 60px 0 100px 0; }
-.cta-glass-banner {
-  position: relative; overflow: hidden;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(241, 245, 249, 0.88) 100%);
-  backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(227, 27, 35, 0.15);
-  border-radius: 28px; padding: 56px 64px; color: #0F172A;
-  display: flex; align-items: center; justify-content: space-between; gap: 48px;
-  box-shadow: 0 6px 24px -4px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-@media (max-width: 900px) { .cta-glass-banner { flex-direction: column; text-align: center; padding: 40px 28px; } }
-
-.cta-bg-image {
-  position: absolute; top: 0; right: 0; bottom: 0; width: 45%;
-  background-size: cover; background-position: center right;
-  opacity: 0.12; mix-blend-mode: multiply; pointer-events: none;
-  mask-image: linear-gradient(to left, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
-  -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
-}
-
-.cta-left { position: relative; z-index: 2; max-width: 580px; }
-.cta-eyebrow { color: #E31B23 !important; font-weight: 600; font-size: 0.75rem; letter-spacing: 0.12em; margin-bottom: 12px; }
-.cta-title { font-size: clamp(1.8rem, 3.2vw, 2.5rem); font-weight: 600; color: #0F172A !important; margin-bottom: 12px; line-height: 1.2; letter-spacing: -0.03em; }
-.cta-sub { font-size: 0.98rem; color: #475569 !important; margin-bottom: 32px; font-weight: 500; }
-.cta-actions { display: flex; gap: 16px; flex-wrap: wrap; }
-@media (max-width: 900px) { .cta-actions { justify-content: center; } }
-
-.btn-glass-secondary {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 13px 26px; border-radius: 50px; font-weight: 600; font-size: 0.88rem;
-  background: rgba(255, 255, 255, 0.85); color: #0F172A !important;
-  border: 1px solid rgba(15, 23, 42, 0.15); backdrop-filter: blur(12px);
-  text-decoration: none; transition: all 0.22s ease; cursor: pointer;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
-}
-.btn-glass-secondary:hover {
-  background: #FFFFFF; color: #E31B23 !important; border-color: rgba(227, 27, 35, 0.3);
-  transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
-}
-
-.cta-right { flex-shrink: 0; position: relative; z-index: 2; }
-.cta-slogan-box { border-left: 3px solid #E31B23; padding-left: 24px; }
-@media (max-width: 900px) { .cta-slogan-box { border-left: none; border-top: 3px solid #E31B23; padding-left: 0; padding-top: 18px; } }
-.cta-slogan-line { font-size: clamp(1.4rem, 2.4vw, 2rem); font-weight: 600; color: #0F172A !important; line-height: 1.25; letter-spacing: -0.025em; }
-.cta-slogan-line.text-slate { color: #64748B !important; font-weight: 600; }
-
-/* ═══════════════════════════════════════════════════════════
-   FOOTER
-══════════════════════════════════════════════════════════ */
-.gsfin-footer { background: #FAFAFD; border-top: 1px solid rgba(15, 23, 42, 0.06); color: #334155; }
-.footer-grid { padding: 80px 32px; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; }
-@media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 600px) { .footer-grid { grid-template-columns: 1fr; } }
-
-.footer-logo { height: 40px; object-fit: contain; margin-bottom: 16px; display: block; }
-.footer-logo-txt { font-size: 1.4rem; font-weight: 600; color: #0F172A; margin-bottom: 16px; }
-.footer-brand-desc { font-size: 0.84rem; line-height: 1.7; color: #64748B; margin-bottom: 24px; max-width: 300px; }
-.footer-socials { display: flex; gap: 10px; }
-.footer-soc {
-  width: 36px; height: 36px; background: #FFFFFF; border: 1px solid rgba(15, 23, 42, 0.1);
-  border-radius: 10px; display: flex; align-items: center; justify-content: center;
-  color: #64748B !important; text-decoration: none; font-size: 1rem; transition: all 0.2s;
-}
-.footer-soc:hover { background: #E31B23 !important; color: #FFFFFF !important; border-color: #E31B23 !important; transform: translateY(-2px); }
-
-.footer-col-h { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #0F172A; margin-bottom: 18px; }
-.footer-links { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
-.footer-links a { font-size: 0.84rem; color: #64748B !important; text-decoration: none; transition: color 0.18s; cursor: pointer; }
-.footer-links a:hover { color: #E31B23 !important; }
-
-.footer-bar { border-top: 1px solid rgba(15, 23, 42, 0.06); padding: 20px 0; }
-.footer-bar-inner { display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; color: #94A3B8; }
-.footer-slogan { font-weight: 600; color: #64748B; }
-
-/* ═══════════════════════════════════════════════════════════
-   PARTNER APPLICATION MODAL (Apple Glassmorphism)
-══════════════════════════════════════════════════════════ */
-.modal-overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  display: flex; align-items: center; justify-content: center; padding: 24px;
-}
-
-.modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.3s ease; }
-.modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
-
-.glass-modal {
-  width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto;
-  background: rgba(255, 255, 255, 0.95) !important;
-  backdrop-filter: blur(28px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.9) !important;
-  border-radius: 28px !important;
-  padding: 40px !important; position: relative;
-  box-shadow: 0 12px 36px -8px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(227, 27, 35, 0.08) !important;
-}
-
-.modal-close-btn {
-  position: absolute; top: 20px; right: 20px;
-  width: 36px; height: 36px; border-radius: 50%;
-  background: rgba(15, 23, 42, 0.05); border: none;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.2rem; color: #475569; cursor: pointer; transition: all 0.2s;
-}
-.modal-close-btn:hover { background: #E31B23; color: #FFFFFF; }
-
-.modal-header { margin-bottom: 24px; }
-.modal-title { font-size: 1.6rem; font-weight: 600; color: #0F172A; margin-bottom: 6px; line-height: 1.2; letter-spacing: -0.02em; }
-.modal-sub { font-size: 0.88rem; color: #64748B; line-height: 1.55; }
-
-.partner-form { display: flex; flex-direction: column; gap: 16px; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-@media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
-
-.form-group { display: flex; flex-direction: column; gap: 6px; }
-.form-label { font-size: 0.76rem; font-weight: 600; color: #334155; }
-.req { color: #E31B23; }
-
-.form-input, .form-select, .form-textarea {
-  width: 100%; padding: 11px 14px; border-radius: 12px;
-  background: rgba(248, 250, 252, 0.85);
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  font-size: 0.86rem; color: #0F172A; font-family: inherit;
-  transition: all 0.2s ease; outline: none; box-sizing: border-box;
-}
-.form-input:focus, .form-select:focus, .form-textarea:focus {
-  background: #FFFFFF; border-color: #E31B23;
-  box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.12);
-}
-
-.form-alert {
-  padding: 10px 14px; border-radius: 10px; font-size: 0.82rem; font-weight: 600;
-  display: flex; align-items: center; gap: 8px;
-}
-.form-alert.error { background: #FEF2F2; color: #991B1B; border: 1px solid #FCA5A5; }
-
-.form-actions-wrap { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
-
-.modal-success-wrap { text-align: center; padding: 24px 12px; }
-.success-icon-box {
-  width: 64px; height: 64px; border-radius: 50%; background: #DCFCE7;
-  color: #166534; display: flex; align-items: center; justify-content: center;
-  font-size: 2.2rem; margin: 0 auto 18px auto;
-}
-.success-title { font-size: 1.4rem; font-weight: 600; color: #0F172A; margin-bottom: 10px; }
-.success-text { font-size: 0.9rem; color: #475569; max-width: 440px; margin: 0 auto 24px auto; line-height: 1.6; }
-
-.full-width { grid-column: 1 / -1; }
-.form-hint-sub { font-size: 0.76rem; color: #64748B; margin: 0 0 6px 0; }
-.programs-chips-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.program-chip-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border-radius: 12px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  background: rgba(248, 250, 252, 0.85);
-  color: #334155;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.program-chip-btn:hover {
-  background: #FFFFFF;
-  border-color: #E31B23;
-  color: #E31B23;
-}
-.program-chip-btn.is-selected {
-  background: #FFF5F5;
-  border-color: #E31B23;
-  color: #E31B23;
-  box-shadow: 0 2px 6px rgba(227, 27, 35, 0.12);
-}
-.program-chip-btn.is-selected i {
-  color: #E31B23;
-}
-.field-error-msg {
-  font-size: 0.74rem;
-  color: #DC2626;
-  font-weight: 600;
-  margin-top: 4px;
-}
 </style>
