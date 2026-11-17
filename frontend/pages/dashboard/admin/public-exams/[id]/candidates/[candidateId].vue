@@ -87,10 +87,10 @@
           </v-card>
         </v-col>
 
-        <!-- Talent Hunt / Additional Details -->
+        <!-- Candidate Registration / Additional Details -->
         <v-col cols="12" md="8" v-if="metadata && Object.keys(metadata).length > 0">
           <v-card variant="outlined" class="rounded-xl bg-white border-0 shadow-sm pa-6 mb-6">
-            <h3 class="text-h6 font-weight-bold text-dark mb-4">Registration Details (Talent Hunt)</h3>
+            <h3 class="text-h6 font-weight-bold text-dark mb-4">Registration Details (Candidate Metadata)</h3>
             <v-divider class="mb-4 opacity-10"></v-divider>
             
             <v-row>

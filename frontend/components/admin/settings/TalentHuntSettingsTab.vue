@@ -83,7 +83,7 @@
       <div v-else class="mb-4 pa-6 rounded-xl d-flex align-center justify-center" style="background:#f8f9fc; border:1px dashed rgba(0,0,0,0.12); min-height:90px;">
         <div class="text-center text-secondary">
           <v-icon size="32" color="grey-lighten-2" class="mb-1">mdi-seal-variant</v-icon>
-          <div class="text-caption">No custom seal uploaded (default KEFTA seal will be drawn)</div>
+          <div class="text-caption">No custom seal uploaded (default GSFIN seal will be drawn)</div>
         </div>
       </div>
 
@@ -161,7 +161,7 @@
           <v-text-field
             v-model="form.certificate_sig1_name"
             label="Signatory 1 Name"
-            placeholder="e.g. Mr. Ameer Faisal"
+            placeholder="e.g. Dr. Ameer Faisal"
             variant="outlined"
             density="compact"
             class="mb-3"
@@ -169,7 +169,7 @@
           <v-text-field
             v-model="form.certificate_sig1_title"
             label="Signatory 1 Designation / Title"
-            placeholder="e.g. Co-founder & State Convenor, KEFTA"
+            placeholder="e.g. Chairman, Certification Governance Board"
             variant="outlined"
             density="compact"
             hide-details
@@ -229,7 +229,7 @@
           <v-text-field
             v-model="form.certificate_sig2_title"
             label="Signatory 2 Designation / Title"
-            placeholder="e.g. General Secretary, KEFTA"
+            placeholder="e.g. Director of Academic &amp; Industrial Standards"
             variant="outlined"
             density="compact"
             hide-details
@@ -238,9 +238,9 @@
       </v-col>
     </v-row>
 
-    <!-- Talent Hunt Dropdowns -->
-    <h2 class="text-h6 font-weight-bold mb-2">Talent Hunt Registration Dropdowns</h2>
-    <p class="text-body-2 text-secondary mb-6">Manage the dynamic dropdown options displayed in the public registration form.</p>
+    <!-- Candidate Registration & Certification Dropdowns -->
+    <h2 class="text-h6 font-weight-bold mb-2">Candidate Registration Dropdowns</h2>
+    <p class="text-body-2 text-secondary mb-6">Manage the dynamic dropdown options displayed in candidate registration forms.</p>
 
     <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
       <h3 class="text-subtitle-1 font-weight-bold mb-4">Participant Categories</h3>
@@ -357,10 +357,10 @@ if (!form.value.talent_hunt_degrees) form.value.talent_hunt_degrees = [];
 if (!form.value.talent_hunt_levels_3) form.value.talent_hunt_levels_3 = [];
 if (!form.value.talent_hunt_courses) form.value.talent_hunt_courses = [];
 
-if (!form.value.certificate_sig1_name) form.value.certificate_sig1_name = 'Mr. Ameer Faisal';
-if (!form.value.certificate_sig1_title) form.value.certificate_sig1_title = 'Co-founder & State Convenor, KEFTA';
+if (!form.value.certificate_sig1_name) form.value.certificate_sig1_name = 'Dr. Ameer Faisal';
+if (!form.value.certificate_sig1_title) form.value.certificate_sig1_title = 'Chairman, Certification Governance Board';
 if (!form.value.certificate_sig2_name) form.value.certificate_sig2_name = 'Mr. Bins K Thomas';
-if (!form.value.certificate_sig2_title) form.value.certificate_sig2_title = 'General Secretary, KEFTA';
+if (!form.value.certificate_sig2_title) form.value.certificate_sig2_title = 'Director of Academic & Industrial Standards';
 
 async function uploadAsset(fieldName: string, fileRef: any) {
   const file = Array.isArray(fileRef) ? fileRef[0] : fileRef;

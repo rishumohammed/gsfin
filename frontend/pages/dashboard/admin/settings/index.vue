@@ -178,13 +178,13 @@
                 <h3 class="text-subtitle-1 font-weight-bold mb-4">Text Content</h3>
                 
                 <div class="mb-4">
-                  <AppInput v-model="form.homepage_title" label="Main Title" placeholder="KEFTA National Food Tech Talent Hunt 2026" large />
+                  <AppInput v-model="form.homepage_title" label="Main Title" placeholder="GSFIN Global Food Safety Certification Portal" large />
                 </div>
                 <div class="mb-4">
-                  <v-textarea v-model="form.homepage_subtitle" label="Subtitle" placeholder="Discovering, motivating, and supporting emerging food science talents across the nation." variant="outlined" auto-grow rows="2" />
+                  <v-textarea v-model="form.homepage_subtitle" label="Subtitle" placeholder="Validating professional competence and establishing global trust in food science, safety, and technology standards." variant="outlined" auto-grow rows="2" />
                 </div>
                 <div class="mb-4">
-                  <AppInput v-model="form.homepage_about_title" label="About Section Title" placeholder="About the Competition" large />
+                  <AppInput v-model="form.homepage_about_title" label="About Section Title" placeholder="About the Certification Framework" large />
                 </div>
                 <div class="mb-4">
                   <v-textarea v-model="form.homepage_about_description" label="About Section Description" placeholder="Enter paragraph text here..." variant="outlined" auto-grow rows="4" />
@@ -438,7 +438,7 @@
               <EmailTemplatesTab />
             </div>
 
-            <!-- 7. Talent Hunt Tab -->
+            <!-- 7. Certification Signatory & Registry Settings Tab -->
             <div v-if="activeCategory === 'talent_hunt'" class="fade-in">
               <TalentHuntSettingsTab />
             </div>
@@ -576,11 +576,11 @@ const settingsCards = [
   },
   {
     id: 'talent_hunt',
-    title: 'Talent Hunt Settings',
-    subtitle: 'Manage competition dropdown categories, degree levels, and registration parameters.',
-    icon: 'mdi-account-star-outline',
+    title: 'Certification Signatory & Registry Settings',
+    subtitle: 'Manage certification signatories, seal assets, and candidate registration options.',
+    icon: 'mdi-certificate-outline',
     iconClass: 'card-icon-rose',
-    badge: 'Competition',
+    badge: 'Certification',
     badgeClass: 'badge-rose'
   },
   {

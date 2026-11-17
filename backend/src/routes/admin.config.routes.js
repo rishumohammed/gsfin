@@ -66,14 +66,14 @@ router.post('/test-email', authenticateJWT, authorizeRoles('super_admin', 'main_
       
       const result = await EmailService.sendEmail({
         to: targetEmail,
-        subject: 'Kefta Talent Hunt - Resend API Test Successful',
+        subject: 'GSFIN Platform - Resend API Test Successful',
         html: `
           <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 12px;">
             <h2 style="color: #4f46e5;">✅ Resend REST API Test Successful!</h2>
-            <p>If you are reading this email, your Resend REST API configuration in the Kefta Talent Hunt admin panel is active and working properly.</p>
+            <p>If you are reading this email, your Resend REST API configuration in the GSFIN Certification Platform admin panel is active and working properly.</p>
             <p>Your application can now send OTP verifications, registration credentials, exam reminders, and bulk notifications reliably via HTTPS without SMTP port restrictions.</p>
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-            <p style="font-size: 12px; color: #999;">Sent dynamically via Resend REST API from Kefta Talent Hunt</p>
+            <p style="font-size: 12px; color: #999;">Sent dynamically via Resend REST API from GSFIN Certification Platform</p>
           </div>
         `
       });

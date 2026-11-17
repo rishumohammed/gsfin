@@ -644,7 +644,7 @@ button {
 }
 
 .table-select-filter {
-  padding: 9px 14px;
+  padding: 8px 14px;
   border-radius: 12px;
   border: 1px solid rgba(15, 23, 42, 0.12);
   background: #FFFFFF;
@@ -653,6 +653,17 @@ button {
   color: #0F172A;
   outline: none;
   cursor: pointer;
+  width: auto;
+  min-width: 150px;
+  max-width: 220px;
+  height: 40px;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.table-select-filter:focus {
+  border-color: #E31B23;
+  box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.1);
 }
 
 /* Global KPI Metrics Cards */
@@ -1364,4 +1375,211 @@ button {
 }
 .input-has-prefix.has-suffix {
   padding-right: 42px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* GLOBAL MODAL ARCHITECTURE COMPONENTS                               */
+/* ═══════════════════════════════════════════════════════════════════ */
+.modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-header-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.modal-title-text h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.modal-title-text p {
+  font-size: 0.75rem;
+  color: #64748B;
+  margin: 2px 0 0 0;
+  line-height: 1.2;
+}
+
+.modal-close-btn {
+  background: #F1F5F9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #64748B;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+.modal-lead-text {
+  font-size: 0.86rem;
+  color: #334155;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.modal-info-card {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  margin-bottom: 16px;
+}
+
+.modal-info-card.border-red {
+  border-left: 4px solid #E31B23;
+}
+
+.modal-info-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin-bottom: 6px;
+}
+
+.modal-info-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.modal-info-card-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.modal-info-card-stats .dot {
+  color: #CBD5E1;
+}
+
+.modal-danger-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  color: #991B1B;
+  line-height: 1.45;
+}
+
+.modal-danger-callout i {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.modal-info-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  color: #1E40AF;
+  line-height: 1.45;
+  margin-top: 14px;
+}
+
+.modal-info-callout i {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.pool-calc-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.pool-calc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #475569;
+  padding: 5px 0;
+}
+
+.pool-calc-row.highlight {
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.pool-calc-row.deficit {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.pool-calc-divider {
+  height: 1px;
+  background: #E2E8F0;
+  margin: 6px 0;
+}
+
+.btn-danger-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: #E31B23;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(227, 27, 35, 0.25);
+}
+
+.btn-danger-confirm:hover:not(:disabled) {
+  background: #C41219;
+  transform: translateY(-1px);
+}
+
+.btn-danger-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

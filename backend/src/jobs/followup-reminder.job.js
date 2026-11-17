@@ -41,14 +41,14 @@ export const initFollowupJob = () => {
               <ul>
                 ${followupItems}
               </ul>
-              <p style="margin-top: 20px;">Good luck!<br>Kefta Talent Hunt CRM System</p>
+              <p style="margin-top: 20px;">Good luck!<br>GSFIN Certification Platform — CRM System</p>
             </div>
           `;
 
           try {
             await emailService.sendEmail({
               to: agent.email,
-              subject: 'Kefta: Your Follow-up Reminders for Today',
+              subject: 'GSFIN: Your Follow-up Reminders for Today',
               html
             });
             console.log(`Sent reminder email to ${agent.email}`);

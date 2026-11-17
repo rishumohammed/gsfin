@@ -186,7 +186,7 @@ const invoices = ref<any[]>([]);
 const loadingPayments = ref(false);
 
 const loadPaymentSummary = async () => {
-  // Billing module has been removed in this Talent Hunt port.
+  // Billing module has been removed in this GSFIN Certification Platform port.
   // Safely returning to prevent 404 errors.
   return;
 };

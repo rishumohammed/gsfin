@@ -105,7 +105,7 @@ class EmailService {
       const html = `
         <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 12px;">
           <h2 style="color: #007AFF;">Reset Your Password</h2>
-          <p>You requested a password reset for your Kefta Talent Hunt account.</p>
+          <p>You requested a password reset for your GSFIN Certification Portal account.</p>
           <p>Please click the button below to set a new password:</p>
           <div style="text-align: center; margin: 30px 0;">
             <a href="${resetLink}" style="display: inline-block; padding: 14px 30px; background: #007AFF; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Reset Password</a>
@@ -118,7 +118,7 @@ class EmailService {
 
       await this.sendEmail({
         to: email,
-        subject: 'Reset Your Password - Kefta Talent Hunt',
+        subject: 'Reset Your Password - GSFIN Certification Portal',
         html
       });
     } catch (error) {
@@ -211,7 +211,7 @@ class EmailService {
           </div>
           <p style="font-size: 14px; color: #666;">If you have any questions, feel free to contact your career counselor or the employer directly.</p>
           <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="font-size: 12px; color: #999;">Kefta Talent Hunt Team</p>
+          <p style="font-size: 12px; color: #999;">GSFIN Certification Authority Team</p>
         </div>
       `;
 

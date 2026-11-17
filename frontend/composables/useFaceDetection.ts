@@ -419,7 +419,7 @@ export const useFaceDetection = () => {
         disableDebugLogs: () => { cfg.debug = false; console.info('[Proctoring Debug] Debug logs disabled.'); }
       };
       (window as any).__GSFIN_PROCTORING_DEBUG__ = debugHelper;
-      (window as any).__KEFTA_PROCTORING_DEBUG__ = debugHelper;
+      // Legacy alias removed — use __GSFIN_PROCTORING_DEBUG__ in devtools
     }
 
     let isDetecting = false;

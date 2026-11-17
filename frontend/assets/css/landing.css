@@ -1077,7 +1077,10 @@
       color: var(--tx);
     }
 
-    select {
+    .landing-form select,
+    .partner-modal select,
+    .contact-form select,
+    .portal-landing select {
       width: 100%;
       padding: 13px 18px 13px 20px;
       border-radius: 9999px;
@@ -1089,7 +1092,10 @@
       transition: all 0.2s;
     }
 
-    select:focus {
+    .landing-form select:focus,
+    .partner-modal select:focus,
+    .contact-form select:focus,
+    .portal-landing select:focus {
       outline: none;
       border-color: var(--ac);
       box-shadow: 0 0 0 3px rgba(225, 29, 42, 0.1);

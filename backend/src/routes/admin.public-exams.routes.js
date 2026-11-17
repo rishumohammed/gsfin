@@ -550,9 +550,11 @@ router.post('/', async (req, res) => {
       registration_start_date, registration_end_date, exam_start_date, exam_end_date, image_url
     } = req.body;
 
-    if (!name || !category_id || !slug) {
-      return res.status(400).json({ message: 'Name, Category, and SEO Slug are required' });
+    if (!name || !slug) {
+      return res.status(400).json({ message: 'Exam Name and SEO Slug are required' });
     }
+
+    const targetCategoryId = category_id || 'cat-food-safety-001';
 
     // Enforce 1-to-1 Mapping: Check if qualification already has an active exam
     if (qualification_id) {
@@ -596,7 +598,7 @@ router.post('/', async (req, res) => {
         id, name, qualification_id, category_id, description, syllabus, duration_minutes, total_questions, total_marks, passing_marks, difficulty_level, status, slug, instructions, pass_percentage, negative_marking, randomize_questions, randomize_options, show_correct_answers, show_explanations, allow_retake, max_retakes, enable_certificate, anonymous_access, require_name, require_email, require_mobile, enable_proctoring, max_proctoring_warnings, enforce_fullscreen, proctoring_config, registration_start_date, registration_end_date, exam_start_date, exam_end_date, image_url
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
-      id, name, qualification_id || null, category_id, description || null, syllabus || null,
+      id, name, qualification_id || null, targetCategoryId, description || null, syllabus || null,
       duration_minutes !== undefined && duration_minutes !== '' ? duration_minutes : 60,
       targetTotalQuestions,
       total_marks !== undefined && total_marks !== '' ? total_marks : 0,

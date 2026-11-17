@@ -126,7 +126,7 @@ initBatchAutocloseJob();
 initMultitenantNotificationsJob();
 
 httpServer.listen(PORT, '0.0.0.0', () => {
-  console.log(`Kefta Talent Hunt Server running on port ${PORT}`);
+  console.log(`GSFIN Certification Platform Server running on port ${PORT}`);
 });
 
 export { app, io };

@@ -16,7 +16,7 @@
 
       <!-- Left Vertical Text -->
       <div class="left-motto">
-        <span>Igniting Scientific Temper, Inspiring Future Innovators.</span>
+        <span>Validating Professional Competence • Establishing Global Trust.</span>
       </div>
 
       <!-- Top Right Logo -->
@@ -26,15 +26,16 @@
 
       <!-- Header Titles -->
       <div class="cert-header">
-        <h2 class="exam-title-1">KEFTA - NATIONAL LEVEL</h2>
-        <h2 class="exam-title-2">TALENT HUNT</h2>
+        <h2 class="exam-title-1">GSFIN CERTIFICATION AUTHORITY</h2>
+        <h2 class="exam-title-2">GLOBAL FOOD SAFETY &amp; INTEGRITY NETWORK</h2>
         
         <div class="divider-line">
           <span class="diamond">◆</span>
         </div>
 
         <h1 class="cert-main-title">CERTIFICATE</h1>
-        <div class="cert-subtitle">— OF PARTICIPATION —</div>
+        <div class="cert-subtitle">— OF PERSONNEL COMPETENCE —</div>
+        <div class="cert-number-badge">Certificate No: GSFIN-2026-0042</div>
       </div>
 
       <!-- Body Content -->
@@ -44,8 +45,9 @@
         <div class="name-underline"></div>
 
         <p class="cert-desc">
-          has participated in the National Level Talent Hunt organized by<br>
-          <strong>Kerala Food Technologists Association - KEFTA.</strong>
+          has successfully demonstrated the required professional competency for<br>
+          <strong class="font-weight-600">Food Safety &amp; Quality Assurance Standard</strong><br>
+          <span class="cert-framework-sub">accredited and administered under the GSFIN Certifying Authority Framework.</span>
         </p>
       </div>
 
@@ -54,6 +56,13 @@
         <!-- Center Seal -->
         <div class="seal-box">
           <img v-if="config.certificate_seal" :src="getImageUrl(config.certificate_seal)" alt="Seal" class="seal-img" />
+          <div v-else class="fallback-seal">
+            <div class="seal-inner">
+              <span class="seal-top">GSFIN</span>
+              <span class="seal-mid">VERIFIED</span>
+              <span class="seal-bot">STANDARDS</span>
+            </div>
+          </div>
         </div>
 
         <!-- Dual Signatures -->
@@ -65,8 +74,8 @@
               <span v-else class="sig-font">{{ config.certificate_sig1_name ? config.certificate_sig1_name.split(' ')[0] : '' }}</span>
             </div>
             <div class="sig-line"></div>
-            <h4 class="sig-name">{{ config.certificate_sig1_name ?? '' }}</h4>
-            <p class="sig-title">{{ config.certificate_sig1_title ?? '' }}</p>
+            <h4 class="sig-name">{{ config.certificate_sig1_name || 'Dr. Ameer Faisal' }}</h4>
+            <p class="sig-title">{{ config.certificate_sig1_title || 'Chairman, Certification Board' }}</p>
           </div>
 
           <!-- Signatory 2 -->
@@ -76,16 +85,16 @@
               <span v-else class="sig-font">{{ config.certificate_sig2_name ? config.certificate_sig2_name.split(' ')[0] : '' }}</span>
             </div>
             <div class="sig-line"></div>
-            <h4 class="sig-name">{{ config.certificate_sig2_name ?? '' }}</h4>
-            <p class="sig-title">{{ config.certificate_sig2_title ?? '' }}</p>
+            <h4 class="sig-name">{{ config.certificate_sig2_name || 'Mr. Bins K Thomas' }}</h4>
+            <p class="sig-title">{{ config.certificate_sig2_title || 'Director of Standards' }}</p>
           </div>
         </div>
       </div>
 
       <!-- Footer Band -->
       <div class="cert-footer">
-        <div class="footer-title">Kerala Food Technologists Association - KEFTA</div>
-        <div class="footer-sub">Kozhikode - Kerala, www.kefta.in, kefta.kerala@gmail.com</div>
+        <div class="footer-title">Global Standard Food Safety &amp; Integrity Network - GSFIN</div>
+        <div class="footer-sub">Verified Personnel Certification Registry | www.gsfin.org</div>
       </div>
     </div>
   </div>
@@ -233,6 +242,13 @@ function getImageUrl(path: string) {
   color: #D4AF37;
   letter-spacing: 1.5px;
 }
+.cert-number-badge {
+  font-size: 8.5px;
+  font-weight: 600;
+  color: #003366;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
 
 /* Body */
 .cert-body {
@@ -261,6 +277,15 @@ function getImageUrl(path: string) {
   font-size: 9.5px;
   color: #1B3A68;
   line-height: 1.4;
+}
+.cert-framework-sub {
+  display: block;
+  font-size: 8.5px;
+  color: #556B8A;
+  margin-top: 3px;
+}
+.font-weight-600 {
+  font-weight: 600;
 }
 
 /* Bottom Section */

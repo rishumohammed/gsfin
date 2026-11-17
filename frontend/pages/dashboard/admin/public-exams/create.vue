@@ -99,49 +99,18 @@
                   </p>
                 </div>
 
-                <v-row class="mb-4">
-                  <v-col cols="12" sm="6">
-                    <div class="form-group">
-                      <div class="category-header-row">
-                        <label class="form-label mb-0">Category <span class="text-red-500">*</span></label>
-                        <button
-                          type="button"
-                          class="btn-manage-categories"
-                          title="Manage Categories"
-                          @click="openCategoryModal('list')"
-                        >
-                          <v-icon icon="mdi-cog-outline" size="14" class="mr-1"></v-icon>
-                          <span>Manage Categories</span>
-                        </button>
-                      </div>
-
-                      <div class="category-input-group">
-                        <select v-model="fields.category_id" class="form-select flex-grow-1 category-select-field">
-                          <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-                        </select>
-                        <button
-                          type="button"
-                          class="btn-cat-action"
-                          title="Quick Add New Category"
-                          @click="openAddCategoryQuick"
-                        >
-                          <v-icon icon="mdi-plus" size="20" color="#E31B23"></v-icon>
-                        </button>
-                      </div>
-                    </div>
-                  </v-col>
-                  <v-col cols="12" sm="6">
-                    <div class="form-group">
-                      <label class="form-label">SEO Slug <span class="text-red-500">*</span></label>
-                      <input
-                        v-model="fields.slug"
-                        type="text"
-                        placeholder="e.g. codex-haccp"
-                        class="form-input"
-                      />
-                    </div>
-                  </v-col>
-                </v-row>
+                <div class="form-group mb-4">
+                  <label class="form-label">SEO Slug <span class="text-red-500">*</span></label>
+                  <input
+                    v-model="fields.slug"
+                    type="text"
+                    placeholder="e.g. codex-haccp"
+                    class="form-input"
+                  />
+                  <p class="text-[11px] text-slate-500 mt-1 font-medium">
+                    URL identifier for this certification exam (e.g. /public-exams/codex-haccp). Automatically derived from the certification standard.
+                  </p>
+                </div>
 
                 <!-- Questions & Marks Configuration -->
                 <v-row dense class="mb-2">
@@ -863,182 +832,6 @@
       </v-form>
     </div>
 
-    <!-- ═══ MANAGE CATEGORIES MODAL (V-DIALOG) ═══ -->
-    <v-dialog v-model="showCategoryModal" max-width="600" scrollable>
-      <v-card class="category-modal-card">
-        <!-- Modal Header -->
-        <div class="cat-modal-header">
-          <div class="cat-modal-header-left">
-            <div class="cat-modal-icon-box">
-              <v-icon icon="mdi-shape-outline" size="22" color="#E31B23"></v-icon>
-            </div>
-            <div>
-              <h3 class="cat-modal-title">Manage Exam Categories</h3>
-              <p class="cat-modal-subtitle">Add, edit, or select categories for certification exams</p>
-            </div>
-          </div>
-          <v-btn
-            icon="mdi-close"
-            variant="tonal"
-            size="small"
-            class="rounded-xl"
-            @click="closeCategoryModal"
-          />
-        </div>
-
-        <v-card-text class="pa-5">
-          <!-- Sub-tabs row -->
-          <div class="cat-tabs-row">
-            <button
-              type="button"
-              class="cat-tab-btn"
-              :class="{ active: catModalTab === 'add' }"
-              @click="openAddCategoryQuick"
-            >
-              <v-icon icon="mdi-plus-circle-outline" size="16" class="mr-1"></v-icon>
-              {{ editingCatId ? 'Edit Category' : 'Add New Category' }}
-            </button>
-            <button
-              type="button"
-              class="cat-tab-btn"
-              :class="{ active: catModalTab === 'list' }"
-              @click="catModalTab = 'list'"
-            >
-              <v-icon icon="mdi-format-list-bulleted" size="16" class="mr-1"></v-icon>
-              Existing Categories ({{ categories.length }})
-            </button>
-            <NuxtLink
-              to="/dashboard/admin/public-exams/categories"
-              target="_blank"
-              class="cat-full-link"
-              title="Open full category management page in new tab"
-            >
-              <span>Full Manager</span>
-              <v-icon icon="mdi-open-in-new" size="14"></v-icon>
-            </NuxtLink>
-          </div>
-
-          <!-- TAB 1: ADD / EDIT -->
-          <div v-if="catModalTab === 'add'" class="pt-2">
-            <div class="form-group mb-4">
-              <label class="form-label">Category Name <span class="text-red-500">*</span></label>
-              <input
-                v-model="catForm.name"
-                type="text"
-                placeholder="e.g. Food Safety Auditing, Banking, Quality Assurance..."
-                class="form-input"
-                @input="onCatNameInput"
-              />
-            </div>
-
-            <div class="form-group mb-4">
-              <label class="form-label">URL Slug</label>
-              <input
-                v-model="catForm.slug"
-                type="text"
-                placeholder="e.g. food-safety-auditing"
-                class="form-input"
-              />
-              <span class="cat-field-hint">URL-friendly slug (auto-generated from category name)</span>
-            </div>
-
-            <div class="form-group mb-4">
-              <label class="form-label">Description (Optional)</label>
-              <textarea
-                v-model="catForm.description"
-                rows="3"
-                placeholder="Brief scope of certification exams covered by this category..."
-                class="form-textarea"
-              ></textarea>
-            </div>
-
-            <div class="form-group mb-2">
-              <label class="form-label">Visibility Status</label>
-              <select v-model="catForm.status" class="form-select">
-                <option value="active">Active (Visible)</option>
-                <option value="inactive">Inactive (Hidden)</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- TAB 2: LIST EXISTING CATEGORIES -->
-          <div v-else class="cat-list-wrapper pt-2">
-            <div
-              v-for="cat in categories"
-              :key="cat.id"
-              class="cat-list-item"
-              :class="{ selected: cat.id === fields.category_id }"
-            >
-              <div class="cat-item-info">
-                <div class="cat-item-title-row">
-                  <span class="cat-item-name">{{ cat.name }}</span>
-                  <span class="cat-badge" :class="cat.status === 'active' ? 'badge-active' : 'badge-inactive'">
-                    {{ cat.status }}
-                  </span>
-                  <span v-if="cat.id === fields.category_id" class="badge-selected">
-                    Selected
-                  </span>
-                </div>
-                <div class="cat-item-desc">{{ cat.description || 'No description provided' }}</div>
-              </div>
-
-              <div class="cat-item-actions">
-                <v-btn
-                  size="small"
-                  :color="cat.id === fields.category_id ? '#10B981' : '#E31B23'"
-                  variant="tonal"
-                  class="cat-action-btn font-semibold rounded-lg text-none"
-                  prepend-icon="mdi-check"
-                  @click="selectAndCloseCat(cat)"
-                >
-                  {{ cat.id === fields.category_id ? 'Current' : 'Select' }}
-                </v-btn>
-                <v-btn
-                  size="small"
-                  variant="outlined"
-                  color="slate"
-                  class="cat-action-btn font-semibold rounded-lg text-none"
-                  icon="mdi-pencil"
-                  title="Edit Category"
-                  @click="startEditCategory(cat)"
-                />
-              </div>
-            </div>
-
-            <div v-if="categories.length === 0" class="cat-empty-state">
-              <v-icon icon="mdi-shape-outline" size="36" color="#94A3B8"></v-icon>
-              <p class="mt-2 mb-0 font-medium">No categories created yet.</p>
-              <button type="button" class="btn-create-first-cat mt-3" @click="openAddCategoryQuick">
-                <v-icon icon="mdi-plus" size="16" class="mr-1"></v-icon> Add First Category
-              </button>
-            </div>
-          </div>
-        </v-card-text>
-
-        <!-- Modal Actions Footer -->
-        <div class="cat-modal-footer">
-          <v-btn
-            variant="outlined"
-            color="slate"
-            class="text-none font-semibold rounded-xl border-slate-300 me-2"
-            @click="closeCategoryModal"
-          >
-            Cancel
-          </v-btn>
-          <v-btn
-            v-if="catModalTab === 'add'"
-            color="#E31B23"
-            class="font-semibold text-white text-none rounded-xl shadow-md"
-            :loading="savingCat"
-            :disabled="savingCat || !catForm.name.trim()"
-            @click="saveQuickCategory"
-          >
-            {{ editingCatId ? 'Update Category' : 'Create & Select Category' }}
-          </v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
-
     <!-- Snackbar -->
     <v-snackbar v-model="snackbar" :color="snackbarColor" rounded="lg">
       {{ snackbarText }}
@@ -1067,13 +860,12 @@ const saving = ref(false);
 const formValid = ref(false);
 const examForm = ref<any>(null);
 
-const categories = ref<any[]>([]);
 const qualifications = ref<any[]>([]);
 
 const fields = ref<any>({
   qualification_id: '',
   name: '',
-  category_id: '',
+  category_id: 'cat-food-safety-001',
   slug: '',
   description: '',
   instructions: '',
@@ -1150,124 +942,6 @@ async function onFileSelected(e: Event) {
     snackbar.value = true;
   } finally {
     uploadingImage.value = false;
-  }
-}
-
-// Quick Category Management Modal State
-const showCategoryModal = ref(false);
-const catModalTab = ref<'add' | 'list'>('add');
-const editingCatId = ref<string | null>(null);
-const savingCat = ref(false);
-const catForm = ref({
-  name: '',
-  slug: '',
-  description: '',
-  status: 'active'
-});
-
-function openCategoryModal(tab: 'add' | 'list' = 'list') {
-  catModalTab.value = tab;
-  if (tab === 'add' && !editingCatId.value) {
-    catForm.value = { name: '', slug: '', description: '', status: 'active' };
-  }
-  showCategoryModal.value = true;
-}
-
-function openAddCategoryQuick() {
-  editingCatId.value = null;
-  catForm.value = { name: '', slug: '', description: '', status: 'active' };
-  catModalTab.value = 'add';
-  showCategoryModal.value = true;
-}
-
-function closeCategoryModal() {
-  showCategoryModal.value = false;
-  editingCatId.value = null;
-}
-
-function onCatNameInput() {
-  if (!editingCatId.value) {
-    catForm.value.slug = catForm.value.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)+/g, '');
-  }
-}
-
-function startEditCategory(cat: any) {
-  editingCatId.value = cat.id;
-  catForm.value = {
-    name: cat.name,
-    slug: cat.slug || '',
-    description: cat.description || '',
-    status: cat.status || 'active'
-  };
-  catModalTab.value = 'add';
-}
-
-function selectAndCloseCat(cat: any) {
-  fields.value.category_id = cat.id;
-  snackbarText.value = `Selected category: "${cat.name}"`;
-  snackbarColor.value = 'success';
-  snackbar.value = true;
-  closeCategoryModal();
-}
-
-async function saveQuickCategory() {
-  if (!catForm.value.name.trim()) return;
-  savingCat.value = true;
-  try {
-    if (!catForm.value.slug) {
-      catForm.value.slug = catForm.value.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '');
-    }
-
-    if (editingCatId.value) {
-      await api.put(`/admin/public-exams/categories/${editingCatId.value}`, catForm.value);
-      snackbarText.value = 'Category updated successfully!';
-    } else {
-      const { data } = await api.post('/admin/public-exams/categories', catForm.value);
-      if (data?.id) {
-        fields.value.category_id = data.id;
-      }
-      snackbarText.value = 'Category created and selected!';
-    }
-
-    await fetchCategories();
-    if (!editingCatId.value && catForm.value.name) {
-      const found = categories.value.find(c => c.name.toLowerCase() === catForm.value.name.trim().toLowerCase());
-      if (found) fields.value.category_id = found.id;
-    }
-
-    snackbarColor.value = 'success';
-    snackbar.value = true;
-    closeCategoryModal();
-  } catch (err: any) {
-    alert(err.response?.data?.message || 'Failed to save category');
-  } finally {
-    savingCat.value = false;
-  }
-}
-
-async function fetchCategories() {
-  try {
-    const { data } = await api.get('/admin/public-exams/categories');
-    categories.value = data;
-    if (data.length > 0 && !fields.value.category_id) {
-      fields.value.category_id = data[0].id;
-    }
-  } catch (err) {
-    try {
-      const { data } = await api.get('/public/exams/categories');
-      categories.value = data;
-      if (data.length > 0 && !fields.value.category_id) {
-        fields.value.category_id = data[0].id;
-      }
-    } catch (fallbackErr) {
-      console.error('Failed to load categories:', fallbackErr);
-    }
   }
 }
 
@@ -1412,7 +1086,6 @@ async function saveExam() {
 
 onMounted(async () => {
   await Promise.all([
-    fetchCategories(),
     fetchQualifications(),
     fetchExamDetails()
   ]);

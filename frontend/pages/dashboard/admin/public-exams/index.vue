@@ -16,12 +16,6 @@
             <i class="mdi mdi-shield-check-outline"></i> Proctoring Logs
           </NuxtLink>
           <NuxtLink
-            to="/dashboard/admin/public-exams/categories"
-            class="btn-glass"
-          >
-            <i class="mdi mdi-shape-outline"></i> Categories
-          </NuxtLink>
-          <NuxtLink
             to="/dashboard/admin/public-exams/create"
             class="btn-red"
           >
@@ -44,13 +38,14 @@
               <input
                 v-model="search"
                 type="text"
-                placeholder="Search exams by name or category..."
+                placeholder="Search exams by name or certification..."
                 class="table-search-input"
               />
             </div>
 
-            <select v-model="categoryFilter" class="table-select-filter">
-              <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+            <select v-model="qualificationFilter" class="table-select-filter">
+              <option value="All">All Certifications</option>
+              <option v-for="q in qualifications" :key="q.id" :value="q.id">{{ q.name }}</option>
             </select>
 
             <select v-model="statusFilter" class="table-select-filter">
@@ -104,7 +99,7 @@
               <div class="programs-badges-wrap">
                 <span class="badge-program-tag">
                   <i class="mdi mdi-shape-outline"></i>
-                  {{ item.category_name || item.qualification_category || 'Food Safety Standard' }}
+                  {{ item.qualification_category || 'Food Safety Standard' }}
                 </span>
                 <span
                   v-if="item.enable_proctoring"
@@ -130,7 +125,7 @@
               <div class="mt-1.5">
                 <div 
                   :class="[
-                    'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[11px] font-semibold border',
+                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold border',
                     (item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
                       : 'bg-amber-50 text-amber-700 border-amber-200/80'
@@ -139,8 +134,9 @@
                 >
                   <i :class="['mdi', (item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0 ? 'mdi-check-circle' : 'mdi-alert-circle-outline']"></i>
                   <span>Bank: {{ item.question_count || 0 }} / {{ (item.total_questions || 0) * 3 }}</span>
-                  <span v-if="(item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0" class="opacity-80 font-medium">Ready</span>
-                  <span v-else class="opacity-90 font-medium">(Need {{ Math.max(0, ((item.total_questions || 0) * 3) - (item.question_count || 0)) }})</span>
+                  <span class="opacity-40">•</span>
+                  <span v-if="(item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0" class="font-semibold text-emerald-800">Ready</span>
+                  <span v-else class="font-semibold text-amber-800">Need +{{ Math.max(0, ((item.total_questions || 0) * 3) - (item.question_count || 0)) }}</span>
                 </div>
               </div>
             </div>
@@ -169,64 +165,62 @@
             <span class="text-xs text-slate-500 font-medium whitespace-nowrap">{{ formatDate(item.created_at) }}</span>
           </template>
 
-          <!-- Actions Column (2 Rows) -->
+          <!-- Actions Column (Single Row) -->
           <template v-slot:item.actions="{ item }">
-            <div class="actions-cell-2rows">
-              <!-- Row 1: Authoring & Questions (Question Bank, Edit) -->
-              <div class="actions-row">
-                <NuxtLink
-                  :to="`/dashboard/admin/public-exams/questions?examId=${item.id}`"
-                  class="btn-table-action icon-only btn-qb"
-                  title="Question Bank"
-                >
-                  <i class="mdi mdi-database-outline"></i>
-                </NuxtLink>
-                <NuxtLink
-                  :to="`/dashboard/admin/public-exams/create?id=${item.id}`"
-                  class="btn-table-action icon-only btn-edit"
-                  title="Edit Exam Settings"
-                >
-                  <i class="mdi mdi-pencil-outline"></i>
-                </NuxtLink>
-              </div>
-
-              <!-- Row 2: Operations & Lifecycle (Duplicate, Status Toggle, Delete) -->
-              <div class="actions-row">
-                <button
-                  type="button"
-                  class="btn-table-action icon-only btn-warn"
-                  title="Duplicate Exam"
-                  @click="duplicateExam(item.id)"
-                >
-                  <i class="mdi mdi-content-copy"></i>
-                </button>
-                <button
-                  v-if="item.status !== 'published'"
-                  type="button"
-                  class="btn-table-action icon-only btn-success"
-                  title="Publish to Partner Centers"
-                  @click="changeStatus(item.id, 'published')"
-                >
-                  <i class="mdi mdi-rocket-launch-outline"></i>
-                </button>
-                <button
-                  v-else
-                  type="button"
-                  class="btn-table-action icon-only btn-edit"
-                  title="Unpublish (Set to Draft)"
-                  @click="changeStatus(item.id, 'draft')"
-                >
-                  <i class="mdi mdi-pause-circle-outline"></i>
-                </button>
-                <button
-                  type="button"
-                  class="btn-table-action icon-only btn-danger"
-                  title="Delete Exam"
-                  @click="confirmDelete(item)"
-                >
-                  <i class="mdi mdi-trash-can-outline"></i>
-                </button>
-              </div>
+            <div class="actions-cell">
+              <!-- 1. Question Bank -->
+              <NuxtLink
+                :to="`/dashboard/admin/public-exams/questions?examId=${item.id}`"
+                class="btn-table-action icon-only btn-qb"
+                title="Question Bank"
+              >
+                <i class="mdi mdi-database-outline"></i>
+              </NuxtLink>
+              <!-- 2. Edit Settings -->
+              <NuxtLink
+                :to="`/dashboard/admin/public-exams/create?id=${item.id}`"
+                class="btn-table-action icon-only btn-edit"
+                title="Edit Exam Settings"
+              >
+                <i class="mdi mdi-pencil-outline"></i>
+              </NuxtLink>
+              <!-- 3. Duplicate Exam -->
+              <button
+                type="button"
+                class="btn-table-action icon-only btn-warn"
+                title="Duplicate Exam"
+                @click="duplicateExam(item.id)"
+              >
+                <i class="mdi mdi-content-copy"></i>
+              </button>
+              <!-- 4. Toggle Status (Publish / Unpublish) -->
+              <button
+                v-if="item.status !== 'published'"
+                type="button"
+                class="btn-table-action icon-only btn-success"
+                title="Publish to Partner Centers"
+                @click="changeStatus(item.id, 'published')"
+              >
+                <i class="mdi mdi-rocket-launch-outline"></i>
+              </button>
+              <button
+                v-else
+                type="button"
+                class="btn-table-action icon-only btn-edit"
+                title="Unpublish (Set to Draft)"
+                @click="changeStatus(item.id, 'draft')"
+              >
+                <i class="mdi mdi-pause-circle-outline"></i>
+              </button>
+              <!-- 5. Delete Exam -->
+              <button
+                type="button"
+                class="btn-table-action icon-only btn-danger"
+                title="Delete Exam"
+                @click="confirmDelete(item)"
+              >
+                <i class="mdi mdi-trash-can-outline"></i>
+              </button>
             </div>
           </template>
         </v-data-table>
@@ -235,149 +229,157 @@
   </div>
 
     <!-- ═══ DELETE CONFIRMATION MODAL (GSFIN Global Style) ═══ -->
-    <v-dialog v-model="deleteDialog" max-width="500">
-      <div class="modal-card">
-        <!-- Modal Header -->
-        <div class="modal-header">
-          <div class="modal-title-row">
-            <div class="modal-header-icon bg-red-50 text-red-600">
-              <i class="mdi mdi-alert-octagon-outline"></i>
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="deleteDialog" class="modal-overlay" @click.self="deleteDialog = false">
+          <div class="modal-card">
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <div class="modal-title-row">
+                <div class="modal-header-icon bg-red-50 text-red-600">
+                  <i class="mdi mdi-alert-octagon-outline"></i>
+                </div>
+                <div class="modal-title-text">
+                  <h3>Delete Certification Exam?</h3>
+                  <p>Permanent action • cannot be undone</p>
+                </div>
+              </div>
+              <button type="button" class="modal-close-btn" @click="deleteDialog = false" title="Close">
+                <i class="mdi mdi-close"></i>
+              </button>
             </div>
-            <div class="modal-title-text">
-              <h3>Delete Certification Exam?</h3>
-              <p>Permanent action • cannot be undone</p>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+              <p class="modal-lead-text">
+                Are you sure you want to delete <strong class="text-slate-900">"{{ targetExam?.name }}"</strong>?
+              </p>
+
+              <!-- Exam Highlight Card -->
+              <div class="modal-info-card border-red">
+                <div class="modal-info-card-title">{{ targetExam?.name }}</div>
+                <div class="modal-info-card-meta">
+                  <span class="badge-program-tag">
+                    <i class="mdi mdi-shape-outline"></i>
+                    {{ targetExam?.category_name || targetExam?.qualification_category || 'Food Safety Standard' }}
+                  </span>
+                  <span v-if="targetExam?.qualification_id" class="badge-cert-pill">
+                    <i class="mdi mdi-certificate-outline"></i> Certification
+                  </span>
+                </div>
+                <div class="modal-info-card-stats">
+                  <span>{{ targetExam?.total_questions || 0 }} Questions on Exam</span>
+                  <span class="dot">•</span>
+                  <span>{{ targetExam?.question_count || 0 }} in Bank</span>
+                  <span class="dot">•</span>
+                  <span>{{ targetExam?.attempts_count || 0 }} Attempts</span>
+                </div>
+              </div>
+
+              <!-- Danger Warning Callout -->
+              <div class="modal-danger-callout">
+                <i class="mdi mdi-alert-circle text-red-500"></i>
+                <div>
+                  <strong>Warning:</strong> Deleting this exam will permanently erase all questions in its Question Bank, candidate registrations, and student attempt histories.
+                </div>
+              </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+              <button type="button" class="btn-glass" @click="deleteDialog = false">
+                Cancel
+              </button>
+              <button
+                type="button"
+                class="btn-danger-confirm"
+                :disabled="deleting"
+                @click="deleteExam"
+              >
+                <i :class="['mdi', deleting ? 'mdi-loading spin-icon' : 'mdi-trash-can-outline']"></i>
+                <span>{{ deleting ? 'Deleting Exam...' : 'Delete Exam' }}</span>
+              </button>
             </div>
           </div>
-          <button type="button" class="modal-close-btn" @click="deleteDialog = false" title="Close">
-            <i class="mdi mdi-close"></i>
-          </button>
         </div>
-
-        <!-- Modal Body -->
-        <div class="modal-body">
-          <p class="modal-lead-text">
-            Are you sure you want to delete this certification exam from the portal?
-          </p>
-
-          <!-- Exam Highlight Card -->
-          <div class="modal-info-card border-red">
-            <div class="modal-info-card-title">{{ targetExam?.name }}</div>
-            <div class="modal-info-card-meta">
-              <span class="badge-program-tag">
-                <i class="mdi mdi-shape-outline"></i>
-                {{ targetExam?.category_name || targetExam?.qualification_category || 'Food Safety Standard' }}
-              </span>
-              <span v-if="targetExam?.qualification_id" class="badge-cert-pill">
-                <i class="mdi mdi-certificate-outline"></i> Certification
-              </span>
-            </div>
-            <div class="modal-info-card-stats">
-              <span>{{ targetExam?.total_questions || 0 }} Questions on Exam</span>
-              <span class="dot">•</span>
-              <span>{{ targetExam?.question_count || 0 }} in Bank</span>
-              <span class="dot">•</span>
-              <span>{{ targetExam?.attempts_count || 0 }} Attempts</span>
-            </div>
-          </div>
-
-          <!-- Danger Warning Callout -->
-          <div class="modal-danger-callout">
-            <i class="mdi mdi-alert-circle text-red-500"></i>
-            <div>
-              <strong>Warning:</strong> Deleting this exam will permanently erase all questions in its Question Bank, candidate registrations, and student attempt histories.
-            </div>
-          </div>
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="modal-footer">
-          <button type="button" class="btn-glass" @click="deleteDialog = false">
-            Cancel
-          </button>
-          <button
-            type="button"
-            class="btn-danger-confirm"
-            :disabled="deleting"
-            @click="deleteExam"
-          >
-            <i :class="['mdi', deleting ? 'mdi-loading spin-icon' : 'mdi-trash-can-outline']"></i>
-            <span>{{ deleting ? 'Deleting Exam...' : 'Delete Exam' }}</span>
-          </button>
-        </div>
-      </div>
-    </v-dialog>
+      </Transition>
+    </Teleport>
 
     <!-- ═══ 3X QUESTION POOL INCOMPLETE MODAL (GSFIN Global Style) ═══ -->
-    <v-dialog v-model="publishWarningDialog" max-width="520">
-      <div class="modal-card">
-        <!-- Modal Header -->
-        <div class="modal-header">
-          <div class="modal-title-row">
-            <div class="modal-header-icon bg-amber-50 text-amber-600">
-              <i class="mdi mdi-database-alert-outline"></i>
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="publishWarningDialog" class="modal-overlay" @click.self="publishWarningDialog = false">
+          <div class="modal-card">
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <div class="modal-title-row">
+                <div class="modal-header-icon bg-amber-50 text-amber-600">
+                  <i class="mdi mdi-database-alert-outline"></i>
+                </div>
+                <div class="modal-title-text">
+                  <h3>Question Bank Pool Incomplete</h3>
+                  <p>3× Question Bank Requirement for Publishing</p>
+                </div>
+              </div>
+              <button type="button" class="modal-close-btn" @click="publishWarningDialog = false" title="Close">
+                <i class="mdi mdi-close"></i>
+              </button>
             </div>
-            <div class="modal-title-text">
-              <h3>Question Bank Pool Incomplete</h3>
-              <p>3× Question Bank Requirement for Publishing</p>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+              <p class="modal-lead-text">
+                Cannot publish <strong class="text-slate-900">"{{ publishWarningExam?.name }}"</strong>.
+                Every certification exam requires at least <strong class="text-slate-900">3× questions</strong> in the Question Bank before publishing.
+              </p>
+
+              <!-- Pool Calculation Table -->
+              <div class="pool-calc-card">
+                <div class="pool-calc-row">
+                  <span class="pool-calc-label">Questions Conducted on Exam:</span>
+                  <span class="pool-calc-val">{{ publishWarningExam?.total_questions || 0 }} Questions</span>
+                </div>
+                <div class="pool-calc-row highlight">
+                  <span class="pool-calc-label">Required in Question Bank (3× Pool):</span>
+                  <span class="pool-calc-val">{{ (publishWarningExam?.total_questions || 0) * 3 }} Questions</span>
+                </div>
+                <div class="pool-calc-row">
+                  <span class="pool-calc-label">Currently in Question Bank:</span>
+                  <span class="pool-calc-val text-amber-700">{{ publishWarningExam?.question_count || 0 }} Questions</span>
+                </div>
+                <div class="pool-calc-divider"></div>
+                <div class="pool-calc-row deficit">
+                  <span class="pool-calc-label">Questions Needed to Publish:</span>
+                  <span class="pool-calc-val text-red-600 font-semibold">+{{ Math.max(0, ((publishWarningExam?.total_questions || 0) * 3) - (publishWarningExam?.question_count || 0)) }} More</span>
+                </div>
+              </div>
+
+              <div class="modal-info-callout">
+                <i class="mdi mdi-information-outline text-blue-500"></i>
+                <div>
+                  When candidates take this exam, questions are randomly drawn from this 3× pool so each candidate receives a randomized question set.
+                </div>
+              </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+              <button type="button" class="btn-glass" @click="publishWarningDialog = false">
+                Close
+              </button>
+              <NuxtLink
+                :to="`/dashboard/admin/public-exams/questions?examId=${publishWarningExam?.id}`"
+                class="btn-red flex items-center gap-1.5"
+                @click="publishWarningDialog = false"
+              >
+                <i class="mdi mdi-database-plus-outline"></i>
+                <span>Open Question Bank</span>
+              </NuxtLink>
             </div>
           </div>
-          <button type="button" class="modal-close-btn" @click="publishWarningDialog = false" title="Close">
-            <i class="mdi mdi-close"></i>
-          </button>
         </div>
-
-        <!-- Modal Body -->
-        <div class="modal-body">
-          <p class="modal-lead-text">
-            Cannot publish <strong class="text-slate-900">"{{ publishWarningExam?.name }}"</strong>.
-            Every certification exam requires at least <strong class="text-slate-900">3× questions</strong> in the Question Bank before publishing.
-          </p>
-
-          <!-- Pool Calculation Table -->
-          <div class="pool-calc-card">
-            <div class="pool-calc-row">
-              <span class="pool-calc-label">Questions Conducted on Exam:</span>
-              <span class="pool-calc-val">{{ publishWarningExam?.total_questions || 0 }} Questions</span>
-            </div>
-            <div class="pool-calc-row highlight">
-              <span class="pool-calc-label">Required in Question Bank (3× Pool):</span>
-              <span class="pool-calc-val">{{ (publishWarningExam?.total_questions || 0) * 3 }} Questions</span>
-            </div>
-            <div class="pool-calc-row">
-              <span class="pool-calc-label">Currently in Question Bank:</span>
-              <span class="pool-calc-val text-amber-700">{{ publishWarningExam?.question_count || 0 }} Questions</span>
-            </div>
-            <div class="pool-calc-divider"></div>
-            <div class="pool-calc-row deficit">
-              <span class="pool-calc-label">Questions Needed to Publish:</span>
-              <span class="pool-calc-val text-red-600 font-semibold">+{{ Math.max(0, ((publishWarningExam?.total_questions || 0) * 3) - (publishWarningExam?.question_count || 0)) }} More</span>
-            </div>
-          </div>
-
-          <div class="modal-info-callout">
-            <i class="mdi mdi-information-outline text-blue-500"></i>
-            <div>
-              When candidates take this exam, questions are randomly drawn from this 3× pool so each candidate receives a randomized question set.
-            </div>
-          </div>
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="modal-footer">
-          <button type="button" class="btn-glass" @click="publishWarningDialog = false">
-            Close
-          </button>
-          <NuxtLink
-            :to="`/dashboard/admin/public-exams/questions?examId=${publishWarningExam?.id}`"
-            class="btn-red flex items-center gap-1.5"
-            @click="publishWarningDialog = false"
-          >
-            <i class="mdi mdi-database-plus-outline"></i>
-            <span>Open Question Bank</span>
-          </NuxtLink>
-        </div>
-      </div>
-    </v-dialog>
+      </Transition>
+    </Teleport>
 
     <!-- Snackbar -->
     <v-snackbar v-model="snackbar" :color="snackbarColor" rounded="lg">
@@ -400,9 +402,9 @@ const api = useApi();
 
 const loading = ref(true);
 const exams = ref<any[]>([]);
-const categories = ref<any[]>([]);
+const qualifications = ref<any[]>([]);
 const search = ref('');
-const categoryFilter = ref('All');
+const qualificationFilter = ref('All');
 const statusFilter = ref('All');
 
 // Delete Exam Dialog State
@@ -424,7 +426,7 @@ const headers = [
   { title: 'Status', key: 'status', align: 'center' as const, minWidth: '150px' },
   { title: 'Attempts', key: 'engagement', align: 'center' as const, sortable: false, minWidth: '140px' },
   { title: 'Date', key: 'created_at', minWidth: '110px' },
-  { title: 'Actions', key: 'actions', sortable: false, align: 'center' as const, width: '135px', minWidth: '135px' }
+  { title: 'Actions', key: 'actions', sortable: false, align: 'center' as const, width: '200px', minWidth: '200px' }
 ];
 
 function getStatusClass(status: string) {
@@ -443,22 +445,24 @@ function getStatusLabel(status: string) {
 
 const filteredExams = computed(() => {
   return exams.value.filter(exam => {
-    const matchesSearch = !search.value || exam.name.toLowerCase().includes(search.value.toLowerCase());
-    const matchesCategory = categoryFilter.value === 'All' || exam.category_id === categoryFilter.value;
+    const matchesSearch = !search.value || 
+      exam.name.toLowerCase().includes(search.value.toLowerCase()) ||
+      (exam.qualification_name && exam.qualification_name.toLowerCase().includes(search.value.toLowerCase()));
+    const matchesQual = qualificationFilter.value === 'All' || exam.qualification_id === qualificationFilter.value;
     const matchesStatus = statusFilter.value === 'All' || exam.status === statusFilter.value;
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch && matchesQual && matchesStatus;
   });
 });
 
 async function loadData() {
   loading.value = true;
   try {
-    const [catsRes, examsRes] = await Promise.all([
-      api.get('/public/exams/categories'),
+    const [qualsRes, examsRes] = await Promise.all([
+      api.get('/public/qualifications'),
       api.get('/admin/public-exams')
     ]);
-    categories.value = [{ id: 'All', name: 'All Categories' }, ...catsRes.data];
-    exams.value = examsRes.data;
+    qualifications.value = qualsRes.data || [];
+    exams.value = examsRes.data || [];
   } catch (err) {
     console.error('Failed to load exams listing:', err);
   } finally {
@@ -540,21 +544,41 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.actions-cell-2rows {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  width: max-content;
-  margin: 0 auto;
+.table-select-filter {
+  width: auto;
+  min-width: 150px;
+  max-width: 220px;
+  height: 38px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #FFFFFF;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #0F172A;
+  cursor: pointer;
+  box-sizing: border-box;
 }
 
-.actions-row {
+.table-select-filter:focus {
+  border-color: #E31B23;
+  box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.1);
+  outline: none;
+}
+
+.actions-cell {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
 }
 
 .btn-table-action.btn-qb {

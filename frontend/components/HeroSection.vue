@@ -14,11 +14,11 @@
         </div>
         
         <h1 class="hero-headline">
-          {{ config?.homepage_title || 'KEFTA National Food Tech Talent Hunt' }}
+          {{ config?.homepage_title || 'GSFIN Global Food Safety Certification Portal' }}
         </h1>
         
         <h2 class="hero-sub">
-          {{ config?.homepage_subtitle || 'Discovering, motivating, and supporting emerging food science talents across the nation.' }}
+          {{ config?.homepage_subtitle || 'Validating professional competence and establishing global trust in food science, safety, and technology standards.' }}
         </h2>
         
         <div class="hero-ctas">
@@ -36,7 +36,7 @@
           <img
             v-if="heroImgSrc"
             :src="heroImgSrc"
-            alt="Food Tech Talent Hunt Hero"
+            alt="GSFIN Food Safety Certification Hero"
             class="hero-img-3d"
           />
           <div class="hero-shadow"></div>

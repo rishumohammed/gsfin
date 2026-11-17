@@ -4,8 +4,8 @@
       <v-row justify="center">
         <v-col cols="12" md="10" lg="8">
           <div class="text-center mb-8">
-            <h1 class="text-h4 font-weight-black mb-2 text-primary">Talent Hunt Registration</h1>
-            <p class="text-grey">National Food Technology Competition</p>
+            <h1 class="text-h4 font-weight-black mb-2 text-primary">GSFIN Certification Registration</h1>
+            <p class="text-grey">Global Food Safety &amp; Integrity Network — Candidate Enrolment</p>
           </div>
 
           <v-card rounded="xl" class="shadow-soft overflow-hidden border-0 pa-8 bg-white">
@@ -114,7 +114,7 @@
               </v-row>
 
               <v-btn type="submit" color="primary" block size="x-large" rounded="pill" class="mt-8 font-weight-black" :loading="loading">
-                Register for Talent Hunt
+                Register for GSFIN Certification
               </v-btn>
             </v-form>
           </v-card>

@@ -32,7 +32,7 @@
               <input
                 v-model="config.certificate_sig1_name"
                 type="text"
-                placeholder="e.g. Mr. Ameer Faisal"
+                placeholder="e.g. Dr. Ameer Faisal"
                 class="form-input"
               />
             </div>
@@ -42,7 +42,7 @@
               <input
                 v-model="config.certificate_sig1_title"
                 type="text"
-                placeholder="e.g. Co-founder & Convenor"
+                placeholder="e.g. Chairman, Certification Governance Board"
                 class="form-input"
               />
             </div>
@@ -62,7 +62,7 @@
               <input
                 v-model="config.certificate_sig2_title"
                 type="text"
-                placeholder="e.g. General Secretary"
+                placeholder="e.g. Director of Academic &amp; Industrial Standards"
                 class="form-input"
               />
             </div>

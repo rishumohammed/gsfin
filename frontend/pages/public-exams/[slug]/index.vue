@@ -20,8 +20,8 @@
       <v-col cols="12" md="10" class="mx-auto">
         <v-card class="pa-8 border rounded-xl mb-6" flat>
           <div class="d-flex flex-wrap align-center justify-space-between gap-3 mb-6">
-            <v-chip color="primary" variant="tonal" class="font-weight-bold">
-              {{ exam.category_name }}
+            <v-chip color="primary" variant="tonal" class="font-weight-medium">
+              {{ exam.qualification_category || exam.category_name || 'Food Safety Standard' }}
             </v-chip>
             <v-chip :color="getDifficultyColor(exam.difficulty_level)" class="text-white font-weight-bold" variant="flat">
               {{ exam.difficulty_level }}

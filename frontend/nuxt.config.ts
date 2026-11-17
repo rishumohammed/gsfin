@@ -171,7 +171,7 @@ export default defineNuxtConfig({
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'Kefta Talent Hunt' }
+        { name: 'description', content: 'GSFIN - Global Standard Food Safety & Integrity Network | Verified Personnel Certification Registry' }
       ],
       link: [
         { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css' }

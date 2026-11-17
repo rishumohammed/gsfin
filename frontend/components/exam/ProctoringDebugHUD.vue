@@ -181,7 +181,7 @@ function getGazeYDeltaClass(delta: number) {
 
 function recalibrate() {
   if (typeof window !== 'undefined') {
-    const debugObj = (window as any).__GSFIN_PROCTORING_DEBUG__ || (window as any).__KEFTA_PROCTORING_DEBUG__;
+    const debugObj = (window as any).__GSFIN_PROCTORING_DEBUG__;
     if (debugObj) {
       debugObj.recalibrate();
     }
