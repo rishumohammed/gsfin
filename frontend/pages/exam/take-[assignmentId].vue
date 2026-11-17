@@ -7,7 +7,7 @@
 
     <v-card v-else-if="error" color="surface" class="pa-8 rounded-xl max-w-600 text-center elevation-10 text-slate-900">
       <v-icon icon="mdi-alert-circle-outline" size="64" color="error" class="mb-4"></v-icon>
-      <h2 class="text-h5 font-weight-bold mb-2">Exam Link Notice</h2>
+      <h2 class="text-h5 font-weight-semibold mb-2">Exam Link Notice</h2>
       <p class="text-body-1 text-grey-darken-1 mb-6">{{ error }}</p>
       <v-btn color="primary" variant="flat" size="large" to="/">Return Home</v-btn>
     </v-card>
@@ -16,8 +16,8 @@
     <v-card v-else-if="!activeAttempt && !result" color="surface" class="pa-8 rounded-xl max-w-700 text-slate-900 elevation-12">
       <div class="d-flex align-center justify-space-between mb-4 border-b pb-4">
         <div>
-          <span class="text-caption text-uppercase font-weight-bold text-primary">Official Certification Sitting</span>
-          <h1 class="text-h4 font-weight-bold text-slate-900 mt-1">{{ details.examName }}</h1>
+          <span class="text-caption text-uppercase font-weight-semibold text-primary">Official Certification Sitting</span>
+          <h1 class="text-h4 font-weight-semibold text-slate-900 mt-1">{{ details.examName }}</h1>
         </div>
         <v-chip color="indigo" variant="flat" size="large">
           {{ details.durationMinutes }} Mins
@@ -28,25 +28,25 @@
         <v-col cols="12" sm="6">
           <div class="bg-grey-lighten-4 pa-4 rounded-lg">
             <div class="text-caption text-grey">Candidate Name</div>
-            <div class="text-subtitle-1 font-weight-bold">{{ details.studentName }}</div>
+            <div class="text-subtitle-1 font-weight-semibold">{{ details.studentName }}</div>
           </div>
         </v-col>
         <v-col cols="12" sm="6">
           <div class="bg-grey-lighten-4 pa-4 rounded-lg">
             <div class="text-caption text-grey">Sub-Center Authority</div>
-            <div class="text-subtitle-1 font-weight-bold">{{ details.organizationName }}</div>
+            <div class="text-subtitle-1 font-weight-semibold">{{ details.organizationName }}</div>
           </div>
         </v-col>
         <v-col cols="12" sm="6">
           <div class="bg-grey-lighten-4 pa-4 rounded-lg">
             <div class="text-caption text-grey">Attempt Count</div>
-            <div class="text-subtitle-1 font-weight-bold text-indigo">{{ details.attemptsUsed }} / {{ details.maxAttempts }} Used</div>
+            <div class="text-subtitle-1 font-weight-semibold text-indigo">{{ details.attemptsUsed }} / {{ details.maxAttempts }} Used</div>
           </div>
         </v-col>
         <v-col cols="12" sm="6">
           <div class="bg-grey-lighten-4 pa-4 rounded-lg">
             <div class="text-caption text-grey">Hard Cutoff Window</div>
-            <div class="text-subtitle-1 font-weight-bold text-warning">{{ details.maxCutoffMinutes }} Mins (1.25x)</div>
+            <div class="text-subtitle-1 font-weight-semibold text-warning">{{ details.maxCutoffMinutes }} Mins (1.25x)</div>
           </div>
         </v-col>
       </v-row>
@@ -60,7 +60,7 @@
           color="primary"
           size="x-large"
           variant="flat"
-          class="px-8 font-weight-bold"
+          class="px-8 font-weight-semibold"
           prepend-icon="mdi-play"
           :loading="starting"
           @click="startSitting"
@@ -75,11 +75,11 @@
       <!-- Top Sticky Header -->
       <div class="bg-slate-900 border-b border-slate-800 px-6 py-4 d-flex align-center justify-space-between">
         <div>
-          <h2 class="text-h6 font-weight-bold text-white">{{ details.examName }}</h2>
+          <h2 class="text-h6 font-weight-semibold text-white">{{ details.examName }}</h2>
           <span class="text-caption text-slate-400">Candidate: {{ details.studentName }} • {{ details.organizationName }}</span>
         </div>
         <div class="d-flex align-center gap-4">
-          <v-chip color="warning" variant="flat" size="large" class="font-weight-mono font-weight-bold">
+          <v-chip color="warning" variant="flat" size="large" class="font-weight-mono font-weight-semibold">
             <v-icon start icon="mdi-timer-outline"></v-icon>
             Cutoff Timer: {{ formattedTimeLeft }}
           </v-chip>
@@ -92,7 +92,7 @@
       <!-- Exam Body -->
       <div class="flex-grow-1 pa-8 d-flex flex-column align-center justify-center">
         <v-card color="surface" class="pa-8 rounded-xl max-w-800 w-100 text-slate-900 elevation-12">
-          <h3 class="text-h5 font-weight-bold mb-4">Exam Question Sitting</h3>
+          <h3 class="text-h5 font-weight-semibold mb-4">Exam Question Sitting</h3>
           <p class="text-body-1 mb-6">
             Please answer all questions carefully before submitting. Your session is monitored for compliance.
           </p>
@@ -106,7 +106,7 @@
 
           <div class="d-flex justify-space-between align-center border-t pt-6">
             <v-btn color="grey" variant="text">Previous</v-btn>
-            <v-btn color="success" size="large" variant="flat" class="px-6 font-weight-bold" :loading="submitting" @click="submitExam">
+            <v-btn color="success" size="large" variant="flat" class="px-6 font-weight-semibold" :loading="submitting" @click="submitExam">
               Submit Final Exam
             </v-btn>
           </div>
@@ -118,7 +118,7 @@
     <v-card v-else-if="result" color="surface" class="pa-8 rounded-xl max-w-650 text-slate-900 elevation-12 text-center">
       <div v-if="result.passed">
         <v-icon icon="mdi-check-circle" size="80" color="success" class="mb-4"></v-icon>
-        <h2 class="text-h4 font-weight-bold text-success mb-2">Congratulations! Passed</h2>
+        <h2 class="text-h4 font-weight-semibold text-success mb-2">Congratulations! Passed</h2>
         <p class="text-body-1 text-grey-darken-1 mb-6">
           You have successfully passed the <strong>{{ details.examName }}</strong> certification exam.
         </p>
@@ -127,7 +127,7 @@
           color="success"
           size="x-large"
           variant="flat"
-          class="px-8 font-weight-bold mb-4"
+          class="px-8 font-weight-semibold mb-4"
           prepend-icon="mdi-certificate"
           :href="details.certificateUrl"
           target="_blank"
@@ -138,7 +138,7 @@
 
       <div v-else>
         <v-icon icon="mdi-close-circle" size="80" color="error" class="mb-4"></v-icon>
-        <h2 class="text-h4 font-weight-bold text-error mb-2">Exam Result: Not Passed</h2>
+        <h2 class="text-h4 font-weight-semibold text-error mb-2">Exam Result: Not Passed</h2>
         <p class="text-body-1 text-grey-darken-1 mb-6">
           You did not meet the passing criteria for this sitting.
         </p>
