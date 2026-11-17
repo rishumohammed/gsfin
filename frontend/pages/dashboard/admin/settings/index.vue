@@ -249,6 +249,59 @@
                   </v-col>
                 </v-row>
               </v-card>
+
+              <!-- About Section Image Upload -->
+              <v-card variant="outlined" class="rounded-xl pa-6 mb-6">
+                <div class="d-flex align-center mb-4">
+                  <v-avatar color="primary" size="40" class="mr-3">
+                    <v-icon color="white" size="20">mdi-image-multiple-outline</v-icon>
+                  </v-avatar>
+                  <div>
+                    <div class="text-subtitle-1 font-weight-bold">About Section Image</div>
+                    <div class="text-caption text-secondary">Shown in the Institutional Mandate / Governance showcase section</div>
+                  </div>
+                </div>
+
+                <div v-if="form.homepage_about_image" class="mb-4">
+                  <img
+                    :src="form.homepage_about_image?.startsWith('/') ? (baseUrl + form.homepage_about_image) : form.homepage_about_image"
+                    alt="About Image Preview"
+                    style="width:100%; max-height:200px; object-fit:cover; border-radius:12px; border:1px solid rgba(0,0,0,0.08);"
+                  />
+                </div>
+                <div v-else class="mb-4 pa-6 rounded-xl d-flex align-center justify-center" style="background:#f8f9fc; border:1px dashed rgba(0,0,0,0.12); min-height:120px;">
+                  <div class="text-center text-secondary">
+                    <v-icon size="40" color="grey-lighten-2" class="mb-2">mdi-image-outline</v-icon>
+                    <div class="text-caption">No image set — using default governance image</div>
+                  </div>
+                </div>
+
+                <v-row>
+                  <v-col cols="12" md="6">
+                    <v-file-input
+                      v-model="aboutImageFile"
+                      accept="image/*"
+                      label="Upload new about image"
+                      variant="outlined"
+                      density="compact"
+                      prepend-icon=""
+                      prepend-inner-icon="mdi-upload"
+                      hide-details
+                      class="mb-3"
+                    />
+                    <v-btn color="primary" variant="tonal" rounded="lg" size="small" :loading="saving" @click="uploadHomepageImages" class="text-none">
+                      <v-icon start>mdi-cloud-upload</v-icon> Upload About Image
+                    </v-btn>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <AppInput
+                      v-model="form.homepage_about_image_url"
+                      label="Or paste image URL"
+                      placeholder="https://images.unsplash.com/..."
+                    />
+                  </v-col>
+                </v-row>
+              </v-card>
             </div>
 
             <!-- 3. Organization & Legal Tab -->
@@ -449,6 +502,7 @@ provide('configForm', form);
 const logoFile = ref(null);
 const faviconFile = ref(null);
 const heroImageFile = ref(null);
+const aboutImageFile = ref(null);
 
 const snackbar = ref(false);
 const snackbarMessage = ref('');
@@ -619,20 +673,25 @@ const uploadBranding = async () => {
 };
 
 const uploadHomepageImages = async () => {
-  if (!heroImageFile.value) return;
+  if (!heroImageFile.value && !aboutImageFile.value) return;
   saving.value = true;
   const formData = new FormData();
   const hero = Array.isArray(heroImageFile.value) ? heroImageFile.value[0] : heroImageFile.value;
   if (hero) formData.append('hero_image', hero);
+  const about = Array.isArray(aboutImageFile.value) ? aboutImageFile.value[0] : aboutImageFile.value;
+  if (about) formData.append('about_image', about);
 
   try {
     const { data } = await api.post('/admin/config/branding/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     if (data.updates.homepage_hero_image) form.value.homepage_hero_image = data.updates.homepage_hero_image;
-    snackbarMessage.value = 'Homepage image uploaded successfully';
+    if (data.updates.homepage_about_image) form.value.homepage_about_image = data.updates.homepage_about_image;
+    snackbarMessage.value = 'Homepage image(s) uploaded successfully';
     snackbarColor.value = 'success';
     snackbar.value = true;
+    heroImageFile.value = null;
+    aboutImageFile.value = null;
   } catch (err) {
     snackbarMessage.value = 'Failed to upload image';
     snackbarColor.value = 'error';
