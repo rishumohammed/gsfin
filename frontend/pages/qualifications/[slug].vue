@@ -98,6 +98,16 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Hero Actions Row -->
+              <div class="hero-actions-row" style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
+                <NuxtLink :to="`/public-exams/${item?.slug || slug}`" class="btn-red" style="text-decoration: none;">
+                  <i class="mdi mdi-play-circle-outline"></i> Take Certification Exam
+                </NuxtLink>
+                <button type="button" class="btn-glass" @click="openPartnerModal()">
+                  <i class="mdi mdi-handshake-outline"></i> Inquire via Authorized Center
+                </button>
+              </div>
             </div>
 
             <!-- Right: Qualification Image -->
@@ -206,6 +216,53 @@
               </div>
             </div>
 
+            <!-- Assessment & Examination Architecture -->
+            <div class="glass-section-box">
+              <div class="box-head">
+                <i class="mdi mdi-clipboard-check-outline box-icon"></i>
+                <h2>Examination &amp; Assessment Architecture</h2>
+              </div>
+              <p class="overview-text" style="margin-bottom: 20px;">
+                Assessment for this standard is conducted under independent personnel certification principles. Examinations test both theoretical knowledge and practical scenario-based decision making.
+              </p>
+              <div class="specs-grid">
+                <div class="spec-card">
+                  <i class="mdi mdi-timer-outline spec-icon"></i>
+                  <div class="spec-content">
+                    <span class="spec-label">Exam Duration</span>
+                    <span class="spec-val">{{ item?.duration?.includes('Minute') ? item.duration : '45 - 60 Minutes' }}</span>
+                  </div>
+                </div>
+                <div class="spec-card">
+                  <i class="mdi mdi-help-box-outline spec-icon"></i>
+                  <div class="spec-content">
+                    <span class="spec-label">Question Pool</span>
+                    <span class="spec-val">Dynamic 3× Question Bank</span>
+                  </div>
+                </div>
+                <div class="spec-card">
+                  <i class="mdi mdi-percent-outline spec-icon"></i>
+                  <div class="spec-content">
+                    <span class="spec-label">Passing Standard</span>
+                    <span class="spec-val">50% Minimum Competency</span>
+                  </div>
+                </div>
+                <div class="spec-card">
+                  <i class="mdi mdi-cctv spec-icon"></i>
+                  <div class="spec-content">
+                    <span class="spec-label">Invigilation</span>
+                    <span class="spec-val">AI &amp; Secure Audit Trail</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top: 24px;">
+                <NuxtLink :to="`/public-exams/${item?.slug || slug}`" class="btn-red" style="text-decoration: none;">
+                  <i class="mdi mdi-play-circle-outline"></i> Start Examination Assessment
+                </NuxtLink>
+              </div>
+            </div>
+
           </div>
 
           <!-- Right Sidebar Column -->
@@ -215,12 +272,15 @@
             <div class="sidebar-action-box">
               <div class="action-head text-center">
                 <i class="mdi mdi-certificate action-badge-icon"></i>
-                <h3>Offer This Standard</h3>
-                <p>Authorized training centers can conduct examinations for candidates worldwide.</p>
+                <h3>Personnel Certification</h3>
+                <p>Validated under international conformity standards for certified food professionals.</p>
               </div>
 
               <div class="sidebar-btn-group">
-                <button class="btn-red w-full justify-center" @click="openPartnerModal()">
+                <NuxtLink :to="`/public-exams/${item?.slug || slug}`" class="btn-red w-full justify-center" style="text-decoration: none;">
+                  <i class="mdi mdi-play-circle-outline mr-1"></i> Take Certification Exam
+                </NuxtLink>
+                <button class="btn-glass w-full justify-center" @click="openPartnerModal()">
                   <i class="mdi mdi-handshake-outline mr-1"></i> Become Authorized Center
                 </button>
                 <button class="btn-glass w-full justify-center" @click="openPartnerModal()">
@@ -393,6 +453,28 @@ const item = ref<any>(null);
 const pending = ref(true);
 const error = ref<any>(null);
 
+const defaultAudiences = [
+  'Food Safety Managers & Quality Assurance Officers',
+  'HACCP Team Leaders & Internal Auditors',
+  'Food Processing Engineers & Technical Supervisors',
+  'Catering & Hospitality Hygiene Managers',
+  'Regulatory Inspectors & Compliance Consultants'
+];
+
+const defaultBenefits = [
+  'Globally verified GSFIN Certificate with digital QR verification',
+  'Demonstrated competence under international conformity standards',
+  'Enhanced career portability across multinational food supply chains',
+  'Verifiable credential registered on the central GSFIN online registry',
+  'Comprehensive alignment with CODEX & international auditing benchmarks'
+];
+
+const defaultPrereqs = [
+  'Working knowledge of food handling, processing, or hygiene practices',
+  'Secondary education or equivalent industry technical experience',
+  'Familiarity with basic workplace sanitation and food risk control'
+];
+
 // All qualification content is managed via the Admin Panel
 // Admin: /dashboard/admin/qualifications → Create / Edit / Delete qualifications
 const fetchQualification = async () => {
@@ -401,14 +483,24 @@ const fetchQualification = async () => {
   try {
     const res = await api.get(`/public/qualifications/${slug.value}`);
     if (res.data && res.data.id) {
-      // Parse JSON fields returned as strings by the API
       const d = res.data;
+      const keyModules = (Array.isArray(d.key_modules) && d.key_modules.length) ? d.key_modules : tryParse(d.key_modules);
+      const whoShouldAttend = (Array.isArray(d.who_should_attend) && d.who_should_attend.length) ? d.who_should_attend : tryParse(d.who_should_attend);
+      const benefits = (Array.isArray(d.benefits) && d.benefits.length) ? d.benefits : tryParse(d.benefits);
+      const prerequisites = (Array.isArray(d.prerequisites) && d.prerequisites.length) ? d.prerequisites : tryParse(d.prerequisites);
+
       item.value = {
         ...d,
-        key_modules:      Array.isArray(d.key_modules)      ? d.key_modules      : tryParse(d.key_modules),
-        who_should_attend: Array.isArray(d.who_should_attend) ? d.who_should_attend : tryParse(d.who_should_attend),
-        benefits:         Array.isArray(d.benefits)         ? d.benefits         : tryParse(d.benefits),
-        prerequisites:    Array.isArray(d.prerequisites)    ? d.prerequisites    : tryParse(d.prerequisites),
+        key_modules: keyModules.length ? keyModules : [
+          'Introduction to Standard Framework & Regulatory Principles',
+          'Hazard Identification & Critical Control Point Analysis',
+          'Good Hygiene Practices (GHP) & Sanitation Standard Procedures',
+          'Verification, Monitoring Protocols & Record Auditing',
+          'Corrective Actions & Continuous Conformity Improvement'
+        ],
+        who_should_attend: whoShouldAttend.length ? whoShouldAttend : defaultAudiences,
+        benefits: benefits.length ? benefits : defaultBenefits,
+        prerequisites: prerequisites.length ? prerequisites : defaultPrereqs,
       };
     } else {
       error.value = { statusCode: 404, message: 'Qualification not found' };
@@ -422,8 +514,14 @@ const fetchQualification = async () => {
 
 const tryParse = (v: any) => {
   if (!v) return [];
-  if (typeof v === 'object') return v;
-  try { return JSON.parse(v); } catch { return []; }
+  if (Array.isArray(v)) return v;
+  if (typeof v === 'object') return [v];
+  try {
+    const parsed = JSON.parse(v);
+    return Array.isArray(parsed) ? parsed : [parsed];
+  } catch {
+    return typeof v === 'string' && v.trim().length > 0 ? [v.trim()] : [];
+  }
 };
 
 onMounted(() => {

@@ -100,10 +100,15 @@ router.get('/faqs', async (req, res) => {
 // Helper for parsing JSON arrays
 const parseJsonArray = (val) => {
   if (!val) return [];
-  if (typeof val === 'object') return val;
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'object') return [val];
   try {
-    return JSON.parse(val);
+    const parsed = JSON.parse(val);
+    return Array.isArray(parsed) ? parsed : [parsed];
   } catch (e) {
+    if (typeof val === 'string' && val.trim().length > 0) {
+      return [val.trim()];
+    }
     return [];
   }
 };

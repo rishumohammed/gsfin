@@ -119,6 +119,7 @@
         <a href="#hero" :class="['nav-link', { on: activeSection === 'hero' }]" @click.prevent="scrollToSection('hero')">Home</a>
         <a href="#about" :class="['nav-link', { on: activeSection === 'about' }]" @click.prevent="scrollToSection('about')">About Us</a>
         <a href="#schemes" :class="['nav-link', { on: activeSection === 'schemes' }]" @click.prevent="scrollToSection('schemes')">Certifications</a>
+        <NuxtLink to="/qualifications" class="nav-link">Qualifications Directory</NuxtLink>
         <a href="#process" :class="['nav-link', { on: activeSection === 'process' }]" @click.prevent="scrollToSection('process')">How It Works</a>
         <a href="#verify" :class="['nav-link', { on: activeSection === 'verify' }]" @click.prevent="scrollToSection('verify')">Verify Certificate</a>
       </nav>
@@ -473,27 +474,38 @@
             :key="scheme.id"
             class="card program-card"
           >
-            <div class="program-thumb">
+            <NuxtLink :to="'/qualifications/' + scheme.slug" class="program-thumb" style="display: block; text-decoration: none;">
               <img :src="getSchemeImage(scheme)" :alt="scheme.name">
               <span class="program-thumb-badge">{{ scheme.badge_tag || 'Standard' }}</span>
-            </div>
+            </NuxtLink>
             <div class="program-body">
               <div>
-                <h3>{{ scheme.name }}</h3>
+                <NuxtLink :to="'/qualifications/' + scheme.slug" style="text-decoration: none; color: inherit;">
+                  <h3>{{ scheme.name }}</h3>
+                </NuxtLink>
                 <div class="program-sub">{{ scheme.subtitle || scheme.name }}</div>
                 <p class="program-desc">{{ scheme.short_description }}</p>
                 <div class="program-tags" v-if="scheme.tags && scheme.tags.length">
                   <span v-for="(tag, tIdx) in scheme.tags" :key="tIdx">{{ tag }}</span>
                 </div>
               </div>
-              <a href="#process" class="program-footer">
-                <span>Certification Workflow</span>
+              <NuxtLink :to="'/qualifications/' + scheme.slug" class="program-footer">
+                <span>View Standard Specification</span>
                 <svg width="14" height="14" viewBox="0 0 24 24">
                   <use href="#v-arrow-right" />
                 </svg>
-              </a>
+              </NuxtLink>
             </div>
           </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 44px;">
+          <NuxtLink to="/qualifications" class="btn p" style="display: inline-flex; align-items: center; gap: 8px;">
+            <span>Browse Full Qualifications Directory</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </NuxtLink>
         </div>
       </div>
     </section>
@@ -683,6 +695,7 @@
           <a href="#hero">Home</a>
           <a href="#about">About Us</a>
           <a href="#schemes">Certifications</a>
+          <NuxtLink to="/qualifications">Qualifications Directory</NuxtLink>
           <a href="#process">How It Works</a>
           <a href="#verify">Verify Certificate</a>
         </div>
