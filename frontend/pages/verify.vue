@@ -270,7 +270,12 @@ const checkLocalDemo = () => {
 };
 
 const downloadCert = () => {
-  alert(`Downloading official PDF certificate for ${result.value?.cert_number}...`);
+  if (result.value?.pdf_url) {
+    const url = result.value.pdf_url.startsWith('http') ? result.value.pdf_url : `${window.location.origin}${result.value.pdf_url.startsWith('/') ? '' : '/'}${result.value.pdf_url}`;
+    window.open(url, '_blank');
+  } else {
+    alert(`Certificate code ${result.value?.cert_number} is authentic and verified.`);
+  }
 };
 
 const copyShareLink = () => {

@@ -9,7 +9,7 @@
     <div v-else-if="result">
       <!-- Result Stats Header -->
       <div class="mb-6">
-        <h1 class="text-h4 font-weight-black text-dark mb-2">
+        <h1 class="text-h4 font-weight-semibold text-dark mb-2">
           {{ result.guest_name ? result.guest_name + "'s Scorecard" : 'Candidate Exam Scorecard' }}
         </h1>
         <p class="text-subtitle-1 text-secondary">
@@ -22,20 +22,39 @@
         <v-col cols="6" sm="3" v-for="(stat, idx) in statCards" :key="idx">
           <v-card class="pa-5 border rounded-xl text-center h-100" flat>
             <v-icon :color="stat.color" size="32" class="mb-2">{{ stat.icon }}</v-icon>
-            <div class="text-caption text-secondary mb-1 font-weight-bold">{{ stat.label }}</div>
-            <div class="text-h5 font-weight-black text-dark">{{ stat.value }}</div>
+            <div class="text-caption text-secondary mb-1 font-weight-semibold">{{ stat.label }}</div>
+            <div class="text-h5 font-weight-semibold text-dark">{{ stat.value }}</div>
           </v-card>
         </v-col>
       </v-row>
 
       <!-- Action Buttons Row -->
       <div class="d-flex flex-wrap gap-3 justify-center mb-12">
+        <button
+          v-if="result.passed && (result as any).enable_certificate && (result as any).proctoring_status !== 'pending_review'"
+          type="button"
+          class="btn-red flex items-center gap-2"
+          @click="downloadCertificate"
+        >
+          <i class="mdi mdi-certificate-outline"></i>
+          <span>Download Certificate</span>
+        </button>
+
+        <NuxtLink
+          v-if="(result as any).certificate_number"
+          :to="`/verify-certificate?code=${(result as any).certificate_number}`"
+          class="btn-glass flex items-center gap-2"
+        >
+          <i class="mdi mdi-shield-check-outline"></i>
+          <span>Verify Credential</span>
+        </NuxtLink>
+
         <v-btn
           color="primary"
           variant="outlined"
           rounded="lg"
           height="48"
-          class="text-capitalize font-weight-bold px-6"
+          class="text-capitalize font-weight-semibold px-6"
           @click="showAnswers = !showAnswers"
         >
           <v-icon start>{{ showAnswers ? 'mdi-eye-off-outline' : 'mdi-eye-outline' }}</v-icon>
@@ -46,7 +65,7 @@
           variant="text"
           color="grey-darken-2"
           height="48"
-          class="text-capitalize font-weight-bold"
+          class="text-capitalize font-weight-semibold"
           @click="$router.back()"
         >
           Go Back
@@ -56,7 +75,7 @@
       <!-- Question Answer Review Section -->
       <v-expand-transition>
         <div v-show="showAnswers">
-          <h3 class="text-h5 font-weight-black text-dark mb-6">Question-by-Question Review</h3>
+          <h3 class="text-h5 font-weight-semibold text-dark mb-6">Question-by-Question Review</h3>
           
           <v-card
             v-for="(q, idx) in result.questions"
@@ -67,12 +86,12 @@
             <!-- Badge: Correct / Wrong -->
             <div class="d-flex align-center justify-space-between mb-4">
               <div class="d-flex align-center">
-                <span class="font-weight-black text-body-1 text-dark mr-3">Question {{ idx + 1 }}</span>
-                <v-chip size="small" :color="q.is_correct ? 'success' : 'error'" class="text-white font-weight-bold">
+                <span class="font-weight-semibold text-body-1 text-dark mr-3">Question {{ idx + 1 }}</span>
+                <v-chip size="small" :color="q.is_correct ? 'success' : 'error'" class="text-white font-weight-semibold">
                   {{ q.is_correct ? 'Correct' : 'Incorrect' }}
                 </v-chip>
               </div>
-              <span class="text-caption text-secondary font-weight-bold">{{ q.marks }} Marks</span>
+              <span class="text-caption text-secondary font-weight-semibold">{{ q.marks }} Marks</span>
             </div>
 
             <!-- Question Text -->
@@ -102,7 +121,7 @@
                   {{ q.is_correct ? 'mdi-check-circle' : 'mdi-close-circle' }}
                 </v-icon>
                 <div class="text-body-2 text-dark">
-                  <span class="font-weight-bold">Your Answer:</span> {{ q.guest_answer || '(No answer provided)' }}
+                  <span class="font-weight-semibold">Your Answer:</span> {{ q.guest_answer || '(No answer provided)' }}
                 </div>
               </div>
 
@@ -110,14 +129,14 @@
               <div v-if="!q.is_correct" class="pa-3 border rounded-lg mb-2 bg-success-light d-flex align-center">
                 <v-icon size="18" class="mr-3" color="success">mdi-check-circle</v-icon>
                 <div class="text-body-2 text-dark">
-                  <span class="font-weight-bold">Correct Answer:</span> {{ q.correct_answer }}
+                  <span class="font-weight-semibold">Correct Answer:</span> {{ q.correct_answer }}
                 </div>
               </div>
             </div>
 
             <!-- Explanation Box -->
             <div v-if="q.explanation" class="explanation-box pa-4 rounded-lg mt-4 text-body-2 text-secondary">
-              <span class="font-weight-bold text-dark d-block mb-1">Explanation:</span>
+              <span class="font-weight-semibold text-dark d-block mb-1">Explanation:</span>
               {{ q.explanation }}
             </div>
           </v-card>
@@ -128,7 +147,7 @@
     <!-- Error State -->
     <v-card v-else class="text-center py-16 px-4 border rounded-xl" flat>
       <v-icon size="64" color="error" class="mb-4">mdi-alert-circle-outline</v-icon>
-      <h3 class="text-h5 font-weight-bold mb-2">Evaluation Error</h3>
+      <h3 class="text-h5 font-weight-semibold mb-2">Evaluation Error</h3>
       <p class="text-body-1 text-secondary mb-6">We could not retrieve details for this exam attempt.</p>
       <v-btn color="primary" rounded="lg" to="/public-exams" class="px-6 text-capitalize">
         Back to Portal
@@ -138,7 +157,7 @@
     <v-dialog v-model="claimDialog" max-width="500" persistent>
       <v-card class="pa-6 rounded-xl" elevation="24">
         <div class="d-flex justify-space-between align-center mb-6">
-          <h3 class="text-h5 font-weight-bold text-dark">Claim Your Certificate</h3>
+          <h3 class="text-h5 font-weight-semibold text-dark">Claim Your Certificate</h3>
           <v-btn icon variant="text" color="grey" @click="claimDialog = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
@@ -187,7 +206,7 @@
             block
             height="50"
             rounded="lg"
-            class="mt-4 text-capitalize font-weight-bold"
+            class="mt-4 text-capitalize font-weight-semibold"
             elevation="0"
             :loading="claiming"
             @click="submitClaimForm"
@@ -297,6 +316,13 @@ async function fetchResultDetails() {
   } finally {
     loading.value = false;
   }
+}
+
+function downloadCertificate() {
+  const url = (result.value as any)?.certificate_url 
+    ? ((result.value as any).certificate_url.startsWith('http') ? (result.value as any).certificate_url : `/api${(result.value as any).certificate_url.startsWith('/') ? '' : '/'}${(result.value as any).certificate_url}`)
+    : `/api/public/exams/attempts/${route.params.id}/certificate`;
+  window.open(url, '_blank');
 }
 
 function formatTime(seconds: number) {
@@ -483,5 +509,47 @@ onMounted(() => {
 
 .whitespace-pre {
   white-space: pre-line;
+}
+
+.btn-glass {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 10px;
+  color: #334155;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-glass:hover {
+  background: #F8FAFC;
+  color: #0F172A;
+  border-color: rgba(15, 23, 42, 0.25);
+}
+
+.btn-red {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 22px;
+  background: #E31B23;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(227, 27, 35, 0.25);
+}
+
+.btn-red:hover {
+  background: #C41219;
+  transform: translateY(-1px);
 }
 </style>

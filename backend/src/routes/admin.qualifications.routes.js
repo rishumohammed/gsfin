@@ -145,7 +145,24 @@ router.post('/', async (req, res) => {
       ]
     );
 
-    res.status(201).json({ id: result.insertId, message: 'Qualification created successfully' });
+    const qualId = String(result.insertId);
+    const cleanSlug = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+    const examId = `exam-${cleanSlug}`;
+
+    // Auto-create corresponding certification exam in public_exams (1-to-1 mapping)
+    try {
+      await pool.query(`
+        INSERT IGNORE INTO public_exams (
+          id, name, qualification_id, description, duration_minutes,
+          total_questions, total_marks, passing_marks, pass_percentage,
+          difficulty_level, status, slug, enable_certificate, enable_proctoring
+        ) VALUES (?, ?, ?, ?, 60, 10, 10, 5, 50, 'Medium', 'draft', ?, 1, 1)
+      `, [examId, name.trim(), qualId, short_description || subtitle || '', cleanSlug]);
+    } catch (examErr) {
+      console.warn('Auto-create exam for qualification warning:', examErr.message);
+    }
+
+    res.status(201).json({ id: result.insertId, exam_id: examId, message: 'Qualification and certification exam created successfully' });
   } catch (error) {
     console.error('Error creating qualification:', error);
     res.status(500).json({ error: 'Server error creating qualification' });
@@ -238,6 +255,17 @@ router.put('/:id', async (req, res) => {
         id
       ]
     );
+
+    // Sync exam name and slug in public_exams (1-to-1 mapping)
+    try {
+      const cleanSlug = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+      await pool.query(
+        'UPDATE public_exams SET name = ?, slug = ? WHERE qualification_id = ?',
+        [name.trim(), cleanSlug, id]
+      );
+    } catch (e) {
+      console.warn('Sync exam for qualification warning:', e.message);
+    }
 
     res.json({ message: 'Qualification updated successfully' });
   } catch (error) {

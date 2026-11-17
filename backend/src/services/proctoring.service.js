@@ -176,12 +176,19 @@ class ProctoringService {
     const finalCandidateEmail = attempt.candidate_email || attempt.guest_email;
     const finalExamName = attempt.exam_name;
 
-    // Mark as approved
+    // Check if the candidate actually passed the exam before issuing certificate
+    const [results] = await pool.query(
+      'SELECT passed, percentage, score FROM public_exam_results WHERE attempt_id = ?',
+      [attemptId]
+    );
+    const hasPassed = results.length > 0 ? Boolean(results[0].passed) : false;
+
+    // Mark as approved in proctoring audit
     await pool.query('UPDATE public_exam_attempts SET proctoring_status = ? WHERE id = ?', ['approved', attemptId]);
 
     let certInfo = null;
-    // Generate certificate if enabled and candidate has email
-    if (finalCandidateEmail && attempt.enable_certificate) {
+    // Generate certificate ONLY IF candidate passed the exam, certificate is enabled, and email exists
+    if (hasPassed && finalCandidateEmail && attempt.enable_certificate) {
       let logoAbsPath = null;
       try {
         const [[logoRow]] = await pool.query("SELECT `value` FROM system_config WHERE `key` = 'certificate_logo'");

@@ -554,6 +554,19 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Name, Category, and SEO Slug are required' });
     }
 
+    // Enforce 1-to-1 Mapping: Check if qualification already has an active exam
+    if (qualification_id) {
+      const [existingQualExam] = await pool.query(
+        'SELECT id, name FROM public_exams WHERE qualification_id = ? AND deleted_at IS NULL',
+        [qualification_id]
+      );
+      if (existingQualExam.length > 0) {
+        return res.status(400).json({
+          message: `Certification "${name}" is already linked to exam "${existingQualExam[0].name}". Each certification has exactly one exam.`
+        });
+      }
+    }
+
     const targetTotalQuestions = total_questions !== undefined && total_questions !== '' ? parseInt(total_questions) : 0;
 
     // 3x Question Bank Rule for Publishing: Cannot publish with fewer than 3x total_questions in the bank
@@ -981,18 +994,36 @@ router.post('/:id/questions/bulk-csv', async (req, res) => {
 // Helper to auto-update total questions and total marks on the exam record
 async function recalculateExamTotals(examId) {
   try {
+    const [existing] = await pool.query('SELECT total_questions, total_marks FROM public_exams WHERE id = ?', [examId]);
+    if (existing.length === 0) return;
+
     const [stats] = await pool.query(
       'SELECT COUNT(*) as count, SUM(marks) as total_marks FROM public_exam_questions WHERE exam_id = ?',
       [examId]
     );
 
     const qCount = stats[0].count || 0;
-    const tMarks = stats[0].total_marks || 0;
+    const poolMarks = stats[0].total_marks || 0;
+    const currentTotalQ = existing[0].total_questions || 0;
 
-    await pool.query(
-      'UPDATE public_exams SET total_questions = ?, total_marks = ? WHERE id = ?',
-      [qCount, tMarks, examId]
-    );
+    if (currentTotalQ <= 0) {
+      // Exam total_questions was never configured, default to question bank count
+      await pool.query(
+        'UPDATE public_exams SET total_questions = ?, total_marks = ? WHERE id = ?',
+        [qCount, poolMarks, examId]
+      );
+    } else {
+      // Exam total_questions is configured (e.g. 10 questions randomly sampled from 30+ in bank)
+      // Do NOT overwrite total_questions! Ensure total_marks matches the conducted count
+      const avgMark = qCount > 0 ? (poolMarks / qCount) : 1;
+      const targetMarks = Math.round(currentTotalQ * avgMark);
+      if (!existing[0].total_marks || existing[0].total_marks <= 0) {
+        await pool.query(
+          'UPDATE public_exams SET total_marks = ? WHERE id = ?',
+          [targetMarks, examId]
+        );
+      }
+    }
   } catch (err) {
     console.error('Recalculate totals failed for exam:', examId, err);
   }

@@ -12,6 +12,7 @@ import { createNotification } from '../services/notification.service.js';
 import { ConfigService } from '../services/config.service.js';
 import EmailService from '../services/email.service.js';
 import { gradeQuestion, submitExamAttempt } from '../services/exam-grading.service.js';
+import { CertificateService } from '../services/certificate.service.js';
 
 const PUBLIC_EXAM_JWT_SECRET = process.env.PUBLIC_EXAM_JWT_SECRET || 'aems_public_exam_secret_key_2024';
 
@@ -711,8 +712,9 @@ router.get('/attempts/:id/result', async (req, res) => {
 
     // Fetch attempt details and graded results
     const [results] = await pool.query(`
-      SELECT r.*, a.guest_name, a.guest_email, a.is_anonymous, a.answers_json, a.assigned_question_ids, e.name as exam_name, e.passing_marks, e.total_marks, e.duration_minutes,
-             e.show_correct_answers, e.show_explanations, e.allow_retake, e.enable_certificate
+      SELECT r.*, a.guest_name, a.guest_email, a.is_anonymous, a.answers_json, a.assigned_question_ids, a.proctoring_status,
+             e.name as exam_name, e.slug as exam_slug, e.passing_marks, e.total_marks, e.duration_minutes,
+             e.show_correct_answers, e.show_explanations, e.allow_retake, e.enable_certificate, e.enable_proctoring
       FROM public_exam_results r
       JOIN public_exam_attempts a ON r.attempt_id = a.id
       JOIN public_exams e ON r.exam_id = e.id
@@ -724,6 +726,13 @@ router.get('/attempts/:id/result', async (req, res) => {
     }
 
     const result = results[0];
+
+    // Check if an issued certificate already exists for this attempt
+    const [certs] = await pool.query(
+      'SELECT pdf_url, certificate_number FROM public_exam_issued_certificates WHERE attempt_id = ? LIMIT 1',
+      [attemptId]
+    );
+    const cert = certs[0] || null;
 
     // Fetch questions to render reviews (filtered to assigned questions for this attempt)
     const [allQuestions] = await pool.query(`
@@ -774,14 +783,17 @@ router.get('/attempts/:id/result', async (req, res) => {
       return val;
     });
 
+    const effectiveTotalMarks = targetQuestions.reduce((acc, q) => acc + (q.marks || 1), 0);
+
     res.json({
       result_id: result.id,
       attempt_id: result.attempt_id,
       guest_name: result.guest_name,
       is_anonymous: result.is_anonymous,
       exam_name: result.exam_name,
+      exam_slug: result.exam_slug,
       score: result.score,
-      total_marks: result.total_marks,
+      total_marks: effectiveTotalMarks || result.total_marks,
       percentage: result.percentage,
       correct_answers: result.correct_answers,
       wrong_answers: result.wrong_answers,
@@ -790,6 +802,10 @@ router.get('/attempts/:id/result', async (req, res) => {
       passing_marks: result.passing_marks,
       allow_retake: !!result.allow_retake,
       enable_certificate: !!result.enable_certificate,
+      enable_proctoring: !!result.enable_proctoring,
+      proctoring_status: result.proctoring_status || 'not_applicable',
+      certificate_url: cert?.pdf_url || `/api/public/exams/attempts/${attemptId}/certificate`,
+      certificate_number: cert?.certificate_number || null,
       questions: reviewQuestions
     });
   } catch (error) {
@@ -843,7 +859,7 @@ router.get('/attempts/:id/certificate', async (req, res) => {
 
     // Fetch result & attempt details
     const [rows] = await pool.query(`
-      SELECT r.*, a.guest_name, e.name as exam_name, e.total_marks, e.enable_certificate
+      SELECT r.*, a.guest_name, a.guest_email, a.proctoring_status, e.name as exam_name, e.total_marks, e.enable_certificate, e.enable_proctoring
       FROM public_exam_results r
       JOIN public_exam_attempts a ON r.attempt_id = a.id
       JOIN public_exams e ON r.exam_id = e.id
@@ -863,124 +879,69 @@ router.get('/attempts/:id/certificate', async (req, res) => {
       return res.status(400).json({ message: 'Certificates are disabled for this exam' });
     }
 
-    // Fetch Custom Certificate Settings
-    const [customCerts] = await pool.query('SELECT * FROM public_exam_certificates WHERE exam_id = ?', [data.exam_id]);
-    const custom = customCerts[0] || {};
-
-    const pdfDir = path.join(process.cwd(), 'uploads', 'public_certificates');
-    if (!fs.existsSync(pdfDir)) {
-      fs.mkdirSync(pdfDir, { recursive: true });
+    // If proctored and still pending review, hold certificate until approved
+    if (data.enable_proctoring && data.proctoring_status === 'pending_review') {
+      return res.status(403).json({
+        message: 'Your exam is currently undergoing AI Proctoring Audit Review. Certificate will be available once the session is approved.'
+      });
     }
 
-    const pdfFilename = `cert-${attemptId}.pdf`;
-    const pdfPathLocal = path.join(pdfDir, pdfFilename);
+    // 1. Check if an issued certificate already exists in public_exam_issued_certificates
+    const [issued] = await pool.query(
+      'SELECT * FROM public_exam_issued_certificates WHERE attempt_id = ?',
+      [attemptId]
+    );
 
-    // Generate PDF using PDFKit
-    const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 40 });
-    const stream = fs.createWriteStream(pdfPathLocal);
-    doc.pipe(stream);
-
-    // Styling configuration (harmonious colors)
-    const primaryColor = '#5624D0'; // Sleek Udemy Purple
-    const goldAccent = '#E59819';   // Premium Gold
-    const darkText = '#1A1A2E';
-
-    // Outer premium borders
-    doc.rect(15, 15, 811.89, 565.28).fill('#ffffff');
-    doc.rect(25, 25, 791.89, 545.28).lineWidth(4).stroke(primaryColor);
-    doc.rect(32, 32, 777.89, 531.28).lineWidth(1.5).stroke(goldAccent);
-
-    // Render Custom Logo if present, otherwise default text
-    if (custom.logo_url && custom.logo_url.startsWith('data:image')) {
-      try {
-        const logoData = custom.logo_url.split(',')[1];
-        doc.image(Buffer.from(logoData, 'base64'), 395, 45, { width: 50 });
-      } catch (err) {
-        console.warn('Failed to render base64 logo in PDF:', err.message);
+    if (issued.length > 0 && issued[0].pdf_url) {
+      const relPath = issued[0].pdf_url.startsWith('/') ? issued[0].pdf_url : '/' + issued[0].pdf_url;
+      const fullPath = path.join(process.cwd(), relPath);
+      if (fs.existsSync(fullPath)) {
+        return res.download(fullPath, `GSFIN-Certificate-${issued[0].certificate_number || attemptId}.pdf`);
       }
-    } else {
-      // Default text header watermark
-      doc.fontSize(10).font('Helvetica-Bold').fillColor('#C2C2C2')
-         .text('AEMS PUBLIC PRACTICE PORTAL · PRACTICE COMPLETION CERTIFICATE', 0, 50, { align: 'center', characterSpacing: 1.5 });
     }
 
-    // Certificate Title
-    const certTitle = custom.title || 'Practice Exam Certificate';
-    doc.fontSize(36).font('Helvetica-Bold').fillColor(primaryColor)
-       .text(certTitle, 0, 110, { align: 'center' });
+    // 2. Generate official GSFIN Certificate
+    const finalCandidateName = data.guest_name || 'Candidate';
+    const finalExamName = data.exam_name || 'GSFIN Certification';
 
-    // Subtitle warnings
-    doc.fontSize(11).font('Helvetica-Oblique').fillColor('#E15241')
-       .text('Not Official Certification · Practice Completion Only', 0, 158, { align: 'center' });
-
-    // Decorative line
-    doc.moveTo(250, 185).lineTo(591.89, 185).lineWidth(1.5).stroke(goldAccent);
-
-    // Main body text
-    doc.fontSize(16).font('Helvetica').fillColor('#666666')
-       .text('This is to certify that the public visitor', 0, 220, { align: 'center' });
-
-    // Student/Guest Name
-    doc.fontSize(36).font('Helvetica-Bold').fillColor(darkText)
-       .text(data.guest_name, 0, 255, { align: 'center' });
-
-    doc.fontSize(16).font('Helvetica').fillColor('#666666')
-       .text('has successfully completed the practice entrance exam', 0, 320, { align: 'center' });
-
-    // Exam Name
-    doc.fontSize(22).font('Helvetica-Bold').fillColor(primaryColor)
-       .text(data.exam_name, 0, 355, { align: 'center' });
-
-    // Score & Percentage
-    doc.fontSize(14).font('Helvetica').fillColor('#444444')
-       .text(`Scoring ${data.score} out of ${data.total_marks} marks (${data.percentage}%)`, 0, 395, { align: 'center' });
-
-    // Completed Date
-    const completedDate = new Date(data.created_at).toLocaleDateString('en-US', {
-      year: 'numeric', month: 'long', day: 'numeric'
-    });
-    doc.fontSize(13).font('Helvetica').fillColor('#666666')
-       .text(`Awarded on ${completedDate}`, 0, 435, { align: 'center' });
-
-    // QR Code for verification
-    const portalUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/public-exams`;
-    const qrBuffer = await QRCode.toBuffer(portalUrl, { width: 90, margin: 1 });
-    doc.image(qrBuffer, 690, 435, { width: 75 });
-    doc.fontSize(8).font('Helvetica').fillColor('#999999')
-       .text('Scan to take exams', 680, 515, { width: 95, align: 'center' });
-
-    // Footer info
-    doc.fontSize(9).font('Helvetica').fillColor('#A2A2A2')
-       .text(`Attempt Verification ID: ${attemptId}`, 50, 520);
-
-    // Custom Signature image or default signatory text
-    if (custom.signature_url && custom.signature_url.startsWith('data:image')) {
-      try {
-        const sigData = custom.signature_url.split(',')[1];
-        doc.image(Buffer.from(sigData, 'base64'), 380, 470, { width: 80 });
-      } catch (err) {
-        console.warn('Failed to render signature in PDF:', err.message);
+    let logoAbsPath = null;
+    try {
+      const [[logoRow]] = await pool.query("SELECT `value` FROM system_config WHERE `key` = 'certificate_logo'");
+      if (logoRow && logoRow.value) {
+        const rel = logoRow.value.startsWith('/') ? logoRow.value : '/' + logoRow.value;
+        const abs = path.join(process.cwd(), rel);
+        if (fs.existsSync(abs)) logoAbsPath = abs;
       }
-    } else {
-      doc.fontSize(12).font('Helvetica-Bold').fillColor(darkText)
-         .text('AEMS Practice Portal Team', 300, 500, { align: 'center' });
+    } catch (_) {}
+
+    const { buffer, pdfUrl, certificateNumber } = await CertificateService.generateParticipationCertificate(
+      finalCandidateName,
+      finalExamName,
+      new Date(),
+      logoAbsPath
+    );
+
+    // Save issued certificate record
+    const certId = uuidv4();
+    try {
+      await pool.query(`
+        INSERT INTO public_exam_issued_certificates 
+          (id, exam_id, attempt_id, candidate_name, candidate_email, pdf_url, certificate_number)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE pdf_url = VALUES(pdf_url), certificate_number = VALUES(certificate_number)
+      `, [certId, data.exam_id, attemptId, finalCandidateName, data.guest_email || 'candidate@gsfin.org', pdfUrl, certificateNumber]);
+    } catch (saveErr) {
+      console.warn('Failed to save public_exam_issued_certificates record:', saveErr.message);
     }
 
-    const signatoryLabel = custom.footer_text || 'Authorized Practice Signatory';
-    doc.fontSize(10).font('Helvetica').fillColor('#666666')
-       .text(signatoryLabel, 300, 518, { align: 'center' });
-
-    doc.end();
-
-    stream.on('finish', () => {
-      res.download(pdfPathLocal, `Practice-Certificate-${attemptId}.pdf`);
-    });
-
-    stream.on('error', (err) => {
-      console.error('PDF stream error:', err);
-      res.status(500).json({ message: 'Error generating PDF certificate' });
-    });
-
+    const generatedPath = path.join(process.cwd(), pdfUrl.startsWith('/') ? pdfUrl : '/' + pdfUrl);
+    if (fs.existsSync(generatedPath)) {
+      return res.download(generatedPath, `GSFIN-Certificate-${certificateNumber || attemptId}.pdf`);
+    } else {
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="GSFIN-Certificate-${certificateNumber || attemptId}.pdf"`);
+      return res.send(buffer);
+    }
   } catch (error) {
     console.error('Certificate error:', error);
     res.status(500).json({ message: 'Internal server error' });

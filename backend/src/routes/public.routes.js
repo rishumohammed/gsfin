@@ -201,4 +201,104 @@ router.get('/partners', async (req, res) => {
   }
 });
 
+// GET /api/public/certificates/verify - Public certificate registry verification
+router.get('/certificates/verify', async (req, res) => {
+  try {
+    const rawCode = req.query.code || req.query.certNumber || req.query.id || '';
+    const code = rawCode.toString().trim();
+    if (!code) {
+      return res.status(400).json({ valid: false, message: 'Certificate verification code is required.' });
+    }
+
+    // 1. Search in public_exam_issued_certificates
+    const [publicCerts] = await pool.query(`
+      SELECT 
+        c.id, c.certificate_number, c.candidate_name, c.candidate_email, c.pdf_url, c.created_at,
+        e.id as exam_id, e.name as exam_name,
+        q.name as qualification_name, q.category as qualification_category,
+        r.percentage, r.score, r.passed
+      FROM public_exam_issued_certificates c
+      JOIN public_exams e ON c.exam_id = e.id
+      LEFT JOIN qualifications q ON e.qualification_id = q.id
+      LEFT JOIN public_exam_attempts a ON c.attempt_id = a.id
+      LEFT JOIN public_exam_results r ON a.id = r.attempt_id
+      WHERE c.certificate_number = ? OR c.id = ? OR c.attempt_id = ?
+      LIMIT 1
+    `, [code, code, code]);
+
+    if (publicCerts.length > 0) {
+      const c = publicCerts[0];
+      const issueDate = new Date(c.created_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      const pct = c.percentage !== null && c.percentage !== undefined ? Number(c.percentage) : null;
+      const gradeStr = pct !== null ? `Passed with Merit (${pct}%)` : 'Passed (Certified)';
+
+      return res.json({
+        valid: true,
+        cert_number: c.certificate_number || c.id,
+        student_name: c.candidate_name,
+        qualification_title: c.qualification_name || c.exam_name,
+        category: c.qualification_category || 'Food Safety Standard',
+        center_name: 'GSFIN Global Examination Board',
+        issuing_authority: 'Global Standards for Food Industries (GSFIN)',
+        issued_at: issueDate,
+        grade: gradeStr,
+        pdf_url: c.pdf_url,
+        status: 'active'
+      });
+    }
+
+    // 2. Search in partner center certificates table
+    const [centerCerts] = await pool.query(`
+      SELECT 
+        c.id, c.assignment_id, c.issued_at, c.pdf_url,
+        e.name as exam_name,
+        s.name as student_name, s.email as student_email,
+        o.name as org_name
+      FROM certificates c
+      JOIN exam_assignments ea ON c.assignment_id = ea.id
+      JOIN exams e ON ea.exam_id = e.id
+      JOIN students s ON ea.student_id = s.id
+      JOIN batches b ON ea.batch_id = b.id
+      JOIN organizations o ON s.org_id = o.id
+      WHERE c.id = ? OR c.assignment_id = ?
+      LIMIT 1
+    `, [code, code]);
+
+    if (centerCerts.length > 0) {
+      const c = centerCerts[0];
+      const issueDate = new Date(c.issued_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      return res.json({
+        valid: true,
+        cert_number: c.id,
+        student_name: c.student_name,
+        qualification_title: c.exam_name,
+        center_name: c.org_name || 'Authorized Training Center',
+        issuing_authority: 'Global Standards for Food Industries (GSFIN)',
+        issued_at: issueDate,
+        grade: 'Passed (Certified)',
+        pdf_url: c.pdf_url,
+        status: 'active'
+      });
+    }
+
+    // Not found in registry
+    return res.status(404).json({
+      valid: false,
+      message: 'Certificate credential not found. The code does not match any official record in the GSFIN verification registry.'
+    });
+  } catch (error) {
+    console.error('Certificate verification error:', error);
+    res.status(500).json({ valid: false, message: 'Server error during certificate verification.' });
+  }
+});
+
 export default router;

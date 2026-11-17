@@ -124,15 +124,20 @@ export async function submitExamAttempt(attemptId, guestAnswers = []) {
     // Capping score to 0 to avoid negative totals
     calculatedScore = Math.max(0, calculatedScore);
 
-    const totalMarks = attempt.total_marks > 0 ? attempt.total_marks : (calculatedTotalMarks || 1);
-    const percentage = parseFloat(((calculatedScore / totalMarks) * 100).toFixed(2));
+    // The maximum possible marks on the conducted exam is the sum of marks of the assigned questions
+    const effectiveTotalMarks = calculatedTotalMarks > 0 
+      ? calculatedTotalMarks 
+      : (attempt.total_marks > 0 ? attempt.total_marks : 1);
+    const percentage = parseFloat(((calculatedScore / effectiveTotalMarks) * 100).toFixed(2));
     
     // Evaluate pass status based on score or pass percentage
     let passed = false;
     if (attempt.pass_percentage > 0) {
       passed = percentage >= attempt.pass_percentage;
-    } else {
+    } else if (attempt.passing_marks > 0) {
       passed = calculatedScore >= attempt.passing_marks;
+    } else {
+      passed = percentage >= 50; // Default 50% pass threshold for professional certification
     }
 
     // Time Taken calculation (for auto-submission, it might be past expiration, so cap it at duration if needed, but for simplicity use exact time)
@@ -189,12 +194,12 @@ export async function submitExamAttempt(attemptId, guestAnswers = []) {
 
     await connection.commit();
 
-    // Trigger participation certificate asynchronously (ONLY if non-proctored or proctoring disabled)
+    // Trigger certification certificate asynchronously (ONLY if candidate passed and non-proctored)
     const finalCandidateName = attempt.candidate_name || attempt.guest_name;
     const finalCandidateEmail = attempt.candidate_email || attempt.guest_email;
     const finalExamName = attempt.exam_name;
 
-    if (finalCandidateEmail && attempt.enable_certificate && !attempt.enable_proctoring) {
+    if (passed && finalCandidateEmail && attempt.enable_certificate && !attempt.enable_proctoring) {
       // Fetch the certificate logo path from config
       let logoAbsPath = null;
       try {
