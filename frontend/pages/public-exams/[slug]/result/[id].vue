@@ -34,10 +34,11 @@
           v-if="result.passed && (result as any).enable_certificate && (result as any).proctoring_status !== 'pending_review'"
           type="button"
           class="btn-red flex items-center gap-2"
-          @click="downloadCertificate"
+          :disabled="downloading"
+          @click="handleDownloadCertificateClick"
         >
           <i class="mdi mdi-certificate-outline"></i>
-          <span>Download Certificate</span>
+          <span>{{ downloading ? 'Generating...' : 'Download Certificate' }}</span>
         </button>
 
         <NuxtLink
@@ -318,13 +319,6 @@ async function fetchResultDetails() {
   }
 }
 
-function downloadCertificate() {
-  const url = (result.value as any)?.certificate_url 
-    ? ((result.value as any).certificate_url.startsWith('http') ? (result.value as any).certificate_url : `/api${(result.value as any).certificate_url.startsWith('/') ? '' : '/'}${(result.value as any).certificate_url}`)
-    : `/api/public/exams/attempts/${route.params.id}/certificate`;
-  window.open(url, '_blank');
-}
-
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
@@ -436,12 +430,26 @@ async function downloadCertificate() {
   downloading.value = true;
   try {
     const config = useRuntimeConfig();
-    const downloadUrl = `${config.public.apiBase}/public/exams/attempts/${result.value.attempt_id}/certificate`;
-    
-    // We open in a new tab or trigger manual download
+    const certUrl = (result.value as any)?.certificate_url;
+    const attemptId = result.value.attempt_id || route.params.id;
+    let downloadUrl: string;
+
+    if (certUrl) {
+      if (certUrl.startsWith('http')) {
+        downloadUrl = certUrl;
+      } else {
+        const base = (config.public.apiBase || '').replace(/\/api\/?$/, '');
+        downloadUrl = `${base}${certUrl.startsWith('/') ? '' : '/'}${certUrl}`;
+      }
+    } else {
+      downloadUrl = `${config.public.apiBase}/public/exams/attempts/${attemptId}/certificate`;
+    }
+
+    const certName = (result.value as any)?.certificate_number || attemptId;
     const link = document.createElement('a');
     link.href = downloadUrl;
-    link.download = `Practice-Certificate-${result.value.attempt_id}.pdf`;
+    link.target = '_blank';
+    link.download = `GSFIN-Certificate-${certName}.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
