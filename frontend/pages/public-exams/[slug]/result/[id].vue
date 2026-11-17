@@ -67,7 +67,7 @@
           color="grey-darken-2"
           height="48"
           class="text-capitalize font-weight-semibold"
-          @click="$router.back()"
+          @click="goBack"
         >
           Go Back
         </v-btn>
@@ -222,7 +222,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useApi } from '@/composables/useApi';
 import confetti from 'canvas-confetti';
 
@@ -231,7 +231,16 @@ definePageMeta({
 });
 
 const route = useRoute();
+const router = useRouter();
 const api = useApi();
+
+function goBack() {
+  if (process.client && window.history.length > 1) {
+    router.back();
+  } else {
+    navigateTo('/qualifications');
+  }
+}
 
 interface ExamQuestion {
   id: string | number;
