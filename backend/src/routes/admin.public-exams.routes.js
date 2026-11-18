@@ -50,8 +50,39 @@ function formatMySQL(dateStr) {
   const ss = String(d.getSeconds()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
 }
+let examsColumnsEnsured = false;
+export async function ensurePublicExamsColumns() {
+  if (examsColumnsEnsured) return;
+  try {
+    const columns = [
+      { name: 'qualification_id', def: 'CHAR(36) NULL' },
+      { name: 'deleted_at', def: 'DATETIME NULL' },
+      { name: 'max_retakes', def: 'INT DEFAULT 0' },
+      { name: 'enable_proctoring', def: 'TINYINT(1) DEFAULT 0' },
+      { name: 'max_proctoring_warnings', def: 'INT DEFAULT 3' },
+      { name: 'enforce_fullscreen', def: 'TINYINT(1) DEFAULT 0' },
+      { name: 'proctoring_config', def: 'JSON NULL' }
+    ];
+    for (const col of columns) {
+      try {
+        await pool.query(`ALTER TABLE public_exams ADD COLUMN ${col.name} ${col.def}`);
+      } catch (_) {}
+    }
+    try {
+      await pool.query('ALTER TABLE public_exam_attempts ADD COLUMN assigned_question_ids JSON NULL');
+    } catch (_) {}
+    examsColumnsEnsured = true;
+  } catch (err) {
+    console.error('Error ensuring public_exams columns:', err);
+  }
+}
+
 // Apply admin protection to all routes in this file
 router.use(authenticateJWT, requirePermission('exams'));
+router.use(async (req, res, next) => {
+  await ensurePublicExamsColumns();
+  next();
+});
 
 // POST /api/admin/public-exams/upload-image
 router.post('/upload-image', upload.single('image'), (req, res) => {

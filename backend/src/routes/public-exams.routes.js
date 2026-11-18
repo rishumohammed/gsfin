@@ -534,7 +534,8 @@ router.post('/:id/attempt', verifyCandidateToken, async (req, res) => {
         if (!exam.allow_retake) {
           return res.status(403).json({ message: 'You have already attempted this exam. Retakes are not allowed.' });
         }
-        if (exam.max_retakes > 0 && existingAttempts[0].count >= exam.max_retakes) {
+        const totalAllowed = 1 + Number(exam.max_retakes || 0);
+        if (exam.max_retakes > 0 && existingAttempts[0].count >= totalAllowed) {
           return res.status(403).json({ message: `You have reached the maximum allowed retakes (${exam.max_retakes}) for this exam.` });
         }
       }

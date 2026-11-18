@@ -13,7 +13,7 @@ import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes.js';
 import publicRoutes from './routes/public.routes.js';
 import publicExamsRoutes from './routes/public-exams.routes.js';
-import adminPublicExamsRoutes from './routes/admin.public-exams.routes.js';
+import adminPublicExamsRoutes, { ensurePublicExamsColumns } from './routes/admin.public-exams.routes.js';
 import adminConfigRoutes from './routes/admin.config.routes.js';
 import adminFaqsRoutes from './routes/admin.faqs.routes.js';
 import adminQualificationsRoutes from './routes/admin.qualifications.routes.js';
@@ -134,6 +134,11 @@ ensureQualificationsTable().catch((err) => {
 // Auto-heal organizations columns if missing
 ensureOrganizationsColumns().catch((err) => {
   console.error('[Startup] Failed to auto-initialize organizations columns:', err);
+});
+
+// Auto-heal public exams columns if missing
+ensurePublicExamsColumns().catch((err) => {
+  console.error('[Startup] Failed to auto-initialize public_exams columns:', err);
 });
 
 httpServer.listen(PORT, '0.0.0.0', () => {
