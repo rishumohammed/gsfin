@@ -116,12 +116,15 @@
       </a>
 
       <nav id="nav" :class="{ 'o': mobileNavOpen }">
-        <a href="#hero" :class="['nav-link', { on: activeSection === 'hero' }]" @click.prevent="scrollToSection('hero')">Home</a>
-        <a href="#about" :class="['nav-link', { on: activeSection === 'about' }]" @click.prevent="scrollToSection('about')">About Us</a>
-        <a href="#schemes" :class="['nav-link', { on: activeSection === 'schemes' }]" @click.prevent="scrollToSection('schemes')">Certifications</a>
-        <NuxtLink to="/qualifications" class="nav-link">Qualifications Directory</NuxtLink>
-        <a href="#process" :class="['nav-link', { on: activeSection === 'process' }]" @click.prevent="scrollToSection('process')">How It Works</a>
-        <a href="#verify" :class="['nav-link', { on: activeSection === 'verify' }]" @click.prevent="scrollToSection('verify')">Verify Certificate</a>
+        <a href="#hero" :class="['nav-link', { on: activeSection === 'hero' }]" @click.prevent="scrollToSection('hero'); mobileNavOpen = false">Home</a>
+        <a href="#about" :class="['nav-link', { on: activeSection === 'about' }]" @click.prevent="scrollToSection('about'); mobileNavOpen = false">About Us</a>
+        <a href="#schemes" :class="['nav-link', { on: activeSection === 'schemes' }]" @click.prevent="scrollToSection('schemes'); mobileNavOpen = false">Certifications</a>
+        <a href="#process" :class="['nav-link', { on: activeSection === 'process' }]" @click.prevent="scrollToSection('process'); mobileNavOpen = false">How It Works</a>
+        <a href="#verify" :class="['nav-link', { on: activeSection === 'verify' }]" @click.prevent="scrollToSection('verify'); mobileNavOpen = false">Verify Certificate</a>
+        <div class="mobile-only-actions">
+          <button type="button" class="btn p" @click="openPartnerModal(); mobileNavOpen = false">Apply Now</button>
+          <NuxtLink to="/login" class="btn sm" @click="mobileNavOpen = false">Partner Login</NuxtLink>
+        </div>
       </nav>
 
       <div class="nav-actions">

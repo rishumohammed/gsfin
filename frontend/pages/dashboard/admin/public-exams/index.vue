@@ -6,6 +6,7 @@
       <div class="admin-header-row">
         <div>
           <h1 class="admin-title">Exams</h1>
+          <p class="admin-subtitle">Configure official certification exams, question bank pools, proctoring controls, and passing standards.</p>
         </div>
 
         <div class="header-actions">
@@ -27,11 +28,6 @@
       <!-- ═══ MAIN DIRECTORY PANEL ═══ -->
       <div class="panel-card">
         <div class="panel-card-header">
-          <div class="panel-title-wrap">
-            <i class="mdi mdi-clipboard-text-outline panel-icon"></i>
-            <h3>All Exams</h3>
-          </div>
-
           <div class="panel-filter-row">
             <div class="search-input-wrap">
               <i class="mdi mdi-magnify search-icon"></i>
@@ -56,177 +52,199 @@
               <option value="archived">Archived</option>
             </select>
           </div>
+
+          <span class="total-count-badge">Total: {{ filteredExams.length }} Exams</span>
         </div>
 
         <div class="table-responsive">
-          <v-data-table
-            :headers="headers"
-            :items="filteredExams"
-            :loading="loading"
-            class="elevation-0 gsfin-table"
-          >
-          <!-- Custom Empty State -->
-          <template v-slot:no-data>
-            <div class="py-16 text-center px-4">
-              <div class="empty-state-icon-box">
-                <v-icon icon="mdi-clipboard-text-off-outline" size="32" color="#E31B23"></v-icon>
-              </div>
-              <h3 class="text-base font-semibold text-slate-900 mb-1">No Certification Exams Found</h3>
-              <p class="text-xs text-slate-500 max-w-md mx-auto mb-6">
-                There are no certification exams matching your current filter criteria. Create your first exam to get started.
-              </p>
-              <v-btn
-                color="#E31B23"
-                class="font-semibold text-white text-none rounded-xl shadow-md"
-                prepend-icon="mdi-plus"
-                to="/dashboard/admin/public-exams/create"
-              >
-                Create Exam
-              </v-btn>
-            </div>
-          </template>
+          <table class="gsfin-table">
+            <thead>
+              <tr>
+                <th style="min-width: 280px;">Exam Standard</th>
+                <th style="min-width: 220px;">Questions &amp; Duration</th>
+                <th style="min-width: 140px; text-align: center;">Status</th>
+                <th style="min-width: 130px; text-align: center;">Engagement</th>
+                <th style="min-width: 110px;">Created</th>
+                <th class="th-actions" style="min-width: 190px; text-align: center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Loading State -->
+              <tr v-if="loading">
+                <td colspan="6" class="text-center py-12 text-slate-500">
+                  <span class="spinner-sm-red"></span>
+                  <div class="mt-2 text-xs font-medium text-slate-500">Loading certification exams...</div>
+                </td>
+              </tr>
 
-          <!-- Exam Details Column -->
-          <template v-slot:item.name="{ item }">
-            <div class="py-2.5">
-              <div class="font-semibold text-slate-900 text-sm mb-1.5 flex items-center gap-2 flex-wrap">
-                <span>{{ item.name }}</span>
-                <span v-if="item.qualification_id" class="badge-cert-pill" title="Official Certification Standard">
-                  <i class="mdi mdi-certificate-outline"></i>
-                  Certification
-                </span>
-              </div>
-              <div class="programs-badges-wrap">
-                <span class="badge-program-tag">
-                  <i class="mdi mdi-shape-outline"></i>
-                  {{ item.qualification_category || 'Food Safety Standard' }}
-                </span>
-                <span
-                  v-if="item.enable_proctoring"
-                  class="badge-proctor-tag"
-                >
-                  <i class="mdi mdi-shield-check"></i>
-                  AI Proctored
-                </span>
-              </div>
-            </div>
-          </template>
+              <!-- Empty State -->
+              <tr v-else-if="filteredExams.length === 0">
+                <td colspan="6" class="text-center py-16 px-4">
+                  <div class="empty-state-icon-box mb-3">
+                    <i class="mdi mdi-clipboard-text-off-outline text-3xl text-slate-400"></i>
+                  </div>
+                  <h3 class="text-base font-semibold text-slate-900 mb-1">No Certification Exams Found</h3>
+                  <p class="text-xs text-slate-500 max-w-md mx-auto mb-5">
+                    There are no certification exams matching your current filter criteria. Create your first exam to get started.
+                  </p>
+                  <NuxtLink
+                    to="/dashboard/admin/public-exams/create"
+                    class="btn-red inline-flex items-center gap-1.5"
+                  >
+                    <i class="mdi mdi-plus"></i> Create Exam
+                  </NuxtLink>
+                </td>
+              </tr>
 
-          <!-- Configuration / Question Bank Pool Column -->
-          <template v-slot:item.settings="{ item }">
-            <div class="py-2.5">
-              <div class="font-semibold text-slate-900 text-xs">
-                {{ item.total_questions || 0 }} Questions on Exam
-              </div>
-              <div class="text-xs text-slate-500 mt-0.5 whitespace-nowrap">
-                {{ item.duration_minutes }} Mins • Pass: <span class="font-semibold text-slate-800">{{ item.passing_marks }} ({{ item.pass_percentage }}%)</span>
-              </div>
-              <!-- 3x Question Bank Pool Status Indicator -->
-              <div class="mt-1.5">
-                <div 
-                  :class="[
-                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold border',
-                    (item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
-                      : 'bg-amber-50 text-amber-700 border-amber-200/80'
-                  ]"
-                  :title="`Requires at least 3× questions in Question Bank (${(item.total_questions || 0) * 3} required)`"
-                >
-                  <i :class="['mdi', (item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0 ? 'mdi-check-circle' : 'mdi-alert-circle-outline']"></i>
-                  <span>Bank: {{ item.question_count || 0 }} / {{ (item.total_questions || 0) * 3 }}</span>
-                  <span class="opacity-40">•</span>
-                  <span v-if="(item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0" class="font-semibold text-emerald-800">Ready</span>
-                  <span v-else class="font-semibold text-amber-800">Need +{{ Math.max(0, ((item.total_questions || 0) * 3) - (item.question_count || 0)) }}</span>
-                </div>
-              </div>
-            </div>
-          </template>
+              <!-- Data Rows -->
+              <tr v-for="item in paginatedExams" :key="item.id">
+                <!-- Col 1: Exam Standard -->
+                <td>
+                  <div class="exam-cell-row">
+                    <div class="exam-icon-box">
+                      <i class="mdi mdi-certificate-outline"></i>
+                    </div>
+                    <div class="exam-info-wrap">
+                      <div class="exam-name-row">
+                        <span class="exam-name-text">{{ item.name }}</span>
+                        <span v-if="item.qualification_id" class="badge-cert-pill" title="Official Certification Standard">
+                          <i class="mdi mdi-check-decagram"></i> Official
+                        </span>
+                      </div>
+                      <div class="exam-meta-pills">
+                        <span class="badge-program-tag">
+                          <i class="mdi mdi-shape-outline"></i>
+                          {{ item.qualification_category || 'Food Safety Standard' }}
+                        </span>
+                        <span v-if="item.enable_proctoring" class="badge-proctor-tag">
+                          <i class="mdi mdi-shield-check"></i> AI Proctored
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
 
-          <!-- Status Column -->
-          <template v-slot:item.status="{ item }">
-            <div class="flex items-center justify-center py-2">
-              <span :class="['status-btn', getStatusClass(item.status)]">
-                <span class="status-dot"></span>
-                {{ getStatusLabel(item.status) }}
-              </span>
-            </div>
-          </template>
+                <!-- Col 2: Questions & Duration -->
+                <td>
+                  <div class="exam-config-cell">
+                    <div class="exam-config-line">
+                      <span class="exam-q-count">{{ item.total_questions || 0 }} Questions</span>
+                      <span class="dot">•</span>
+                      <span class="exam-duration">{{ item.duration_minutes }} Mins</span>
+                      <span class="dot">•</span>
+                      <span class="exam-pass-badge">Pass: {{ item.pass_percentage }}%</span>
+                    </div>
+                    <div class="mt-1">
+                      <div 
+                        :class="[
+                          'pool-pill',
+                          (item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0
+                            ? 'pool-pill-ready'
+                            : 'pool-pill-need'
+                        ]"
+                        :title="`Requires at least 3× questions in Question Bank (${(item.total_questions || 0) * 3} required)`"
+                      >
+                        <i :class="['mdi', (item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0 ? 'mdi-check-circle' : 'mdi-alert-circle-outline']"></i>
+                        <span>Bank: {{ item.question_count || 0 }} / {{ (item.total_questions || 0) * 3 }}</span>
+                        <span class="pool-pill-tag">
+                          {{ (item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0 ? 'Ready' : `Need +${Math.max(0, ((item.total_questions || 0) * 3) - (item.question_count || 0))}` }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
 
-          <!-- Partner Engagement Column -->
-          <template v-slot:item.engagement="{ item }">
-            <div class="py-2.5 text-center whitespace-nowrap">
-              <div class="font-semibold text-slate-900 text-xs">{{ item.attempts_count || 0 }} Attempts</div>
-              <div class="text-[11px] text-slate-500 font-medium mt-0.5">{{ item.candidate_count || 0 }} Students Conducted</div>
-            </div>
-          </template>
+                <!-- Col 3: Status -->
+                <td class="text-center">
+                  <span :class="['badge-chip', item.status === 'published' ? 'chip-green' : (item.status === 'draft' ? 'chip-slate' : 'chip-amber')]">
+                    {{ getStatusLabel(item.status) }}
+                  </span>
+                </td>
 
-          <!-- Created Date Column -->
-          <template v-slot:item.created_at="{ item }">
-            <span class="text-xs text-slate-500 font-medium whitespace-nowrap">{{ formatDate(item.created_at) }}</span>
-          </template>
+                <!-- Col 4: Engagement -->
+                <td class="text-center">
+                  <div class="font-semibold text-slate-900 text-xs">{{ item.attempts_count || 0 }} Attempts</div>
+                  <div class="text-[11px] text-slate-400 font-medium mt-0.5">{{ item.candidate_count || 0 }} Candidates</div>
+                </td>
 
-          <!-- Actions Column (Single Row) -->
-          <template v-slot:item.actions="{ item }">
-            <div class="actions-cell">
-              <!-- 1. Question Bank -->
-              <NuxtLink
-                :to="`/dashboard/admin/public-exams/questions?examId=${item.id}`"
-                class="btn-table-action icon-only btn-qb"
-                title="Question Bank"
-              >
-                <i class="mdi mdi-database-outline"></i>
-              </NuxtLink>
-              <!-- 2. Edit Settings -->
-              <NuxtLink
-                :to="`/dashboard/admin/public-exams/create?id=${item.id}`"
-                class="btn-table-action icon-only btn-edit"
-                title="Edit Exam Settings"
-              >
-                <i class="mdi mdi-pencil-outline"></i>
-              </NuxtLink>
-              <!-- 3. Duplicate Exam -->
-              <button
-                type="button"
-                class="btn-table-action icon-only btn-warn"
-                title="Duplicate Exam"
-                @click="duplicateExam(item.id)"
-              >
-                <i class="mdi mdi-content-copy"></i>
-              </button>
-              <!-- 4. Toggle Status (Publish / Unpublish) -->
-              <button
-                v-if="item.status !== 'published'"
-                type="button"
-                class="btn-table-action icon-only btn-success"
-                title="Publish to Partner Centers"
-                @click="changeStatus(item.id, 'published')"
-              >
-                <i class="mdi mdi-rocket-launch-outline"></i>
-              </button>
-              <button
-                v-else
-                type="button"
-                class="btn-table-action icon-only btn-edit"
-                title="Unpublish (Set to Draft)"
-                @click="changeStatus(item.id, 'draft')"
-              >
-                <i class="mdi mdi-pause-circle-outline"></i>
-              </button>
-              <!-- 5. Delete Exam -->
-              <button
-                type="button"
-                class="btn-table-action icon-only btn-danger"
-                title="Delete Exam"
-                @click="confirmDelete(item)"
-              >
-                <i class="mdi mdi-trash-can-outline"></i>
-              </button>
-            </div>
-          </template>
-        </v-data-table>
+                <!-- Col 5: Created Date -->
+                <td>
+                  <span class="text-xs text-slate-500 font-medium whitespace-nowrap">{{ formatDate(item.created_at) }}</span>
+                </td>
+
+                <!-- Col 6: Actions (5 Icon-Only Buttons in One Row) -->
+                <td>
+                  <div class="actions-cell">
+                    <!-- 1. Question Bank -->
+                    <NuxtLink
+                      :to="`/dashboard/admin/public-exams/questions?examId=${item.id}`"
+                      class="btn-table-action icon-only btn-qb"
+                      title="Question Bank"
+                    >
+                      <i class="mdi mdi-database-outline"></i>
+                    </NuxtLink>
+                    <!-- 2. Edit Settings -->
+                    <NuxtLink
+                      :to="`/dashboard/admin/public-exams/create?id=${item.id}`"
+                      class="btn-table-action icon-only btn-edit"
+                      title="Edit Exam Settings"
+                    >
+                      <i class="mdi mdi-pencil-outline"></i>
+                    </NuxtLink>
+                    <!-- 3. Duplicate Exam -->
+                    <button
+                      type="button"
+                      class="btn-table-action icon-only btn-warn"
+                      title="Duplicate Exam"
+                      @click="duplicateExam(item.id)"
+                    >
+                      <i class="mdi mdi-content-copy"></i>
+                    </button>
+                    <!-- 4. Toggle Status (Publish / Unpublish) -->
+                    <button
+                      v-if="item.status !== 'published'"
+                      type="button"
+                      class="btn-table-action icon-only btn-success"
+                      title="Publish to Catalog"
+                      @click="changeStatus(item.id, 'published')"
+                    >
+                      <i class="mdi mdi-rocket-launch-outline"></i>
+                    </button>
+                    <button
+                      v-else
+                      type="button"
+                      class="btn-table-action icon-only btn-pause"
+                      title="Unpublish (Revert to Draft)"
+                      @click="changeStatus(item.id, 'draft')"
+                    >
+                      <i class="mdi mdi-pause-circle-outline"></i>
+                    </button>
+                    <!-- 5. Delete Exam -->
+                    <button
+                      type="button"
+                      class="btn-table-action icon-only btn-danger"
+                      title="Delete Exam"
+                      @click="confirmDelete(item)"
+                    >
+                      <i class="mdi mdi-trash-can-outline"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Global GSFIN Pagination Component -->
+          <AppPagination
+            v-if="filteredExams.length > 0"
+            v-model="page"
+            v-model:items-per-page="perPage"
+            :total-items="filteredExams.length"
+            :per-page-options="[10, 25, 50]"
+          />
+        </div>
       </div>
     </div>
-  </div>
 
     <!-- ═══ DELETE CONFIRMATION MODAL (GSFIN Global Style) ═══ -->
     <Teleport to="body">
@@ -389,7 +407,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useApi } from '@/composables/useApi';
 
 definePageMeta({
@@ -406,6 +424,10 @@ const qualifications = ref<any[]>([]);
 const search = ref('');
 const qualificationFilter = ref('All');
 const statusFilter = ref('All');
+
+// Pagination State
+const page = ref(1);
+const perPage = ref(10);
 
 // Delete Exam Dialog State
 const deleteDialog = ref(false);
@@ -452,6 +474,15 @@ const filteredExams = computed(() => {
     const matchesStatus = statusFilter.value === 'All' || exam.status === statusFilter.value;
     return matchesSearch && matchesQual && matchesStatus;
   });
+});
+
+const paginatedExams = computed(() => {
+  const start = (page.value - 1) * perPage.value;
+  return filteredExams.value.slice(start, start + perPage.value);
+});
+
+watch([search, qualificationFilter, statusFilter], () => {
+  page.value = 1;
 });
 
 async function loadData() {
@@ -612,6 +643,178 @@ onMounted(() => {
 .btn-table-action.btn-proctor:hover {
   background: #E31B23;
   color: #FFFFFF;
+}
+
+.btn-table-action.btn-pause {
+  background: rgba(245, 158, 11, 0.08);
+  color: #D97706;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.btn-table-action.btn-pause:hover {
+  background: #D97706;
+  color: #FFFFFF;
+}
+
+/* Exam Standard Cell */
+.exam-cell-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.exam-icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(227, 27, 35, 0.08);
+  color: #E31B23;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.exam-info-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.exam-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.exam-name-text {
+  font-size: 0.90rem;
+  font-weight: 600;
+  color: #0F172A;
+  line-height: 1.3;
+}
+
+.exam-meta-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Questions & Duration Cell */
+.exam-config-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.exam-config-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #64748B;
+  white-space: nowrap;
+}
+
+.exam-q-count {
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.exam-duration {
+  color: #475569;
+}
+
+.exam-pass-badge {
+  font-weight: 600;
+  color: #334155;
+}
+
+.dot {
+  color: #CBD5E1;
+  font-weight: bold;
+}
+
+/* Question Pool Indicator */
+.pool-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pool-pill-ready {
+  background: rgba(16, 185, 129, 0.08);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.pool-pill-need {
+  background: rgba(245, 158, 11, 0.08);
+  color: #B45309;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.pool-pill-tag {
+  font-weight: 700;
+}
+
+/* Badge Chips */
+.badge-chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.chip-green {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.chip-slate {
+  background: rgba(100, 116, 139, 0.1);
+  color: #64748B;
+}
+
+.chip-amber {
+  background: rgba(245, 158, 11, 0.1);
+  color: #D97706;
+}
+
+.total-count-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748B;
+  background: rgba(100, 116, 139, 0.08);
+  padding: 4px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.spinner-sm-red {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(227, 27, 35, 0.2);
+  border-top-color: #E31B23;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* Global Tags & Badges Match */

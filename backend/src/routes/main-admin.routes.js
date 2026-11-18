@@ -617,6 +617,60 @@ router.post('/token-packages', async (req, res) => {
   }
 });
 
+router.put('/token-packages/:id', async (req, res) => {
+  const { name, covers, token_count, price } = req.body;
+  if (!name || !token_count || !price) {
+    return res.status(400).json({ message: 'Name, token_count, and price are required.' });
+  }
+
+  try {
+    const coversJson = JSON.stringify(covers || ["*"]);
+    const [result] = await pool.query(
+      `UPDATE token_packages SET name = ?, covers = ?, token_count = ?, price = ? WHERE id = ?`,
+      [name, coversJson, token_count, price, req.params.id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Token package not found.' });
+    }
+    res.json({ message: 'Token package updated successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.delete('/token-packages/:id', async (req, res) => {
+  try {
+    // Check if any partner wallet or purchase request references this package
+    const [wallets] = await pool.query(
+      'SELECT COUNT(*) as count FROM sub_center_wallets WHERE package_id = ?',
+      [req.params.id]
+    );
+    if (wallets[0]?.count > 0) {
+      return res.status(400).json({
+        message: 'Cannot delete package because it has existing partner wallet purchase history. You can retire it instead.'
+      });
+    }
+
+    const [requests] = await pool.query(
+      'SELECT COUNT(*) as count FROM token_purchase_requests WHERE package_id = ?',
+      [req.params.id]
+    );
+    if (requests[0]?.count > 0) {
+      return res.status(400).json({
+        message: 'Cannot delete package because purchase requests exist for it. You can retire it instead.'
+      });
+    }
+
+    const [result] = await pool.query('DELETE FROM token_packages WHERE id = ?', [req.params.id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Token package not found.' });
+    }
+    res.json({ message: 'Token package deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.patch('/token-packages/:id/status', async (req, res) => {
   const { status } = req.body;
   if (!['active', 'retired'].includes(status)) {

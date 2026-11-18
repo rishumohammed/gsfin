@@ -405,7 +405,7 @@
                 />
               </div>
 
-              <button class="btn-red btn-sm" @click="showAddPkgModal = true">
+              <button class="btn-red btn-sm" @click="openAddPkgModal">
                 <i class="mdi mdi-plus"></i> Add Package
               </button>
             </div>
@@ -447,12 +447,26 @@
                   <td>
                     <div class="actions-cell">
                       <button
+                        class="btn-table-action btn-edit"
+                        title="Edit Package"
+                        @click="openEditPkgModal(pkg)"
+                      >
+                        <i class="mdi mdi-pencil-outline"></i>
+                      </button>
+                      <button
                         class="btn-table-action"
                         :class="pkg.status === 'active' ? 'btn-warn' : 'btn-success'"
-                        :title="pkg.status === 'active' ? 'Retire' : 'Activate'"
+                        :title="pkg.status === 'active' ? 'Retire Package' : 'Activate Package'"
                         @click="togglePkgStatus(pkg)"
                       >
                         <i :class="['mdi', pkg.status === 'active' ? 'mdi-archive-arrow-down-outline' : 'mdi-check-circle-outline']"></i>
+                      </button>
+                      <button
+                        class="btn-table-action btn-danger"
+                        title="Delete Package"
+                        @click="confirmDeletePkg(pkg)"
+                      >
+                        <i class="mdi mdi-trash-can-outline"></i>
                       </button>
                     </div>
                   </td>
@@ -823,14 +837,14 @@
       </Transition>
     </Teleport>
 
-    <!-- Create Package Modal -->
+    <!-- Create / Edit Package Modal -->
     <Teleport to="body">
       <Transition name="fade">
-        <div v-if="showAddPkgModal" class="modal-overlay" @click.self="showAddPkgModal = false">
+        <div v-if="showPkgModal" class="modal-overlay" @click.self="showPkgModal = false">
           <div class="modal-card">
             <div class="modal-header">
-              <h3>Create Token Package</h3>
-              <button class="modal-close-btn" @click="showAddPkgModal = false"><i class="mdi mdi-close"></i></button>
+              <h3>{{ editingPkgId ? 'Edit Token Package' : 'Create Token Package' }}</h3>
+              <button class="modal-close-btn" @click="showPkgModal = false"><i class="mdi mdi-close"></i></button>
             </div>
             <div class="modal-body">
               <div class="form-group mb-3">
@@ -849,9 +863,52 @@
               </div>
             </div>
             <div class="modal-footer">
-              <button class="btn-glass" @click="showAddPkgModal = false">Cancel</button>
-              <button class="btn-red" :disabled="savingPkg" @click="createPackage">
-                {{ savingPkg ? 'Creating...' : 'Create Package' }}
+              <button class="btn-glass" @click="showPkgModal = false">Cancel</button>
+              <button class="btn-red" :disabled="savingPkg" @click="savePackage">
+                {{ savingPkg ? (editingPkgId ? 'Saving...' : 'Creating...') : (editingPkgId ? 'Save Changes' : 'Create Package') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Delete Package Confirmation Modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showDeletePkgModal" class="modal-overlay" @click.self="showDeletePkgModal = false">
+          <div class="modal-card modal-sm">
+            <div class="modal-header">
+              <div class="modal-title-row">
+                <div class="modal-header-icon bg-red-50 text-red-600">
+                  <i class="mdi mdi-alert-octagon-outline"></i>
+                </div>
+                <div class="modal-title-text">
+                  <h3>Delete Token Package</h3>
+                  <p>Permanent action</p>
+                </div>
+              </div>
+              <button class="modal-close-btn" @click="showDeletePkgModal = false"><i class="mdi mdi-close"></i></button>
+            </div>
+            <div class="modal-body">
+              <p class="modal-lead-text">
+                Are you sure you want to delete token package <strong class="text-slate-900">"{{ pkgToDelete?.name }}"</strong>?
+              </p>
+              <div class="modal-info-card border-red">
+                <div class="modal-info-card-title">{{ pkgToDelete?.name }}</div>
+                <div class="modal-info-card-stats">
+                  <span>{{ pkgToDelete?.token_count }} Tokens</span>
+                  <span class="dot">•</span>
+                  <span>${{ pkgToDelete?.price }}</span>
+                  <span class="dot">•</span>
+                  <span class="capitalize">{{ pkgToDelete?.status }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-glass" @click="showDeletePkgModal = false">Cancel</button>
+              <button class="btn-red bg-red-600" :disabled="deletingPkg" @click="deletePackage">
+                {{ deletingPkg ? 'Deleting...' : 'Delete Package' }}
               </button>
             </div>
           </div>
@@ -1347,9 +1404,13 @@ const examForm = ref({ name: '', description: '', duration_minutes: 60, max_atte
 // Packages state
 const packages = ref<any[]>([]);
 const loadingPackages = ref(false);
-const showAddPkgModal = ref(false);
+const showPkgModal = ref(false);
+const editingPkgId = ref<string | null>(null);
 const savingPkg = ref(false);
 const pkgForm = ref({ name: '', token_count: 50, price: 500 });
+const showDeletePkgModal = ref(false);
+const pkgToDelete = ref<any>(null);
+const deletingPkg = ref(false);
 
 // Audit state
 const auditTransactions = ref<any[]>([]);
@@ -1919,18 +1980,59 @@ async function fetchPackages() {
   }
 }
 
-async function createPackage() {
+function openAddPkgModal() {
+  editingPkgId.value = null;
+  pkgForm.value = { name: '', token_count: 50, price: 500 };
+  showPkgModal.value = true;
+}
+
+function openEditPkgModal(pkg: any) {
+  editingPkgId.value = pkg.id;
+  pkgForm.value = {
+    name: pkg.name,
+    token_count: Number(pkg.token_count),
+    price: Number(pkg.price)
+  };
+  showPkgModal.value = true;
+}
+
+async function savePackage() {
   if (!pkgForm.value.name || !pkgForm.value.token_count) return;
   savingPkg.value = true;
   try {
-    await api.post('/main-admin/token-packages', pkgForm.value);
-    showAddPkgModal.value = false;
+    if (editingPkgId.value) {
+      await api.put(`/main-admin/token-packages/${editingPkgId.value}`, pkgForm.value);
+    } else {
+      await api.post('/main-admin/token-packages', pkgForm.value);
+    }
+    showPkgModal.value = false;
+    editingPkgId.value = null;
     pkgForm.value = { name: '', token_count: 50, price: 500 };
     fetchPackages();
   } catch (err: any) {
-    alert(err.response?.data?.message || err.message || 'Failed to create token package');
+    alert(err.response?.data?.message || err.message || 'Failed to save token package');
   } finally {
     savingPkg.value = false;
+  }
+}
+
+function confirmDeletePkg(pkg: any) {
+  pkgToDelete.value = pkg;
+  showDeletePkgModal.value = true;
+}
+
+async function deletePackage() {
+  if (!pkgToDelete.value) return;
+  deletingPkg.value = true;
+  try {
+    await api.delete(`/main-admin/token-packages/${pkgToDelete.value.id}`);
+    showDeletePkgModal.value = false;
+    pkgToDelete.value = null;
+    fetchPackages();
+  } catch (err: any) {
+    alert(err.response?.data?.message || err.message || 'Failed to delete token package');
+  } finally {
+    deletingPkg.value = false;
   }
 }
 
