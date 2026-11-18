@@ -502,14 +502,6 @@
           </div>
         </div>
 
-        <div style="text-align: center; margin-top: 44px;">
-          <NuxtLink to="/qualifications" class="btn p" style="display: inline-flex; align-items: center; gap: 8px;">
-            <span>Browse Full Qualifications Directory</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </NuxtLink>
-        </div>
       </div>
     </section>
 
@@ -698,7 +690,6 @@
           <a href="#hero">Home</a>
           <a href="#about">About Us</a>
           <a href="#schemes">Certifications</a>
-          <NuxtLink to="/qualifications">Qualifications Directory</NuxtLink>
           <a href="#process">How It Works</a>
           <a href="#verify">Verify Certificate</a>
         </div>

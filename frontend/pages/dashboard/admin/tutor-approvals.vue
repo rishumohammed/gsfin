@@ -563,7 +563,7 @@ onMounted(loadTutors);
 
 .detail-section-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #94a3b8; }
 .experience-box { background: #f8fafc; border: 1px solid rgba(0,0,0,0.06); min-height: 60px; line-height: 1.7; }
-.truncate-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: help; }
+.truncate-text { display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: help; }
 .gap-2 { gap: 8px; } .gap-3 { gap: 12px; } .gap-4 { gap: 16px; } .gap-6 { gap: 24px; }
 
 .actions-wrapper {

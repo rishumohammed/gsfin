@@ -557,6 +557,402 @@ class ProctoringService {
     };
   }
 
+  async getProctoringHierarchy() {
+    // 1. Fetch partner branches (organizations)
+    let organizations = [];
+    try {
+      const [rows] = await pool.query(`
+        SELECT id, name, contact_email, contact_phone, country, city, institution_type, status, created_at
+        FROM organizations
+        ORDER BY name ASC
+      `);
+      organizations = rows || [];
+    } catch (err) {
+      console.warn('Proctoring hierarchy organizations fetch warning:', err.message);
+    }
+
+    // 2. Fetch all batches under organizations with exam details
+    let batches = [];
+    try {
+      const [rows] = await pool.query(`
+        SELECT 
+          b.id, b.org_id, b.exam_id, b.status, b.opens_at, b.closes_at, b.created_at,
+          COALESCE(e.name, pe.name, 'Certification Standard Exam') as exam_name
+        FROM batches b
+        LEFT JOIN exams e ON b.exam_id = e.id
+        LEFT JOIN public_exams pe ON b.exam_id = pe.id
+        ORDER BY b.created_at DESC
+      `);
+      batches = rows || [];
+    } catch (err) {
+      console.warn('Proctoring hierarchy batches fetch warning:', err.message);
+    }
+
+    // 3. Fetch sub-center attempts with violation aggregates
+    let subCenterAttempts = [];
+    try {
+      const [rows] = await pool.query(`
+        SELECT 
+          ea.id as attempt_id,
+          a.batch_id,
+          b.org_id,
+          a.status as attempt_status,
+          ea.proctoring_status,
+          (SELECT COUNT(*) FROM proctoring_events pe WHERE pe.attempt_id = ea.id) as violation_count,
+          (SELECT COUNT(*) FROM proctoring_events pe WHERE pe.attempt_id = ea.id AND pe.type IN ('proxy_mismatch', 'multiple_faces', 'face_absent', 'devtools_open', 'mobile_phone_detected', 'phone_detected', 'suspicious_object', 'camera_disabled', 'microphone_disabled')) as high_severity_count
+        FROM exam_attempts ea
+        JOIN exam_assignments a ON ea.assignment_id = a.id
+        JOIN batches b ON a.batch_id = b.id
+      `);
+      subCenterAttempts = rows || [];
+    } catch (err) {
+      console.warn('Proctoring hierarchy subCenterAttempts fetch warning:', err.message);
+    }
+
+    // 4. Fetch public exams (active for proctoring)
+    let publicExams = [];
+    try {
+      const [rows] = await pool.query(`
+        SELECT id, name, slug, status, exam_start_date as opens_at, exam_end_date as closes_at, created_at
+        FROM public_exams
+        ORDER BY name ASC
+      `);
+      publicExams = rows || [];
+    } catch (err) {
+      console.warn('Proctoring hierarchy publicExams fetch warning:', err.message);
+    }
+
+    // 5. Fetch public exam attempts with violation aggregates
+    let publicAttempts = [];
+    try {
+      const [rows] = await pool.query(`
+        SELECT 
+          ea.id as attempt_id,
+          CONCAT('pub-batch-', ea.exam_id) as batch_id,
+          'branch-direct-portal' as org_id,
+          ea.status as attempt_status,
+          ea.proctoring_status,
+          (SELECT COUNT(*) FROM proctoring_events pe WHERE pe.attempt_id = ea.id) as violation_count,
+          (SELECT COUNT(*) FROM proctoring_events pe WHERE pe.attempt_id = ea.id AND pe.type IN ('proxy_mismatch', 'multiple_faces', 'face_absent', 'devtools_open', 'mobile_phone_detected', 'phone_detected', 'suspicious_object', 'camera_disabled', 'microphone_disabled')) as high_severity_count
+        FROM public_exam_attempts ea
+        JOIN public_exams e ON ea.exam_id = e.id
+      `);
+      publicAttempts = rows || [];
+    } catch (err) {
+      console.warn('Proctoring hierarchy publicAttempts fetch warning:', err.message);
+    }
+
+    // Build Batches Map
+    const batchMap = new Map();
+
+    // Map sub-center batches
+    batches.forEach(b => {
+      batchMap.set(b.id, {
+        id: b.id,
+        org_id: b.org_id,
+        exam_id: b.exam_id,
+        exam_name: b.exam_name,
+        batch_code: 'BATCH-' + b.id.slice(0, 8).toUpperCase(),
+        status: b.status,
+        opens_at: b.opens_at,
+        closes_at: b.closes_at,
+        created_at: b.created_at,
+        total_candidates: 0,
+        total_attempts: 0,
+        violations_count: 0,
+        high_severity_count: 0,
+        pending_review_count: 0,
+        flagged_count: 0,
+        approved_count: 0
+      });
+    });
+
+    // Map public exams as batches under 'branch-direct-portal'
+    publicExams.forEach(pe => {
+      const pubBatchId = 'pub-batch-' + pe.id;
+      batchMap.set(pubBatchId, {
+        id: pubBatchId,
+        org_id: 'branch-direct-portal',
+        exam_id: pe.id,
+        exam_name: pe.name,
+        batch_code: 'PORTAL-' + (pe.slug ? pe.slug.toUpperCase() : pe.id.slice(0, 8).toUpperCase()),
+        status: pe.status === 'published' ? 'open' : 'draft',
+        opens_at: pe.opens_at,
+        closes_at: pe.closes_at,
+        created_at: pe.created_at,
+        total_candidates: 0,
+        total_attempts: 0,
+        violations_count: 0,
+        high_severity_count: 0,
+        pending_review_count: 0,
+        flagged_count: 0,
+        approved_count: 0
+      });
+    });
+
+    // Process attempts into batch stats
+    const allAttempts = [...subCenterAttempts, ...publicAttempts];
+    allAttempts.forEach(att => {
+      const batch = batchMap.get(att.batch_id);
+      if (batch) {
+        batch.total_attempts++;
+        batch.total_candidates++;
+        batch.violations_count += Number(att.violation_count || 0);
+        batch.high_severity_count += Number(att.high_severity_count || 0);
+        if (att.proctoring_status === 'flagged') batch.flagged_count++;
+        else if (att.proctoring_status === 'approved') batch.approved_count++;
+        else if (att.proctoring_status === 'pending_review' || Number(att.violation_count) > 0) batch.pending_review_count++;
+      }
+    });
+
+    // Build Branches (Organizations + Direct Portal)
+    const branchesMap = new Map();
+
+    // 1. Direct Portal Branch
+    branchesMap.set('branch-direct-portal', {
+      id: 'branch-direct-portal',
+      name: 'GSFIN Direct Examination Portal',
+      code: 'GSFIN-HQ',
+      city: 'International',
+      country: 'Global Jurisdiction',
+      type: 'Direct Public Portal',
+      status: 'active',
+      batches: [],
+      total_batches: 0,
+      total_candidates: 0,
+      total_violations: 0,
+      high_severity_count: 0,
+      flagged_count: 0,
+      pending_review_count: 0,
+      approved_count: 0
+    });
+
+    // 2. Partner Organizations
+    organizations.forEach(org => {
+      branchesMap.set(org.id, {
+        id: org.id,
+        name: org.name,
+        code: 'BRANCH-' + org.id.slice(0, 6).toUpperCase(),
+        city: org.city || 'International',
+        country: org.country || 'Global Jurisdiction',
+        type: org.institution_type || 'Authorized Testing Center',
+        status: org.status || 'active',
+        batches: [],
+        total_batches: 0,
+        total_candidates: 0,
+        total_violations: 0,
+        high_severity_count: 0,
+        flagged_count: 0,
+        pending_review_count: 0,
+        approved_count: 0
+      });
+    });
+
+    // Attach batches to branches
+    batchMap.forEach(batch => {
+      const branch = branchesMap.get(batch.org_id);
+      if (branch) {
+        branch.batches.push(batch);
+        branch.total_batches++;
+        branch.total_candidates += batch.total_candidates;
+        branch.total_violations += batch.violations_count;
+        branch.high_severity_count += batch.high_severity_count;
+        branch.flagged_count += batch.flagged_count;
+        branch.pending_review_count += batch.pending_review_count;
+        branch.approved_count += batch.approved_count;
+      }
+    });
+
+    const branchesList = Array.from(branchesMap.values());
+
+    // Top Level KPI Stats
+    let totalMonitoredBranches = branchesList.filter(b => b.total_candidates > 0 || b.total_batches > 0).length;
+    let totalBatchesCount = batchMap.size;
+    let totalViolationsAll = 0;
+    let totalHighSeverityAll = 0;
+    let totalFlaggedAll = 0;
+    let totalPendingAll = 0;
+    let totalCandidatesAll = 0;
+
+    branchesList.forEach(b => {
+      totalViolationsAll += b.total_violations;
+      totalHighSeverityAll += b.high_severity_count;
+      totalFlaggedAll += b.flagged_count;
+      totalPendingAll += b.pending_review_count;
+      totalCandidatesAll += b.total_candidates;
+    });
+
+    return {
+      stats: {
+        totalBranches: branchesList.length,
+        totalMonitoredBranches,
+        totalBatches: totalBatchesCount,
+        totalCandidates: totalCandidatesAll,
+        totalViolations: totalViolationsAll,
+        highSeverityViolations: totalHighSeverityAll,
+        flaggedCount: totalFlaggedAll,
+        pendingReviewCount: totalPendingAll
+      },
+      branches: branchesList
+    };
+  }
+
+  async getBatchProctoringCandidates(batchId) {
+    if (batchId.startsWith('pub-batch-')) {
+      const examId = batchId.replace('pub-batch-', '');
+      const [examRows] = await pool.query(
+        'SELECT id, name, slug FROM public_exams WHERE id = ?',
+        [examId]
+      );
+      const exam = examRows[0] || { name: 'Public Certification Exam' };
+
+      const [attempts] = await pool.query(`
+        SELECT 
+          ea.id as attempt_id,
+          ea.exam_id,
+          COALESCE(c.id, ea.id) as student_id,
+          COALESCE(c.name, ea.guest_name, 'Online Candidate') as candidate_name,
+          COALESCE(c.email, ea.guest_email, 'N/A') as candidate_email,
+          ea.started_at,
+          ea.submitted_at,
+          r.passed,
+          r.score,
+          r.percentage,
+          ea.proctoring_status,
+          ea.reference_selfie_url,
+          (SELECT COUNT(*) FROM proctoring_events pe WHERE pe.attempt_id = ea.id) as violation_count,
+          (SELECT COUNT(*) FROM proctoring_events pe WHERE pe.attempt_id = ea.id AND pe.type IN ('proxy_mismatch', 'multiple_faces', 'face_absent', 'devtools_open', 'mobile_phone_detected', 'phone_detected', 'suspicious_object', 'camera_disabled', 'microphone_disabled')) as high_severity_count
+        FROM public_exam_attempts ea
+        LEFT JOIN public_exam_candidates c ON ea.candidate_id = c.id
+        LEFT JOIN public_exam_results r ON ea.id = r.attempt_id
+        WHERE ea.exam_id = ?
+        ORDER BY ea.started_at DESC
+      `, [examId]);
+
+      // Fetch violation events for all attempts in this batch
+      const attemptIds = attempts.map(a => a.attempt_id);
+      let eventsMap = new Map();
+      if (attemptIds.length > 0) {
+        const [events] = await pool.query(
+          `SELECT id, attempt_id, type, metadata_json, created_at 
+           FROM proctoring_events 
+           WHERE attempt_id IN (?) 
+           ORDER BY created_at DESC`,
+          [attemptIds]
+        );
+        events.forEach(ev => {
+          if (!eventsMap.has(ev.attempt_id)) eventsMap.set(ev.attempt_id, []);
+          eventsMap.get(ev.attempt_id).push(ev);
+        });
+      }
+
+      const candidates = attempts.map(att => {
+        const evs = eventsMap.get(att.attempt_id) || [];
+        const typeCounts = {};
+        evs.forEach(e => {
+          typeCounts[e.type] = (typeCounts[e.type] || 0) + 1;
+        });
+        const summary = Object.entries(typeCounts).map(([t, c]) => `${t} (${c})`);
+
+        return {
+          ...att,
+          result: att.passed ? 'pass' : (att.submitted_at ? 'fail' : 'in_progress'),
+          violations: evs.slice(0, 10),
+          violations_summary: summary
+        };
+      });
+
+      return {
+        batch: {
+          id: batchId,
+          branch_name: 'GSFIN Direct Examination Portal',
+          exam_name: exam.name,
+          batch_code: 'PORTAL-' + (exam.slug ? exam.slug.toUpperCase() : exam.id.slice(0, 8).toUpperCase()),
+          status: 'open'
+        },
+        candidates
+      };
+    } else {
+      // Sub-center batch
+      const [batchRows] = await pool.query(`
+        SELECT b.*, o.name as branch_name, COALESCE(e.name, pe.name, 'Certification Exam') as exam_name
+        FROM batches b
+        JOIN organizations o ON b.org_id = o.id
+        LEFT JOIN exams e ON b.exam_id = e.id
+        LEFT JOIN public_exams pe ON b.exam_id = pe.id
+        WHERE b.id = ?
+      `, [batchId]);
+
+      if (batchRows.length === 0) {
+        throw new Error('Batch not found');
+      }
+      const batch = batchRows[0];
+
+      const [attempts] = await pool.query(`
+        SELECT 
+          ea.id as attempt_id,
+          s.id as student_id,
+          s.name as candidate_name,
+          s.email as candidate_email,
+          ea.started_at,
+          ea.ended_at as submitted_at,
+          ea.result,
+          ea.proctoring_status,
+          ea.reference_selfie_url,
+          (SELECT COUNT(*) FROM proctoring_events pe WHERE pe.attempt_id = ea.id) as violation_count,
+          (SELECT COUNT(*) FROM proctoring_events pe WHERE pe.attempt_id = ea.id AND pe.type IN ('proxy_mismatch', 'multiple_faces', 'face_absent', 'devtools_open', 'mobile_phone_detected', 'phone_detected', 'suspicious_object', 'camera_disabled', 'microphone_disabled')) as high_severity_count
+        FROM exam_attempts ea
+        JOIN exam_assignments a ON ea.assignment_id = a.id
+        JOIN students s ON a.student_id = s.id
+        WHERE a.batch_id = ?
+        ORDER BY ea.started_at DESC
+      `, [batchId]);
+
+      // Fetch violation events for all attempts in this batch
+      const attemptIds = attempts.map(a => a.attempt_id);
+      let eventsMap = new Map();
+      if (attemptIds.length > 0) {
+        const [events] = await pool.query(
+          `SELECT id, attempt_id, type, metadata_json, created_at 
+           FROM proctoring_events 
+           WHERE attempt_id IN (?) 
+           ORDER BY created_at DESC`,
+          [attemptIds]
+        );
+        events.forEach(ev => {
+          if (!eventsMap.has(ev.attempt_id)) eventsMap.set(ev.attempt_id, []);
+          eventsMap.get(ev.attempt_id).push(ev);
+        });
+      }
+
+      const candidates = attempts.map(att => {
+        const evs = eventsMap.get(att.attempt_id) || [];
+        const typeCounts = {};
+        evs.forEach(e => {
+          typeCounts[e.type] = (typeCounts[e.type] || 0) + 1;
+        });
+        const summary = Object.entries(typeCounts).map(([t, c]) => `${t} (${c})`);
+
+        return {
+          ...att,
+          violations: evs.slice(0, 10),
+          violations_summary: summary
+        };
+      });
+
+      return {
+        batch: {
+          id: batch.id,
+          branch_name: batch.branch_name,
+          exam_name: batch.exam_name,
+          batch_code: 'BATCH-' + batch.id.slice(0, 8).toUpperCase(),
+          status: batch.status
+        },
+        candidates
+      };
+    }
+  }
+
   async clearViolations(attemptId) {
     await pool.query(
       "DELETE FROM proctoring_events WHERE attempt_id = ? AND type IN ('tab_switch', 'window_blur', 'fullscreen_exit', 'devtools_open', 'multiple_faces', 'face_absent', 'gaze_deviation', 'mobile_phone_detected', 'proxy_mismatch')",

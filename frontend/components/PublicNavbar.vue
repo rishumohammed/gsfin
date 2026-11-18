@@ -10,136 +10,21 @@
 
         <!-- Desktop Navigation Links -->
         <nav class="nav-links d-none d-md-flex">
-          
-          <!-- 1. Qualifications Dropdown Menu -->
-          <div class="nav-dropdown-wrapper">
-            <NuxtLink
-              to="/qualifications"
-              class="nav-link nav-link--has-dropdown"
-              :class="{ 'nav-link--active': isRouteActive('/qualifications') }"
-            >
-              <span>Qualifications</span>
-              <i class="mdi mdi-chevron-down nav-dropdown-arrow"></i>
-            </NuxtLink>
-
-            <div class="nav-dropdown-menu mega-menu-qualifications">
-              <div class="dropdown-header">
-                <span class="text-xs font-semibold uppercase text-red-600 tracking-wider">Qualification Framework</span>
-              </div>
-              <div class="dropdown-grid-2col">
-                <NuxtLink
-                  v-for="item in navQualifications"
-                  :key="item.id"
-                  :to="`/qualifications/${item.slug}`"
-                  class="dropdown-item"
-                >
-                  <div class="dropdown-icon-box" :class="item.color || 'text-red-600'">
-                    <i :class="`mdi ${item.icon_name || 'mdi-certificate'}`"></i>
-                  </div>
-                  <div>
-                    <span class="dropdown-item-title">{{ item.name }}</span>
-                    <span class="dropdown-item-desc">{{ item.subtitle || item.short_description || 'International Qualification Standard' }}</span>
-                  </div>
-                </NuxtLink>
-              </div>
-
-              <div class="dropdown-footer-bar">
-                <NuxtLink to="/qualifications" class="dropdown-footer-link">
-                  <span>View All Official Qualifications</span>
-                  <i class="mdi mdi-arrow-right"></i>
-                </NuxtLink>
-              </div>
-            </div>
-          </div>
-
-          <!-- 2. Verify Certificate (Direct Link) -->
-          <NuxtLink
-            to="/verify"
-            class="nav-link"
-            :class="{ 'nav-link--active': isRouteActive('/verify') || isRouteActive('/verify-certificate') }"
-          >
-            Verify Certificate
-          </NuxtLink>
-
-          <!-- 3. Authorized Centers (Direct Link) -->
-          <NuxtLink
-            to="/partners"
-            class="nav-link"
-            :class="{ 'nav-link--active': isRouteActive('/partners') || isRouteActive('/authorized-centers') }"
-          >
-            <span>Authorized Centers</span>
-          </NuxtLink>
-
-          <!-- 4. Become a Partner Dropdown -->
-          <div class="nav-dropdown-wrapper">
-            <NuxtLink
-              to="/become-a-partner"
-              class="nav-link nav-link--has-dropdown"
-              :class="{ 'nav-link--active': isRouteActive('/become-a-partner') || isRouteActive('/for-training-centers') }"
-            >
-              <span>Become a Partner</span>
-              <i class="mdi mdi-chevron-down nav-dropdown-arrow"></i>
-            </NuxtLink>
-
-            <div class="nav-dropdown-menu">
-              <NuxtLink to="/become-a-partner" class="dropdown-item">
-                <div class="dropdown-icon-box text-red-600">
-                  <i class="mdi mdi-domain"></i>
-                </div>
-                <div>
-                  <span class="dropdown-item-title">Center Accreditation</span>
-                  <span class="dropdown-item-desc">8-step approval &amp; audit guide</span>
-                </div>
-              </NuxtLink>
-
-              <NuxtLink to="/partners" class="dropdown-item">
-                <div class="dropdown-icon-box text-blue-600">
-                  <i class="mdi mdi-format-list-bulleted-type"></i>
-                </div>
-                <div>
-                  <span class="dropdown-item-title">Partner Directory</span>
-                  <span class="dropdown-item-desc">Search accredited centers worldwide</span>
-                </div>
-              </NuxtLink>
-
-              <NuxtLink to="/login" class="dropdown-item">
-                <div class="dropdown-icon-box text-emerald-600">
-                  <i class="mdi mdi-shield-account-outline"></i>
-                </div>
-                <div>
-                  <span class="dropdown-item-title">Partner Portal Login</span>
-                  <span class="dropdown-item-desc">Manage exams &amp; issue certificates</span>
-                </div>
-              </NuxtLink>
-            </div>
-          </div>
-
-          <!-- 5. About GSFIN (Direct Link) -->
-          <NuxtLink
-            to="/about"
-            class="nav-link"
-            :class="{ 'nav-link--active': isRouteActive('/about') }"
-          >
-            <span>About GSFIN</span>
-          </NuxtLink>
-
+          <NuxtLink to="/" class="nav-link">Home</NuxtLink>
+          <NuxtLink to="/#about" class="nav-link">About Us</NuxtLink>
+          <NuxtLink to="/#schemes" class="nav-link">Certifications</NuxtLink>
+          <NuxtLink to="/#process" class="nav-link">How It Works</NuxtLink>
+          <NuxtLink to="/#verify" class="nav-link">Verify Certificate</NuxtLink>
         </nav>
 
         <!-- Right Action Button & Mobile Toggle -->
         <div class="nav-right">
-          <!-- Logged in state button -->
-          <NuxtLink
-            v-if="authStore.isAuthenticated"
-            to="/dashboard"
-            class="nav-portal-btn"
-          >
-            <i class="mdi mdi-view-dashboard-outline"></i> Dashboard
-          </NuxtLink>
-
-          <!-- Partner CTA Button -->
-          <button v-else class="nav-cta-btn" @click="handleCtaClick">
-            Partner with GSFIN <i class="mdi mdi-arrow-right"></i>
+          <button class="nav-cta-btn" @click="handleCtaClick">
+            Apply Now
           </button>
+          <NuxtLink to="/login" class="nav-portal-btn" style="margin-left: 8px;">
+            Partner Login
+          </NuxtLink>
 
           <!-- Mobile Hamburger Toggle -->
           <button
@@ -165,101 +50,36 @@
           </div>
 
           <div class="mobile-nav-links">
-            <NuxtLink
-              to="/qualifications"
-              class="mobile-nav-link"
-              :class="{ 'active': isRouteActive('/qualifications') }"
-              @click="mobileMenuOpen = false"
-            >
-              <i class="mdi mdi-certificate-outline icon-left"></i> Qualifications
+            <NuxtLink to="/" class="mobile-nav-link" @click="mobileMenuOpen = false">
+              <i class="mdi mdi-home-outline icon-left"></i> Home
             </NuxtLink>
-            <NuxtLink
-              to="/verify"
-              class="mobile-nav-link"
-              :class="{ 'active': isRouteActive('/verify') || isRouteActive('/verify-certificate') }"
-              @click="mobileMenuOpen = false"
-            >
-              <i class="mdi mdi-qrcode-scan icon-left"></i> Verify Certificate
+            <NuxtLink to="/#about" class="mobile-nav-link" @click="mobileMenuOpen = false">
+              <i class="mdi mdi-information-outline icon-left"></i> About Us
             </NuxtLink>
-            <NuxtLink
-              to="/partners"
-              class="mobile-nav-link"
-              :class="{ 'active': isRouteActive('/partners') || isRouteActive('/authorized-centers') }"
-              @click="mobileMenuOpen = false"
-            >
-              <i class="mdi mdi-check-decagram-outline icon-left"></i> Authorized Centers
+            <NuxtLink to="/#schemes" class="mobile-nav-link" @click="mobileMenuOpen = false">
+              <i class="mdi mdi-certificate-outline icon-left"></i> Certifications
             </NuxtLink>
-            <NuxtLink
-              to="/become-a-partner"
-              class="mobile-nav-link"
-              :class="{ 'active': isRouteActive('/become-a-partner') || isRouteActive('/for-training-centers') }"
-              @click="mobileMenuOpen = false"
-            >
-              <i class="mdi mdi-domain icon-left"></i> Become a Partner
+            <NuxtLink to="/#process" class="mobile-nav-link" @click="mobileMenuOpen = false">
+              <i class="mdi mdi-timeline-check-outline icon-left"></i> How It Works
+            </NuxtLink>
+            <NuxtLink to="/#verify" class="mobile-nav-link" @click="mobileMenuOpen = false">
+              <i class="mdi mdi-shield-check-outline icon-left"></i> Verify Certificate
             </NuxtLink>
           </div>
 
           <div class="mobile-nav-footer">
-            <button class="btn-red w-100" @click="handleCtaClick">
-              Partner with GSFIN <i class="mdi mdi-arrow-right"></i>
+            <button class="btn-red w-100 mb-2" @click="handleCtaClick(); mobileMenuOpen = false">
+              Apply Now
             </button>
+            <NuxtLink to="/login" class="btn-glass w-100" style="display: block; text-align: center;" @click="mobileMenuOpen = false">
+              Partner Login
+            </NuxtLink>
           </div>
         </div>
       </div>
     </Transition>
 
-    <!-- ═══ FLOATING QUICK CONTACT ACTION WIDGET ═══ -->
-    <div class="floating-contact-widget">
-      <!-- Action Speed-Dial Floating Stack -->
-      <Transition name="fade-slide-up">
-        <div v-if="floatingExpanded" class="floating-actions-stack">
-          
-          <!-- 1. WhatsApp Action Button -->
-          <a
-            href="https://wa.me/447911123456?text=Hello%20GSFIN%20Team%2C%20I%20would%20like%20to%20inquire%20about%20qualifications%20and%20partner%20accreditation."
-            target="_blank"
-            rel="noopener noreferrer"
-            class="floating-action-btn btn-whatsapp"
-            @click="floatingExpanded = false"
-          >
-            <i class="mdi mdi-whatsapp"></i>
-            <span class="floating-tooltip-label">Chat on WhatsApp</span>
-            <span class="online-indicator"></span>
-          </a>
 
-          <!-- 2. Phone Call Action Button -->
-          <a
-            href="tel:+442079460912"
-            class="floating-action-btn btn-phone"
-            @click="floatingExpanded = false"
-          >
-            <i class="mdi mdi-phone"></i>
-            <span class="floating-tooltip-label">Call +44 20 7946 0912</span>
-          </a>
-
-          <!-- 3. Contact Form Modal Action Button -->
-          <button
-            class="floating-action-btn btn-contact-form"
-            @click="openQuickContactModal"
-          >
-            <i class="mdi mdi-email-fast-outline"></i>
-            <span class="floating-tooltip-label">Quick Contact Form</span>
-          </button>
-
-        </div>
-      </Transition>
-
-      <!-- Floating Master Toggle Button -->
-      <button
-        class="floating-master-toggle"
-        :class="{ 'is-active': floatingExpanded }"
-        @click="floatingExpanded = !floatingExpanded"
-        aria-label="Contact GSFIN Quick Actions"
-      >
-        <i :class="floatingExpanded ? 'mdi mdi-close' : 'mdi mdi-headset'"></i>
-        <span v-if="!floatingExpanded" class="floating-pulse-ring"></span>
-      </button>
-    </div>
 
     <!-- ═══ FLOATING QUICK CONTACT MODAL ═══ -->
     <Teleport to="body">

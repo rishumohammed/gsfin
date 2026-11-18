@@ -101,24 +101,23 @@
                 <!-- Col 1: Exam Standard -->
                 <td>
                   <div class="exam-cell-row">
-                    <div class="exam-icon-box">
-                      <i class="mdi mdi-certificate-outline"></i>
+                    <div class="exam-thumb">
+                      <img v-if="item.image_url" :src="item.image_url" :alt="item.name" />
+                      <div v-else class="exam-thumb-fallback">
+                        <i class="mdi mdi-certificate-outline"></i>
+                      </div>
                     </div>
                     <div class="exam-info-wrap">
-                      <div class="exam-name-row">
-                        <span class="exam-name-text">{{ item.name }}</span>
-                        <span v-if="item.qualification_id" class="badge-cert-pill" title="Official Certification Standard">
-                          <i class="mdi mdi-check-decagram"></i> Official
-                        </span>
+                      <div class="exam-name-text">{{ item.name }}</div>
+                      <div v-if="item.description" class="exam-desc-text">
+                        {{ item.description }}
                       </div>
-                      <div class="exam-meta-pills">
-                        <span class="badge-program-tag">
-                          <i class="mdi mdi-shape-outline"></i>
-                          {{ item.qualification_category || 'Food Safety Standard' }}
-                        </span>
-                        <span v-if="item.enable_proctoring" class="badge-proctor-tag">
-                          <i class="mdi mdi-shield-check"></i> AI Proctored
-                        </span>
+                      <div class="exam-meta-line">
+                        <span class="exam-slug-tag">Code: {{ item.slug }}</span>
+                        <template v-if="item.difficulty_level">
+                          <span class="dot">•</span>
+                          <span class="exam-level-tag">Level: {{ item.difficulty_level }}</span>
+                        </template>
                       </div>
                     </div>
                   </div>
@@ -459,9 +458,9 @@ function getStatusClass(status: string) {
 }
 
 function getStatusLabel(status: string) {
-  if (status === 'published') return 'Active in Catalog';
-  if (status === 'draft') return 'Draft Mode';
-  if (status === 'review') return 'Under Review';
+  if (status === 'published') return 'Active';
+  if (status === 'draft') return 'Draft';
+  if (status === 'review') return 'Review';
   return 'Archived';
 }
 
@@ -659,48 +658,90 @@ onMounted(() => {
 /* Exam Standard Cell */
 .exam-cell-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
 }
 
-.exam-icon-box {
-  width: 38px;
-  height: 38px;
+.exam-thumb {
+  width: 42px;
+  height: 42px;
   border-radius: 10px;
-  background: rgba(227, 27, 35, 0.08);
-  color: #E31B23;
+  overflow: hidden;
+  background: #F1F5F9;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 2px;
+}
+
+.exam-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.exam-thumb-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F8FAFC;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: #64748B;
   font-size: 1.25rem;
-  flex-shrink: 0;
+  border-radius: 10px;
 }
 
 .exam-info-wrap {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-
-.exam-name-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 3px;
+  min-width: 0;
 }
 
 .exam-name-text {
-  font-size: 0.90rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: #0F172A;
   line-height: 1.3;
 }
 
-.exam-meta-pills {
+.exam-desc-text {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #64748B;
+  max-width: 360px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.exam-meta-line {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  font-size: 0.72rem;
+  color: #94A3B8;
+  margin-top: 2px;
+}
+
+.exam-slug-tag {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.70rem;
+  font-weight: 600;
+  color: #475569;
+  background: #F1F5F9;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.exam-level-tag {
+  font-weight: 600;
+  color: #475569;
 }
 
 /* Questions & Duration Cell */
@@ -815,71 +856,6 @@ onMounted(() => {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
-}
-
-/* Global Tags & Badges Match */
-.programs-badges-wrap {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.badge-program-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.70rem;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: #F1F5F9;
-  color: #334155;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  white-space: nowrap;
-}
-
-.badge-program-tag i {
-  color: #059669;
-  font-size: 0.78rem;
-}
-
-.badge-proctor-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.70rem;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: rgba(227, 27, 35, 0.08);
-  color: #E31B23;
-  border: 1px solid rgba(227, 27, 35, 0.2);
-  white-space: nowrap;
-}
-
-.badge-proctor-tag i {
-  color: #E31B23;
-  font-size: 0.78rem;
-}
-
-.badge-cert-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  background: #EEF2FF;
-  color: #4F46E5;
-  border: 1px solid rgba(99, 102, 241, 0.25);
-  font-size: 0.65rem;
-  font-weight: 600;
-  padding: 1px 6px;
-  border-radius: 9999px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.badge-cert-pill i {
-  font-size: 0.72rem;
 }
 
 /* ── GSFIN Global Modal Architecture ── */

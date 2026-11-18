@@ -129,6 +129,28 @@ router.post('/reference-selfie', authenticateAnyJWT, uploadSelfie.single('image'
 // ────────────────────────────────────────────────────────────────────────────────
 const isAdminOrTutor = authorizeRoles('super_admin', 'main_admin', 'lms_user', 'tutor');
 
+// GET /api/proctoring/admin/hierarchy (Organized: Branch -> Exam Batch -> Details)
+router.get('/admin/hierarchy', authenticateJWT, isAdminOrTutor, async (req, res) => {
+  try {
+    const data = await proctoringService.getProctoringHierarchy();
+    res.json(data);
+  } catch (err) {
+    console.error('Fetch proctoring hierarchy error:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/proctoring/admin/batch/:batchId/candidates
+router.get('/admin/batch/:batchId/candidates', authenticateJWT, isAdminOrTutor, async (req, res) => {
+  try {
+    const data = await proctoringService.getBatchProctoringCandidates(req.params.batchId);
+    res.json(data);
+  } catch (err) {
+    console.error('Fetch batch proctoring candidates error:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // GET /api/proctoring/admin/attempts
 router.get('/admin/attempts', authenticateJWT, isAdminOrTutor, async (req, res) => {
   try {

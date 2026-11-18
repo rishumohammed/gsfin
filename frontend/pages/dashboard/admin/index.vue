@@ -132,7 +132,7 @@
                 </div>
               </NuxtLink>
 
-              <NuxtLink to="/dashboard/admin/proctoring" class="shortcut-card hover-emerald">
+              <NuxtLink to="/dashboard/admin/public-exams/proctoring" class="shortcut-card hover-emerald">
                 <div class="shortcut-icon icon-emerald">
                   <i class="mdi mdi-shield-check-outline"></i>
                 </div>

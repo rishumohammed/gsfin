@@ -9,8 +9,8 @@
         </div>
 
         <div class="header-actions">
-          <NuxtLink to="/qualifications" target="_blank" class="btn-glass">
-            <i class="mdi mdi-open-in-new"></i> View Catalog
+          <NuxtLink to="/#schemes" target="_blank" class="btn-glass">
+            <i class="mdi mdi-open-in-new"></i> View on Website
           </NuxtLink>
           <button class="btn-red" @click="openDialog()">
             <i class="mdi mdi-plus"></i> Add Certification
@@ -41,11 +41,10 @@
               />
             </div>
 
-            <select v-model="categoryFilter" class="table-select-filter">
-              <option value="All Categories">All Categories</option>
-              <option value="Food Safety">Food Safety</option>
-              <option value="Quality Management">Quality Management</option>
-              <option value="Food Science">Food Science</option>
+            <select v-model="statusFilter" class="table-select-filter">
+              <option value="All">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="draft">Draft</option>
             </select>
           </div>
 
@@ -57,7 +56,6 @@
             <thead>
               <tr>
                 <th>Qualification Standard</th>
-                <th>Category &amp; Level</th>
                 <th>Status</th>
                 <th>Display Order</th>
                 <th class="th-actions">Actions</th>
@@ -65,12 +63,12 @@
             </thead>
             <tbody>
               <tr v-if="loading">
-                <td colspan="5" class="text-center py-8 text-slate-500">
+                <td colspan="4" class="text-center py-8 text-slate-500">
                   <span class="spinner-sm-red"></span> Loading Qualifications...
                 </td>
               </tr>
               <tr v-else-if="filteredQualifications.length === 0">
-                <td colspan="5" class="text-center py-8 text-slate-500">
+                <td colspan="4" class="text-center py-8 text-slate-500">
                   <i class="mdi mdi-certificate-outline text-3xl block mb-2 text-slate-400"></i>
                   No Qualifications Found
                 </td>
@@ -84,13 +82,8 @@
                     <div>
                       <div class="qual-name">{{ q.name }}</div>
                       <div class="qual-sub text-slate-500">{{ q.subtitle || q.short_description }}</div>
-                      <span v-if="q.badge_tag" class="chip-red-sm mt-1">{{ q.badge_tag }}</span>
                     </div>
                   </div>
-                </td>
-                <td>
-                  <div class="font-weight-bold text-slate-900">{{ q.category }}</div>
-                  <div class="text-slate-500 text-xs">{{ q.level }}</div>
                 </td>
                 <td>
                   <button
@@ -403,7 +396,7 @@
         <div v-if="deleteDialog" class="modal-overlay" @click.self="deleteDialog = false">
           <div class="modal-card modal-sm text-center pa-6">
             <i class="mdi mdi-alert-circle-outline text-red text-5xl mb-2"></i>
-            <h3 class="font-weight-bold text-slate-900 text-xl mb-2">Delete Qualification?</h3>
+            <h3 class="font-semibold text-slate-900 text-xl mb-2" style="font-weight: 600;">Delete Qualification?</h3>
             <p class="text-slate-500 text-sm mb-6">
               Are you sure you want to delete <strong>{{ itemToDelete?.name }}</strong>?
             </p>
@@ -439,7 +432,7 @@ const qualifications = ref<any[]>([]);
 const error = ref<string | null>(null);
 
 const searchQuery = ref('');
-const categoryFilter = ref('All Categories');
+const statusFilter = ref('All');
 const modalTab = ref('basic');
 
 const dialog = ref(false);
@@ -484,18 +477,29 @@ const switchToEdit = () => {
   openDialog(item);
 };
 
+const availableCategories = computed(() => {
+  const cats = new Set<string>();
+  qualifications.value.forEach((q) => {
+    if (q.category) cats.add(q.category);
+  });
+  return ['All Categories', ...Array.from(cats).sort()];
+});
+
 const filteredQualifications = computed(() => {
   return qualifications.value.filter((q) => {
     const matchesSearch =
       !searchQuery.value ||
       q.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       q.slug.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      q.category.toLowerCase().includes(searchQuery.value.toLowerCase());
+      (q.subtitle && q.subtitle.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+      (q.category && q.category.toLowerCase().includes(searchQuery.value.toLowerCase()));
 
-    const matchesCategory =
-      categoryFilter.value === 'All Categories' || q.category === categoryFilter.value;
+    const matchesStatus =
+      statusFilter.value === 'All' ||
+      (statusFilter.value === 'active' && Boolean(q.is_active)) ||
+      (statusFilter.value === 'draft' && !q.is_active);
 
-    return matchesSearch && matchesCategory;
+    return matchesSearch && matchesStatus;
   });
 });
 
@@ -507,7 +511,7 @@ const paginatedQualifications = computed(() => {
   return filteredQualifications.value.slice(start, start + perPage.value);
 });
 
-watch([searchQuery, categoryFilter], () => {
+watch([searchQuery, statusFilter], () => {
   page.value = 1;
 });
 
