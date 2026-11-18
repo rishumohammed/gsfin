@@ -79,7 +79,28 @@ export class ConfigService {
         if (typeof value === 'string' && value.includes('...')) {
             continue;
         }
-        await connection.query('INSERT INTO system_config (`key`, `value`, `group`) VALUES (?, ?, "branding") ON DUPLICATE KEY UPDATE `value` = ?', [key, value, value]);
+
+        let storedValue = value;
+        if (typeof value === 'object' && value !== null) {
+          storedValue = JSON.stringify(value);
+        } else if (value === undefined || value === null) {
+          storedValue = '';
+        } else {
+          storedValue = String(value);
+        }
+
+        let group = 'branding';
+        if (key.startsWith('partner_') || key.includes('partner')) {
+          group = 'partner';
+        } else if (key.startsWith('email_') || key.includes('resend') || key.includes('smtp')) {
+          group = 'email';
+        } else if (key.startsWith('talent_hunt')) {
+          group = 'talent_hunt';
+        } else if (key.startsWith('education_')) {
+          group = 'education';
+        }
+
+        await connection.query('INSERT INTO system_config (`key`, `value`, `group`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `value` = ?', [key, storedValue, group, storedValue]);
       }
       await connection.commit();
       // Invalidate cache (non-fatal)

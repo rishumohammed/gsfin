@@ -741,8 +741,19 @@
 
               <div class="form-row-2 mb-3">
                 <div class="form-group">
-                  <label class="form-label">Country</label>
-                  <input v-model="orgForm.country" type="text" placeholder="e.g. United Arab Emirates" class="modal-input" />
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="form-label mb-0">Country *</label>
+                    <NuxtLink to="/dashboard/admin/settings?tab=partner_settings" class="text-[11px] text-red hover:underline font-medium">
+                      <i class="mdi mdi-cog-outline"></i> Manage in Settings
+                    </NuxtLink>
+                  </div>
+                  <select v-model="orgForm.country" class="modal-select">
+                    <option value="" disabled>Select Country</option>
+                    <option v-for="c in configuredCountries" :key="c" :value="c">{{ c }}</option>
+                    <option v-if="orgForm.country && !configuredCountries.includes(orgForm.country)" :value="orgForm.country">
+                      {{ orgForm.country }}
+                    </option>
+                  </select>
                 </div>
                 <div class="form-group">
                   <label class="form-label">City / Region</label>
@@ -751,16 +762,30 @@
               </div>
 
               <div class="form-group mb-3">
-                <label class="form-label">Approved Training Programs</label>
-                <div class="checkbox-grid">
+                <div class="flex items-center justify-between mb-1">
+                  <label class="form-label mb-0">Approved Training Programs</label>
+                  <div class="flex items-center gap-3">
+                    <button type="button" class="text-[11px] text-red hover:underline font-medium" @click="toggleSelectAllPrograms">
+                      {{ (orgForm.programs || []).length === availablePrograms.length ? 'Deselect All' : 'Select All' }}
+                    </button>
+                    <NuxtLink to="/dashboard/admin/settings?tab=partner_settings" class="text-[11px] text-red hover:underline font-medium">
+                      <i class="mdi mdi-cog-outline"></i> Manage in Settings
+                    </NuxtLink>
+                  </div>
+                </div>
+                <div class="checkbox-grid max-h-56 overflow-y-auto custom-scrollbar">
                   <label v-for="prog in availablePrograms" :key="prog" class="checkbox-label">
                     <input
                       type="checkbox"
                       :value="prog"
                       v-model="orgForm.programs"
+                      class="checkbox-input"
                     />
                     <span>{{ prog }}</span>
                   </label>
+                </div>
+                <div class="text-[11px] text-slate-500 mt-1 px-1">
+                  {{ (orgForm.programs || []).length }} programs selected
                 </div>
               </div>
 
@@ -1324,14 +1349,112 @@ const tabItems = [
   { label: 'History', value: 'audit', icon: 'mdi-history' }
 ];
 
-const availablePrograms = [
+const DEFAULT_PARTNER_COUNTRIES = [
+  'India',
+  'United Arab Emirates',
+  'Saudi Arabia',
+  'Qatar',
+  'Oman',
+  'Kuwait',
+  'Bahrain',
+  'United Kingdom',
+  'United States',
+  'Singapore',
+  'Malaysia',
+  'Australia',
+  'Canada',
+  'Germany',
+  'Egypt',
+  'South Africa',
+  'Nigeria',
+  'Kenya',
+  'Philippines',
+  'Sri Lanka',
+  'Pakistan',
+  'Bangladesh',
+  'Indonesia'
+];
+
+const DEFAULT_PARTNER_PROGRAMS = [
   'CODEX HACCP',
   'ISO 22000 Food Safety',
   'Food Safety Manager',
   'Halal Audit Certification',
   'BRCGS Global Standard',
-  'FSSC 22000 Lead Auditor'
+  'FSSC 22000 Lead Auditor',
+  'Food Science & Technology',
+  'GHP & GMP Foundation'
 ];
+
+const configuredCountries = ref<string[]>([...DEFAULT_PARTNER_COUNTRIES]);
+const availablePrograms = ref<string[]>([...DEFAULT_PARTNER_PROGRAMS]);
+
+async function fetchPartnerSettings() {
+  try {
+    const [configRes, qualRes] = await Promise.allSettled([
+      api.get('/admin/config'),
+      api.get('/public/qualifications')
+    ]);
+
+    if (configRes.status === 'fulfilled' && configRes.value?.data) {
+      const data = configRes.value.data;
+      let rawCountries = null;
+      let rawPrograms = null;
+
+      if (Array.isArray(data)) {
+        const cItem = data.find((c: any) => c.key === 'partner_countries');
+        if (cItem) rawCountries = cItem.value;
+        const pItem = data.find((c: any) => c.key === 'partner_training_programs');
+        if (pItem) rawPrograms = pItem.value;
+      } else if (data && typeof data === 'object') {
+        rawCountries = data.partner_countries;
+        rawPrograms = data.partner_training_programs;
+      }
+
+      if (rawCountries) {
+        const parsed = typeof rawCountries === 'string' ? JSON.parse(rawCountries) : rawCountries;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          configuredCountries.value = parsed;
+        }
+      }
+
+      const progList: string[] = [];
+      if (rawPrograms) {
+        const parsed = typeof rawPrograms === 'string' ? JSON.parse(rawPrograms) : rawPrograms;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          progList.push(...parsed);
+        }
+      } else {
+        progList.push(...DEFAULT_PARTNER_PROGRAMS);
+      }
+
+      // Merge active qualifications from certifications catalog
+      if (qualRes.status === 'fulfilled' && Array.isArray(qualRes.value?.data)) {
+        qualRes.value.data.forEach((q: any) => {
+          const title = q.title || q.name;
+          if (title && !progList.includes(title)) {
+            progList.push(title);
+          }
+        });
+      }
+
+      if (progList.length > 0) {
+        availablePrograms.value = progList;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load partner settings/qualifications:', err);
+  }
+}
+
+function toggleSelectAllPrograms() {
+  if (!orgForm.value.programs) orgForm.value.programs = [];
+  if (orgForm.value.programs.length === availablePrograms.value.length) {
+    orgForm.value.programs = [];
+  } else {
+    orgForm.value.programs = [...availablePrograms.value];
+  }
+}
 
 const currentTitle = computed(() => {
   switch (activeTab.value) {
@@ -1614,6 +1737,7 @@ async function fetchAllData() {
   fetchPackages();
   fetchAudit();
   fetchTokenRequests();
+  fetchPartnerSettings();
 }
 
 async function fetchTokenRequests() {
@@ -1758,10 +1882,10 @@ function openAddOrgModal() {
     name: '',
     contact_email: '',
     contact_phone: '',
-    country: 'United Arab Emirates',
+    country: configuredCountries.value[0] || 'United Arab Emirates',
     city: 'Dubai',
     institution_type: 'Authorized Training Center',
-    programs: ['CODEX HACCP', 'ISO 22000 Food Safety'],
+    programs: availablePrograms.value.slice(0, 2),
     status: 'active',
     initial_password: ''
   };
@@ -1774,7 +1898,7 @@ function editOrg(org: any) {
     name: org.name || '',
     contact_email: org.contact_email || '',
     contact_phone: org.contact_phone || '',
-    country: org.country || 'United Arab Emirates',
+    country: org.country || configuredCountries.value[0] || 'United Arab Emirates',
     city: org.city || 'Dubai',
     institution_type: org.institution_type || 'Authorized Training Center',
     programs: parsePrograms(org.programs),

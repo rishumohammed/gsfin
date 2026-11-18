@@ -84,7 +84,7 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-import mainAdminRoutes from './routes/main-admin.routes.js';
+import mainAdminRoutes, { ensureOrganizationsColumns } from './routes/main-admin.routes.js';
 import subCenterRoutes from './routes/sub-center.routes.js';
 import assignmentSessionRoutes from './routes/assignment-session.routes.js';
 import { initBatchAutocloseJob } from './jobs/batch-autoclose.job.js';
@@ -129,6 +129,11 @@ initMultitenantNotificationsJob();
 // Auto-heal qualifications table and seed default data if needed
 ensureQualificationsTable().catch((err) => {
   console.error('[Startup] Failed to auto-initialize qualifications table:', err);
+});
+
+// Auto-heal organizations columns if missing
+ensureOrganizationsColumns().catch((err) => {
+  console.error('[Startup] Failed to auto-initialize organizations columns:', err);
 });
 
 httpServer.listen(PORT, '0.0.0.0', () => {

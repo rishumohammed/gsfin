@@ -597,8 +597,19 @@
 
               <div class="grid grid-cols-2 gap-4">
                 <div class="form-group">
-                  <label class="form-label">Country</label>
-                  <input v-model="editForm.country" type="text" class="modal-input" placeholder="United Arab Emirates" />
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="form-label mb-0">Country *</label>
+                    <NuxtLink to="/dashboard/admin/settings?tab=partner_settings" class="text-[11px] text-red hover:underline font-medium">
+                      <i class="mdi mdi-cog-outline"></i> Settings
+                    </NuxtLink>
+                  </div>
+                  <select v-model="editForm.country" class="modal-input">
+                    <option value="" disabled>Select Country</option>
+                    <option v-for="c in configuredCountries" :key="c" :value="c">{{ c }}</option>
+                    <option v-if="editForm.country && !configuredCountries.includes(editForm.country)" :value="editForm.country">
+                      {{ editForm.country }}
+                    </option>
+                  </select>
                 </div>
                 <div class="form-group">
                   <label class="form-label">City</label>
@@ -614,6 +625,29 @@
                   <option value="Government Body">Government Body</option>
                   <option value="Corporate Enterprise">Corporate Enterprise</option>
                 </select>
+              </div>
+
+              <div class="form-group">
+                <div class="flex items-center justify-between mb-1">
+                  <label class="form-label mb-0">Approved Training Programs</label>
+                  <NuxtLink to="/dashboard/admin/settings?tab=partner_settings" class="text-[11px] text-red hover:underline font-medium">
+                    <i class="mdi mdi-cog-outline"></i> Manage in Settings
+                  </NuxtLink>
+                </div>
+                <div class="max-h-48 overflow-y-auto custom-scrollbar p-3 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <label v-for="prog in availablePrograms" :key="prog" class="flex items-center gap-2 text-xs text-slate-700 font-semibold cursor-pointer">
+                    <input
+                      type="checkbox"
+                      :value="prog"
+                      v-model="editForm.programs"
+                      class="rounded text-red focus:ring-red"
+                    />
+                    <span>{{ prog }}</span>
+                  </label>
+                </div>
+                <div class="text-[11px] text-slate-500 mt-1 px-1">
+                  {{ (editForm.programs || []).length }} programs authorized
+                </div>
               </div>
             </div>
 
@@ -1047,6 +1081,104 @@ const resettingPassword = ref(false);
 const resetSuccessResult = ref<{ email: string; tempPassword: string; isNewAccount?: boolean } | null>(null);
 const copiedPassword = ref(false);
 
+const DEFAULT_PARTNER_COUNTRIES = [
+  'India',
+  'United Arab Emirates',
+  'Saudi Arabia',
+  'Qatar',
+  'Oman',
+  'Kuwait',
+  'Bahrain',
+  'United Kingdom',
+  'United States',
+  'Singapore',
+  'Malaysia',
+  'Australia',
+  'Canada',
+  'Germany',
+  'Egypt',
+  'South Africa',
+  'Nigeria',
+  'Kenya',
+  'Philippines',
+  'Sri Lanka',
+  'Pakistan',
+  'Bangladesh',
+  'Indonesia'
+];
+
+const DEFAULT_PARTNER_PROGRAMS = [
+  'CODEX HACCP',
+  'ISO 22000 Food Safety',
+  'Food Safety Manager',
+  'Halal Audit Certification',
+  'BRCGS Global Standard',
+  'FSSC 22000 Lead Auditor',
+  'Food Science & Technology',
+  'GHP & GMP Foundation'
+];
+
+const configuredCountries = ref<string[]>([...DEFAULT_PARTNER_COUNTRIES]);
+const availablePrograms = ref<string[]>([...DEFAULT_PARTNER_PROGRAMS]);
+
+async function fetchPartnerSettings() {
+  try {
+    const [configRes, qualRes] = await Promise.allSettled([
+      api.get('/admin/config'),
+      api.get('/public/qualifications')
+    ]);
+
+    if (configRes.status === 'fulfilled' && configRes.value?.data) {
+      const data = configRes.value.data;
+      let rawCountries = null;
+      let rawPrograms = null;
+
+      if (Array.isArray(data)) {
+        const cItem = data.find((c: any) => c.key === 'partner_countries');
+        if (cItem) rawCountries = cItem.value;
+        const pItem = data.find((c: any) => c.key === 'partner_training_programs');
+        if (pItem) rawPrograms = pItem.value;
+      } else if (data && typeof data === 'object') {
+        rawCountries = data.partner_countries;
+        rawPrograms = data.partner_training_programs;
+      }
+
+      if (rawCountries) {
+        const parsed = typeof rawCountries === 'string' ? JSON.parse(rawCountries) : rawCountries;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          configuredCountries.value = parsed;
+        }
+      }
+
+      const progList: string[] = [];
+      if (rawPrograms) {
+        const parsed = typeof rawPrograms === 'string' ? JSON.parse(rawPrograms) : rawPrograms;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          progList.push(...parsed);
+        }
+      } else {
+        progList.push(...DEFAULT_PARTNER_PROGRAMS);
+      }
+
+      // Merge active qualifications from certifications catalog
+      if (qualRes.status === 'fulfilled' && Array.isArray(qualRes.value?.data)) {
+        qualRes.value.data.forEach((q: any) => {
+          const title = q.title || q.name;
+          if (title && !progList.includes(title)) {
+            progList.push(title);
+          }
+        });
+      }
+
+      if (progList.length > 0) {
+        availablePrograms.value = progList;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load partner settings/qualifications:', err);
+  }
+}
+
 const editForm = ref({
   name: '',
   contact_email: '',
@@ -1299,6 +1431,7 @@ const formatDate = (dateStr: string) => {
 
 onMounted(() => {
   fetchDetail();
+  fetchPartnerSettings();
 });
 </script>
 

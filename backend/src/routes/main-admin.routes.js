@@ -8,6 +8,54 @@ import { WalletService } from '../services/wallet.service.js';
 
 const router = express.Router();
 
+let orgTableEnsured = false;
+export async function ensurePartnerConfig() {
+  try {
+    const defaultCountries = JSON.stringify([
+      "India", "United Arab Emirates", "Saudi Arabia", "Qatar", "Oman",
+      "Kuwait", "Bahrain", "United Kingdom", "United States", "Singapore",
+      "Malaysia", "Australia", "Canada", "Germany", "Egypt", "South Africa"
+    ]);
+    const defaultPrograms = JSON.stringify([
+      "CODEX HACCP", "ISO 22000 Food Safety", "Food Safety Manager",
+      "Halal Audit Certification", "BRCGS Global Standard", "FSSC 22000 Lead Auditor",
+      "Food Science & Technology", "GHP & GMP Foundation"
+    ]);
+
+    await pool.query(
+      `INSERT IGNORE INTO system_config (\`key\`, \`value\`, \`group\`, is_sensitive) VALUES 
+       ('partner_countries', ?, 'partner', 0),
+       ('partner_training_programs', ?, 'partner', 0)`,
+      [defaultCountries, defaultPrograms]
+    );
+  } catch (err) {
+    // Non-fatal if system_config table not yet initialized or already exists
+  }
+}
+
+export async function ensureOrganizationsColumns() {
+  if (orgTableEnsured) return;
+  try {
+    const columns = [
+      { name: 'country', def: "VARCHAR(100) DEFAULT 'Global Jurisdiction'" },
+      { name: 'city', def: "VARCHAR(100) DEFAULT 'International'" },
+      { name: 'institution_type', def: "VARCHAR(100) DEFAULT 'Authorized Training Center'" },
+      { name: 'programs', def: "JSON NULL" }
+    ];
+    for (const col of columns) {
+      try {
+        await pool.query(`ALTER TABLE organizations ADD COLUMN ${col.name} ${col.def}`);
+      } catch (err) {
+        // Ignored if column already exists (ER_DUP_FIELDNAME / 1060)
+      }
+    }
+    await ensurePartnerConfig();
+    orgTableEnsured = true;
+  } catch (err) {
+    console.error('Error ensuring organizations columns:', err);
+  }
+}
+
 // Require main_admin or super_admin role for all routes in this router
 router.use(authenticateJWT, authorizeRoles('main_admin', 'super_admin'));
 
@@ -170,6 +218,7 @@ router.get('/audit-transactions', async (req, res) => {
 
 router.get('/organizations', async (req, res) => {
   try {
+    await ensureOrganizationsColumns();
     const [orgs] = await pool.query(`
       SELECT o.*, 
              COALESCE(w.tokens_remaining, 0) as tokens_remaining,
@@ -308,6 +357,7 @@ router.post('/organizations', async (req, res) => {
     return res.status(400).json({ message: 'Name and contact email are required.' });
   }
 
+  await ensureOrganizationsColumns();
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
@@ -479,6 +529,7 @@ router.put('/organizations/:id', async (req, res) => {
   }
 
   try {
+    await ensureOrganizationsColumns();
     const programsJson = typeof programs === 'string' ? programs : JSON.stringify(programs || ['CODEX HACCP']);
     await pool.query(
       `UPDATE organizations SET name = ?, contact_email = ?, contact_phone = ?, country = ?, city = ?, institution_type = ?, programs = ?, status = ? WHERE id = ?`,

@@ -448,8 +448,13 @@
               <EducationLevelsTab />
             </div>
 
+            <!-- 9. Partner Centers & Accreditation Tab -->
+            <div v-if="activeCategory === 'partner_settings'" class="fade-in">
+              <PartnerSettingsTab />
+            </div>
+
             <!-- Bottom Action Controls -->
-            <div class="form-bottom-actions" v-if="activeCategory !== 'email_templates' && activeCategory !== 'education_levels'">
+            <div class="form-bottom-actions" v-if="activeCategory !== 'email_templates' && activeCategory !== 'education_levels' && activeCategory !== 'partner_settings'">
               <button type="button" class="btn-glass" @click="fetchData">
                 <i class="mdi mdi-refresh"></i> Reset Changes
               </button>
@@ -479,6 +484,7 @@ import { useApi } from '@/composables/useApi';
 import EmailTemplatesTab from '@/components/admin/settings/EmailTemplatesTab.vue';
 import TalentHuntSettingsTab from '@/components/admin/settings/TalentHuntSettingsTab.vue';
 import EducationLevelsTab from '@/components/admin/settings/EducationLevelsTab.vue';
+import PartnerSettingsTab from '@/components/admin/settings/PartnerSettingsTab.vue';
 
 definePageMeta({
   layout: 'dashboard',
@@ -591,6 +597,15 @@ const settingsCards = [
     iconClass: 'card-icon-purple',
     badge: 'Candidate Data',
     badgeClass: 'badge-purple'
+  },
+  {
+    id: 'partner_settings',
+    title: 'Partner Centers & Accreditation',
+    subtitle: 'Manage authorized partner countries, approved training programs, and center dropdowns.',
+    icon: 'mdi-handshake-outline',
+    iconClass: 'card-icon-blue',
+    badge: 'Partner Network',
+    badgeClass: 'badge-blue'
   },
   {
     id: 'faqs',
