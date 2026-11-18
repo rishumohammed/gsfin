@@ -8,16 +8,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function runMigrations() {
-  const rootPool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 3306,
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-  });
+  try {
+    const rootPool = mysql.createPool({
+      host: process.env.DB_HOST || 'localhost',
+      port: process.env.DB_PORT || 3306,
+      user: process.env.DB_USER || 'root',
+      password: process.env.DB_PASSWORD || '',
+    });
 
-  console.log('Ensuring database exists...');
-  await rootPool.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME || 'aems_db'}`);
-  await rootPool.end();
+    console.log('Ensuring database exists...');
+    await rootPool.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME || 'aems_db'}`);
+    await rootPool.end();
+  } catch (e) {
+    console.log('Notice: Skipped root database creation, connecting directly to application database.');
+  }
 
   const migrationsDir = path.join(__dirname, 'migrations');
   const files = fs.readdirSync(migrationsDir).filter(f => f.endsWith('.sql'));

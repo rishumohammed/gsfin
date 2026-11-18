@@ -37,6 +37,9 @@ echo "Running database migrations..."
 node src/db/migrate.js || {
   echo "Migration failed or encountered a non-fatal error. Continuing..."
 }
+node src/db/seed_qualifications.js || {
+  echo "Qualifications seed skipped or encountered non-fatal error. Continuing..."
+}
 
 echo "=== [GSFIN Backend] Starting Server ==="
 exec "$@"
