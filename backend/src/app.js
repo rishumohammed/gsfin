@@ -17,6 +17,7 @@ import adminPublicExamsRoutes from './routes/admin.public-exams.routes.js';
 import adminConfigRoutes from './routes/admin.config.routes.js';
 import adminFaqsRoutes from './routes/admin.faqs.routes.js';
 import adminQualificationsRoutes from './routes/admin.qualifications.routes.js';
+import { ensureQualificationsTable } from './services/qualification-seeder.service.js';
 import proctoringRoutes from './routes/proctoring.routes.js';
 import { authenticateJWT, authorizeRoles } from './middleware/auth.js';
 import { initSocket } from './socket/index.js';
@@ -124,6 +125,11 @@ initFollowupJob();
 initExamAutocompleteJob();
 initBatchAutocloseJob();
 initMultitenantNotificationsJob();
+
+// Auto-heal qualifications table and seed default data if needed
+ensureQualificationsTable().catch((err) => {
+  console.error('[Startup] Failed to auto-initialize qualifications table:', err);
+});
 
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`GSFIN Certification Platform Server running on port ${PORT}`);

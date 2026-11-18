@@ -2,6 +2,7 @@ import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { pool } from '../db/connection.js';
 import { CONTACT_STATUS } from '@aems/shared';
+import { ensureQualificationsTable } from '../services/qualification-seeder.service.js';
 
 const router = express.Router();
 
@@ -116,6 +117,7 @@ const parseJsonArray = (val) => {
 // GET /api/public/qualifications - List all active qualifications for catalog & homepage
 router.get('/qualifications', async (req, res) => {
   try {
+    await ensureQualificationsTable();
     const [rows] = await pool.query(`
       SELECT 
         id, slug, name, subtitle, short_description, full_description, category, level,
@@ -144,6 +146,7 @@ router.get('/qualifications', async (req, res) => {
 // GET /api/public/qualifications/:slug - Get active qualification details by slug
 router.get('/qualifications/:slug', async (req, res) => {
   try {
+    await ensureQualificationsTable();
     const { slug } = req.params;
     const [rows] = await pool.query(`
       SELECT 

@@ -1,6 +1,7 @@
 import express from 'express';
 import { pool } from '../db/connection.js';
 import { authenticateJWT, authorizeRoles } from '../middleware/auth.js';
+import { ensureQualificationsTable } from '../services/qualification-seeder.service.js';
 
 const router = express.Router();
 
@@ -28,6 +29,7 @@ const parseJsonField = (val) => {
 // GET /api/admin/qualifications - List all qualifications
 router.get('/', async (req, res) => {
   try {
+    await ensureQualificationsTable();
     const [rows] = await pool.query(
       'SELECT * FROM qualifications WHERE deleted_at IS NULL ORDER BY order_index ASC, id DESC'
     );
