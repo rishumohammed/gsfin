@@ -86,7 +86,7 @@ export const CONTACT_STATUS = {
   NEW: 'new',
   READ: 'read',
   REPLIED: 'replied',
-  CONVERTED: 'converted'
+  CONVERTED: 'converted',
 };
 
 export const STUDENT_EMPLOYMENT_STATUS = {
