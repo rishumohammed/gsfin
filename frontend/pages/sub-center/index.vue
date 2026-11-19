@@ -669,61 +669,108 @@
         <div v-if="showStoreModal" class="modal-overlay" @click.self="showStoreModal = false">
           <div class="modal-card store-modal-card">
             <div class="modal-header">
-              <div class="flex items-center gap-3">
-                <div class="icon-box-lg bg-red-light text-red">
-                  <i class="mdi mdi-cart-plus"></i>
+              <div class="modal-title-row">
+                <div class="modal-header-icon bg-red-50 text-red-600 border border-red-100">
+                  <i class="mdi mdi-cart-arrow-down"></i>
                 </div>
-                <div>
-                  <h3 class="modal-title">Request Token Packages</h3>
-                  <span class="text-xs text-slate-500 font-medium">Select a token package to submit a purchase request for offline payment verification and activation.</span>
+                <div class="modal-title-text">
+                  <h3>Request Token Packages</h3>
+                  <p>Select a package to request exam credit tokens for your center</p>
                 </div>
               </div>
-              <button class="modal-close-btn" @click="showStoreModal = false"><i class="mdi mdi-close"></i></button>
+              <button class="modal-close-btn" @click="showStoreModal = false" aria-label="Close modal"><i class="mdi mdi-close"></i></button>
             </div>
 
             <div class="modal-body">
-              <!-- Notice Banner -->
-              <div class="notice-info-banner">
-                <i class="mdi mdi-information-outline notice-icon"></i>
-                <div class="notice-text">
-                  <strong>Offline Payment Notice:</strong> Token packages require offline payment collection (e.g. bank wire, cheque, or direct invoice). Once received, GSFIN Admin will verify and activate your tokens.
-                </div>
-              </div>
-
-              <!-- Selectable Package Cards -->
-              <div class="packages-selection-grid">
-                <div
-                  v-for="pkg in availablePackages"
-                  :key="pkg.id"
-                  :class="['package-select-card', { 'selected': selectedPackageId === pkg.id }]"
-                  @click="selectedPackageId = pkg.id"
-                >
-                  <div class="package-card-top">
-                    <span class="package-name">{{ pkg.name }}</span>
-                    <span v-if="selectedPackageId === pkg.id" class="selected-chip">
-                      <i class="mdi mdi-check"></i> Selected
-                    </span>
+              <!-- Center Token Status & Offline Billing Banner -->
+              <div class="store-balance-banner mb-4">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="balance-icon-box">
+                      <i class="mdi mdi-ticket-percent-outline"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Current Available Balance</div>
+                      <div class="text-sm font-semibold text-slate-900 mt-0.5">
+                        {{ wallet?.totalRemaining || 0 }} Tokens available in center wallet
+                      </div>
+                    </div>
                   </div>
-                  <div class="package-token-count">
-                    <span class="token-num">{{ pkg.token_count }}</span>
-                    <span class="token-unit">Tokens</span>
-                  </div>
-                  <div class="package-price-row">
-                    <span class="package-price">${{ Number(pkg.price).toFixed(2) }}</span>
-                    <span class="price-rate">(${{ (Number(pkg.price) / Number(pkg.token_count)).toFixed(0) }}/ea)</span>
+                  <div class="offline-pill">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>Offline Billing / Invoice</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Payment Reference Input -->
-              <div class="form-group mb-0">
-                <label class="form-label-xs">Payment / Wire Transfer Reference <span class="label-optional">(Optional)</span></label>
-                <input
-                  v-model="tokenRequestPaymentRef"
-                  type="text"
-                  placeholder="e.g. Bank Wire Ref #, Invoice #, or Cheque Number"
-                  class="modal-input-field"
-                />
+              <!-- Packages Selection Grid -->
+              <div class="form-group mb-4">
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="form-label mb-0">Select Token Package</label>
+                  <span class="text-[11px] text-slate-400">Fixed rate exam credits</span>
+                </div>
+                <div class="packages-selection-grid">
+                  <div
+                    v-for="pkg in availablePackages"
+                    :key="pkg.id"
+                    :class="['package-select-card', { 'selected': selectedPackageId === pkg.id }]"
+                    @click="selectedPackageId = pkg.id"
+                  >
+                    <!-- Card Top -->
+                    <div class="package-card-top">
+                      <span class="package-tier-name truncate" :title="pkg.name">{{ pkg.name }}</span>
+                      <span v-if="selectedPackageId === pkg.id" class="selected-badge">
+                        <i class="mdi mdi-check"></i>
+                        <span>Selected</span>
+                      </span>
+                      <span v-else class="unselected-radio"></span>
+                    </div>
+
+                    <!-- Token Count -->
+                    <div class="package-token-count">
+                      <span class="token-num">{{ pkg.token_count }}</span>
+                      <span class="token-unit">Tokens</span>
+                    </div>
+
+                    <!-- Pricing Info -->
+                    <div class="package-price-row">
+                      <div class="package-price">${{ Number(pkg.price).toFixed(2) }}</div>
+                      <div class="price-rate">${{ (Number(pkg.price) / Number(pkg.token_count)).toFixed(1) }} / token</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Payment Reference Input Field -->
+              <div class="form-group mb-2">
+                <div class="flex items-center justify-between mb-1">
+                  <label class="form-label mb-0">Payment / Wire Transfer Reference <span class="text-xs text-slate-400 font-normal">(Optional)</span></label>
+                  <span class="text-[11px] text-slate-400">Wire UTR, Invoice #, Cheque, or PO</span>
+                </div>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <i class="mdi mdi-receipt-text-outline text-base"></i>
+                  </div>
+                  <input
+                    v-model="tokenRequestPaymentRef"
+                    type="text"
+                    placeholder="e.g. Bank Wire Ref #, Invoice #1042, or Cheque Number"
+                    class="modal-input !pl-10"
+                  />
+                </div>
+              </div>
+
+              <!-- Selected Order Confirmation Summary -->
+              <div v-if="selectedPackage" class="selected-order-summary mt-3">
+                <div class="flex items-center justify-between text-xs">
+                  <div class="flex items-center gap-2 text-slate-700">
+                    <i class="mdi mdi-check-circle-outline text-emerald-600"></i>
+                    <span>Selected: <strong>{{ selectedPackage.name }}</strong> ({{ selectedPackage.token_count }} Tokens)</span>
+                  </div>
+                  <div class="font-semibold text-slate-900">
+                    Total Payable: ${{ Number(selectedPackage.price).toFixed(2) }}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -735,8 +782,14 @@
                 :disabled="submittingTokenRequest || !selectedPackageId"
                 @click="submitSelectedTokenRequest"
               >
-                <i :class="['mdi', submittingTokenRequest ? 'mdi-loading spin-icon' : 'mdi-send']"></i>
-                {{ submittingTokenRequest ? 'Submitting Request...' : `Submit Request (${selectedPackage?.token_count || 0} Tokens • $${Number(selectedPackage?.price || 0).toFixed(2)})` }}
+                <span v-if="submittingTokenRequest" class="flex items-center gap-2">
+                  <span class="spinner-sm-white"></span>
+                  <span>Submitting Request...</span>
+                </span>
+                <span v-else class="flex items-center gap-2">
+                  <i class="mdi mdi-send text-base"></i>
+                  <span>Submit Request (${{ Number(selectedPackage?.price || 0).toFixed(2) }})</span>
+                </span>
               </button>
             </div>
           </div>
@@ -2816,68 +2869,83 @@ input[type="datetime-local"].modal-input-field {
 
 /* Store Request Modal Redesign */
 .store-modal-card {
-  max-width: 720px;
+  max-width: 740px;
+  width: 100%;
 }
 
-.notice-info-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  background: #FFFBEB;
-  border: 1px solid #FDE68A;
+.store-balance-banner {
+  background: #F8FAFC;
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 14px;
   padding: 12px 16px;
-  margin-bottom: 20px;
 }
-.notice-icon {
+
+.balance-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #E31B23;
   font-size: 1.25rem;
-  color: #D97706;
-  margin-top: 1px;
   flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
-.notice-text {
-  font-size: 0.8rem;
-  color: #92400E;
-  line-height: 1.45;
-  font-weight: 500;
-}
-.notice-text strong {
+
+.offline-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
   font-weight: 600;
-  color: #78350F;
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  white-space: nowrap;
 }
 
 .packages-selection-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
 }
-@media (max-width: 640px) {
+@media (max-width: 720px) {
+  .packages-selection-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 480px) {
   .packages-selection-grid {
     grid-template-columns: 1fr;
   }
 }
 
 .package-select-card {
-  border: 1.5px solid #E2E8F0;
-  border-radius: 16px;
-  padding: 16px;
+  border: 1.5px solid rgba(15, 23, 42, 0.1);
+  border-radius: 14px;
+  padding: 14px;
   background: #FFFFFF;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   position: relative;
   text-align: left;
 }
 .package-select-card:hover {
-  border-color: #CBD5E1;
+  border-color: rgba(15, 23, 42, 0.22);
   background: #F8FAFC;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
 }
 .package-select-card.selected {
   border-color: #E31B23;
-  background: #FFF5F5;
+  background: rgba(227, 27, 35, 0.02);
   box-shadow: 0 0 0 1px #E31B23, 0 8px 20px rgba(227, 27, 35, 0.08);
 }
 
@@ -2885,64 +2953,86 @@ input[type="datetime-local"].modal-input-field {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 10px;
 }
-.package-name {
-  font-size: 0.82rem;
+.package-tier-name {
+  font-size: 0.8rem;
   font-weight: 600;
   color: #1E293B;
   line-height: 1.3;
 }
-.selected-chip {
+.selected-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.68rem;
+  gap: 3px;
+  font-size: 0.66rem;
   font-weight: 600;
   color: #E31B23;
-  background: rgba(227, 27, 35, 0.1);
-  padding: 2px 8px;
+  background: #FEF2F2;
+  border: 1px solid rgba(227, 27, 35, 0.2);
+  padding: 2px 7px;
   border-radius: 9999px;
   white-space: nowrap;
+}
+.unselected-radio {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid #CBD5E1;
+  display: block;
+  flex-shrink: 0;
+  transition: border-color 0.15s;
+}
+.package-select-card:hover .unselected-radio {
+  border-color: #94A3B8;
 }
 
 .package-token-count {
   display: flex;
   align-items: baseline;
-  gap: 6px;
-  margin-bottom: 8px;
+  gap: 5px;
+  margin-bottom: 10px;
 }
 .token-num {
-  font-size: 1.85rem;
+  font-size: 1.65rem;
   font-weight: 600;
   color: #E31B23;
   line-height: 1;
 }
 .token-unit {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   color: #64748B;
 }
 
 .package-price-row {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 2px;
   margin-top: auto;
-  padding-top: 8px;
-  border-top: 1px dashed #E2E8F0;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(15, 23, 42, 0.08);
 }
 .package-price {
   font-size: 1.05rem;
   font-weight: 600;
   color: #0F172A;
+  line-height: 1.2;
 }
 .price-rate {
-  font-size: 0.72rem;
-  color: #94A3B8;
+  font-size: 0.7rem;
+  color: #64748B;
   font-weight: 500;
+}
+
+.selected-order-summary {
+  background: #F8FAFC;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  padding: 10px 14px;
 }
 
 .retry-modal-info {
