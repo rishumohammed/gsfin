@@ -246,10 +246,25 @@
                 </div>
               </div>
 
-              <div style="margin-top: 24px;">
-                <NuxtLink :to="`/public-exams/${item?.slug || slug}`" class="btn-red" style="text-decoration: none;">
-                  <i class="mdi mdi-play-circle-outline"></i> Start Examination Assessment
-                </NuxtLink>
+              <!-- Certification Authority Governance Notice -->
+              <div class="authority-banner">
+                <div class="authority-banner-icon">
+                  <i class="mdi mdi-shield-check"></i>
+                </div>
+                <div class="authority-banner-content">
+                  <h4 class="authority-banner-title">Personnel Certification Authority Model</h4>
+                  <p class="authority-banner-text">
+                    GSFIN operates strictly as an autonomous Certification Authority and does not conduct examinations directly for individual candidates. All examinations are administered exclusively through accredited Partner Examination Centers. GSFIN sets examination standards, maintains secure question pools, and issues independent verifiable credentials upon completion.
+                  </p>
+                  <div class="authority-banner-links">
+                    <NuxtLink to="/authorized-centers" class="authority-banner-link">
+                      <i class="mdi mdi-map-marker-radius-outline"></i> Find Authorized Exam Centers
+                    </NuxtLink>
+                    <button type="button" class="authority-banner-btn" @click="openPartnerModal()">
+                      <i class="mdi mdi-domain-plus"></i> Center Accreditation Inquiry
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -847,6 +862,63 @@ const submitPartnerForm = async () => {
   display: flex; align-items: flex-start; gap: 10px; font-size: 0.92rem; color: #334155; font-weight: 500;
 }
 .prereq-icon { font-size: 1.3rem; color: #D97706; flex-shrink: 0; margin-top: 1px; }
+
+/* ── Authority Notice Banner ────────────────────────────── */
+.authority-banner {
+  margin-top: 24px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(227, 27, 35, 0.15);
+  border-left: 4px solid #E31B23;
+  border-radius: 16px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  box-shadow: 0 4px 14px rgba(227, 27, 35, 0.04);
+}
+@media (max-width: 600px) {
+  .authority-banner { flex-direction: column; gap: 12px; }
+}
+
+.authority-banner-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: rgba(227, 27, 35, 0.08);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.35rem; color: #E31B23; flex-shrink: 0; margin-top: 2px;
+}
+
+.authority-banner-content { flex: 1; }
+
+.authority-banner-title {
+  font-size: 0.96rem; font-weight: 600; color: #0F172A; margin: 0 0 6px 0;
+}
+
+.authority-banner-text {
+  font-size: 0.86rem; line-height: 1.6; color: #475569; margin: 0 0 14px 0;
+}
+
+.authority-banner-links {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+}
+
+.authority-banner-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.84rem; font-weight: 600; color: #E31B23;
+  text-decoration: none; transition: all 0.2s ease;
+}
+.authority-banner-link:hover {
+  color: #C4131B; text-decoration: underline;
+}
+
+.authority-banner-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.84rem; font-weight: 600; color: #475569;
+  background: none; border: none; padding: 0; cursor: pointer;
+  transition: all 0.2s ease;
+}
+.authority-banner-btn:hover {
+  color: #E31B23; text-decoration: underline;
+}
 
 /* ── Sidebar ────────────────────────────────────────────── */
 .detail-sidebar-col { display: flex; flex-direction: column; gap: 24px; position: sticky; top: 96px; }
