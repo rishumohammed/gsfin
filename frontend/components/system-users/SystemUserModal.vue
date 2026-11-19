@@ -139,23 +139,21 @@ const saving = ref(false);
 const api = useApi();
 
 const modules = [
-  { id: 'students', label: 'Students', hasApprove: false },
-  { id: 'tutors', label: 'Tutors', hasApprove: true },
-  { id: 'courses', label: 'Courses', hasApprove: true },
-  { id: 'employers', label: 'Employers', hasApprove: true },
-  { id: 'jobs', label: 'Jobs', hasApprove: true },
-  { id: 'crm', label: 'CRM / Leads', hasApprove: false },
-  { id: 'exams', label: 'Exams', hasApprove: false },
-  { id: 'finance', label: 'Finance', hasApprove: false }
+  { id: 'partners', label: 'Partners & Centers', hasApprove: true },
+  { id: 'batches', label: 'Batches & Rosters', hasApprove: true },
+  { id: 'exams', label: 'Public Exams', hasApprove: true },
+  { id: 'certificates', label: 'Certificates', hasApprove: true },
+  { id: 'proctoring', label: 'Proctoring Governance', hasApprove: true },
+  { id: 'qualifications', label: 'Qualifications Catalog', hasApprove: true },
+  { id: 'tokens', label: 'Tokens & Wallet', hasApprove: true },
+  { id: 'inquiries', label: 'Inquiries', hasApprove: false },
+  { id: 'reports', label: 'Reports & Audits', hasApprove: false }
 ];
 
 const roles = [
-  { label: 'Sub Admin', value: 'sub_admin', desc: 'Configurable granular permissions.' },
-  { label: 'LMS User', value: 'lms_user', desc: 'Access to manage courses, exams, question banks, and student learning.' },
-  { label: 'CRM User', value: 'crm_agent', desc: 'Access to Leads, Enquiries, Follow-ups, and Students only.' },
-  { label: 'Placement Coordinator', value: 'placement_coordinator', desc: 'Access to Employers, Jobs, Applications, and Interviews.' },
-  { label: 'Accounts / Finance', value: 'finance_staff', desc: 'Access to Payments, Invoices, and Offline Payments.' },
-  { label: 'Super Admin', value: 'super_admin', desc: 'Full unrestricted system access.' }
+  { label: 'Super Admin', value: 'super_admin', desc: 'Full unrestricted system access.' },
+  { label: 'Main Admin', value: 'main_admin', desc: 'Operational authority over partners, batches, exams, and certificates.' },
+  { label: 'Sub Admin', value: 'sub_admin', desc: 'Configurable granular permissions by module.' }
 ];
 
 const getRoleDescription = (roleValue) => {

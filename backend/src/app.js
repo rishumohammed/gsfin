@@ -26,7 +26,6 @@ import adminSystemUsersRoutes from './routes/admin.system-users.routes.js';
 import adminEmailTemplatesRoutes from './routes/admin.email-templates.routes.js';
 import adminInquiriesRoutes from './routes/admin.inquiries.routes.js';
 import notificationRoutes from './routes/notifications.routes.js';
-import { initFollowupJob } from './jobs/followup-reminder.job.js';
 import { initExamRemindersJob } from './jobs/exam-reminders.job.js';
 import { initExamAutocompleteJob } from './jobs/exam-autocomplete.job.js';
 
@@ -122,7 +121,6 @@ const PORT = process.env.PORT || 5000;
 
 // Initialize scheduled jobs
 initExamRemindersJob();
-initFollowupJob();
 initExamAutocompleteJob();
 initBatchAutocloseJob();
 initMultitenantNotificationsJob();

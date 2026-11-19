@@ -3,11 +3,11 @@
     <div class="admin-wrap">
 
       <!-- ═══ TOP BREADCRUMB & BACK NAVIGATION ═══ -->
-      <div class="top-nav-bar mb-6">
+      <div class="top-nav-bar">
         <div class="nav-left">
           <button class="btn-back" type="button" @click="handleBack">
             <i class="mdi mdi-arrow-left"></i>
-            <span>Back to {{ batch?.org_name ? batch.org_name : 'Partner' }}</span>
+            <span>Back to {{ batch?.org_name ? batch.org_name : 'Partner Directory' }}</span>
           </button>
           <div class="breadcrumb-trail">
             <NuxtLink to="/admin/multi-tenant" class="bc-link">Partner Centers</NuxtLink>
@@ -39,49 +39,50 @@
       </div>
 
       <!-- ═══ LOADING STATE ═══ -->
-      <div v-if="loading && !batch" class="text-center py-24 text-slate-500 font-medium">
-        <span class="spinner-sm-red mb-2"></span>
-        <p class="text-sm">Loading Exam Batch Candidate Roster &amp; Statistics...</p>
+      <div v-if="loading && !batch" class="state-card text-center py-20">
+        <span class="spinner-sm-red"></span>
+        <p class="loading-text mt-3">Loading Exam Batch Candidate Roster &amp; Statistics...</p>
       </div>
 
       <!-- ═══ ERROR STATE ═══ -->
-      <div v-else-if="error" class="p-8 bg-white border border-slate-200 rounded-2xl text-center max-w-lg mx-auto my-12">
-        <div class="w-12 h-12 rounded-full bg-red-50 text-red flex items-center justify-center mx-auto mb-3 text-2xl">
+      <div v-else-if="error" class="error-state-card">
+        <div class="error-icon-box">
           <i class="mdi mdi-alert-circle-outline"></i>
         </div>
-        <h3 class="text-base font-semibold text-slate-900 mb-1">Unable to Load Batch Records</h3>
-        <p class="text-xs text-slate-500 mb-4">{{ error }}</p>
-        <button type="button" class="btn-red-action" @click="handleBack">
+        <h3 class="error-title">Unable to Load Batch Records</h3>
+        <p class="error-desc">{{ error }}</p>
+        <button type="button" class="btn-return" @click="handleBack">
           Return to Partner Center
         </button>
       </div>
 
       <!-- ═══ BATCH MAIN CONTENT ═══ -->
-      <div v-else-if="batch" class="space-y-6">
+      <div v-else-if="batch" class="fade-in space-y-6">
 
         <!-- ─── 1. BATCH EXECUTIVE HERO CARD ─── -->
-        <div class="hero-batch-card">
+        <div class="hero-card">
           <div class="hero-left">
-            <div class="hero-icon-box bg-indigo-light text-indigo">
+            <div class="batch-avatar">
               <i class="mdi mdi-layers-triple"></i>
             </div>
-            <div class="hero-body">
+            <div class="batch-meta">
               <div class="hero-title-row">
+                <h1 class="batch-title">{{ batch.exam_name || 'Certification Exam Batch' }}</h1>
                 <span
                   :class="[
-                    'batch-status-pill',
-                    batch.status === 'open' ? 'pill-green' :
-                    batch.status === 'closed' ? 'pill-muted' : 'pill-amber'
+                    'status-badge',
+                    batch.status === 'open' ? 'badge-active' :
+                    batch.status === 'closed' ? 'badge-closed' : 'badge-amber'
                   ]"
                 >
-                  {{ batch.status ? batch.status.toUpperCase() : 'OPEN' }}
+                  <span class="pulse-dot"></span>
+                  {{ (batch.status || 'open').toUpperCase() }}
                 </span>
-                <h1 class="batch-exam-title">{{ batch.exam_name || 'Certification Exam Batch' }}</h1>
               </div>
 
-              <div class="hero-meta-row">
-                <span class="meta-item">
-                  <i class="mdi mdi-office-building text-slate-400"></i>
+              <div class="meta-tags-row">
+                <span class="meta-pill">
+                  <i class="mdi mdi-office-building"></i>
                   <NuxtLink
                     v-if="batch.org_id"
                     :to="'/admin/multi-tenant/' + batch.org_id"
@@ -93,12 +94,13 @@
                   <span v-if="batch.city" class="text-slate-400">({{ batch.city }}, {{ batch.country }})</span>
                 </span>
 
-                <span class="meta-item font-mono">
-                  <span class="text-slate-400 font-sans">Batch ID:</span>
+                <span class="meta-pill">
+                  <i class="mdi mdi-fingerprint"></i>
+                  <span class="text-slate-400">Batch Code:</span>
                   <code class="batch-code-badge">{{ batch.id }}</code>
                   <button
                     type="button"
-                    class="copy-btn-sm"
+                    class="btn-copy-mini"
                     :title="copiedBatchId ? 'Copied!' : 'Copy Batch ID'"
                     @click="copyBatchId"
                   >
@@ -106,290 +108,334 @@
                   </button>
                 </span>
 
-                <span v-if="batch.duration_minutes" class="meta-item">
-                  <i class="mdi mdi-clock-outline text-slate-400"></i>
+                <span v-if="batch.duration_minutes" class="meta-pill">
+                  <i class="mdi mdi-clock-outline"></i>
                   <span>Duration: {{ batch.duration_minutes }} mins</span>
                 </span>
 
-                <span v-if="batch.created_at" class="meta-item">
-                  <i class="mdi mdi-calendar-blank text-slate-400"></i>
+                <span v-if="batch.created_at" class="meta-pill">
+                  <i class="mdi mdi-calendar-blank"></i>
                   <span>Created: {{ formatDate(batch.created_at) }}</span>
                 </span>
               </div>
             </div>
           </div>
 
-          <div class="hero-right">
+          <div class="hero-actions">
             <button
               type="button"
-              class="btn-glass text-xs py-2 px-3 inline-flex items-center gap-1.5"
+              class="btn-action btn-action-secondary"
               :disabled="assignments.length === 0"
               title="Export candidate roster to CSV"
               @click="exportCSV"
             >
               <i class="mdi mdi-file-delimited-outline"></i>
-              <span>Export CSV Roster</span>
+              <span>Export CSV</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn-action btn-action-secondary"
+              :disabled="certifiedCount === 0"
+              title="Copy all certificate numbers"
+              @click="copyAllCerts"
+            >
+              <i :class="['mdi', copiedAllCerts ? 'mdi-check text-emerald' : 'mdi-content-copy']"></i>
+              <span>{{ copiedAllCerts ? 'All Copied!' : 'Copy Cert IDs' }}</span>
             </button>
 
             <NuxtLink
               v-if="batch.org_id"
               :to="'/admin/multi-tenant/' + batch.org_id"
-              class="btn-glass text-xs py-2 px-3 inline-flex items-center gap-1.5 no-underline"
+              class="btn-action btn-action-secondary no-underline"
             >
               <i class="mdi mdi-office-building-outline"></i>
-              <span>View Partner Profile</span>
+              <span>Partner Center</span>
             </NuxtLink>
           </div>
         </div>
 
         <!-- ─── 2. BATCH KPI SUMMARY CARDS (4-COLUMN GRID) ─── -->
-        <div class="metrics-grid">
+        <div class="kpi-grid">
           <!-- Total Candidates -->
-          <div class="metric-card">
-            <div class="metric-icon-box bg-indigo-light text-indigo">
-              <i class="mdi mdi-account-group"></i>
+          <div class="kpi-card">
+            <div class="kpi-icon bg-indigo-light">
+              <i class="mdi mdi-account-group text-indigo"></i>
             </div>
-            <div class="metric-info">
-              <span class="metric-value">{{ stats.total_candidates ?? assignments.length }}</span>
-              <span class="metric-label">Enrolled Candidates</span>
-              <span class="metric-sub text-indigo">Batch Total</span>
+            <div class="kpi-content">
+              <span class="kpi-label">Total Candidates</span>
+              <span class="kpi-value">{{ stats.total_candidates ?? assignments.length }}</span>
+              <span class="kpi-sub text-indigo">Batch Attendance</span>
+            </div>
+          </div>
+
+          <!-- Certified Holders -->
+          <div class="kpi-card">
+            <div class="kpi-icon bg-emerald-light">
+              <i class="mdi mdi-certificate text-emerald"></i>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-label">Certified Holders</span>
+              <span class="kpi-value text-emerald">{{ stats.certified_count ?? certifiedCount }}</span>
+              <span class="kpi-sub text-emerald">Issued Credentials</span>
             </div>
           </div>
 
           <!-- Passed Candidates -->
-          <div class="metric-card">
-            <div class="metric-icon-box bg-emerald-light text-emerald">
-              <i class="mdi mdi-check-decagram"></i>
+          <div class="kpi-card">
+            <div class="kpi-icon bg-emerald-light">
+              <i class="mdi mdi-check-decagram text-emerald"></i>
             </div>
-            <div class="metric-info">
-              <span class="metric-value text-emerald">{{ stats.passed_count ?? passedCount }}</span>
-              <span class="metric-label">Passed Sitting</span>
-              <span class="metric-sub text-emerald">Exam Passed</span>
+            <div class="kpi-content">
+              <span class="kpi-label">Passed Sitting</span>
+              <span class="kpi-value text-emerald">{{ stats.passed_count ?? passedCount }}</span>
+              <span class="kpi-sub text-emerald">Qualified Candidates</span>
             </div>
           </div>
 
           <!-- Failed Candidates -->
-          <div class="metric-card">
-            <div class="metric-icon-box bg-red-light text-red">
-              <i class="mdi mdi-close-circle-outline"></i>
+          <div class="kpi-card">
+            <div class="kpi-icon bg-red-light">
+              <i class="mdi mdi-close-circle-outline text-red"></i>
             </div>
-            <div class="metric-info">
-              <span class="metric-value text-red">{{ stats.failed_count ?? failedCount }}</span>
-              <span class="metric-label">Failed / Retake Required</span>
-              <span class="metric-sub text-red">Needs Retest</span>
-            </div>
-          </div>
-
-          <!-- Certified Students -->
-          <div class="metric-card">
-            <div class="metric-icon-box bg-emerald-light text-emerald">
-              <i class="mdi mdi-certificate"></i>
-            </div>
-            <div class="metric-info">
-              <span class="metric-value text-emerald">{{ stats.certified_count ?? certifiedCount }}</span>
-              <span class="metric-label">Certified Holders</span>
-              <span class="metric-sub text-emerald">Issued Credentials</span>
+            <div class="kpi-content">
+              <span class="kpi-label">Failed / Retake Required</span>
+              <span class="kpi-value text-red">{{ stats.failed_count ?? failedCount }}</span>
+              <span class="kpi-sub text-red">Below Passing Score</span>
             </div>
           </div>
         </div>
 
-        <!-- ─── 3. ENROLLED CANDIDATES ROSTER (ENGINEERED FOR 50-100+ STUDENTS) ─── -->
-        <div class="panel-section-card">
-          <div class="section-card-header flex-wrap gap-3">
-            <div>
-              <h3 class="text-sm font-semibold text-slate-900 m-0">Enrolled Candidates Roster</h3>
-              <p class="text-xs text-slate-500 m-0 mt-0.5">
-                Comprehensive candidate participation, examination sitting statuses, and issued certificate serials.
-              </p>
+        <!-- ─── 3. ENROLLED CANDIDATES ROSTER PANEL ─── -->
+        <div class="panel-card">
+          <!-- Panel Header -->
+          <div class="panel-card-header">
+            <div class="panel-header-left">
+              <div class="panel-header-icon bg-red-light text-red">
+                <i class="mdi mdi-account-group-outline"></i>
+              </div>
+              <div>
+                <h3 class="panel-title">Enrolled Candidates Roster</h3>
+                <p class="panel-subtitle">
+                  Comprehensive candidate participation, examination sitting statuses, and issued certificate serials.
+                </p>
+              </div>
             </div>
 
-            <div class="flex items-center gap-2 flex-wrap">
-              <button
-                type="button"
-                class="btn-roster-tool"
-                :disabled="certifiedCount === 0"
-                title="Copy all certificate numbers"
-                @click="copyAllCerts"
-              >
-                <i :class="['mdi', copiedAllCerts ? 'mdi-check text-emerald-600' : 'mdi-content-copy']"></i>
-                <span>{{ copiedAllCerts ? 'All Numbers Copied!' : 'Copy Certificate Numbers' }}</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Search & Filter Controls Bar -->
-          <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-            <!-- Search Input -->
-            <div class="search-box flex-1 max-w-md">
-              <i class="mdi mdi-magnify search-icon"></i>
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Search candidates by name, email, or certificate ID..."
-                class="search-input"
-              />
-              <button v-if="searchQuery" type="button" class="search-clear-btn" @click="searchQuery = ''">
-                <i class="mdi mdi-close-circle"></i>
-              </button>
-            </div>
-
-            <!-- Status Tabs Filter -->
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <div class="status-tab-group">
-                <button
-                  type="button"
-                  :class="['status-tab-btn', { active: statusFilter === 'all' }]"
-                  @click="statusFilter = 'all'"
-                >
-                  All ({{ assignments.length }})
-                </button>
-                <button
-                  type="button"
-                  :class="['status-tab-btn', { active: statusFilter === 'passed' }]"
-                  @click="statusFilter = 'passed'"
-                >
-                  Passed ({{ passedCount }})
-                </button>
-                <button
-                  type="button"
-                  :class="['status-tab-btn', { active: statusFilter === 'failed' }]"
-                  @click="statusFilter = 'failed'"
-                >
-                  Failed ({{ failedCount }})
-                </button>
-                <button
-                  type="button"
-                  :class="['status-tab-btn', { active: statusFilter === 'in_progress' }]"
-                  @click="statusFilter = 'in_progress'"
-                >
-                  In Progress ({{ inProgressCount }})
-                </button>
-                <button
-                  type="button"
-                  :class="['status-tab-btn', { active: statusFilter === 'not_started' }]"
-                  @click="statusFilter = 'not_started'"
-                >
-                  Not Started ({{ notStartedCount }})
+            <div class="panel-header-actions">
+              <div class="search-input-wrap">
+                <i class="mdi mdi-magnify search-icon"></i>
+                <input
+                  v-model="searchQuery"
+                  type="text"
+                  placeholder="Search candidates by name, email, or certificate ID..."
+                  class="table-search-input"
+                />
+                <button v-if="searchQuery" type="button" class="search-clear-btn" @click="searchQuery = ''">
+                  <i class="mdi mdi-close"></i>
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- Candidates Table -->
+          <!-- Filter Tab Bar -->
+          <div class="filter-tab-bar">
+            <button
+              type="button"
+              :class="['filter-tab-btn', statusFilter === 'all' ? 'active' : '']"
+              @click="statusFilter = 'all'"
+            >
+              All Candidates <span class="tab-count">{{ assignments.length }}</span>
+            </button>
+            <button
+              type="button"
+              :class="['filter-tab-btn', statusFilter === 'certified' ? 'active' : '']"
+              @click="statusFilter = 'certified'"
+            >
+              <i class="mdi mdi-certificate text-emerald"></i>
+              <span>Certified</span>
+              <span class="tab-count count-emerald">{{ certifiedCount }}</span>
+            </button>
+            <button
+              type="button"
+              :class="['filter-tab-btn', statusFilter === 'passed' ? 'active' : '']"
+              @click="statusFilter = 'passed'"
+            >
+              <i class="mdi mdi-check-circle text-emerald"></i>
+              <span>Passed</span>
+              <span class="tab-count count-emerald">{{ passedCount }}</span>
+            </button>
+            <button
+              type="button"
+              :class="['filter-tab-btn', statusFilter === 'failed' ? 'active' : '']"
+              @click="statusFilter = 'failed'"
+            >
+              <i class="mdi mdi-close-circle text-red"></i>
+              <span>Failed</span>
+              <span class="tab-count count-red">{{ failedCount }}</span>
+            </button>
+            <button
+              type="button"
+              :class="['filter-tab-btn', statusFilter === 'in_progress' ? 'active' : '']"
+              @click="statusFilter = 'in_progress'"
+            >
+              <i class="mdi mdi-clock-outline text-amber"></i>
+              <span>In Progress</span>
+              <span class="tab-count count-amber">{{ inProgressCount }}</span>
+            </button>
+          </div>
+
+          <!-- Candidate Table -->
           <div class="table-responsive">
             <table class="gsfin-table">
               <thead>
                 <tr>
                   <th>Candidate Name</th>
-                  <th>Attendance / Sitting Status</th>
-                  <th>Attempts</th>
+                  <th>Attendance / Exam Status</th>
                   <th>Certificate Serial ID</th>
                   <th>Issued Date</th>
+                  <th>Cert Status</th>
                   <th class="text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="filteredAssignments.length === 0">
-                  <td colspan="6" class="text-center py-16 text-slate-400">
-                    <i class="mdi mdi-account-search-outline text-4xl block mb-2 text-slate-300"></i>
-                    <div class="text-xs font-semibold text-slate-600">No candidates match your search or filter.</div>
-                    <div v-if="searchQuery || statusFilter !== 'all'" class="text-xs text-slate-400 mt-1">
-                      Try clearing your search query or switching filter tabs.
+                <!-- Empty State -->
+                <tr v-if="paginatedAssignments.length === 0">
+                  <td colspan="6" class="text-center py-16">
+                    <div class="empty-state-box">
+                      <div class="empty-icon-wrap">
+                        <i class="mdi mdi-account-group-outline"></i>
+                      </div>
+                      <h4 class="empty-state-title">No Candidates Found</h4>
+                      <p v-if="searchQuery" class="empty-state-desc">
+                        No candidate records match your search query &quot;{{ searchQuery }}&quot;.
+                      </p>
+                      <p v-else-if="statusFilter !== 'all'" class="empty-state-desc">
+                        No candidates in this batch match the &quot;{{ statusFilter }}&quot; filter.
+                      </p>
+                      <p v-else class="empty-state-desc">
+                        No candidates have been assigned to this batch examination session yet.
+                      </p>
                     </div>
                   </td>
                 </tr>
 
-                <tr v-for="std in paginatedAssignments" :key="std.id || std.assignment_id">
+                <!-- Candidate Rows -->
+                <tr v-for="a in paginatedAssignments" :key="a.id">
                   <!-- Candidate Name & Email -->
                   <td>
-                    <div class="flex items-center gap-3">
-                      <div v-if="std.face_photo" class="candidate-avatar-img-wrap">
-                        <img :src="backendUrl(std.face_photo)" alt="Candidate Face Photo" class="candidate-avatar-img" />
-                      </div>
-                      <div v-else class="candidate-avatar-initials">
-                        {{ getInitials(std.student_name) }}
+                    <div class="candidate-cell">
+                      <div class="avatar-circle">
+                        {{ getInitials(a.student_name) }}
                       </div>
                       <div>
-                        <div class="font-semibold text-slate-900 text-sm">{{ std.student_name || 'Candidate' }}</div>
-                        <div class="text-xs text-slate-400 font-mono">{{ std.student_email }}</div>
+                        <div class="font-semibold text-slate-900 leading-snug">{{ a.student_name }}</div>
+                        <div class="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                          <span>{{ a.student_email }}</span>
+                          <span v-if="a.student_phone && a.student_phone !== 'N/A'" class="text-slate-400 font-mono">
+                            &bull; {{ a.student_phone }}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </td>
 
                   <!-- Exam Status -->
                   <td>
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                      <span :class="['chip-pill', getExamStatusPillClass(std.status)]">
-                        {{ formatExamStatus(std.status) }}
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span
+                        :class="[
+                          'badge-chip',
+                          a.status === 'passed' ? 'chip-green' :
+                          a.status === 'failed' ? 'chip-red' :
+                          a.status === 'in_progress' ? 'chip-amber' : 'chip-slate'
+                        ]"
+                      >
+                        <i
+                          :class="[
+                            'mdi',
+                            a.status === 'passed' ? 'mdi-check-circle' :
+                            a.status === 'failed' ? 'mdi-close-circle' :
+                            a.status === 'in_progress' ? 'mdi-clock-outline' : 'mdi-account-clock'
+                          ]"
+                        ></i>
+                        {{ formatExamStatus(a.status) }}
+                      </span>
+                      <span class="attempt-badge">
+                        Attempt {{ a.attempts_used || 1 }} / {{ a.max_attempts || 1 }}
                       </span>
                     </div>
-                  </td>
-
-                  <!-- Attempts Used -->
-                  <td>
-                    <span class="attempts-chip font-mono">
-                      {{ std.attempts_used ?? std.attempts ?? 0 }} / {{ std.max_attempts ?? 2 }}
-                    </span>
                   </td>
 
                   <!-- Certificate Serial ID -->
                   <td>
-                    <div v-if="std.certificate_number || std.cert_number" class="cert-serial-cell">
-                      <i class="mdi mdi-file-certificate text-red text-base"></i>
-                      <span class="font-mono font-semibold text-slate-900 text-xs tracking-wider">
-                        {{ std.certificate_number || std.cert_number }}
-                      </span>
+                    <div v-if="a.certificate_number || a.cert_number" class="cert-serial-box">
+                      <code class="cert-code">{{ a.certificate_number || a.cert_number }}</code>
                       <button
                         type="button"
-                        class="btn-copy-sm"
-                        :title="copiedCertId === (std.certificate_number || std.cert_number) ? 'Copied!' : 'Copy Certificate Number'"
-                        @click="copyCertId(std.certificate_number || std.cert_number)"
+                        class="btn-copy-mini"
+                        :title="copiedCertId === (a.certificate_number || a.cert_number) ? 'Copied!' : 'Copy Certificate Serial'"
+                        @click="copyCert(a.certificate_number || a.cert_number)"
                       >
-                        <i :class="['mdi', copiedCertId === (std.certificate_number || std.cert_number) ? 'mdi-check text-emerald-600' : 'mdi-content-copy']"></i>
+                        <i :class="['mdi', copiedCertId === (a.certificate_number || a.cert_number) ? 'mdi-check text-emerald' : 'mdi-content-copy']"></i>
                       </button>
                     </div>
-                    <span v-else class="text-xs text-slate-400 italic">
-                      No Certificate Issued
-                    </span>
+                    <span v-else class="text-xs text-slate-400 italic">No Certificate Issued</span>
                   </td>
 
                   <!-- Issued Date -->
-                  <td class="text-slate-500 font-medium text-xs whitespace-nowrap">
-                    {{ std.issued_at ? formatDate(std.issued_at) : '—' }}
+                  <td class="text-slate-500 font-medium text-xs">
+                    {{ a.issued_at ? formatDate(a.issued_at) : '—' }}
+                  </td>
+
+                  <!-- Cert Status -->
+                  <td>
+                    <span
+                      v-if="a.certificate_number || a.cert_number"
+                      :class="[
+                        'badge-chip',
+                        a.cert_status === 'active' ? 'chip-green' :
+                        a.cert_status === 'revoked' ? 'chip-red' : 'chip-amber'
+                      ]"
+                    >
+                      <i :class="['mdi', a.cert_status === 'active' ? 'mdi-shield-check' : 'mdi-close-octagon']"></i>
+                      {{ a.cert_status === 'active' ? 'Active Verified' : (a.cert_status === 'revoked' ? 'Revoked' : 'Pending') }}
+                    </span>
+                    <span v-else class="badge-chip chip-slate">PENDING</span>
                   </td>
 
                   <!-- Actions -->
                   <td class="text-right">
-                    <div class="flex items-center justify-end gap-1.5">
-                      <!-- Download PDF Certificate -->
-                      <a
-                        v-if="std.certificate_url || std.pdf_url"
-                        :href="backendUrl(std.certificate_url || std.pdf_url)"
-                        target="_blank"
-                        class="btn-icon-action btn-icon-view"
-                        title="Download / View PDF Certificate"
-                      >
-                        <i class="mdi mdi-download"></i>
-                      </a>
-
-                      <!-- Direct Proctoring Audit Link (if available) -->
+                    <div class="actions-cell justify-end">
+                      <!-- Proctoring Link -->
                       <NuxtLink
-                        v-if="std.attempt_id"
-                        :to="'/dashboard/admin/public-exams/proctoring/' + std.attempt_id"
-                        class="btn-icon-action btn-icon-view"
-                        title="View Candidate Proctoring Audit Telemetry"
+                        v-if="a.attempt_id"
+                        :to="'/dashboard/admin/proctoring/' + a.attempt_id"
+                        class="btn-action-icon"
+                        title="View Proctoring Audit Log"
                       >
-                        <i class="mdi mdi-shield-search"></i>
+                        <i class="mdi mdi-shield-account-outline"></i>
                       </NuxtLink>
+
+                      <!-- Download PDF Certificate -->
+                      <button
+                        v-if="a.certificate_number || a.cert_number"
+                        type="button"
+                        class="btn-action-icon btn-pdf"
+                        title="Download Certificate PDF"
+                        @click="downloadCert(a.certificate_number || a.cert_number)"
+                      >
+                        <i class="mdi mdi-file-pdf-box"></i>
+                      </button>
+
+                      <span v-if="!a.certificate_number && !a.cert_number && !a.attempt_id" class="text-xs text-slate-400 font-medium">—</span>
                     </div>
                   </td>
                 </tr>
               </tbody>
             </table>
-          </div>
 
-          <!-- Pagination Controls -->
-          <div class="p-4 border-t border-slate-100">
+            <!-- Pagination -->
             <AppPagination
               v-if="filteredAssignments.length > 0"
               v-model="page"
@@ -407,9 +453,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useApi } from '@/composables/useApi';
+import AppPagination from '@/components/common/AppPagination.vue';
 
 definePageMeta({
   layout: 'dashboard',
@@ -420,7 +467,8 @@ definePageMeta({
 const route = useRoute();
 const router = useRouter();
 const api = useApi();
-const batchId = route.params.id as string;
+
+const batchId = computed(() => route.params.id as string);
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -429,84 +477,42 @@ const assignments = ref<any[]>([]);
 const stats = ref<any>({});
 
 const searchQuery = ref('');
-const statusFilter = ref<'all' | 'passed' | 'failed' | 'in_progress' | 'not_started'>('all');
+const statusFilter = ref<'all' | 'certified' | 'passed' | 'failed' | 'in_progress'>('all');
+
 const page = ref(1);
 const perPage = ref(25);
 
 const copiedBatchId = ref(false);
-const copiedCertId = ref<string | null>(null);
 const copiedAllCerts = ref(false);
+const copiedCertId = ref<string | null>(null);
 
-const handleBack = () => {
-  if (batch.value?.org_id) {
-    router.push(`/admin/multi-tenant/${batch.value.org_id}`);
-  } else if (window.history.length > 1) {
-    router.back();
-  } else {
-    router.push('/admin/multi-tenant');
-  }
-};
-
-const copyBatchId = async () => {
-  try {
-    await navigator.clipboard.writeText(batchId);
-    copiedBatchId.value = true;
-    setTimeout(() => { copiedBatchId.value = false; }, 2000);
-  } catch (err) {
-    console.error('Failed to copy batch ID', err);
-  }
-};
-
-const copyCertId = async (certNum: string) => {
-  try {
-    await navigator.clipboard.writeText(certNum);
-    copiedCertId.value = certNum;
-    setTimeout(() => { copiedCertId.value = null; }, 2000);
-  } catch (err) {
-    console.error('Failed to copy cert number', err);
-  }
-};
-
-const copyAllCerts = async () => {
-  const certs = assignments.value
-    .map(a => a.certificate_number || a.cert_number)
-    .filter(Boolean);
-  if (certs.length === 0) return;
-  try {
-    await navigator.clipboard.writeText(certs.join('\n'));
-    copiedAllCerts.value = true;
-    setTimeout(() => { copiedAllCerts.value = false; }, 2000);
-  } catch (err) {
-    console.error('Failed to copy all certs', err);
-  }
-};
-
-// Summary metrics computed
 const passedCount = computed(() => assignments.value.filter(a => a.status === 'passed').length);
 const failedCount = computed(() => assignments.value.filter(a => a.status === 'failed').length);
 const inProgressCount = computed(() => assignments.value.filter(a => a.status === 'in_progress').length);
-const notStartedCount = computed(() => assignments.value.filter(a => a.status === 'not_started' || !a.status).length);
 const certifiedCount = computed(() => assignments.value.filter(a => !!(a.certificate_number || a.cert_number)).length);
 
-// Filtered & Paginated candidates
 const filteredAssignments = computed(() => {
   let list = assignments.value || [];
-  if (statusFilter.value !== 'all') {
-    if (statusFilter.value === 'not_started') {
-      list = list.filter(a => a.status === 'not_started' || !a.status);
-    } else {
-      list = list.filter(a => a.status === statusFilter.value);
-    }
+  const q = searchQuery.value.toLowerCase().trim();
+
+  if (statusFilter.value === 'certified') {
+    list = list.filter(a => !!(a.certificate_number || a.cert_number));
+  } else if (statusFilter.value === 'passed') {
+    list = list.filter(a => a.status === 'passed');
+  } else if (statusFilter.value === 'failed') {
+    list = list.filter(a => a.status === 'failed');
+  } else if (statusFilter.value === 'in_progress') {
+    list = list.filter(a => a.status === 'in_progress');
   }
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase();
-    list = list.filter(a => {
-      const name = (a.student_name || '').toLowerCase();
-      const email = (a.student_email || '').toLowerCase();
-      const cert = (a.certificate_number || a.cert_number || '').toLowerCase();
-      return name.includes(q) || email.includes(q) || cert.includes(q);
-    });
+
+  if (q) {
+    list = list.filter(a =>
+      (a.student_name || '').toLowerCase().includes(q) ||
+      (a.student_email || '').toLowerCase().includes(q) ||
+      (a.certificate_number || a.cert_number || '').toLowerCase().includes(q)
+    );
   }
+
   return list;
 });
 
@@ -515,111 +521,148 @@ const paginatedAssignments = computed(() => {
   return filteredAssignments.value.slice(start, start + perPage.value);
 });
 
-watch([searchQuery, statusFilter], () => {
-  page.value = 1;
+onMounted(() => {
+  fetchBatchData();
 });
 
-const backendUrl = (path: string) => {
-  if (!path) return '';
-  if (path.startsWith('http')) return path;
-  const config = useRuntimeConfig();
-  return `${config.public.apiBase.replace('/api', '')}${path}`;
-};
-
-const getInitials = (name?: string) => {
-  if (!name) return 'CA';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[1][0]).toUpperCase();
-};
-
-const formatDate = (dateStr?: string) => {
-  if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
-};
-
-const formatExamStatus = (status?: string) => {
-  if (!status || status === 'not_started') return 'NOT STARTED';
-  if (status === 'in_progress') return 'IN PROGRESS';
-  return status.toUpperCase();
-};
-
-const getExamStatusPillClass = (status?: string) => {
-  switch (status) {
-    case 'passed': return 'chip-green';
-    case 'failed': return 'chip-red';
-    case 'in_progress': return 'chip-amber';
-    default: return 'chip-muted';
-  }
-};
-
-const fetchBatchData = async () => {
+async function fetchBatchData() {
   loading.value = true;
   error.value = null;
   try {
-    const { data } = await api.get(`/main-admin/batches/${batchId}`);
-    batch.value = data.batch || null;
-    assignments.value = data.assignments || [];
-    stats.value = data.stats || {};
+    const { data } = await api.get(`/main-admin/batches/${batchId.value}`);
+    batch.value = data?.batch || null;
+    assignments.value = data?.assignments || [];
+    stats.value = data?.stats || {};
   } catch (err: any) {
-    console.error('Failed to load batch data:', err);
-    error.value = err.response?.data?.message || err.message || 'Unable to load batch details.';
+    error.value = err.response?.data?.message || err.message || 'Failed to load batch records.';
   } finally {
     loading.value = false;
   }
-};
+}
 
-const exportCSV = () => {
+function handleBack() {
+  if (batch.value?.org_id) {
+    router.push(`/admin/multi-tenant/${batch.value.org_id}`);
+  } else {
+    router.push('/admin/multi-tenant');
+  }
+}
+
+function formatDate(dateStr: string) {
+  if (!dateStr) return '—';
+  try {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
+function formatExamStatus(st: string) {
+  if (!st) return 'Pending';
+  switch (st.toLowerCase()) {
+    case 'passed': return 'Passed';
+    case 'failed': return 'Failed';
+    case 'in_progress': return 'In Progress';
+    case 'not_started': return 'Not Started';
+    case 'expired': return 'Expired';
+    default: return st.charAt(0).toUpperCase() + st.slice(1);
+  }
+}
+
+function getInitials(name: string) {
+  if (!name) return 'CD';
+  return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+}
+
+function copyBatchId() {
+  if (!batch.value) return;
+  navigator.clipboard.writeText(batch.value.id);
+  copiedBatchId.value = true;
+  setTimeout(() => {
+    copiedBatchId.value = false;
+  }, 2000);
+}
+
+function copyCert(certNumber: string) {
+  if (!certNumber) return;
+  navigator.clipboard.writeText(certNumber);
+  copiedCertId.value = certNumber;
+  setTimeout(() => {
+    if (copiedCertId.value === certNumber) copiedCertId.value = null;
+  }, 2000);
+}
+
+function copyAllCerts() {
+  const certNumbers = assignments.value
+    .map(a => a.certificate_number || a.cert_number)
+    .filter(Boolean);
+
+  if (certNumbers.length === 0) return;
+
+  navigator.clipboard.writeText(certNumbers.join('\n'));
+  copiedAllCerts.value = true;
+  setTimeout(() => {
+    copiedAllCerts.value = false;
+  }, 2500);
+}
+
+function downloadCert(certNumber: string) {
+  const url = `/api/certs/${encodeURIComponent(certNumber)}/download`;
+  window.open(url, '_blank');
+}
+
+function exportCSV() {
   if (assignments.value.length === 0) return;
+
   const headers = ['Candidate Name', 'Candidate Email', 'Phone', 'Exam Status', 'Attempts Used', 'Certificate ID', 'Issued Date'];
   const rows = assignments.value.map(a => [
     `"${(a.student_name || '').replace(/"/g, '""')}"`,
     `"${(a.student_email || '').replace(/"/g, '""')}"`,
     `"${(a.student_phone || '').replace(/"/g, '""')}"`,
-    `"${a.status || 'not_started'}"`,
-    `"${a.attempts_used || a.attempts || 0}"`,
+    `"${formatExamStatus(a.status)}"`,
+    a.attempts_used || 1,
     `"${a.certificate_number || a.cert_number || ''}"`,
-    `"${a.issued_at ? new Date(a.issued_at).toLocaleDateString() : ''}"`
+    `"${a.issued_at ? formatDate(a.issued_at) : ''}"`
   ]);
 
-  const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-  const encodedUri = encodeURI(csvContent);
+  const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
-  link.setAttribute('href', encodedUri);
-  link.setAttribute('download', `Batch_${batchId.slice(0, 8)}_Candidates_Roster.csv`);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `Batch_${batch.value?.exam_name || 'Roster'}_${batchId.value.slice(0, 8)}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-};
-
-onMounted(async () => {
-  await fetchBatchData();
-});
+}
 </script>
 
 <style scoped>
 .gsfin-admin-page {
-  background: #F8FAFC;
+  padding: 0;
+  background-color: #FAFAFD;
   min-height: 100vh;
-  padding: 24px;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
+  color: #0F172A;
 }
 
 .admin-wrap {
+  padding: 32px;
   max-width: 1400px;
   margin: 0 auto;
 }
 
-/* ═══ TOP NAV BAR ═══ */
+/* ─── TOP NAVIGATION & BREADCRUMB ─── */
 .top-nav-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  margin-bottom: 24px;
 }
 
 .nav-left {
@@ -633,103 +676,198 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
+  padding: 8px 16px;
+  border-radius: 12px;
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 10px;
-  color: #475569;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 600;
+  color: #475569;
   cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);
 }
+
 .btn-back:hover {
-  background: #F1F5F9;
-  color: #0F172A;
-  border-color: rgba(15, 23, 42, 0.15);
+  background: #F8FAFC;
+  border-color: rgba(227, 27, 35, 0.3);
+  color: #E31B23;
 }
 
 .breadcrumb-trail {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.82rem;
 }
+
 .bc-link {
   color: #64748B;
   text-decoration: none;
+  font-weight: 500;
   transition: color 0.15s ease;
 }
+
 .bc-link:hover {
-  color: #C9252C;
+  color: #E31B23;
 }
+
 .bc-sep {
   color: #CBD5E1;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
+
 .bc-current {
   color: #0F172A;
+  font-weight: 600;
 }
 
 .btn-icon-refresh {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.08);
   color: #64748B;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);
+  font-size: 1.15rem;
+}
+
+.btn-icon-refresh:hover:not(:disabled) {
+  background: #F8FAFC;
+  color: #E31B23;
+  border-color: rgba(227, 27, 35, 0.3);
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ─── LOADING & ERROR STATES ─── */
+.state-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.02);
+}
+
+.spinner-sm-red {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(227, 27, 35, 0.15);
+  border-top-color: #E31B23;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-text {
+  font-size: 0.88rem;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.error-state-card {
+  padding: 40px;
+  background: #FFFFFF;
+  border: 1px solid #FEE2E2;
+  border-radius: 24px;
+  text-align: center;
+  max-width: 500px;
+  margin: 48px auto;
+  box-shadow: 0 4px 20px rgba(227, 27, 35, 0.04);
+}
+
+.error-icon-box {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #FEF2F2;
+  color: #E31B23;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
-}
-.btn-icon-refresh:hover:not(:disabled) {
-  background: #F1F5F9;
-  color: #0F172A;
-}
-.btn-icon-refresh:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  margin: 0 auto 16px;
+  font-size: 1.75rem;
 }
 
-/* ═══ HERO BATCH CARD ═══ */
-.hero-batch-card {
+.error-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0 0 8px;
+}
+
+.error-desc {
+  font-size: 0.84rem;
+  color: #64748B;
+  margin-bottom: 20px;
+}
+
+.btn-return {
+  background: #E31B23;
+  color: #FFFFFF;
+  padding: 10px 22px;
+  border-radius: 12px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-return:hover {
+  background: #C41219;
+}
+
+/* ─── 1. HERO CARD ─── */
+.hero-card {
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 16px;
-  padding: 22px 26px;
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.02);
+  border-radius: 24px;
+  padding: 32px 36px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 28px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02);
   flex-wrap: wrap;
+  margin-bottom: 28px;
 }
 
 .hero-left {
   display: flex;
   align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
+  gap: 22px;
+  flex: 1;
+  min-width: 320px;
 }
 
-.hero-icon-box {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
+.batch-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 20px;
+  background: rgba(79, 70, 229, 0.08);
+  color: #4F46E5;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
+  font-size: 2rem;
   flex-shrink: 0;
+  border: 1px solid rgba(79, 70, 229, 0.12);
 }
 
-.hero-body {
+.batch-meta {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -742,412 +880,570 @@ onMounted(async () => {
   flex-wrap: wrap;
 }
 
-.hero-meta-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  font-size: 0.8rem;
-  color: #64748B;
+.batch-title {
+  font-size: 1.65rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
 }
 
-.meta-item {
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-active {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.badge-closed {
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #E2E8F0;
+}
+
+.badge-amber {
+  background: rgba(245, 158, 11, 0.1);
+  color: #D97706;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.meta-tags-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.meta-pill {
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: #64748B;
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
+.meta-pill i {
+  color: #94A3B8;
+  font-size: 1rem;
+}
+
 .batch-code-badge {
   background: #F8FAFC;
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  padding: 2px 7px;
+  border: 1px solid #E2E8F0;
+  padding: 2px 8px;
   border-radius: 6px;
   color: #0F172A;
-  font-size: 0.75rem;
+  font-size: 0.76rem;
   font-family: monospace;
   font-weight: 600;
   user-select: all;
 }
 
-.bg-indigo-light { background: #EEF2FF; }
-.text-indigo { color: #4F46E5; }
-.bg-emerald-light { background: #ECFDF5; }
-.text-emerald { color: #059669; }
-.bg-red-light { background: #FEF2F2; }
-.text-red { color: #E31B23; }
-
-.batch-exam-title {
-  font-size: 1.35rem;
-  font-weight: 600;
-  color: #0F172A;
-  margin: 0;
-  letter-spacing: -0.01em;
-}
-
-.batch-status-pill {
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 3px 9px;
-  border-radius: 50px;
-  text-transform: uppercase;
-}
-
-.copy-btn-sm {
+.btn-copy-mini {
   background: none;
   border: none;
   cursor: pointer;
+  color: #94A3B8;
+  font-size: 0.85rem;
   padding: 2px 4px;
-  color: #64748B;
+  border-radius: 4px;
+  transition: color 0.15s;
   display: inline-flex;
   align-items: center;
-  transition: color 0.15s ease;
 }
-.copy-btn-sm:hover {
+
+.btn-copy-mini:hover {
   color: #0F172A;
 }
 
-.btn-glass {
-  background: #FFFFFF;
-  color: #475569;
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  border-radius: 10px;
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
+  transition: all 0.2s ease;
+  border: none;
 }
-.btn-glass:hover:not(:disabled) {
-  background: #F1F5F9;
-  color: #0F172A;
+
+.btn-action-secondary {
+  background: #FFFFFF;
+  color: #334155;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
 }
-.btn-glass:disabled {
+
+.btn-action-secondary:hover:not(:disabled) {
+  background: #F8FAFC;
+  color: #E31B23;
+  border-color: rgba(227, 27, 35, 0.3);
+}
+
+.btn-action-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.btn-red-action {
-  padding: 8px 18px;
-  background: #C9252C;
-  color: #FFFFFF;
-  border-radius: 10px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.btn-red-action:hover {
-  background: #B01E24;
-}
-
-/* ═══ 2. METRICS GRID (EXPLICIT 4-COL CSS) ═══ */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+/* ─── 2. KPI GRID (RESPONSIVE 4-COLUMNS) ─── */
+.kpi-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 20px !important;
+  margin-bottom: 28px !important;
 }
 
 @media (max-width: 1024px) {
-  .metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
 
 @media (max-width: 640px) {
-  .metrics-grid {
-    grid-template-columns: 1fr;
+  .kpi-grid {
+    grid-template-columns: 1fr !important;
   }
 }
 
-.metric-card {
+.kpi-card {
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 16px;
-  padding: 18px 20px;
+  border-radius: 20px;
+  padding: 22px 24px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  gap: 18px;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.metric-card:hover {
+.kpi-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
-.metric-icon-box {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+.kpi-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 1.55rem;
   flex-shrink: 0;
 }
 
-.metric-info {
+.bg-amber-light { background: rgba(245, 158, 11, 0.1); }
+.bg-indigo-light { background: rgba(79, 70, 229, 0.1); }
+.bg-emerald-light { background: rgba(16, 185, 129, 0.1); }
+.bg-red-light { background: rgba(227, 27, 35, 0.1); }
+
+.text-amber { color: #D97706; }
+.text-indigo { color: #4F46E5; }
+.text-emerald { color: #059669; }
+.text-red { color: #E31B23; }
+
+.kpi-content {
   display: flex;
   flex-direction: column;
 }
 
-.metric-value {
-  font-size: 24px;
-  font-weight: 600;
-  color: #0F172A;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-}
-
-.metric-label {
-  font-size: 11px;
+.kpi-label {
+  font-size: 0.74rem;
   font-weight: 600;
   color: #64748B;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-top: 3px;
+  letter-spacing: 0.05em;
 }
 
-.metric-sub {
-  font-size: 11px;
-  font-weight: 500;
-  margin-top: 2px;
+.kpi-value {
+  font-size: 1.85rem;
+  font-weight: 600;
+  color: #0F172A;
+  line-height: 1.2;
+  margin-top: 4px;
 }
 
-/* ═══ PANEL SECTION CARD ═══ */
-.panel-section-card {
+.kpi-sub {
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* ─── 3. PANEL CARD: CANDIDATES ROSTER ─── */
+.panel-card {
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 16px;
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.02);
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
   overflow: hidden;
 }
 
-.section-card-header {
-  padding: 18px 24px;
-  background: #FFFFFF;
+.panel-card-header {
+  padding: 22px 28px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  background: #FAFAFD;
 }
 
-.btn-roster-tool {
-  display: inline-flex;
+.panel-header-left {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: #F8FAFC;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 8px;
-  font-size: 0.74rem;
-  font-weight: 600;
-  color: #475569;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.btn-roster-tool:hover:not(:disabled) {
-  background: #F1F5F9;
-  color: #0F172A;
-}
-.btn-roster-tool:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  gap: 14px;
 }
 
-/* ═══ SEARCH & FILTERS BAR ═══ */
-.search-box {
+.panel-header-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.panel-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.panel-subtitle {
+  font-size: 0.8rem;
+  color: #64748B;
+  margin: 2px 0 0;
+}
+
+.panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-input-wrap {
   position: relative;
   display: flex;
   align-items: center;
+  width: 320px;
 }
+
 .search-icon {
   position: absolute;
-  left: 12px;
+  left: 14px;
   color: #94A3B8;
   font-size: 1.1rem;
+  pointer-events: none;
 }
-.search-input {
+
+.table-search-input {
   width: 100%;
-  padding: 8px 36px 8px 38px;
+  padding: 9px 36px 9px 38px;
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.12);
-  border-radius: 10px;
-  font-size: 0.8rem;
+  border-radius: 12px;
+  font-size: 0.84rem;
   color: #0F172A;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
+}
+
+.table-search-input:focus {
+  border-color: #E31B23;
   outline: none;
-  transition: border-color 0.15s ease;
+  box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.1);
 }
-.search-input:focus {
-  border-color: #C9252C;
-}
+
 .search-clear-btn {
   position: absolute;
-  right: 10px;
+  right: 12px;
   background: none;
   border: none;
-  color: #94A3B8;
   cursor: pointer;
-  padding: 2px;
+  color: #94A3B8;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
 }
+
 .search-clear-btn:hover {
   color: #0F172A;
 }
 
-.status-tab-group {
-  display: inline-flex;
-  background: #E2E8F0;
-  border-radius: 10px;
-  padding: 3px;
-  gap: 2px;
+/* ─── FILTER TAB STRIP ─── */
+.filter-tab-bar {
+  padding: 12px 28px;
+  background: #FFFFFF;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
 }
-.status-tab-btn {
-  padding: 5px 11px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  border-radius: 8px;
-  border: none;
+
+.filter-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 10px;
   background: transparent;
-  color: #475569;
+  border: 1px solid transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748B;
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
 }
-.status-tab-btn:hover {
+
+.filter-tab-btn:hover {
+  background: #F8FAFC;
   color: #0F172A;
-}
-.status-tab-btn.active {
-  background: #FFFFFF;
-  color: #0F172A;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
-/* ═══ CANDIDATE CELL & AVATAR ═══ */
-.candidate-avatar-img-wrap {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  flex-shrink: 0;
+.filter-tab-btn.active {
+  background: #F1F5F9;
+  color: #0F172A;
+  border-color: rgba(15, 23, 42, 0.08);
 }
-.candidate-avatar-img {
+
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #E2E8F0;
+  color: #475569;
+}
+
+.count-emerald { background: rgba(16, 185, 129, 0.15); color: #059669; }
+.count-red { background: rgba(227, 27, 35, 0.12); color: #E31B23; }
+.count-amber { background: rgba(245, 158, 11, 0.15); color: #D97706; }
+
+/* ─── GSFIN TABLE ─── */
+.table-responsive {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  overflow-x: auto;
 }
-.candidate-avatar-initials {
-  width: 36px;
-  height: 36px;
+
+.gsfin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.gsfin-table th {
+  padding: 12px 24px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748B;
+  background: #FAFAFD;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  white-space: nowrap;
+}
+
+.gsfin-table td {
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  font-size: 0.86rem;
+  font-weight: 400;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.gsfin-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.candidate-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-circle {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: rgba(201, 37, 44, 0.08);
-  color: #C9252C;
+  background: rgba(79, 70, 229, 0.08);
+  color: #4F46E5;
+  font-weight: 600;
+  font-size: 0.84rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.78rem;
-  font-weight: 600;
   flex-shrink: 0;
+  border: 1px solid rgba(79, 70, 229, 0.12);
 }
 
-/* ═══ CERT SERIAL CELL ═══ */
-.cert-serial-cell {
+.badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip-green { background: rgba(16, 185, 129, 0.1); color: #059669; }
+.chip-red { background: rgba(227, 27, 35, 0.1); color: #E31B23; }
+.chip-amber { background: rgba(245, 158, 11, 0.1); color: #D97706; }
+.chip-slate { background: #F1F5F9; color: #475569; }
+
+.attempt-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  color: #64748B;
+  font-size: 0.72rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.cert-serial-box {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-}
-.btn-copy-sm {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 2px 4px;
-  color: #94A3B8;
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.88rem;
-  transition: color 0.15s ease;
-}
-.btn-copy-sm:hover {
-  color: #0F172A;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  padding: 3px 8px;
+  border-radius: 8px;
 }
 
-.attempts-chip {
-  display: inline-block;
-  padding: 2px 8px;
-  background: #F1F5F9;
-  color: #475569;
-  border-radius: 6px;
-  font-size: 0.74rem;
+.cert-code {
+  font-family: monospace;
+  font-size: 0.78rem;
   font-weight: 600;
+  color: #0F172A;
+  user-select: all;
 }
 
-/* ═══ ACTION BUTTONS ═══ */
-.btn-icon-action {
+.actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-action-icon {
   width: 32px;
   height: 32px;
   border-radius: 8px;
+  background: #F1F5F9;
+  color: #64748B;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.15s ease;
   text-decoration: none;
 }
-.btn-icon-view {
-  background: #F1F5F9;
-  color: #475569;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-}
-.btn-icon-view:hover {
-  background: #E2E8F0;
+
+.btn-action-icon:hover {
+  background: #FFFFFF;
   color: #0F172A;
+  border-color: rgba(15, 23, 42, 0.12);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
 }
 
-/* ═══ PILL CHIPS ═══ */
-.chip-pill {
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 2px 8px;
-  border-radius: 50px;
-  text-transform: uppercase;
-  display: inline-block;
-}
-.pill-green, .chip-green {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
-}
-.pill-red, .chip-red {
+.btn-pdf {
+  color: #E31B23;
   background: #FEF2F2;
-  color: #DC2626;
-}
-.pill-amber, .chip-amber {
-  background: #FFFBEB;
-  color: #D97706;
-}
-.pill-muted, .chip-muted {
-  background: #F1F5F9;
-  color: #64748B;
 }
 
-/* ═══ SPINNER ═══ */
-.spinner-sm-red {
-  display: inline-block;
-  width: 24px;
-  height: 24px;
-  border: 2px solid rgba(201, 37, 44, 0.2);
-  border-top-color: #C9252C;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+.btn-pdf:hover {
+  background: #E31B23;
+  color: #FFFFFF;
 }
-.spin-icon {
-  animation: spin 0.8s linear infinite;
+
+/* ─── EMPTY STATE ─── */
+.empty-state-box {
+  padding: 32px 20px;
+  text-align: center;
+  max-width: 440px;
+  margin: 0 auto;
 }
-@keyframes spin {
-  to { transform: rotate(360deg); }
+
+.empty-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: #F1F5F9;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 16px;
+}
+
+.empty-state-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0 0 6px;
+}
+
+.empty-state-desc {
+  font-size: 0.82rem;
+  color: #64748B;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.fade-in {
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>
-

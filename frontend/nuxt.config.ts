@@ -39,7 +39,7 @@ export default defineNuxtConfig({
 
 
   robots: {
-    disallow: ['/dashboard/', '/exam/', '/learn/'],
+    disallow: ['/dashboard/', '/exam/', '/admin/', '/sub-center/'],
     allow: ['/']
   },
 

@@ -46,7 +46,7 @@
           <li><NuxtLink to="/become-a-partner">8-Step Approval Process</NuxtLink></li>
           <li><NuxtLink to="/become-a-partner">Center Audit Regulations</NuxtLink></li>
           <li><NuxtLink to="/login">Partner Portal Login</NuxtLink></li>
-          <li><NuxtLink to="/login-employer">Employer Verification Portal</NuxtLink></li>
+          <li><NuxtLink to="/verify">Employer Verification Portal</NuxtLink></li>
         </ul>
       </div>
 

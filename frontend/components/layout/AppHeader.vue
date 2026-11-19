@@ -111,7 +111,7 @@ const fullLogoUrl = computed(() => {
 
 const canSearch = computed(() => {
   const role = authStore.userRole;
-  return role === 'super_admin' || role === 'crm_agent';
+  return role === 'super_admin' || role === 'main_admin';
 });
 
 const userInitials = computed(() => {
@@ -121,18 +121,14 @@ const userInitials = computed(() => {
 
 const profileLink = computed(() => {
   const role = authStore.userRole;
-  if (role === 'super_admin') return '/dashboard/admin';
-  if (role === 'student') return '/dashboard/student';
-  if (role === 'tutor') return '/dashboard/tutor';
-  return '/dashboard';
+  if (role === 'sub_center_staff') return '/sub-center?tab=profile';
+  return '/dashboard/admin';
 });
 
 const settingsLink = computed(() => {
   const role = authStore.userRole;
-  if (role === 'super_admin') return '/dashboard/admin/settings';
-  if (role === 'tutor') return '/dashboard/tutor/settings';
-  if (role === 'student') return '/dashboard/student/settings';
-  return '/dashboard';
+  if (role === 'sub_center_staff') return '/sub-center?tab=profile';
+  return '/dashboard/admin/settings';
 });
 
 onMounted(() => {

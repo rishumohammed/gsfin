@@ -339,7 +339,8 @@ router.get('/batches/:id', async (req, res) => {
       `SELECT ea.*, s.name as student_name, s.email as student_email, s.phone as student_phone, s.face_photo,
               c.id as certificate_id, c.pdf_url as certificate_url,
               COALESCE(c.certificate_number, c.cert_number, CONCAT('CERT-', UPPER(SUBSTRING(c.id, 1, 8)))) as certificate_number,
-              c.issued_at, COALESCE(c.status, 'active') as cert_status
+              c.issued_at, COALESCE(c.status, 'active') as cert_status,
+              (SELECT id FROM exam_attempts WHERE assignment_id = ea.id ORDER BY started_at DESC LIMIT 1) as attempt_id
        FROM exam_assignments ea
        JOIN students s ON ea.student_id = s.id
        LEFT JOIN certificates c ON ea.id = c.assignment_id
@@ -1288,7 +1289,8 @@ router.get('/certificates/batches/:batchId', async (req, res) => {
           COALESCE(c.cert_number, CONCAT('CERT-', UPPER(SUBSTRING(c.id, 1, 8)))) as cert_number,
           c.issued_at,
           COALESCE(c.status, 'active') as cert_status,
-          c.pdf_url
+          c.pdf_url,
+          (SELECT id FROM exam_attempts WHERE assignment_id = ea.id ORDER BY started_at DESC LIMIT 1) as attempt_id
         FROM exam_assignments ea
         JOIN students s ON ea.student_id = s.id
         LEFT JOIN certificates c ON ea.id = c.assignment_id
@@ -1319,6 +1321,79 @@ router.get('/certificates/batches/:batchId', async (req, res) => {
     });
   } catch (error) {
     console.error('Fetch batch certificates error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.post('/certificates/issue-direct', async (req, res) => {
+  try {
+    const { studentName, studentEmail, examId, orgId } = req.body;
+    if (!studentName || !studentEmail || !examId) {
+      return res.status(400).json({ message: 'Candidate name, email, and examination are required.' });
+    }
+
+    const { v4: uuidv4 } = require('uuid');
+
+    // 1. Find or create student
+    let studentId;
+    const [existingStudents] = await pool.query('SELECT id FROM students WHERE email = ?', [studentEmail]);
+    if (existingStudents.length > 0) {
+      studentId = existingStudents[0].id;
+    } else {
+      studentId = uuidv4();
+      await pool.query(
+        'INSERT INTO students (id, name, email, org_id) VALUES (?, ?, ?, ?)',
+        [studentId, studentName, studentEmail, orgId || null]
+      );
+    }
+
+    // 2. Find or create default batch
+    let batchId;
+    const [existingBatches] = await pool.query(
+      'SELECT id, wallet_id FROM batches WHERE exam_id = ? ORDER BY created_at DESC LIMIT 1',
+      [examId]
+    );
+    let walletId;
+    if (existingBatches.length > 0) {
+      batchId = existingBatches[0].id;
+      walletId = existingBatches[0].wallet_id;
+    } else {
+      // Find a wallet or fallback org
+      const [wallets] = await pool.query('SELECT id, org_id FROM sub_center_wallets LIMIT 1');
+      walletId = wallets.length > 0 ? wallets[0].id : uuidv4();
+      const effectiveOrgId = orgId || (wallets.length > 0 ? wallets[0].org_id : uuidv4());
+      batchId = uuidv4();
+      await pool.query(
+        'INSERT INTO batches (id, org_id, exam_id, wallet_id, status) VALUES (?, ?, ?, ?, ?)',
+        [batchId, effectiveOrgId, examId, walletId, 'closed']
+      );
+    }
+
+    // 3. Create assignment
+    const assignmentId = uuidv4();
+    await pool.query(
+      `INSERT INTO exam_assignments (id, student_id, exam_id, batch_id, wallet_id, max_attempts, attempts_used, status)
+       VALUES (?, ?, ?, ?, ?, 1, 1, 'passed')`,
+      [assignmentId, studentId, examId, batchId, walletId]
+    );
+
+    // 4. Issue certificate
+    const certId = uuidv4();
+    const certNumber = `GSFIN-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+    await pool.query(
+      `INSERT INTO certificates (id, assignment_id, cert_number, status, issued_at)
+       VALUES (?, ?, ?, 'active', NOW())`,
+      [certId, assignmentId, certNumber]
+    );
+
+    res.json({
+      success: true,
+      message: 'Certificate issued successfully.',
+      certId,
+      certNumber
+    });
+  } catch (error) {
+    console.error('Issue direct certificate error:', error);
     res.status(500).json({ message: error.message });
   }
 });

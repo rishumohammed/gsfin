@@ -54,12 +54,8 @@ const layoutName = computed(() =>
 const homeRoute = computed(() => {
   const role = authStore.userRole;
   if (!authStore.isAuthenticated) return '/';
-  if (role === 'super_admin' || role === 'main_admin') return '/dashboard/admin';
-  if (role === 'tutor') return '/dashboard/tutor';
-  if (role === 'student') return '/dashboard/student';
-  if (role === 'employer') return '/dashboard/employer';
-  if (role === 'crm_agent') return '/dashboard/leads';
-  return '/dashboard';
+  if (role === 'sub_center_staff') return '/sub-center';
+  return '/dashboard/admin';
 });
 </script>
 

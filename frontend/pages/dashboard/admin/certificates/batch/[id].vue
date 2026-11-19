@@ -26,9 +26,9 @@
       </div>
 
       <!-- ═══ LOADING STATE ═══ -->
-      <div v-if="loading && !batch" class="loading-state-box">
+      <div v-if="loading && !batch" class="state-card text-center py-20">
         <span class="spinner-sm-red"></span>
-        <p class="loading-text">Loading Exam Batch Candidate Roster &amp; Certificates...</p>
+        <p class="loading-text mt-3">Loading Exam Batch Candidate Roster &amp; Certificates...</p>
       </div>
 
       <!-- ═══ ERROR STATE ═══ -->
@@ -44,51 +44,56 @@
       </div>
 
       <!-- ═══ BATCH MAIN CONTENT ═══ -->
-      <div v-else-if="batch" class="batch-content-stack">
+      <div v-else-if="batch" class="fade-in space-y-6">
 
-        <!-- ─── 1. BATCH HERO BANNER ─── -->
-        <div class="hero-batch-card">
+        <!-- ─── 1. BATCH EXECUTIVE HERO CARD ─── -->
+        <div class="hero-card">
           <div class="hero-left">
-            <div class="hero-icon-box">
+            <div class="batch-avatar">
               <i class="mdi mdi-file-certificate-outline"></i>
             </div>
-            <div class="hero-body">
+            <div class="batch-meta">
               <div class="hero-title-row">
+                <h1 class="batch-title">{{ batch.exam_name }}</h1>
                 <span
                   :class="[
-                    'status-pill',
-                    batch.batch_status === 'open' ? 'pill-open' :
-                    batch.batch_status === 'closed' ? 'pill-closed' : 'pill-amber'
+                    'status-badge',
+                    batch.batch_status === 'open' ? 'badge-active' :
+                    batch.batch_status === 'closed' ? 'badge-closed' : 'badge-amber'
                   ]"
                 >
-                  {{ batch.batch_status || 'CONDUCTED' }}
+                  <span class="pulse-dot"></span>
+                  {{ (batch.batch_status || 'conducted').toUpperCase() }}
                 </span>
-                <h1 class="batch-title">{{ batch.exam_name }}</h1>
               </div>
 
-              <div class="hero-meta-row">
-                <span class="meta-item">
+              <div class="meta-tags-row">
+                <span class="meta-pill">
                   <i class="mdi mdi-office-building"></i>
-                  <strong>{{ batch.org_name }}</strong>
-                  <span class="meta-sub">({{ batch.city }}, {{ batch.country }})</span>
+                  <span class="font-semibold text-slate-800">{{ batch.org_name }}</span>
+                  <span v-if="batch.city" class="text-slate-400">({{ batch.city }}, {{ batch.country }})</span>
                 </span>
-                <span class="meta-item font-mono">
-                  <span class="meta-label">Batch ID:</span>
-                  <code class="batch-code-badge">{{ batch.batch_id }}</code>
+
+                <span class="meta-pill">
+                  <i class="mdi mdi-fingerprint"></i>
+                  <span class="text-slate-400">Batch Code:</span>
+                  <code class="batch-code-badge">{{ batch.batch_id || batch.id }}</code>
                   <button
                     type="button"
-                    class="btn-copy-inline"
-                    :title="copiedBatchId ? 'Copied!' : 'Copy Batch ID'"
+                    class="btn-copy-mini"
+                    :title="copiedBatchId ? 'Copied!' : 'Copy Batch Code'"
                     @click="copyBatchId"
                   >
                     <i :class="['mdi', copiedBatchId ? 'mdi-check text-emerald' : 'mdi-content-copy']"></i>
                   </button>
                 </span>
-                <span v-if="batch.created_at" class="meta-item">
+
+                <span v-if="batch.created_at" class="meta-pill">
                   <i class="mdi mdi-calendar-blank"></i>
                   <span>Conducted: {{ formatDate(batch.created_at) }}</span>
                 </span>
-                <span class="meta-item">
+
+                <span class="meta-pill">
                   <i class="mdi mdi-clock-outline"></i>
                   <span>Duration: {{ batch.duration_minutes || 60 }} mins</span>
                 </span>
@@ -96,10 +101,10 @@
             </div>
           </div>
 
-          <div class="hero-right">
+          <div class="hero-actions">
             <button
               type="button"
-              class="btn-export"
+              class="btn-action btn-action-secondary"
               @click="exportCSV"
               :disabled="students.length === 0"
               title="Export candidate roster to CSV"
@@ -107,158 +112,155 @@
               <i class="mdi mdi-file-delimited-outline"></i>
               <span>Export CSV</span>
             </button>
+            <button
+              type="button"
+              class="btn-action btn-action-secondary"
+              @click="copyAllCerts"
+              :disabled="certifiedStudentsCount === 0"
+              title="Copy all issued certificate serial numbers"
+            >
+              <i :class="['mdi', copiedAllCerts ? 'mdi-check text-emerald' : 'mdi-content-copy']"></i>
+              <span>{{ copiedAllCerts ? 'All Copied!' : 'Copy Cert IDs' }}</span>
+            </button>
           </div>
         </div>
 
-        <!-- ─── 2. BATCH KPI SUMMARY CARDS (4-COLUMN GRID) ─── -->
-        <div class="metrics-grid">
+        <!-- ─── 2. BATCH KPI SUMMARY CARDS (TRUE 4-COLUMN GRID) ─── -->
+        <div class="kpi-grid">
           <!-- Total Candidates -->
-          <div class="metric-card">
-            <div class="metric-icon-box bg-indigo-light text-indigo">
-              <i class="mdi mdi-account-group"></i>
+          <div class="kpi-card">
+            <div class="kpi-icon bg-indigo-light">
+              <i class="mdi mdi-account-group text-indigo"></i>
             </div>
-            <div class="metric-info">
-              <span class="metric-value">{{ stats.total_candidates || students.length }}</span>
-              <span class="metric-label">Total Candidates</span>
-              <span class="metric-sub text-indigo">Batch Attendance</span>
-            </div>
-          </div>
-
-          <!-- Certified Students -->
-          <div class="metric-card">
-            <div class="metric-icon-box bg-emerald-light text-emerald">
-              <i class="mdi mdi-certificate"></i>
-            </div>
-            <div class="metric-info">
-              <span class="metric-value text-emerald">{{ stats.certified_count || certifiedStudentsCount }}</span>
-              <span class="metric-label">Certified Holders</span>
-              <span class="metric-sub text-emerald">Issued Credentials</span>
+            <div class="kpi-content">
+              <span class="kpi-label">Total Candidates</span>
+              <span class="kpi-value">{{ stats.total_candidates ?? students.length }}</span>
+              <span class="kpi-sub text-indigo">Batch Attendance</span>
             </div>
           </div>
 
-          <!-- Passed Candidates -->
-          <div class="metric-card">
-            <div class="metric-icon-box bg-emerald-light text-emerald">
-              <i class="mdi mdi-check-decagram"></i>
+          <!-- Certified Holders -->
+          <div class="kpi-card">
+            <div class="kpi-icon bg-emerald-light">
+              <i class="mdi mdi-certificate text-emerald"></i>
             </div>
-            <div class="metric-info">
-              <span class="metric-value text-emerald">{{ stats.passed_count || passedStudentsCount }}</span>
-              <span class="metric-label">Passed Sitting</span>
-              <span class="metric-sub text-emerald">Qualified Candidates</span>
+            <div class="kpi-content">
+              <span class="kpi-label">Certified Holders</span>
+              <span class="kpi-value text-emerald">{{ stats.certified_count ?? certifiedStudentsCount }}</span>
+              <span class="kpi-sub text-emerald">Issued Credentials</span>
             </div>
           </div>
 
-          <!-- Failed Candidates -->
-          <div class="metric-card">
-            <div class="metric-icon-box bg-red-light text-red">
-              <i class="mdi mdi-close-circle-outline"></i>
+          <!-- Passed Sitting -->
+          <div class="kpi-card">
+            <div class="kpi-icon bg-emerald-light">
+              <i class="mdi mdi-check-decagram text-emerald"></i>
             </div>
-            <div class="metric-info">
-              <span class="metric-value text-red">{{ stats.failed_count || failedStudentsCount }}</span>
-              <span class="metric-label">Failed / Retake Required</span>
-              <span class="metric-sub text-red">Below Passing Score</span>
+            <div class="kpi-content">
+              <span class="kpi-label">Passed Sitting</span>
+              <span class="kpi-value text-emerald">{{ stats.passed_count ?? passedStudentsCount }}</span>
+              <span class="kpi-sub text-emerald">Qualified Candidates</span>
+            </div>
+          </div>
+
+          <!-- Failed / Retake Required -->
+          <div class="kpi-card">
+            <div class="kpi-icon bg-red-light">
+              <i class="mdi mdi-close-circle-outline text-red"></i>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-label">Failed / Retake Required</span>
+              <span class="kpi-value text-red">{{ stats.failed_count ?? failedStudentsCount }}</span>
+              <span class="kpi-sub text-red">Below Passing Score</span>
             </div>
           </div>
         </div>
 
-        <!-- ─── 3. CANDIDATE CERTIFICATES ROSTER ─── -->
-        <div class="panel-section-card">
-          <div class="section-card-header">
-            <div>
-              <h3 class="section-title">Candidate Roster &amp; Issued Certificates</h3>
-              <p class="section-subtitle">
-                Full examination sitting logs, candidate scores, issued credential numbers, and PDF certificates.
-              </p>
+        <!-- ─── 3. CANDIDATE CERTIFICATES ROSTER PANEL ─── -->
+        <div class="panel-card">
+          <!-- Panel Header with Title & Search -->
+          <div class="panel-card-header">
+            <div class="panel-header-left">
+              <div class="panel-header-icon bg-red-light text-red">
+                <i class="mdi mdi-account-group-outline"></i>
+              </div>
+              <div>
+                <h3 class="panel-title">Candidate Roster &amp; Issued Certificates</h3>
+                <p class="panel-subtitle">
+                  Full examination sitting logs, candidate scores, issued credential numbers, and PDF certificates.
+                </p>
+              </div>
             </div>
 
-            <!-- Action Tools -->
-            <div class="section-actions">
-              <button
-                type="button"
-                class="btn-roster-action"
-                @click="copyAllCerts"
-                :disabled="certifiedStudentsCount === 0"
-                title="Copy all certificate numbers"
-              >
-                <i :class="['mdi', copiedAllCerts ? 'mdi-check text-emerald' : 'mdi-content-copy']"></i>
-                <span>{{ copiedAllCerts ? 'All Numbers Copied!' : 'Copy Certificate Numbers' }}</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Filter & Search Controls Bar -->
-          <div class="panel-filter-bar">
-            <!-- Search Input -->
-            <div class="search-box">
-              <i class="mdi mdi-magnify search-icon"></i>
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Search candidates by name, email, or certificate serial ID..."
-                class="search-input"
-              />
-              <button v-if="searchQuery" type="button" class="search-clear-btn" @click="searchQuery = ''">
-                <i class="mdi mdi-close-circle"></i>
-              </button>
-            </div>
-
-            <!-- Status Filter Segmented Control Tabs -->
-            <div class="filter-tabs">
-              <button
-                type="button"
-                :class="['filter-tab-btn', { active: statusFilter === 'all' }]"
-                @click="statusFilter = 'all'"
-              >
-                <span>All</span>
-                <span class="tab-count-pill">{{ students.length }}</span>
-              </button>
-              <button
-                type="button"
-                :class="['filter-tab-btn tab-emerald', { active: statusFilter === 'certified' }]"
-                @click="statusFilter = 'certified'"
-              >
-                <span>Certified</span>
-                <span class="tab-count-pill">{{ certifiedStudentsCount }}</span>
-              </button>
-              <button
-                type="button"
-                :class="['filter-tab-btn tab-emerald', { active: statusFilter === 'passed' }]"
-                @click="statusFilter = 'passed'"
-              >
-                <span>Passed</span>
-                <span class="tab-count-pill">{{ passedStudentsCount }}</span>
-              </button>
-              <button
-                type="button"
-                :class="['filter-tab-btn tab-red', { active: statusFilter === 'failed' }]"
-                @click="statusFilter = 'failed'"
-              >
-                <span>Failed</span>
-                <span class="tab-count-pill">{{ failedStudentsCount }}</span>
-              </button>
-              <button
-                type="button"
-                :class="['filter-tab-btn tab-indigo', { active: statusFilter === 'in_progress' }]"
-                @click="statusFilter = 'in_progress'"
-              >
-                <span>In Progress</span>
-                <span class="tab-count-pill">{{ inProgressCount }}</span>
-              </button>
+            <div class="panel-header-actions">
+              <div class="search-input-wrap">
+                <i class="mdi mdi-magnify search-icon"></i>
+                <input
+                  v-model="searchQuery"
+                  type="text"
+                  placeholder="Search candidates by name, email, or certificate ID..."
+                  class="table-search-input"
+                />
+                <button v-if="searchQuery" type="button" class="search-clear-btn" @click="searchQuery = ''">
+                  <i class="mdi mdi-close"></i>
+                </button>
+              </div>
             </div>
           </div>
 
-          <!-- ═══ CANDIDATES TABLE ═══ -->
-          <div class="table-container">
-            <div v-if="filteredStudents.length === 0" class="empty-roster-box">
-              <i class="mdi mdi-account-search-outline empty-icon"></i>
-              <p class="empty-title">No Candidates Found</p>
-              <p class="empty-desc">No candidate matches your search query or selected status filter.</p>
-            </div>
+          <!-- Filter Tab Bar -->
+          <div class="filter-tab-bar">
+            <button
+              type="button"
+              :class="['filter-tab-btn', statusFilter === 'all' ? 'active' : '']"
+              @click="statusFilter = 'all'"
+            >
+              All Candidates <span class="tab-count">{{ students.length }}</span>
+            </button>
+            <button
+              type="button"
+              :class="['filter-tab-btn', statusFilter === 'certified' ? 'active' : '']"
+              @click="statusFilter = 'certified'"
+            >
+              <i class="mdi mdi-certificate text-emerald"></i>
+              <span>Certified</span>
+              <span class="tab-count count-emerald">{{ certifiedStudentsCount }}</span>
+            </button>
+            <button
+              type="button"
+              :class="['filter-tab-btn', statusFilter === 'passed' ? 'active' : '']"
+              @click="statusFilter = 'passed'"
+            >
+              <i class="mdi mdi-check-circle text-emerald"></i>
+              <span>Passed</span>
+              <span class="tab-count count-emerald">{{ passedStudentsCount }}</span>
+            </button>
+            <button
+              type="button"
+              :class="['filter-tab-btn', statusFilter === 'failed' ? 'active' : '']"
+              @click="statusFilter = 'failed'"
+            >
+              <i class="mdi mdi-close-circle text-red"></i>
+              <span>Failed</span>
+              <span class="tab-count count-red">{{ failedStudentsCount }}</span>
+            </button>
+            <button
+              type="button"
+              :class="['filter-tab-btn', statusFilter === 'in_progress' ? 'active' : '']"
+              @click="statusFilter = 'in_progress'"
+            >
+              <i class="mdi mdi-clock-outline text-amber"></i>
+              <span>In Progress</span>
+              <span class="tab-count count-amber">{{ inProgressCount }}</span>
+            </button>
+          </div>
 
-            <table v-else class="roster-table">
+          <!-- Candidates Table -->
+          <div class="table-responsive">
+            <table class="gsfin-table">
               <thead>
                 <tr>
-                  <th>Candidate / Student</th>
+                  <th>Candidate Name</th>
                   <th>Attendance / Exam Status</th>
                   <th>Certificate Serial ID</th>
                   <th>Issued Date</th>
@@ -267,123 +269,165 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="std in paginatedStudents" :key="std.assignment_id || std.cert_number">
-                  <!-- Student Info -->
+                <!-- Empty State (When 0 candidates found) -->
+                <tr v-if="paginatedStudents.length === 0">
+                  <td colspan="6" class="text-center py-16">
+                    <div class="empty-state-box">
+                      <div class="empty-icon-wrap">
+                        <i class="mdi mdi-account-group-outline"></i>
+                      </div>
+                      <h4 class="empty-state-title">No Candidates Found</h4>
+                      <p v-if="searchQuery" class="empty-state-desc">
+                        No candidates match your search query &quot;{{ searchQuery }}&quot;.
+                      </p>
+                      <p v-else-if="statusFilter !== 'all'" class="empty-state-desc">
+                        No candidates in this batch match the &quot;{{ statusFilter }}&quot; filter.
+                      </p>
+                      <p v-else class="empty-state-desc">
+                        No candidates have been assigned or taken this examination session yet.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Candidate Rows -->
+                <tr v-for="s in paginatedStudents" :key="s.assignment_id || s.student_id || s.student_email">
+                  <!-- Candidate Name & Email -->
                   <td>
                     <div class="candidate-cell">
-                      <img
-                        v-if="std.face_photo"
-                        :src="std.face_photo"
-                        class="candidate-photo"
-                        alt="Candidate Photo"
-                      />
-                      <div v-else class="candidate-avatar">
-                        {{ getInitials(std.student_name) }}
+                      <div class="avatar-circle">
+                        {{ getInitials(s.student_name) }}
                       </div>
-                      <div class="candidate-meta">
-                        <div class="candidate-name">{{ std.student_name || 'Candidate' }}</div>
-                        <div class="candidate-email">{{ std.student_email }}</div>
+                      <div>
+                        <div class="font-semibold text-slate-900 leading-snug">{{ s.student_name }}</div>
+                        <div class="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                          <span>{{ s.student_email }}</span>
+                          <span v-if="s.student_phone && s.student_phone !== 'N/A'" class="text-slate-400 font-mono">
+                            &bull; {{ s.student_phone }}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </td>
 
                   <!-- Exam Status -->
                   <td>
-                    <div class="exam-status-cell">
-                      <span :class="['chip-pill', getExamStatusClass(std.exam_status)]">
-                        {{ formatExamStatus(std.exam_status) }}
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span
+                        :class="[
+                          'badge-chip',
+                          s.exam_status === 'passed' ? 'chip-green' :
+                          s.exam_status === 'failed' ? 'chip-red' :
+                          s.exam_status === 'in_progress' ? 'chip-amber' : 'chip-slate'
+                        ]"
+                      >
+                        <i
+                          :class="[
+                            'mdi',
+                            s.exam_status === 'passed' ? 'mdi-check-circle' :
+                            s.exam_status === 'failed' ? 'mdi-close-circle' :
+                            s.exam_status === 'in_progress' ? 'mdi-clock-outline' : 'mdi-account-clock'
+                          ]"
+                        ></i>
+                        {{ formatExamStatus(s.exam_status) }}
                       </span>
-                      <span v-if="std.attempts_used" class="attempts-sub">
-                        (Attempt {{ std.attempts_used }})
+                      <span class="attempt-badge">
+                        Attempt {{ s.attempts_used || 1 }}
                       </span>
                     </div>
                   </td>
 
-                  <!-- Certificate Serial ID -->
+                  <!-- Certificate Number -->
                   <td>
-                    <div v-if="std.cert_number" class="cert-serial-cell">
-                      <i class="mdi mdi-file-certificate text-red"></i>
-                      <span class="cert-serial-text">{{ std.cert_number }}</span>
+                    <div v-if="s.cert_number" class="cert-serial-box">
+                      <code class="cert-code">{{ s.cert_number }}</code>
                       <button
-                        class="btn-copy-id"
-                        :title="copySuccessId === std.cert_number ? 'Copied!' : 'Copy Certificate Number'"
-                        @click.stop="copyToClipboard(std.cert_number)"
+                        type="button"
+                        class="btn-copy-mini"
+                        :title="copiedCertId === s.cert_number ? 'Copied!' : 'Copy Certificate Serial'"
+                        @click="copyCert(s.cert_number)"
                       >
-                        <i :class="['mdi', copySuccessId === std.cert_number ? 'mdi-check text-emerald' : 'mdi-content-copy']"></i>
+                        <i :class="['mdi', copiedCertId === s.cert_number ? 'mdi-check text-emerald' : 'mdi-content-copy']"></i>
                       </button>
                     </div>
-                    <div v-else class="no-cert-label">
-                      No Certificate Issued
-                    </div>
+                    <span v-else class="text-xs text-slate-400 italic">No Certificate Issued</span>
                   </td>
 
                   <!-- Issued Date -->
-                  <td class="date-cell">
-                    {{ std.issued_at ? formatDate(std.issued_at) : '—' }}
+                  <td class="text-slate-500 font-medium text-xs">
+                    {{ s.issued_at ? formatDate(s.issued_at) : '—' }}
                   </td>
 
                   <!-- Cert Status -->
                   <td>
                     <span
-                      v-if="std.cert_number"
+                      v-if="s.cert_number"
                       :class="[
-                        'chip-pill',
-                        std.cert_status === 'active' ? 'chip-green' :
-                        std.cert_status === 'revoked' ? 'chip-red' :
-                        'chip-muted'
+                        'badge-chip',
+                        s.cert_status === 'active' ? 'chip-green' :
+                        s.cert_status === 'revoked' ? 'chip-red' : 'chip-amber'
                       ]"
                     >
-                      {{ (std.cert_status || 'active').toUpperCase() }}
+                      <i :class="['mdi', s.cert_status === 'active' ? 'mdi-shield-check' : 'mdi-close-octagon']"></i>
+                      {{ s.cert_status === 'active' ? 'Active Verified' : (s.cert_status === 'revoked' ? 'Revoked' : 'Pending') }}
                     </span>
-                    <span v-else class="chip-pill chip-muted">
-                      PENDING
-                    </span>
+                    <span v-else class="badge-chip chip-slate">PENDING</span>
                   </td>
 
                   <!-- Actions -->
                   <td class="text-right">
-                    <div class="action-btn-group">
+                    <div class="actions-cell justify-end">
+                      <!-- Proctoring Audit Link -->
+                      <NuxtLink
+                        v-if="s.attempt_id"
+                        :to="'/dashboard/admin/proctoring/' + s.attempt_id"
+                        class="btn-action-icon"
+                        title="View Proctoring Audit Log"
+                      >
+                        <i class="mdi mdi-shield-account-outline"></i>
+                      </NuxtLink>
+
                       <!-- Download PDF Certificate -->
                       <button
-                        v-if="std.cert_number"
-                        class="btn-table-action btn-success"
+                        v-if="s.cert_number"
+                        type="button"
+                        class="btn-action-icon btn-pdf"
                         title="Download Certificate PDF"
-                        @click="downloadCert(std.cert_number)"
+                        @click="downloadCert(s.cert_number)"
                       >
-                        <i class="mdi mdi-download"></i>
+                        <i class="mdi mdi-file-pdf-box"></i>
                       </button>
 
-                      <!-- Revoke Certificate Modal -->
+                      <!-- Revoke Certificate Modal Trigger -->
                       <button
-                        v-if="std.cert_number && std.cert_status === 'active' && canManage"
-                        class="btn-table-action btn-danger"
+                        v-if="canManage && s.cert_number && s.cert_status === 'active'"
+                        type="button"
+                        class="btn-action-icon btn-danger-icon"
                         title="Revoke Certificate"
-                        @click="openRevokeModal(std)"
+                        @click="openRevokeModal(s)"
                       >
                         <i class="mdi mdi-close-octagon-outline"></i>
                       </button>
 
-                      <!-- Reissue Certificate Modal -->
+                      <!-- Reissue Certificate Modal Trigger -->
                       <button
-                        v-if="std.cert_number && std.cert_status === 'revoked' && canManage"
-                        class="btn-table-action btn-warn"
+                        v-if="canManage && s.cert_number && s.cert_status === 'revoked'"
+                        type="button"
+                        class="btn-action-icon btn-success-icon"
                         title="Re-issue Certificate"
-                        @click="openReissueModal(std)"
+                        @click="openReissueModal(s)"
                       >
                         <i class="mdi mdi-refresh"></i>
                       </button>
 
-                      <!-- If no certificate -->
-                      <span v-if="!std.cert_number" class="action-dash">—</span>
+                      <span v-if="!s.cert_number && !s.attempt_id" class="text-xs text-slate-400 font-medium">—</span>
                     </div>
                   </td>
                 </tr>
               </tbody>
             </table>
-          </div>
 
-          <!-- Pagination Bar -->
-          <div class="pagination-footer">
+            <!-- Pagination -->
             <AppPagination
               v-if="filteredStudents.length > 0"
               v-model="page"
@@ -396,48 +440,76 @@
 
       </div>
 
+      <!-- ═══ REVOKE CERTIFICATE CONFIRMATION MODAL ═══ -->
+      <div v-if="showRevokeModal" class="modal-overlay" @click.self="showRevokeModal = false">
+        <div class="modal-card modal-sm">
+          <div class="modal-header">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-red-50 text-red flex items-center justify-center text-lg">
+                <i class="mdi mdi-shield-alert-outline"></i>
+              </div>
+              <div>
+                <h3 class="m-0 text-base font-semibold text-slate-900">Revoke Certificate</h3>
+                <p class="m-0 text-xs text-slate-500">Invalidate credential permanently</p>
+              </div>
+            </div>
+            <button class="modal-close-btn" @click="showRevokeModal = false"><i class="mdi mdi-close"></i></button>
+          </div>
+          <div class="modal-body py-4">
+            <p class="text-sm text-slate-600 mb-3">
+              Are you sure you want to revoke certificate <strong class="text-slate-900 font-mono">{{ targetStudent?.cert_number }}</strong> issued to
+              <strong class="text-slate-900">{{ targetStudent?.student_name }}</strong>?
+            </p>
+            <div class="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700">
+              <i class="mdi mdi-alert-circle mr-1"></i>
+              Public verification lookups for this serial ID will immediately show <strong>REVOKED</strong> status.
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-cancel" @click="showRevokeModal = false" :disabled="submittingAction">Cancel</button>
+            <button class="btn-red" @click="confirmRevoke" :disabled="submittingAction">
+              <span v-if="submittingAction" class="spinner-sm-white"></span>
+              <span v-else>Confirm Revocation</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ REISSUE CERTIFICATE CONFIRMATION MODAL ═══ -->
+      <div v-if="showReissueModal" class="modal-overlay" @click.self="showReissueModal = false">
+        <div class="modal-card modal-sm">
+          <div class="modal-header">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald flex items-center justify-center text-lg">
+                <i class="mdi mdi-refresh"></i>
+              </div>
+              <div>
+                <h3 class="m-0 text-base font-semibold text-slate-900">Re-issue Certificate</h3>
+                <p class="m-0 text-xs text-slate-500">Generate a new authentic credential</p>
+              </div>
+            </div>
+            <button class="modal-close-btn" @click="showReissueModal = false"><i class="mdi mdi-close"></i></button>
+          </div>
+          <div class="modal-body py-4">
+            <p class="text-sm text-slate-600 mb-3">
+              Generate a replacement credential for <strong class="text-slate-900">{{ targetStudent?.student_name }}</strong>?
+            </p>
+            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800">
+              <i class="mdi mdi-information-outline mr-1"></i>
+              A new unique certificate number will be generated and registered in the GSFIN central verification ledger.
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-cancel" @click="showReissueModal = false" :disabled="submittingAction">Cancel</button>
+            <button class="btn-red bg-emerald hover:bg-emerald-700" @click="confirmReissue" :disabled="submittingAction">
+              <span v-if="submittingAction" class="spinner-sm-white"></span>
+              <span v-else>Confirm Re-issuance</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
-
-    <!-- ═══ REVOKE CONFIRMATION MODAL ═══ -->
-    <v-dialog v-model="showRevokeModal" max-width="440" persistent>
-      <div class="dialog-box">
-        <div class="dialog-icon-box bg-red-light text-red">
-          <i class="mdi mdi-alert-octagon-outline"></i>
-        </div>
-        <h3 class="dialog-title">Revoke Certificate Credential?</h3>
-        <p class="dialog-desc">
-          Are you sure you want to revoke certificate <strong class="font-mono text-slate-800">{{ targetStudent?.cert_number }}</strong> for candidate <strong>{{ targetStudent?.student_name }}</strong>? The certificate will immediately show as revoked upon public verification.
-        </p>
-        <div class="dialog-actions">
-          <button type="button" class="btn-dialog-cancel" @click="showRevokeModal = false">Cancel</button>
-          <button type="button" class="btn-dialog-danger" :disabled="submittingAction" @click="confirmRevoke">
-            <i v-if="submittingAction" class="mdi mdi-loading spin-icon mr-1"></i>
-            {{ submittingAction ? 'Revoking...' : 'Confirm Revocation' }}
-          </button>
-        </div>
-      </div>
-    </v-dialog>
-
-    <!-- ═══ REISSUE CONFIRMATION MODAL ═══ -->
-    <v-dialog v-model="showReissueModal" max-width="440" persistent>
-      <div class="dialog-box">
-        <div class="dialog-icon-box bg-emerald-light text-emerald">
-          <i class="mdi mdi-certificate-outline"></i>
-        </div>
-        <h3 class="dialog-title">Re-issue Active Certificate?</h3>
-        <p class="dialog-desc">
-          This will assign a new active serial number for candidate <strong>{{ targetStudent?.student_name }}</strong> and reinstate credential verification.
-        </p>
-        <div class="dialog-actions">
-          <button type="button" class="btn-dialog-cancel" @click="showReissueModal = false">Cancel</button>
-          <button type="button" class="btn-dialog-success" :disabled="submittingAction" @click="confirmReissue">
-            <i v-if="submittingAction" class="mdi mdi-loading spin-icon mr-1"></i>
-            {{ submittingAction ? 'Re-issuing...' : 'Re-issue Certificate' }}
-          </button>
-        </div>
-      </div>
-    </v-dialog>
-
   </div>
 </template>
 
@@ -468,9 +540,6 @@ const stats = ref<any>({});
 
 const searchQuery = ref('');
 const statusFilter = ref<'all' | 'certified' | 'passed' | 'failed' | 'in_progress'>('all');
-const copySuccessId = ref<string | null>(null);
-const copiedAllCerts = ref(false);
-const copiedBatchId = ref(false);
 
 const page = ref(1);
 const perPage = ref(25);
@@ -479,6 +548,10 @@ const targetStudent = ref<any>(null);
 const showRevokeModal = ref(false);
 const showReissueModal = ref(false);
 const submittingAction = ref(false);
+
+const copiedBatchId = ref(false);
+const copiedAllCerts = ref(false);
+const copiedCertId = ref<string | null>(null);
 
 const canManage = computed(() => {
   const role = authStore.userRole;
@@ -552,45 +625,39 @@ function formatDate(dateStr: string) {
   }
 }
 
-function getInitials(name?: string) {
-  if (!name) return 'C';
-  const parts = name.trim().split(' ');
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+function formatExamStatus(st: string) {
+  if (!st) return 'Pending';
+  switch (st.toLowerCase()) {
+    case 'passed': return 'Passed';
+    case 'failed': return 'Failed';
+    case 'in_progress': return 'In Progress';
+    case 'not_started': return 'Not Started';
+    case 'expired': return 'Expired';
+    default: return st.charAt(0).toUpperCase() + st.slice(1);
+  }
 }
 
-function formatExamStatus(status?: string) {
-  if (!status) return 'ATTENDED';
-  if (status === 'passed') return 'PASSED';
-  if (status === 'failed') return 'FAILED';
-  if (status === 'in_progress') return 'IN PROGRESS';
-  return status.toUpperCase();
-}
-
-function getExamStatusClass(status?: string) {
-  if (status === 'passed') return 'chip-green';
-  if (status === 'failed') return 'chip-red';
-  if (status === 'in_progress') return 'chip-indigo';
-  return 'chip-muted';
-}
-
-function copyToClipboard(text: string) {
-  if (!text) return;
-  navigator.clipboard.writeText(text);
-  copySuccessId.value = text;
-  setTimeout(() => {
-    if (copySuccessId.value === text) {
-      copySuccessId.value = null;
-    }
-  }, 2000);
+function getInitials(name: string) {
+  if (!name) return 'CD';
+  return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
 }
 
 function copyBatchId() {
-  if (!batch.value?.batch_id) return;
-  navigator.clipboard.writeText(batch.value.batch_id);
+  if (!batch.value) return;
+  const id = batch.value.batch_id || batch.value.id;
+  navigator.clipboard.writeText(id);
   copiedBatchId.value = true;
   setTimeout(() => {
     copiedBatchId.value = false;
+  }, 2000);
+}
+
+function copyCert(certNumber: string) {
+  if (!certNumber) return;
+  navigator.clipboard.writeText(certNumber);
+  copiedCertId.value = certNumber;
+  setTimeout(() => {
+    if (copiedCertId.value === certNumber) copiedCertId.value = null;
   }, 2000);
 }
 
@@ -609,7 +676,7 @@ function copyAllCerts() {
 }
 
 function downloadCert(certNumber: string) {
-  const url = `/api/main-admin/certificates/${encodeURIComponent(certNumber)}/pdf`;
+  const url = `/api/certs/${encodeURIComponent(certNumber)}/download`;
   window.open(url, '_blank');
 }
 
@@ -627,9 +694,7 @@ async function confirmRevoke() {
   if (!targetStudent.value?.cert_number) return;
   submittingAction.value = true;
   try {
-    await api.post(`/main-admin/certificates/${encodeURIComponent(targetStudent.value.cert_number)}/revoke`, {
-      reason: 'Revoked by administrator from batch roster'
-    });
+    await api.put(`/main-admin/certificates/${encodeURIComponent(targetStudent.value.cert_number)}/revoke`);
     showRevokeModal.value = false;
     await fetchBatchData();
   } catch (err: any) {
@@ -662,7 +727,7 @@ function exportCSV() {
     `"${(s.student_email || '').replace(/"/g, '""')}"`,
     `"${(s.student_phone || '').replace(/"/g, '""')}"`,
     `"${formatExamStatus(s.exam_status)}"`,
-    s.attempts_used || 0,
+    s.attempts_used || 1,
     `"${s.cert_number || ''}"`,
     `"${s.issued_at ? formatDate(s.issued_at) : ''}"`,
     `"${s.cert_status || 'PENDING'}"`
@@ -673,7 +738,7 @@ function exportCSV() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.setAttribute('href', url);
-  link.setAttribute('download', `Certificates_${batch.value?.exam_name || 'Batch'}_${batchId.value.slice(0, 8)}.csv`);
+  link.setAttribute('download', `Batch_${batch.value?.exam_name || 'Roster'}_${(batch.value?.batch_id || batchId.value).slice(0, 8)}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -682,19 +747,21 @@ function exportCSV() {
 
 <style scoped>
 .gsfin-admin-page {
-  padding: 24px 32px;
-  background-color: #F8FAFC;
+  padding: 0;
+  background-color: #FAFAFD;
   min-height: 100vh;
+  box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
   color: #0F172A;
 }
 
 .admin-wrap {
+  padding: 32px;
   max-width: 1400px;
   margin: 0 auto;
 }
 
-/* ─── TOP NAVIGATION BAR ─── */
+/* ─── TOP NAVIGATION & BREADCRUMB ─── */
 .top-nav-bar {
   display: flex;
   align-items: center;
@@ -713,29 +780,29 @@ function exportCSV() {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
-  border-radius: 10px;
+  padding: 8px 16px;
+  border-radius: 12px;
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   font-weight: 600;
   color: #475569;
   text-decoration: none;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);
 }
 
 .btn-back:hover {
-  background: #F1F5F9;
-  border-color: rgba(15, 23, 42, 0.15);
-  color: #0F172A;
+  background: #F8FAFC;
+  border-color: rgba(227, 27, 35, 0.3);
+  color: #E31B23;
 }
 
 .breadcrumb-trail {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
 }
 
 .bc-link {
@@ -760,9 +827,9 @@ function exportCSV() {
 }
 
 .btn-icon-refresh {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.08);
   color: #64748B;
@@ -770,13 +837,15 @@ function exportCSV() {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);
+  font-size: 1.15rem;
 }
 
 .btn-icon-refresh:hover:not(:disabled) {
-  background: #F1F5F9;
-  color: #0F172A;
+  background: #F8FAFC;
+  color: #E31B23;
+  border-color: rgba(227, 27, 35, 0.3);
 }
 
 .spin-icon {
@@ -789,16 +858,11 @@ function exportCSV() {
 }
 
 /* ─── LOADING & ERROR STATES ─── */
-.loading-state-box {
-  text-align: center;
-  padding: 80px 20px;
-  color: #64748B;
-  font-weight: 500;
-}
-
-.loading-text {
-  font-size: 0.85rem;
-  margin-top: 10px;
+.state-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.02);
 }
 
 .spinner-sm-red {
@@ -811,108 +875,113 @@ function exportCSV() {
   animation: spin 0.8s linear infinite;
 }
 
+.spinner-sm-white {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #FFFFFF;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-text {
+  font-size: 0.88rem;
+  color: #64748B;
+  font-weight: 500;
+}
+
 .error-state-card {
-  padding: 32px;
+  padding: 40px;
   background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 16px;
+  border: 1px solid #FEE2E2;
+  border-radius: 24px;
   text-align: center;
-  max-width: 480px;
+  max-width: 500px;
   margin: 48px auto;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 20px rgba(227, 27, 35, 0.04);
 }
 
 .error-icon-box {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: #FEF2F2;
   color: #E31B23;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 12px;
-  font-size: 1.5rem;
+  margin: 0 auto 16px;
+  font-size: 1.75rem;
 }
 
 .error-title {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #0F172A;
-  margin: 0 0 6px;
+  margin: 0 0 8px;
 }
 
 .error-desc {
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   color: #64748B;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .btn-return {
   background: #E31B23;
   color: #FFFFFF;
-  padding: 8px 18px;
-  border-radius: 8px;
-  font-size: 0.8rem;
+  padding: 10px 22px;
+  border-radius: 12px;
+  font-size: 0.84rem;
   font-weight: 600;
   text-decoration: none;
   display: inline-block;
-  transition: background 0.15s;
+  transition: all 0.2s;
 }
 
 .btn-return:hover {
   background: #C41219;
 }
 
-/* ─── BATCH STACK ─── */
-.batch-content-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-/* ─── HERO BATCH CARD ─── */
-.hero-batch-card {
+/* ─── 1. HERO CARD ─── */
+.hero-card {
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 20px;
-  padding: 24px 28px;
+  border-radius: 24px;
+  padding: 32px 36px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-}
-
-@media (max-width: 868px) {
-  .hero-batch-card {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+  gap: 28px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02);
+  flex-wrap: wrap;
+  margin-bottom: 28px;
 }
 
 .hero-left {
   display: flex;
   align-items: center;
-  gap: 20px;
-  flex-wrap: wrap;
+  gap: 22px;
+  flex: 1;
+  min-width: 320px;
 }
 
-.hero-icon-box {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  background: #FEF2F2;
-  border: 1px solid #FEE2E2;
+.batch-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 20px;
+  background: rgba(227, 27, 35, 0.08);
   color: #E31B23;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 2rem;
   flex-shrink: 0;
+  border: 1px solid rgba(227, 27, 35, 0.12);
 }
 
-.hero-body {
+.batch-meta {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -926,81 +995,86 @@ function exportCSV() {
 }
 
 .batch-title {
-  font-size: 1.35rem;
+  font-size: 1.65rem;
   font-weight: 600;
   color: #0F172A;
   margin: 0;
   line-height: 1.25;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
-.status-pill {
+.status-badge {
   display: inline-flex;
   align-items: center;
-  padding: 3px 10px;
-  border-radius: 9999px;
-  font-size: 0.68rem;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.05em;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.status-pill.pill-open {
-  background: #ECFDF5;
-  color: #065F46;
-  border: 1px solid #A7F3D0;
+.badge-active {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
-.status-pill.pill-closed {
+.badge-closed {
   background: #F1F5F9;
   color: #475569;
   border: 1px solid #E2E8F0;
 }
 
-.status-pill.pill-amber {
-  background: #FFFBEB;
-  color: #92400E;
-  border: 1px solid #FDE68A;
+.badge-amber {
+  background: rgba(245, 158, 11, 0.1);
+  color: #D97706;
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
-.hero-meta-row {
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.meta-tags-row {
   display: flex;
   align-items: center;
   gap: 18px;
+  margin-top: 4px;
   flex-wrap: wrap;
-  font-size: 0.8rem;
-  color: #64748B;
 }
 
-.meta-item {
+.meta-pill {
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: #64748B;
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
-.meta-sub {
+.meta-pill i {
   color: #94A3B8;
-  font-size: 0.78rem;
-}
-
-.meta-label {
-  color: #94A3B8;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
 .batch-code-badge {
   background: #F8FAFC;
   border: 1px solid #E2E8F0;
-  padding: 2px 7px;
+  padding: 2px 8px;
   border-radius: 6px;
   color: #0F172A;
-  font-size: 0.75rem;
+  font-size: 0.76rem;
   font-family: monospace;
   font-weight: 600;
   user-select: all;
 }
 
-.btn-copy-inline {
+.btn-copy-mini {
   background: none;
   border: none;
   cursor: pointer;
@@ -1013,358 +1087,328 @@ function exportCSV() {
   align-items: center;
 }
 
-.btn-copy-inline:hover {
+.btn-copy-mini:hover {
   color: #0F172A;
 }
 
-.hero-right {
+.hero-actions {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
-.btn-export {
+.btn-action {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 16px;
-  border-radius: 10px;
-  background: #FFFFFF;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  color: #334155;
-  font-size: 0.8rem;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  transition: all 0.2s ease;
+  border: none;
 }
 
-.btn-export:hover:not(:disabled) {
-  background: #F1F5F9;
-  border-color: rgba(15, 23, 42, 0.2);
-  color: #0F172A;
+.btn-action-secondary {
+  background: #FFFFFF;
+  color: #334155;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
 }
 
-.btn-export:disabled {
+.btn-action-secondary:hover:not(:disabled) {
+  background: #F8FAFC;
+  color: #E31B23;
+  border-color: rgba(227, 27, 35, 0.3);
+}
+
+.btn-action-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* ─── 2. KPI METRICS GRID (EXPLICIT 4-COL CSS) ─── */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
+/* ─── 2. KPI GRID (RESPONSIVE 4-COLUMNS) ─── */
+.kpi-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 20px !important;
+  margin-bottom: 28px !important;
 }
 
 @media (max-width: 1024px) {
-  .metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
 
 @media (max-width: 640px) {
-  .metrics-grid {
-    grid-template-columns: 1fr;
+  .kpi-grid {
+    grid-template-columns: 1fr !important;
   }
 }
 
-.metric-card {
+.kpi-card {
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 18px;
-  padding: 20px 22px;
+  border-radius: 20px;
+  padding: 22px 24px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  gap: 18px;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.metric-card:hover {
+.kpi-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
-.metric-icon-box {
-  width: 50px;
-  height: 50px;
-  border-radius: 14px;
+.kpi-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 1.55rem;
   flex-shrink: 0;
 }
 
-.bg-indigo-light { background: #EEF2FF; }
+.bg-amber-light { background: rgba(245, 158, 11, 0.1); }
+.bg-indigo-light { background: rgba(79, 70, 229, 0.1); }
+.bg-emerald-light { background: rgba(16, 185, 129, 0.1); }
+.bg-red-light { background: rgba(227, 27, 35, 0.1); }
+
+.text-amber { color: #D97706; }
 .text-indigo { color: #4F46E5; }
-
-.bg-emerald-light { background: #ECFDF5; }
 .text-emerald { color: #059669; }
-
-.bg-red-light { background: #FEF2F2; }
 .text-red { color: #E31B23; }
 
-.metric-info {
+.kpi-content {
   display: flex;
   flex-direction: column;
 }
 
-.metric-value {
-  font-size: 26px;
-  font-weight: 600;
-  color: #0F172A;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-}
-
-.metric-label {
-  font-size: 11px;
+.kpi-label {
+  font-size: 0.74rem;
   font-weight: 600;
   color: #64748B;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-top: 3px;
+  letter-spacing: 0.05em;
 }
 
-.metric-sub {
-  font-size: 11px;
-  font-weight: 500;
-  margin-top: 2px;
+.kpi-value {
+  font-size: 1.85rem;
+  font-weight: 600;
+  color: #0F172A;
+  line-height: 1.2;
+  margin-top: 4px;
 }
 
-/* ─── 3. PANEL SECTION CARD ─── */
-.panel-section-card {
+.kpi-sub {
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* ─── 3. PANEL CARD: CANDIDATES ROSTER ─── */
+.panel-card {
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 18px;
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
-.section-card-header {
-  padding: 20px 24px;
+.panel-card-header {
+  padding: 22px 28px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
   flex-wrap: wrap;
-  gap: 16px;
+  background: #FAFAFD;
 }
 
-.section-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #0F172A;
-  margin: 0;
-}
-
-.section-subtitle {
-  font-size: 0.78rem;
-  color: #64748B;
-  margin: 3px 0 0;
-}
-
-.section-actions {
+.panel-header-left {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.btn-roster-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 14px;
-  border-radius: 10px;
-  background: #F8FAFC;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #475569;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.btn-roster-action:hover:not(:disabled) {
-  background: #F1F5F9;
-  color: #0F172A;
-  border-color: rgba(15, 23, 42, 0.15);
-}
-
-.btn-roster-action:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ─── FILTER & SEARCH CONTROLS BAR ─── */
-.panel-filter-bar {
-  padding: 14px 24px;
-  background: #F8FAFC;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
   gap: 14px;
 }
 
-.search-box {
+.panel-header-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.panel-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.panel-subtitle {
+  font-size: 0.8rem;
+  color: #64748B;
+  margin: 2px 0 0;
+}
+
+.panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-input-wrap {
   position: relative;
   display: flex;
   align-items: center;
-  flex: 1;
-  max-width: 440px;
-  min-width: 260px;
+  width: 320px;
 }
 
 .search-icon {
   position: absolute;
-  left: 12px;
-  font-size: 1.05rem;
+  left: 14px;
   color: #94A3B8;
+  font-size: 1.1rem;
   pointer-events: none;
 }
 
-.search-input {
+.table-search-input {
   width: 100%;
-  padding: 8px 36px 8px 36px;
+  padding: 9px 36px 9px 38px;
   background: #FFFFFF;
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  border-radius: 10px;
-  font-size: 0.8rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 12px;
+  font-size: 0.84rem;
   color: #0F172A;
-  outline: none;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
 }
 
-.search-input:focus {
+.table-search-input:focus {
   border-color: #E31B23;
-  box-shadow: 0 0 0 2px rgba(227, 27, 35, 0.1);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.1);
 }
 
 .search-clear-btn {
   position: absolute;
-  right: 10px;
+  right: 12px;
   background: none;
   border: none;
-  color: #94A3B8;
   cursor: pointer;
+  color: #94A3B8;
   font-size: 1rem;
+  display: flex;
+  align-items: center;
 }
 
-/* ─── FILTER TABS SEGMENTED CONTROL ─── */
-.filter-tabs {
-  display: inline-flex;
+.search-clear-btn:hover {
+  color: #0F172A;
+}
+
+/* ─── FILTER TAB STRIP ─── */
+.filter-tab-bar {
+  padding: 12px 28px;
+  background: #FFFFFF;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  display: flex;
   align-items: center;
-  background: #F1F5F9;
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  border-radius: 12px;
-  padding: 3px;
-  gap: 3px;
-  flex-wrap: wrap;
+  gap: 8px;
+  overflow-x: auto;
 }
 
 .filter-tab-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
-  border-radius: 9px;
-  font-size: 0.74rem;
-  font-weight: 600;
-  border: none;
+  padding: 7px 14px;
+  border-radius: 10px;
   background: transparent;
+  border: 1px solid transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: #64748B;
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .filter-tab-btn:hover {
+  background: #F8FAFC;
   color: #0F172A;
 }
 
 .filter-tab-btn.active {
-  background: #FFFFFF;
+  background: #F1F5F9;
   color: #0F172A;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  border-color: rgba(15, 23, 42, 0.08);
 }
 
-.filter-tab-btn.tab-emerald.active {
-  color: #059669;
-}
-
-.filter-tab-btn.tab-red.active {
-  color: #E31B23;
-}
-
-.filter-tab-btn.tab-indigo.active {
-  color: #4F46E5;
-}
-
-.tab-count-pill {
-  background: rgba(15, 23, 42, 0.08);
-  color: #475569;
-  padding: 1px 6px;
-  border-radius: 10px;
-  font-size: 0.68rem;
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
   font-weight: 600;
+  background: #E2E8F0;
+  color: #475569;
 }
 
-.filter-tab-btn.active .tab-count-pill {
-  background: #0F172A;
-  color: #FFFFFF;
-}
+.count-emerald { background: rgba(16, 185, 129, 0.15); color: #059669; }
+.count-red { background: rgba(227, 27, 35, 0.12); color: #E31B23; }
+.count-amber { background: rgba(245, 158, 11, 0.15); color: #D97706; }
 
-.filter-tab-btn.tab-emerald.active .tab-count-pill {
-  background: #059669;
-  color: #FFFFFF;
-}
-
-.filter-tab-btn.tab-red.active .tab-count-pill {
-  background: #E31B23;
-  color: #FFFFFF;
-}
-
-.filter-tab-btn.tab-indigo.active .tab-count-pill {
-  background: #4F46E5;
-  color: #FFFFFF;
-}
-
-/* ─── CANDIDATES ROSTER TABLE ─── */
-.table-container {
+/* ─── GSFIN TABLE ─── */
+.table-responsive {
+  width: 100%;
   overflow-x: auto;
 }
 
-.roster-table {
+.gsfin-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
 }
 
-.roster-table th {
-  padding: 13px 20px;
-  background: #F8FAFC;
-  font-size: 0.7rem;
+.gsfin-table th {
+  padding: 12px 24px;
+  font-size: 0.72rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #64748B;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  background: #FAFAFD;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
   white-space: nowrap;
 }
 
-.roster-table td {
-  padding: 14px 20px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.04);
-  font-size: 0.82rem;
+.gsfin-table td {
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  font-size: 0.86rem;
+  font-weight: 400;
+  color: #334155;
   vertical-align: middle;
 }
 
-.roster-table tr:hover {
-  background-color: #F8FAFC;
+.gsfin-table tbody tr:hover {
+  background: #F8FAFC;
 }
 
 .candidate-cell {
@@ -1373,329 +1417,271 @@ function exportCSV() {
   gap: 12px;
 }
 
-.candidate-photo {
-  width: 38px;
-  height: 38px;
+.avatar-circle {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  flex-shrink: 0;
-}
-
-.candidate-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: #F1F5F9;
-  color: #475569;
+  background: rgba(227, 27, 35, 0.08);
+  color: #E31B23;
+  font-weight: 600;
+  font-size: 0.84rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
-  font-weight: 600;
   flex-shrink: 0;
+  border: 1px solid rgba(227, 27, 35, 0.12);
 }
 
-.candidate-meta {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.candidate-name {
-  font-weight: 600;
-  color: #0F172A;
-  font-size: 0.84rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.candidate-email {
-  font-size: 0.75rem;
-  color: #64748B;
-  font-family: monospace;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.exam-status-cell {
-  display: flex;
+.badge-chip {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.attempts-sub {
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 50px;
   font-size: 0.72rem;
-  color: #94A3B8;
-  font-weight: 500;
-}
-
-.cert-serial-cell {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.cert-serial-text {
-  font-family: monospace;
   font-weight: 600;
-  color: #0F172A;
-  font-size: 0.78rem;
-  letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
-.btn-copy-id {
-  background: none;
-  border: none;
-  color: #94A3B8;
-  cursor: pointer;
-  font-size: 0.88rem;
-  padding: 2px 4px;
-  border-radius: 4px;
-  transition: color 0.15s;
-  display: inline-flex;
-  align-items: center;
-}
+.chip-green { background: rgba(16, 185, 129, 0.1); color: #059669; }
+.chip-red { background: rgba(227, 27, 35, 0.1); color: #E31B23; }
+.chip-amber { background: rgba(245, 158, 11, 0.1); color: #D97706; }
+.chip-slate { background: #F1F5F9; color: #475569; }
 
-.btn-copy-id:hover {
-  color: #E31B23;
-}
-
-.no-cert-label {
-  font-size: 0.76rem;
-  color: #94A3B8;
-  font-style: italic;
-}
-
-.date-cell {
-  font-size: 0.78rem;
+.attempt-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
   color: #64748B;
+  font-size: 0.72rem;
   font-weight: 500;
   white-space: nowrap;
 }
 
-/* ─── STATUS CHIP PILLS ─── */
-.chip-pill {
+.cert-serial-box {
   display: inline-flex;
   align-items: center;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-}
-
-.chip-green {
-  background: #ECFDF5;
-  color: #065F46;
-  border: 1px solid #A7F3D0;
-}
-
-.chip-red {
-  background: #FEF2F2;
-  color: #991B1B;
-  border: 1px solid #FECACA;
-}
-
-.chip-indigo {
-  background: #EEF2FF;
-  color: #3730A3;
-  border: 1px solid #C7D2FE;
-}
-
-.chip-muted {
-  background: #F1F5F9;
-  color: #475569;
+  gap: 6px;
+  background: #F8FAFC;
   border: 1px solid #E2E8F0;
+  padding: 3px 8px;
+  border-radius: 8px;
 }
 
-/* ─── ACTION BUTTONS ─── */
-.action-btn-group {
+.cert-code {
+  font-family: monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #0F172A;
+  user-select: all;
+}
+
+.actions-cell {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 6px;
 }
 
-.btn-table-action {
+.btn-action-icon {
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  border: 1px solid #E2E8F0;
-  background: #FFFFFF;
+  background: #F1F5F9;
+  color: #64748B;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.15s ease;
+  text-decoration: none;
 }
 
-.btn-table-action.btn-success {
-  color: #059669;
-  border-color: #A7F3D0;
-  background: #ECFDF5;
+.btn-action-icon:hover {
+  background: #FFFFFF;
+  color: #0F172A;
+  border-color: rgba(15, 23, 42, 0.12);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
 }
 
-.btn-table-action.btn-success:hover {
-  background: #059669;
-  color: #FFFFFF;
-}
-
-.btn-table-action.btn-danger {
-  color: #DC2626;
-  border-color: #FECACA;
+.btn-pdf {
+  color: #E31B23;
   background: #FEF2F2;
 }
 
-.btn-table-action.btn-danger:hover {
-  background: #DC2626;
+.btn-pdf:hover {
+  background: #E31B23;
   color: #FFFFFF;
 }
 
-.btn-table-action.btn-warn {
-  color: #D97706;
-  border-color: #FDE68A;
-  background: #FFFBEB;
+.btn-danger-icon:hover {
+  background: #FEF2F2;
+  color: #E31B23;
+  border-color: rgba(227, 27, 35, 0.2);
 }
 
-.btn-table-action.btn-warn:hover {
-  background: #D97706;
-  color: #FFFFFF;
+.btn-success-icon:hover {
+  background: #ECFDF5;
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.2);
 }
 
-.action-dash {
-  color: #CBD5E1;
-  font-size: 0.8rem;
-  padding: 0 4px;
-}
-
-.empty-roster-box {
+/* ─── EMPTY STATE ─── */
+.empty-state-box {
+  padding: 32px 20px;
   text-align: center;
-  padding: 64px 20px;
-  color: #94A3B8;
+  max-width: 440px;
+  margin: 0 auto;
 }
 
-.empty-icon {
-  font-size: 3rem;
-  display: block;
-  margin-bottom: 8px;
-  color: #CBD5E1;
-}
-
-.empty-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #334155;
-  margin: 0;
-}
-
-.empty-desc {
-  font-size: 0.78rem;
-  color: #94A3B8;
-  margin: 4px 0 0;
-}
-
-.pagination-footer {
-  padding: 16px 24px;
-  border-top: 1px solid rgba(15, 23, 42, 0.06);
-}
-
-/* ─── MODAL DIALOGS ─── */
-.dialog-box {
-  padding: 28px;
-  background: #FFFFFF;
+.empty-icon-wrap {
+  width: 64px;
+  height: 64px;
   border-radius: 20px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.dialog-icon-box {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+  background: #F1F5F9;
+  color: #94A3B8;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 14px;
-  font-size: 1.5rem;
+  font-size: 2rem;
+  margin: 0 auto 16px;
 }
 
-.dialog-title {
+.empty-state-title {
   font-size: 1.05rem;
   font-weight: 600;
   color: #0F172A;
-  margin: 0 0 8px;
+  margin: 0 0 6px;
 }
 
-.dialog-desc {
+.empty-state-desc {
   font-size: 0.82rem;
   color: #64748B;
+  margin: 0;
   line-height: 1.5;
-  margin-bottom: 20px;
 }
 
-.dialog-actions {
+/* ─── MODALS ─── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.modal-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+  overflow: hidden;
+  animation: modalIn 0.2s ease-out;
+}
+
+.modal-sm { max-width: 460px; }
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FAFAFD;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  color: #94A3B8;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.modal-close-btn:hover {
+  color: #0F172A;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  background: #FAFAFD;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 12px;
 }
 
-.btn-dialog-cancel {
-  padding: 8px 16px;
-  border-radius: 9px;
+.btn-cancel {
+  padding: 9px 18px;
+  border-radius: 12px;
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.12);
   color: #475569;
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.15s;
 }
 
-.btn-dialog-cancel:hover {
+.btn-cancel:hover:not(:disabled) {
   background: #F1F5F9;
   color: #0F172A;
 }
 
-.btn-dialog-danger {
-  padding: 8px 18px;
-  border-radius: 9px;
+.btn-red {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  border-radius: 12px;
   background: #E31B23;
   color: #FFFFFF;
-  font-size: 0.8rem;
-  font-weight: 600;
   border: none;
+  font-size: 0.84rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(227, 27, 35, 0.2);
 }
 
-.btn-dialog-danger:hover:not(:disabled) {
+.btn-red:hover:not(:disabled) {
   background: #C41219;
+  transform: translateY(-1px);
 }
 
-.btn-dialog-success {
-  padding: 8px 18px;
-  border-radius: 9px;
-  background: #059669;
-  color: #FFFFFF;
-  font-size: 0.8rem;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: background 0.15s ease;
+.btn-red:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.btn-dialog-success:hover:not(:disabled) {
-  background: #047857;
+.fade-in {
+  animation: fadeIn 0.25s ease-out;
 }
 
-.text-right {
-  text-align: right;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>
