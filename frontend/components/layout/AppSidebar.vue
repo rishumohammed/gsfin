@@ -4,7 +4,7 @@
     :scrim="false"
     elevation="0"
     id="app-sidebar"
-    :width="navStore.isCollapsed ? 80 : 280"
+    :width="navStore.isCollapsed ? 72 : 230"
     class="sidebar-drawer"
   >
 
@@ -12,12 +12,12 @@
     <div class="nav-content custom-scrollbar pt-3 pb-12">
       <div v-for="section in navStore.sections" :key="section" class="nav-section mb-4">
         <v-fade-transition>
-          <div v-if="!navStore.isCollapsed && section" class="section-label px-6 mb-2">
+          <div v-if="!navStore.isCollapsed && section" class="section-label px-4 mb-1.5">
             {{ section }}
           </div>
         </v-fade-transition>
 
-        <v-list density="compact" nav class="pa-0 px-3">
+        <v-list density="compact" nav class="pa-0 px-2.5">
           <v-list-item
             v-for="item in navStore.filteredNavItems.filter(i => (i.section || '') === section)"
             :key="item.label + (item.route || '')"
@@ -28,7 +28,7 @@
           >
             <template v-slot:prepend>
               <div class="icon-box">
-                <v-icon :icon="item.icon" size="20"></v-icon>
+                <v-icon :icon="item.icon" size="19"></v-icon>
               </div>
             </template>
 
@@ -182,14 +182,15 @@ watch(
 }
 
 .section-label {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #8E9AA8;
   margin-top: 14px;
   margin-bottom: 6px;
-  padding-left: 20px !important;
+  padding-left: 14px !important;
+  white-space: nowrap;
 }
 
 /* Nav Content */
@@ -208,10 +209,10 @@ watch(
 :deep(.gsfin-nav-item) {
   position: relative !important;
   overflow: hidden !important;
-  min-height: 44px !important;
-  border-radius: 12px !important;
-  padding: 0 14px !important;
-  margin-bottom: 4px !important;
+  min-height: 40px !important;
+  border-radius: 10px !important;
+  padding: 0 12px !important;
+  margin-bottom: 3px !important;
   color: #526071 !important;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -223,14 +224,14 @@ watch(
 }
 
 :deep(.gsfin-nav-item .icon-box) {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #64748B;
   transition: all 0.2s ease;
-  margin-right: 12px;
+  margin-right: 10px;
 }
 
 :deep(.gsfin-nav-item:hover .icon-box) {
@@ -238,10 +239,11 @@ watch(
 }
 
 :deep(.gsfin-nav-item .nav-title) {
-  font-size: 0.875rem !important;
+  font-size: 0.85rem !important;
   font-weight: 600 !important;
   color: inherit !important;
   line-height: 1.2 !important;
+  white-space: nowrap !important;
 }
 
 /* Active State matching reference styling */
@@ -278,7 +280,7 @@ watch(
   color: #FFFFFF;
   font-size: 0.72rem;
   font-weight: 600;
-  padding: 2px 9px;
+  padding: 2px 8px;
   border-radius: 50px;
   box-shadow: 0 2px 6px rgba(255, 45, 85, 0.25);
   line-height: 1.3;
