@@ -14,59 +14,6 @@
             Hierarchical proctoring audit: Branch / Partner Center &rarr; Exam Batch &rarr; Candidate Proctoring Details.
           </p>
         </div>
-
-        <div class="header-actions">
-          <NuxtLink
-            to="/dashboard/admin/public-exams"
-            class="btn-glass"
-          >
-            <i class="mdi mdi-arrow-left"></i> Back to Exams
-          </NuxtLink>
-          <button
-            class="btn-glass"
-            :disabled="loading"
-            @click="fetchHierarchy"
-          >
-            <i :class="['mdi mdi-refresh', loading ? 'mdi-spin' : '']"></i> Refresh Data
-          </button>
-        </div>
-      </div>
-
-      <!-- ═══ HIERARCHICAL BREADCRUMB BAR ═══ -->
-      <div class="hierarchy-breadcrumb-bar mb-6">
-        <button
-          class="crumb-btn"
-          :class="{ active: currentLevel === 'branches' }"
-          @click="navigateToLevel('branches')"
-        >
-          <i class="mdi mdi-domain"></i>
-          <span>1. All Branches ({{ branches.length }})</span>
-        </button>
-
-        <span class="crumb-separator"><i class="mdi mdi-chevron-right"></i></span>
-
-        <button
-          class="crumb-btn"
-          :class="{ active: currentLevel === 'batches', disabled: !selectedBranch }"
-          :disabled="!selectedBranch"
-          @click="selectedBranch && navigateToLevel('batches')"
-        >
-          <i class="mdi mdi-calendar-clock"></i>
-          <span v-if="selectedBranch">2. {{ selectedBranch.name }} ({{ selectedBranch.batches ? selectedBranch.batches.length : 0 }} Batches)</span>
-          <span v-else>2. Select Exam Batch</span>
-        </button>
-
-        <span class="crumb-separator"><i class="mdi mdi-chevron-right"></i></span>
-
-        <button
-          class="crumb-btn"
-          :class="{ active: currentLevel === 'details', disabled: !selectedBatch }"
-          :disabled="!selectedBatch"
-        >
-          <i class="mdi mdi-account-details"></i>
-          <span v-if="selectedBatch">3. {{ selectedBatch.batch_code || selectedBatch.exam_name }} &bull; Proctoring Details</span>
-          <span v-else>3. Proctoring Details</span>
-        </button>
       </div>
 
       <!-- ═══ TOP KPI METRICS ═══ -->
@@ -965,54 +912,6 @@ onMounted(() => {
   border-color: #E31B23;
   color: #E31B23;
   background: #FFF5F5;
-}
-
-/* Hierarchical Breadcrumb Bar */
-.hierarchy-breadcrumb-bar {
-  display: flex;
-  align-items: center;
-  background: #FFFFFF;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 16px;
-  padding: 6px 16px;
-  gap: 10px;
-  overflow-x: auto;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
-}
-
-.crumb-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: none;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-size: 0.84rem;
-  font-weight: 600;
-  color: #64748B;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-}
-.crumb-btn:hover:not(.disabled) {
-  color: #0F172A;
-  background: #F1F5F9;
-}
-.crumb-btn.active {
-  color: #E31B23;
-  background: rgba(227, 27, 35, 0.08);
-}
-.crumb-btn.disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.crumb-separator {
-  color: #CBD5E1;
-  font-size: 1.1rem;
-  display: flex;
-  align-items: center;
 }
 
 /* KPI Cards Grid */
