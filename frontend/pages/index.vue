@@ -121,8 +121,9 @@
         <a href="#schemes" :class="['nav-link', { on: activeSection === 'schemes' }]" @click.prevent="scrollToSection('schemes'); mobileNavOpen = false">Certifications</a>
         <a href="#process" :class="['nav-link', { on: activeSection === 'process' }]" @click.prevent="scrollToSection('process'); mobileNavOpen = false">How It Works</a>
         <a href="#verify" :class="['nav-link', { on: activeSection === 'verify' }]" @click.prevent="scrollToSection('verify'); mobileNavOpen = false">Verify Certificate</a>
+        <a href="#leads" :class="['nav-link', { on: activeSection === 'leads' }]" @click.prevent="scrollToSection('leads'); mobileNavOpen = false">Partner With Us</a>
         <div class="mobile-only-actions">
-          <button type="button" class="btn p" @click="openPartnerModal(); mobileNavOpen = false">Apply Now</button>
+          <button type="button" class="btn p" @click="scrollToSection('leads'); mobileNavOpen = false">Apply Now</button>
           <NuxtLink to="/login" class="btn sm" @click="mobileNavOpen = false">Partner Login</NuxtLink>
         </div>
       </nav>
@@ -133,7 +134,7 @@
             <use :href="'#v-' + (currentTheme === 'dark' ? 'sun' : 'moon')" />
           </svg>
         </button>
-        <button type="button" class="btn p hb" @click="openPartnerModal()">Apply Now</button>
+        <button type="button" class="btn p hb" @click="scrollToSection('leads')">Apply Now</button>
         <NuxtLink to="/login" class="btn sm hb" style="margin-left: 10px;">Partner Login</NuxtLink>
         <button class="icon-btn menu-btn" @click="mobileNavOpen = !mobileNavOpen"
           aria-label="Open menu">
@@ -664,6 +665,187 @@
         </div>
       </div>
     </section>
+
+    <!-- ================== SECTION 7: CENTER ACCREDITATION & LEAD FORM ================== -->
+    <section class="s bordered" id="leads">
+      <div class="w" style="max-width: 920px;">
+        <div class="section-head" style="text-align: center; margin: 0 auto 36px;">
+          <div class="eyebrow" style="justify-content: center;"><span class="eyebrow-line"></span>Partner Network</div>
+          <h2>Authorized Training Center Accreditation</h2>
+          <p>Join the international network of GSFIN accredited examination and training facilities.</p>
+        </div>
+
+        <div class="home-lead-card">
+          <div v-if="homeLeadSuccess" class="lead-success-card">
+            <div class="lead-success-icon">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h3>Application Received!</h3>
+            <p>Thank you for submitting <strong>{{ homeLeadForm.center_name }}</strong>. Our accreditation council will review your center's credentials and reach out to you via Phone/WhatsApp.</p>
+            <button type="button" class="btn sm" @click="resetHomeLeadForm" style="margin-top: 16px;">
+              Submit Another Center
+            </button>
+          </div>
+
+          <form v-else @submit.prevent="submitHomeLead" class="home-lead-form">
+            <div v-if="homeLeadError" class="lead-error-banner">
+              {{ homeLeadError }}
+            </div>
+
+            <!-- Row 1: Center Name & Contact Person -->
+            <div class="hl-grid-2">
+              <div class="hl-group">
+                <label class="hl-label">Center Name <span class="hl-req">*</span></label>
+                <input
+                  id="centerNameInput"
+                  v-model="homeLeadForm.center_name"
+                  type="text"
+                  required
+                  class="hl-input"
+                  placeholder="e.g. Apex Food Safety Academy"
+                />
+              </div>
+
+              <div class="hl-group">
+                <label class="hl-label">Contact Person</label>
+                <input
+                  v-model="homeLeadForm.name"
+                  type="text"
+                  class="hl-input"
+                  placeholder="e.g. Dr. Sarah Jenkins"
+                />
+              </div>
+            </div>
+
+            <!-- Row 2: Phone & WhatsApp -->
+            <div class="hl-grid-2">
+              <div class="hl-group">
+                <label class="hl-label">Phone Number <span class="hl-req">*</span></label>
+                <input
+                  v-model="homeLeadForm.phone"
+                  type="tel"
+                  required
+                  class="hl-input"
+                  placeholder="e.g. +91 98765 43210"
+                />
+              </div>
+
+              <div class="hl-group">
+                <label class="hl-label">WhatsApp Number</label>
+                <input
+                  v-model="homeLeadForm.whatsapp"
+                  type="tel"
+                  class="hl-input"
+                  placeholder="e.g. +91 98765 43210"
+                />
+              </div>
+            </div>
+
+            <!-- Row 3: Website & Email -->
+            <div class="hl-grid-2">
+              <div class="hl-group">
+                <label class="hl-label">Website</label>
+                <input
+                  v-model="homeLeadForm.website"
+                  type="url"
+                  class="hl-input"
+                  placeholder="https://yourcenter.com"
+                />
+              </div>
+
+              <div class="hl-group">
+                <label class="hl-label">Email Address</label>
+                <input
+                  v-model="homeLeadForm.email"
+                  type="email"
+                  class="hl-input"
+                  placeholder="contact@yourcenter.com"
+                />
+              </div>
+            </div>
+
+            <!-- Row 4: Address -->
+            <div class="hl-group">
+              <label class="hl-label">Address</label>
+              <textarea
+                v-model="homeLeadForm.address"
+                rows="2"
+                class="hl-textarea"
+                placeholder="Street address, campus building, suite number..."
+              ></textarea>
+            </div>
+
+            <!-- Row 5: Location, District, State, Country -->
+            <div class="hl-grid-4">
+              <div class="hl-group">
+                <label class="hl-label">Location</label>
+                <input
+                  v-model="homeLeadForm.location"
+                  type="text"
+                  class="hl-input"
+                  placeholder="e.g. Kakkanad"
+                />
+              </div>
+
+              <div class="hl-group">
+                <label class="hl-label">District</label>
+                <input
+                  v-model="homeLeadForm.district"
+                  type="text"
+                  class="hl-input"
+                  placeholder="e.g. Ernakulam"
+                />
+              </div>
+
+              <div class="hl-group">
+                <label class="hl-label">State</label>
+                <input
+                  v-model="homeLeadForm.state"
+                  type="text"
+                  class="hl-input"
+                  placeholder="e.g. Kerala"
+                />
+              </div>
+
+              <div class="hl-group">
+                <label class="hl-label">Country</label>
+                <input
+                  v-model="homeLeadForm.country"
+                  type="text"
+                  class="hl-input"
+                  placeholder="e.g. India"
+                />
+              </div>
+            </div>
+
+            <!-- Row 6: Message -->
+            <div class="hl-group">
+              <label class="hl-label">Message</label>
+              <textarea
+                v-model="homeLeadForm.message"
+                rows="3"
+                class="hl-textarea"
+                placeholder="Tell us about your center, facilities, training programs offered, and candidate capacity..."
+              ></textarea>
+            </div>
+
+            <div class="hl-footer">
+              <button type="submit" class="btn p lg" :disabled="homeLeadSubmitting">
+                <span v-if="homeLeadSubmitting">Submitting Lead...</span>
+                <template v-else>
+                  <span>Submit Center Application</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </template>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- FLOATING BACK TO TOP BUTTON -->
@@ -767,7 +949,7 @@ function toggleTheme() {
 const mobileNavOpen = ref(false);
 const showBackToTop = ref(false);
 const activeSection = ref('hero');
-const sectionIds = ['hero', 'pillars', 'about', 'schemes', 'process', 'verify'];
+const sectionIds = ['hero', 'pillars', 'about', 'schemes', 'process', 'verify', 'leads'];
 
 function onScroll() {
   if (!process.client) return;
@@ -793,6 +975,11 @@ function scrollToSection(id: string) {
   const el = document.getElementById(id);
   if (el) {
     el.scrollIntoView({ behavior: 'smooth' });
+    if (id === 'leads') {
+      setTimeout(() => {
+        document.getElementById('centerNameInput')?.focus();
+      }, 500);
+    }
   }
 }
 
@@ -1102,6 +1289,66 @@ async function submitPartnerInquiry() {
   }
 }
 
+// ── Home Page Lead Form ──
+const homeLeadForm = ref({
+  center_name: '',
+  name: '',
+  phone: '',
+  whatsapp: '',
+  email: '',
+  website: '',
+  address: '',
+  location: '',
+  district: '',
+  state: '',
+  country: '',
+  message: ''
+});
+
+const homeLeadSubmitting = ref(false);
+const homeLeadSuccess = ref(false);
+const homeLeadError = ref('');
+
+const resetHomeLeadForm = () => {
+  homeLeadForm.value = {
+    center_name: '',
+    name: '',
+    phone: '',
+    whatsapp: '',
+    email: '',
+    website: '',
+    address: '',
+    location: '',
+    district: '',
+    state: '',
+    country: '',
+    message: ''
+  };
+  homeLeadSuccess.value = false;
+  homeLeadError.value = '';
+};
+
+const submitHomeLead = async () => {
+  if (!homeLeadForm.value.center_name?.trim()) {
+    homeLeadError.value = 'Center Name is required.';
+    return;
+  }
+  if (!homeLeadForm.value.phone?.trim() && !homeLeadForm.value.whatsapp?.trim() && !homeLeadForm.value.email?.trim()) {
+    homeLeadError.value = 'Please provide at least a Phone number, WhatsApp, or Email.';
+    return;
+  }
+  homeLeadSubmitting.value = true;
+  homeLeadError.value = '';
+  try {
+    await api.post('/public/leads', homeLeadForm.value);
+    homeLeadSuccess.value = true;
+  } catch (err: any) {
+    homeLeadError.value = err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to submit application.';
+  } finally {
+    homeLeadSubmitting.value = false;
+  }
+};
+
 onMounted(() => {
   fetchPublicData();
   if (process.client) {
@@ -1123,5 +1370,139 @@ onUnmounted(() => {
 <style>
 @import '~/assets/css/landing.css';
 
+/* ── Home Page Lead Form Styling ── */
+.home-lead-card {
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: 20px;
+  padding: 36px;
+  box-shadow: var(--card-shadow);
+  transition: all 0.25s ease;
+}
 
+.home-lead-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.hl-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.hl-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .hl-grid-2,
+  .hl-grid-4 {
+    grid-template-columns: 1fr;
+  }
+  .home-lead-card {
+    padding: 24px 18px;
+  }
+}
+
+.hl-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hl-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tx-sec);
+}
+
+.hl-req {
+  color: var(--ac);
+  margin-left: 2px;
+}
+
+.hl-input,
+.hl-textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--bd);
+  background: var(--bg);
+  color: var(--tx);
+  font-family: inherit;
+  font-size: 14px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hl-input:focus,
+.hl-textarea:focus {
+  border-color: var(--ac);
+  box-shadow: 0 0 0 3px var(--ac-glow);
+}
+
+.hl-textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.hl-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+@media (max-width: 600px) {
+  .hl-footer {
+    justify-content: stretch;
+  }
+  .hl-footer .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.lead-error-banner {
+  background: rgba(225, 29, 42, 0.08);
+  border: 1px solid rgba(225, 29, 42, 0.25);
+  color: var(--ac);
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.lead-success-card {
+  text-align: center;
+  padding: 32px 16px;
+}
+
+.lead-success-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--emerald-subtle);
+  color: var(--emerald);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.lead-success-card h3 {
+  font-size: 22px;
+  margin-bottom: 8px;
+  color: var(--tx);
+}
+
+.lead-success-card p {
+  color: var(--tx-sec);
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
 </style>

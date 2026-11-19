@@ -70,6 +70,100 @@ router.post('/contact', async (req, res) => {
   }
 });
 
+// POST /api/public/leads & POST /api/public/inquiries - Submit partner/center lead
+const handlePublicLeadSubmission = async (req, res) => {
+  try {
+    const {
+      center_name,
+      name,
+      contact_name,
+      organization_name,
+      address,
+      location,
+      district,
+      state,
+      country,
+      phone,
+      whatsapp,
+      website,
+      message,
+      email,
+      programs,
+      institution_type
+    } = req.body;
+
+    const leadCenter = center_name?.trim() || organization_name?.trim() || name?.trim();
+    if (!leadCenter) {
+      return res.status(400).json({ error: 'Center Name is required.' });
+    }
+
+    if (!phone?.trim() && !whatsapp?.trim() && !email?.trim()) {
+      return res.status(400).json({ error: 'Please provide at least a Phone number, WhatsApp, or Email.' });
+    }
+
+    const id = uuidv4();
+    const person = contact_name?.trim() || name?.trim() || leadCenter;
+    const leadSubject = `Partner Center Lead: ${leadCenter}`;
+
+    let compiledMessage = message?.trim() || '';
+    const details = [];
+    if (address?.trim()) details.push(`Address: ${address.trim()}`);
+    if (location?.trim()) details.push(`Location: ${location.trim()}`);
+    if (district?.trim()) details.push(`District: ${district.trim()}`);
+    if (state?.trim()) details.push(`State: ${state.trim()}`);
+    if (country?.trim()) details.push(`Country: ${country.trim()}`);
+    if (whatsapp?.trim()) details.push(`WhatsApp: ${whatsapp.trim()}`);
+    if (website?.trim()) details.push(`Website: ${website.trim()}`);
+    if (programs && Array.isArray(programs) && programs.length > 0) {
+      details.push(`Accreditation Programs: ${programs.join(', ')}`);
+    }
+    if (institution_type?.trim()) {
+      details.push(`Institution Type: ${institution_type.trim()}`);
+    }
+
+    if (details.length > 0) {
+      compiledMessage = `Organization Name: ${leadCenter}\n` +
+        `Contact Person: ${person}\n` +
+        details.join('\n') +
+        (compiledMessage ? `\nNotes: ${compiledMessage}` : '');
+    }
+
+    await pool.query(
+      `INSERT INTO contact_submissions 
+       (id, name, center_name, email, phone, whatsapp, address, location, district, state, country, website, subject, message, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new')`,
+      [
+        id,
+        person,
+        leadCenter,
+        email?.trim() || null,
+        phone?.trim() || null,
+        whatsapp?.trim() || null,
+        address?.trim() || null,
+        location?.trim() || null,
+        district?.trim() || null,
+        state?.trim() || null,
+        country?.trim() || null,
+        website?.trim() || null,
+        leadSubject,
+        compiledMessage || null
+      ]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Thank you! Your center lead has been submitted successfully. Our accreditation team will contact you shortly.',
+      id
+    });
+  } catch (error) {
+    console.error('Error submitting public lead:', error);
+    res.status(500).json({ error: 'Failed to submit lead inquiry. Please try again.' });
+  }
+};
+
+router.post('/leads', handlePublicLeadSubmission);
+router.post('/inquiries', handlePublicLeadSubmission);
+
 // GET /api/public/exams/active - Fetch active public exams for the homepage
 router.get('/exams/active', async (req, res) => {
   try {

@@ -9,6 +9,9 @@
         </div>
 
         <div class="header-actions">
+          <button class="btn-red" @click="openCreateLeadModal">
+            <i class="mdi mdi-plus"></i> Add Lead
+          </button>
           <button class="btn-glass" @click="fetchInquiries">
             <i class="mdi mdi-refresh"></i> Refresh
           </button>
@@ -116,8 +119,8 @@
                   <td>
                     <div class="col-inst-wrap">
                       <div class="submission-type-wrap">
-                        <span v-if="isPartnerApp(item.subject)" class="type-tag tag-partner">
-                          <i class="mdi mdi-office-building"></i> Partner Application
+                        <span v-if="item.center_name || isPartnerApp(item.subject)" class="type-tag tag-partner">
+                          <i class="mdi mdi-office-building"></i> Partner Lead
                         </span>
                         <span v-else class="type-tag tag-general">
                           <i class="mdi mdi-message-text-outline"></i> General Inquiry
@@ -125,9 +128,15 @@
                       </div>
                       
                       <div class="inst-primary-name">
-                        <i v-if="isPartnerApp(item.subject)" class="mdi mdi-domain text-emerald"></i>
+                        <i v-if="item.center_name || isPartnerApp(item.subject)" class="mdi mdi-domain text-emerald"></i>
                         <i v-else class="mdi mdi-help-circle-outline text-indigo"></i>
-                        <span>{{ isPartnerApp(item.subject) ? parsePartnerDetails(item).institution : (item.subject || 'General Inquiry') }}</span>
+                        <span>{{ item.center_name || (isPartnerApp(item.subject) ? parsePartnerDetails(item).institution : (item.subject || 'General Inquiry')) }}</span>
+                      </div>
+
+                      <div v-if="item.website" class="lead-website-sub">
+                        <a :href="item.website.startsWith('http') ? item.website : 'https://' + item.website" target="_blank" class="contact-email-link" style="font-size: 0.76rem; color: #4F46E5;">
+                          <i class="mdi mdi-web mr-1"></i>{{ item.website.replace(/^https?:\/\//, '') }}
+                        </a>
                       </div>
 
                       <!-- Programs Requested (if partner application) -->
@@ -147,10 +156,10 @@
                     <div class="col-contact-person">
                       <div class="contact-person-name">
                         <i class="mdi mdi-account-circle-outline text-indigo mr-1"></i>
-                        <span>{{ item.name }}</span>
+                        <span>{{ item.name || item.center_name || '—' }}</span>
                       </div>
                       <div class="contact-person-role">
-                        {{ isPartnerApp(item.subject) ? (parsePartnerDetails(item).institutionType || 'Training Center') : 'Individual Sender' }}
+                        {{ item.center_name ? 'Training Center' : (isPartnerApp(item.subject) ? (parsePartnerDetails(item).institutionType || 'Training Center') : 'Individual Sender') }}
                       </div>
                     </div>
                   </td>
@@ -158,7 +167,7 @@
                   <!-- Col 3: Contact Info (Email & Phone) -->
                   <td>
                     <div class="col-contact-info">
-                      <a :href="`mailto:${item.email}`" class="contact-email-link" title="Click to send email">
+                      <a v-if="item.email" :href="`mailto:${item.email}`" class="contact-email-link" title="Click to send email">
                         <i class="mdi mdi-email-outline contact-icon"></i>
                         <span>{{ item.email }}</span>
                       </a>
@@ -166,7 +175,11 @@
                         <i class="mdi mdi-phone-outline contact-icon"></i>
                         <span>{{ item.phone }}</span>
                       </div>
-                      <div v-else class="contact-phone-row text-muted">
+                      <a v-if="item.whatsapp" :href="getWhatsAppUrl(item.whatsapp)" target="_blank" class="contact-phone-row" style="color: #059669; text-decoration: none;" title="Chat on WhatsApp">
+                        <i class="mdi mdi-whatsapp contact-icon" style="color: #059669;"></i>
+                        <span>{{ item.whatsapp }}</span>
+                      </a>
+                      <div v-if="!item.email && !item.phone && !item.whatsapp" class="contact-phone-row text-muted">
                         <i class="mdi mdi-phone-off-outline contact-icon"></i>
                         <span>No phone</span>
                       </div>
@@ -175,13 +188,9 @@
 
                   <!-- Col 4: Location / Region -->
                   <td>
-                    <div v-if="isPartnerApp(item.subject) && (parsePartnerDetails(item).country || parsePartnerDetails(item).city)" class="location-badge">
-                      <i class="mdi mdi-earth"></i>
-                      <span>{{ parsePartnerDetails(item).country }}<template v-if="parsePartnerDetails(item).city"> · {{ parsePartnerDetails(item).city }}</template></span>
-                    </div>
-                    <div v-else class="location-cell text-muted">
-                      <i class="mdi mdi-web"></i>
-                      <span>Global</span>
+                    <div class="location-badge" :title="formatLocationStr(item)">
+                      <i class="mdi mdi-map-marker-outline"></i>
+                      <span>{{ formatLocationStr(item) }}</span>
                     </div>
                   </td>
 
@@ -258,30 +267,27 @@
 
             <div class="modal-body">
               
-              <!-- IF PARTNER APPLICATION -->
-              <div v-if="isPartnerApp(selectedItem?.subject)" class="modal-stack">
+              <!-- IF PARTNER APPLICATION OR LEAD -->
+              <div v-if="selectedItem?.center_name || isPartnerApp(selectedItem?.subject)" class="modal-stack">
                 <div class="sender-info-box">
                   <div class="modal-grid-2">
                     <div>
-                      <span class="detail-label">Organization Name:</span>
-                      <span class="detail-val institution-title">{{ parsePartnerDetails(selectedItem).institution }}</span>
+                      <span class="detail-label">Center Name:</span>
+                      <span class="detail-val institution-title">{{ selectedItem?.center_name || parsePartnerDetails(selectedItem).institution }}</span>
                     </div>
                     <div>
-                      <span class="detail-label">Country &amp; City:</span>
+                      <span class="detail-label">Location:</span>
                       <span class="detail-val">
-                        {{ parsePartnerDetails(selectedItem).country }}
-                        <template v-if="parsePartnerDetails(selectedItem).city">
-                          · {{ parsePartnerDetails(selectedItem).city }}
-                        </template>
+                        {{ formatLocationStr(selectedItem) }}
                       </span>
                     </div>
                     <div>
                       <span class="detail-label">Contact Person:</span>
-                      <span class="detail-val">{{ selectedItem?.name }}</span>
+                      <span class="detail-val">{{ selectedItem?.name || '—' }}</span>
                     </div>
-                    <div>
-                      <span class="detail-label">Organization Type:</span>
-                      <span class="detail-val">{{ parsePartnerDetails(selectedItem).institutionType }}</span>
+                    <div v-if="selectedItem?.address">
+                      <span class="detail-label">Address:</span>
+                      <span class="detail-val">{{ selectedItem.address }}</span>
                     </div>
                     <div>
                       <span class="detail-label">Status:</span>
@@ -303,13 +309,25 @@
                 </div>
 
                 <div class="modal-grid-2">
-                  <div class="info-card-sm">
+                  <div class="info-card-sm" v-if="selectedItem?.email">
                     <span class="detail-label">Email Address:</span>
                     <a :href="`mailto:${selectedItem?.email}`" class="detail-val detail-email-link hover-underline">{{ selectedItem?.email }}</a>
                   </div>
-                  <div class="info-card-sm">
+                  <div class="info-card-sm" v-if="selectedItem?.phone">
                     <span class="detail-label">Phone Number:</span>
-                    <span class="detail-val">{{ selectedItem?.phone || 'Not provided' }}</span>
+                    <span class="detail-val">{{ selectedItem?.phone }}</span>
+                  </div>
+                  <div class="info-card-sm" v-if="selectedItem?.whatsapp">
+                    <span class="detail-label">WhatsApp Number:</span>
+                    <a :href="getWhatsAppUrl(selectedItem?.whatsapp)" target="_blank" class="detail-val text-emerald hover-underline">
+                      <i class="mdi mdi-whatsapp mr-1"></i>{{ selectedItem?.whatsapp }}
+                    </a>
+                  </div>
+                  <div class="info-card-sm" v-if="selectedItem?.website">
+                    <span class="detail-label">Website:</span>
+                    <a :href="selectedItem?.website?.startsWith('http') ? selectedItem.website : 'https://' + selectedItem?.website" target="_blank" class="detail-val text-indigo hover-underline">
+                      <i class="mdi mdi-web mr-1"></i>{{ selectedItem?.website }}
+                    </a>
                   </div>
                 </div>
 
@@ -326,7 +344,7 @@
 
                 <div>
                   <span class="detail-label detail-label-block">Message &amp; Notes:</span>
-                  <div class="message-content-box">{{ parsePartnerDetails(selectedItem).notes }}</div>
+                  <div class="message-content-box">{{ selectedItem?.message || parsePartnerDetails(selectedItem).notes || 'No message provided.' }}</div>
                 </div>
               </div>
 
@@ -401,6 +419,246 @@
       </Transition>
     </Teleport>
 
+    <!-- ═══ CREATE LEAD MODAL ═══ -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="createModalOpen" class="modal-overlay" @click.self="createModalOpen = false">
+          <div class="modal-card modal-card-lg">
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <div class="modal-header-left">
+                <div class="icon-box-lg bg-red-light text-red">
+                  <i class="mdi mdi-office-building-plus"></i>
+                </div>
+                <div>
+                  <h3 class="modal-title">Add New Lead</h3>
+                  <span class="modal-date-sub">Create training center or partner lead</span>
+                </div>
+              </div>
+              <button class="modal-close-btn" @click="createModalOpen = false"><i class="mdi mdi-close"></i></button>
+            </div>
+
+            <!-- Modal Body Form -->
+            <form @submit.prevent="submitCreateLead" class="modal-form-wrap">
+              <div class="modal-body">
+                <div class="modal-stack">
+
+                  <!-- 1. STATUS OPTION -->
+                  <div class="form-section-card">
+                    <div class="section-card-header">
+                      <span class="form-label-bold">
+                        <i class="mdi mdi-flag-checkered mr-1"></i> Status
+                      </span>
+                      <span class="section-sub-tip">Initial lead status</span>
+                    </div>
+
+                    <div class="status-options-grid">
+                      <button 
+                        type="button" 
+                        class="status-radio-pill pill-new" 
+                        :class="{ 'selected': createForm.status === 'new' }"
+                        @click="createForm.status = 'new'"
+                      >
+                        <span class="status-dot-sm bg-red"></span>
+                        <div class="status-pill-text">
+                          <span class="status-pill-title">New</span>
+                          <span class="status-pill-sub">Not reviewed</span>
+                        </div>
+                      </button>
+
+                      <button 
+                        type="button" 
+                        class="status-radio-pill pill-read" 
+                        :class="{ 'selected': createForm.status === 'read' }"
+                        @click="createForm.status = 'read'"
+                      >
+                        <span class="status-dot-sm bg-slate"></span>
+                        <div class="status-pill-text">
+                          <span class="status-pill-title">Read</span>
+                          <span class="status-pill-sub">In review</span>
+                        </div>
+                      </button>
+
+                      <button 
+                        type="button" 
+                        class="status-radio-pill pill-replied" 
+                        :class="{ 'selected': createForm.status === 'replied' }"
+                        @click="createForm.status = 'replied'"
+                      >
+                        <span class="status-dot-sm bg-emerald"></span>
+                        <div class="status-pill-text">
+                          <span class="status-pill-title">Replied</span>
+                          <span class="status-pill-sub">Contacted</span>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 2. CENTER & CONTACT PERSON -->
+                  <div class="form-grid-2">
+                    <div class="form-group">
+                      <label class="form-label">Center Name <span class="required-asterisk">*</span></label>
+                      <input 
+                        v-model="createForm.center_name" 
+                        type="text" 
+                        required 
+                        class="form-input" 
+                        placeholder="e.g. Apex Food Safety Academy"
+                      />
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">Contact Person</label>
+                      <input 
+                        v-model="createForm.name" 
+                        type="text" 
+                        class="form-input" 
+                        placeholder="e.g. Dr. Sarah Jenkins"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- 3. PHONE & WHATSAPP -->
+                  <div class="form-grid-2">
+                    <div class="form-group">
+                      <label class="form-label">Phone Number</label>
+                      <div class="input-with-icon">
+                        <i class="mdi mdi-phone-outline input-icon"></i>
+                        <input 
+                          v-model="createForm.phone" 
+                          type="text" 
+                          class="form-input" 
+                          placeholder="e.g. +91 98765 43210"
+                        />
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">WhatsApp Number</label>
+                      <div class="input-with-icon">
+                        <i class="mdi mdi-whatsapp input-icon" style="color: #059669;"></i>
+                        <input 
+                          v-model="createForm.whatsapp" 
+                          type="text" 
+                          class="form-input" 
+                          placeholder="e.g. +91 98765 43210"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 4. EMAIL & WEBSITE -->
+                  <div class="form-grid-2">
+                    <div class="form-group">
+                      <label class="form-label">Email Address</label>
+                      <div class="input-with-icon">
+                        <i class="mdi mdi-email-outline input-icon"></i>
+                        <input 
+                          v-model="createForm.email" 
+                          type="email" 
+                          class="form-input" 
+                          placeholder="info@academy.org"
+                        />
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">Website</label>
+                      <div class="input-with-icon">
+                        <i class="mdi mdi-web input-icon"></i>
+                        <input 
+                          v-model="createForm.website" 
+                          type="text" 
+                          class="form-input" 
+                          placeholder="https://academy.org"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 5. ADDRESS -->
+                  <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <textarea 
+                      v-model="createForm.address" 
+                      rows="2" 
+                      class="form-textarea" 
+                      placeholder="Street address, campus building, suite..."
+                    ></textarea>
+                  </div>
+
+                  <!-- 6. LOCATION, DISTRICT, STATE, COUNTRY -->
+                  <div class="form-grid-4">
+                    <div class="form-group">
+                      <label class="form-label">Location / City</label>
+                      <input 
+                        v-model="createForm.location" 
+                        type="text" 
+                        class="form-input" 
+                        placeholder="e.g. Kakkanad"
+                      />
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">District</label>
+                      <input 
+                        v-model="createForm.district" 
+                        type="text" 
+                        class="form-input" 
+                        placeholder="e.g. Ernakulam"
+                      />
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">State</label>
+                      <input 
+                        v-model="createForm.state" 
+                        type="text" 
+                        class="form-input" 
+                        placeholder="e.g. Kerala"
+                      />
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">Country</label>
+                      <input 
+                        v-model="createForm.country" 
+                        type="text" 
+                        class="form-input" 
+                        placeholder="e.g. India"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- 7. MESSAGE / NOTES -->
+                  <div class="form-group">
+                    <label class="form-label">Message / Notes</label>
+                    <textarea 
+                      v-model="createForm.message" 
+                      rows="3" 
+                      class="form-textarea" 
+                      placeholder="Enter inquiry details, expected student capacity, or special requests..."
+                    ></textarea>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- Modal Footer -->
+              <div class="modal-footer">
+                <button type="button" class="btn-glass" @click="createModalOpen = false">Cancel</button>
+                <button type="submit" class="btn-red" :disabled="creatingLead">
+                  <span v-if="creatingLead" class="spinner-sm-white mr-1"></span>
+                  <i v-else class="mdi mdi-check mr-1"></i>
+                  Add Lead
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
     <!-- ═══ EDIT LEAD & STATUS MODAL ═══ -->
     <Teleport to="body">
       <Transition name="fade">
@@ -414,7 +672,7 @@
                 </div>
                 <div>
                   <h3 class="modal-title">Edit Lead</h3>
-                  <span class="modal-date-sub">Update contact details and status</span>
+                  <span class="modal-date-sub">Update center details, contacts, and status</span>
                 </div>
               </div>
               <button class="modal-close-btn" @click="editModalOpen = false"><i class="mdi mdi-close"></i></button>
@@ -476,126 +734,143 @@
                     </div>
                   </div>
 
-                  <!-- 2. CONTACT DETAILS -->
+                  <!-- 2. CENTER NAME & CONTACT PERSON -->
                   <div class="form-grid-2">
                     <div class="form-group">
-                      <label class="form-label">Contact Person <span class="required-asterisk">*</span></label>
+                      <label class="form-label">Center Name <span class="required-asterisk">*</span></label>
+                      <input 
+                        v-model="editForm.center_name" 
+                        type="text" 
+                        required 
+                        class="form-input" 
+                        placeholder="e.g. Royal Food Safety Academy"
+                      />
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">Contact Person</label>
                       <input 
                         v-model="editForm.name" 
                         type="text" 
-                        required 
                         class="form-input" 
                         placeholder="e.g. Dr. Sarah Jenkins"
                       />
                     </div>
-
-                    <div class="form-group">
-                      <label class="form-label">Email Address <span class="required-asterisk">*</span></label>
-                      <input 
-                        v-model="editForm.email" 
-                        type="email" 
-                        required 
-                        class="form-input" 
-                        placeholder="sarah@institution.org"
-                      />
-                    </div>
                   </div>
 
+                  <!-- 3. PHONE & WHATSAPP -->
                   <div class="form-grid-2">
                     <div class="form-group">
                       <label class="form-label">Phone Number</label>
-                      <input 
-                        v-model="editForm.phone" 
-                        type="text" 
-                        class="form-input" 
-                        placeholder="+44 7911 123456"
-                      />
+                      <div class="input-with-icon">
+                        <i class="mdi mdi-phone-outline input-icon"></i>
+                        <input 
+                          v-model="editForm.phone" 
+                          type="text" 
+                          class="form-input" 
+                          placeholder="+44 7911 123456"
+                        />
+                      </div>
                     </div>
 
                     <div class="form-group">
-                      <label class="form-label">Subject</label>
-                      <input 
-                        v-model="editForm.subject" 
-                        type="text" 
-                        class="form-input" 
-                        placeholder="e.g. Partner Application"
-                      />
-                    </div>
-                  </div>
-
-                  <!-- 3. ORGANIZATION DETAILS (If Partner App) -->
-                  <div v-if="editForm.isPartner" class="form-section-card">
-                    <div class="section-card-header">
-                      <span class="form-label-bold">
-                        <i class="mdi mdi-office-building mr-1"></i> Organization Details
-                      </span>
-                    </div>
-
-                    <div class="form-grid-2 mb-3">
-                      <div class="form-group">
-                        <label class="form-label">Organization Name</label>
+                      <label class="form-label">WhatsApp Number</label>
+                      <div class="input-with-icon">
+                        <i class="mdi mdi-whatsapp input-icon" style="color: #059669;"></i>
                         <input 
-                          v-model="editForm.institution" 
+                          v-model="editForm.whatsapp" 
                           type="text" 
                           class="form-input" 
-                          placeholder="e.g. Royal Food Safety Academy"
+                          placeholder="+44 7911 123456"
                         />
-                      </div>
-
-                      <div class="form-group">
-                        <label class="form-label">Organization Type</label>
-                        <select v-model="editForm.institutionType" class="form-select">
-                          <option value="Authorized Training Center">Authorized Training Center</option>
-                          <option value="University / Academic Institution">University / Academic Institution</option>
-                          <option value="Corporate Enterprise">Corporate Enterprise</option>
-                          <option value="Testing &amp; Inspection Body">Testing &amp; Inspection Body</option>
-                          <option value="Government / Regulatory Agency">Government / Regulatory Agency</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div class="form-grid-2 mb-3">
-                      <div class="form-group">
-                        <label class="form-label">Country</label>
-                        <input 
-                          v-model="editForm.country" 
-                          type="text" 
-                          class="form-input" 
-                          placeholder="e.g. United Kingdom"
-                        />
-                      </div>
-
-                      <div class="form-group">
-                        <label class="form-label">City</label>
-                        <input 
-                          v-model="editForm.city" 
-                          type="text" 
-                          class="form-input" 
-                          placeholder="e.g. London"
-                        />
-                      </div>
-                    </div>
-
-                    <!-- Programs Toggle -->
-                    <div class="form-group">
-                      <label class="form-label mb-2">Programs</label>
-                      <div class="programs-toggle-list">
-                        <button 
-                          v-for="prog in availablePrograms" 
-                          :key="prog" 
-                          type="button" 
-                          class="program-chip-toggle" 
-                          :class="{ 'active': editForm.programs.includes(prog) }"
-                          @click="toggleEditProgram(prog)"
-                        >
-                          <i :class="['mdi', editForm.programs.includes(prog) ? 'mdi-checkbox-marked-circle' : 'mdi-plus-circle-outline']"></i>
-                          {{ prog }}
-                        </button>
                       </div>
                     </div>
                   </div>
 
-                  <!-- 4. NOTES / MESSAGE -->
+                  <!-- 4. EMAIL & WEBSITE -->
+                  <div class="form-grid-2">
+                    <div class="form-group">
+                      <label class="form-label">Email Address</label>
+                      <div class="input-with-icon">
+                        <i class="mdi mdi-email-outline input-icon"></i>
+                        <input 
+                          v-model="editForm.email" 
+                          type="email" 
+                          class="form-input" 
+                          placeholder="sarah@institution.org"
+                        />
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">Website</label>
+                      <div class="input-with-icon">
+                        <i class="mdi mdi-web input-icon"></i>
+                        <input 
+                          v-model="editForm.website" 
+                          type="text" 
+                          class="form-input" 
+                          placeholder="https://institution.org"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 5. ADDRESS -->
+                  <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <textarea 
+                      v-model="editForm.address" 
+                      rows="2" 
+                      class="form-textarea" 
+                      placeholder="Street address, campus building..."
+                    ></textarea>
+                  </div>
+
+                  <!-- 6. LOCATION, DISTRICT, STATE, COUNTRY -->
+                  <div class="form-grid-4">
+                    <div class="form-group">
+                      <label class="form-label">Location / City</label>
+                      <input 
+                        v-model="editForm.location" 
+                        type="text" 
+                        class="form-input" 
+                        placeholder="e.g. London / City"
+                      />
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">District</label>
+                      <input 
+                        v-model="editForm.district" 
+                        type="text" 
+                        class="form-input" 
+                        placeholder="e.g. District"
+                      />
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">State</label>
+                      <input 
+                        v-model="editForm.state" 
+                        type="text" 
+                        class="form-input" 
+                        placeholder="e.g. Greater London"
+                      />
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">Country</label>
+                      <input 
+                        v-model="editForm.country" 
+                        type="text" 
+                        class="form-input" 
+                        placeholder="e.g. United Kingdom"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- 7. NOTES / MESSAGE -->
                   <div class="form-group">
                     <label class="form-label">Message &amp; Notes</label>
                     <textarea 
@@ -821,20 +1096,100 @@ const statusFilter = ref('all');
 const detailModalOpen = ref(false);
 const selectedItem = ref<any>(null);
 
+// Create Lead Modal State
+const createModalOpen = ref(false);
+const creatingLead = ref(false);
+const createForm = ref({
+  center_name: '',
+  name: '',
+  phone: '',
+  whatsapp: '',
+  email: '',
+  website: '',
+  address: '',
+  location: '',
+  district: '',
+  state: '',
+  country: '',
+  message: '',
+  status: 'new'
+});
+
+const openCreateLeadModal = () => {
+  createForm.value = {
+    center_name: '',
+    name: '',
+    phone: '',
+    whatsapp: '',
+    email: '',
+    website: '',
+    address: '',
+    location: '',
+    district: '',
+    state: '',
+    country: '',
+    message: '',
+    status: 'new'
+  };
+  createModalOpen.value = true;
+};
+
+const submitCreateLead = async () => {
+  if (!createForm.value.center_name?.trim()) {
+    alert('Center Name is required.');
+    return;
+  }
+  creatingLead.value = true;
+  try {
+    const res = await api.post('/admin/inquiries', createForm.value);
+    const createdItem = res.data?.inquiry || res.data || res;
+    inquiries.value.unshift(createdItem);
+    createModalOpen.value = false;
+  } catch (err: any) {
+    console.error('Failed to create lead:', err);
+    alert(err?.response?.data?.error || err?.message || 'Failed to create lead.');
+  } finally {
+    creatingLead.value = false;
+  }
+};
+
+const getWhatsAppUrl = (phone: string) => {
+  if (!phone) return '#';
+  const clean = phone.replace(/[^0-9]/g, '');
+  return `https://wa.me/${clean}`;
+};
+
+const formatLocationStr = (item: any) => {
+  if (!item) return 'Global';
+  const parts = [item.location, item.district, item.state, item.country].filter(Boolean);
+  if (parts.length > 0) return parts.join(', ');
+  const parsed = parsePartnerDetails(item);
+  if (parsed.city || parsed.country) {
+    return [parsed.city, parsed.country].filter(Boolean).join(', ');
+  }
+  return 'Global';
+};
+
 // Edit Modal State
 const editModalOpen = ref(false);
 const savingEdit = ref(false);
 const editForm = ref({
   id: '',
+  center_name: '',
   name: '',
   email: '',
   phone: '',
+  whatsapp: '',
+  website: '',
+  address: '',
+  location: '',
+  district: '',
+  state: '',
+  country: '',
   subject: '',
   status: 'read',
   isPartner: false,
   institution: '',
-  country: '',
-  city: '',
   institutionType: 'Authorized Training Center',
   programs: [] as string[],
   notes: ''
@@ -1041,21 +1396,27 @@ const openViewModal = (item: any) => {
 
 const openEditModal = (item: any) => {
   const details = parsePartnerDetails(item);
-  const isPart = isPartnerApp(item.subject);
+  const isPart = !!item.center_name || isPartnerApp(item.subject);
   editForm.value = {
     id: item.id,
+    center_name: item.center_name || (isPart ? details.institution : ''),
     name: item.name || '',
     email: item.email || '',
     phone: item.phone || '',
-    subject: item.subject || (isPart ? 'Partner Application' : 'General Inquiry'),
+    whatsapp: item.whatsapp || '',
+    website: item.website || '',
+    address: item.address || '',
+    location: item.location || details.city || '',
+    district: item.district || '',
+    state: item.state || '',
+    country: item.country || details.country || '',
+    subject: item.subject || `Center Lead: ${item.center_name || item.name || 'Lead'}`,
     status: item.status || 'read',
     isPartner: isPart,
-    institution: details.institution && details.institution !== 'Institution' ? details.institution : (isPart ? item.name : ''),
-    country: details.country && details.country !== 'Global Jurisdiction' ? details.country : '',
-    city: details.city || '',
+    institution: item.center_name || details.institution || '',
     institutionType: details.institutionType || 'Authorized Training Center',
     programs: details.programs && details.programs.length > 0 ? [...details.programs] : (isPart ? ['CODEX HACCP', 'ISO 22000'] : []),
-    notes: details.notes || item.message || ''
+    notes: item.message || details.notes || ''
   };
   editModalOpen.value = true;
 };
@@ -1079,40 +1440,39 @@ const toggleConvertProgram = (prog: string) => {
 };
 
 const saveEditSubmission = async () => {
-  if (!editForm.value.name?.trim() || !editForm.value.email?.trim()) {
-    alert('Contact Person Name and Email Address are required.');
+  if (!editForm.value.center_name?.trim() && !editForm.value.name?.trim()) {
+    alert('Center Name or Contact Person Name is required.');
     return;
   }
   savingEdit.value = true;
   try {
-    let finalMessage = editForm.value.notes?.trim() || '';
-    if (editForm.value.isPartner) {
-      finalMessage = `Organization Name: ${editForm.value.institution?.trim() || editForm.value.name}\n` +
-        `Contact Person: ${editForm.value.name}\n` +
-        `Institution Type: ${editForm.value.institutionType}\n` +
-        `Country: ${editForm.value.country?.trim() || 'Global Jurisdiction'}\n` +
-        `City: ${editForm.value.city?.trim() || ''}\n` +
-        `Accreditation Programs: ${editForm.value.programs.join(', ')}\n` +
-        `Notes: ${editForm.value.notes?.trim() || 'Accreditation application submitted.'}`;
-    }
-
     const payload = {
-      name: editForm.value.name.trim(),
-      email: editForm.value.email.trim(),
+      center_name: editForm.value.center_name?.trim() || null,
+      name: editForm.value.name?.trim() || editForm.value.center_name?.trim() || 'Contact Person',
+      email: editForm.value.email?.trim() || null,
       phone: editForm.value.phone?.trim() || null,
-      subject: editForm.value.subject?.trim() || (editForm.value.isPartner ? 'Partner Application' : 'General Inquiry'),
-      message: finalMessage,
+      whatsapp: editForm.value.whatsapp?.trim() || null,
+      website: editForm.value.website?.trim() || null,
+      address: editForm.value.address?.trim() || null,
+      location: editForm.value.location?.trim() || null,
+      district: editForm.value.district?.trim() || null,
+      state: editForm.value.state?.trim() || null,
+      country: editForm.value.country?.trim() || null,
+      subject: editForm.value.subject?.trim() || `Center Lead: ${editForm.value.center_name || editForm.value.name}`,
+      message: editForm.value.notes?.trim() || '',
       status: editForm.value.status
     };
 
-    await api.put(`/admin/inquiries/${editForm.value.id}`, payload);
+    const res = await api.put(`/admin/inquiries/${editForm.value.id}`, payload);
+    const updated = res.data?.inquiry || payload;
 
     // Update in local list
     const idx = inquiries.value.findIndex(i => i.id === editForm.value.id);
     if (idx !== -1) {
       inquiries.value[idx] = {
         ...inquiries.value[idx],
-        ...payload
+        ...payload,
+        ...updated
       };
       if (selectedItem.value && selectedItem.value.id === editForm.value.id) {
         selectedItem.value = { ...inquiries.value[idx] };
@@ -1132,12 +1492,12 @@ const openConvertModal = (item: any) => {
   const details = parsePartnerDetails(item);
   convertForm.value = {
     inquiryId: item.id,
-    name: details.institution && details.institution !== 'Institution' ? details.institution : (item.name || 'Partner Organization'),
+    name: item.center_name || (details.institution && details.institution !== 'Institution' ? details.institution : (item.name || 'Partner Organization')),
     contact_person: item.name || '',
     contact_email: item.email || '',
-    contact_phone: item.phone || '',
-    country: details.country && details.country !== 'Global Jurisdiction' ? details.country : 'United Kingdom',
-    city: details.city || '',
+    contact_phone: item.phone || item.whatsapp || '',
+    country: item.country || (details.country && details.country !== 'Global Jurisdiction' ? details.country : 'India'),
+    city: [item.location, item.district, item.state].filter(Boolean).join(', ') || details.city || '',
     institution_type: details.institutionType || 'Authorized Training Center',
     programs: details.programs && details.programs.length > 0 ? [...details.programs] : ['CODEX HACCP', 'ISO 22000']
   };
@@ -2118,6 +2478,39 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+}
+.form-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+@media (max-width: 768px) {
+  .form-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .form-grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-with-icon .input-icon {
+  position: absolute;
+  left: 10px;
+  color: #94A3B8;
+  font-size: 1rem;
+  pointer-events: none;
+}
+.input-with-icon .form-input {
+  padding-left: 32px;
+}
+.lead-website-sub {
+  margin-top: 3px;
 }
 .form-group {
   display: flex;

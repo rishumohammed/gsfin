@@ -24,7 +24,7 @@ import { authenticateJWT, authorizeRoles } from './middleware/auth.js';
 import { initSocket } from './socket/index.js';
 import adminSystemUsersRoutes from './routes/admin.system-users.routes.js';
 import adminEmailTemplatesRoutes from './routes/admin.email-templates.routes.js';
-import adminInquiriesRoutes from './routes/admin.inquiries.routes.js';
+import adminInquiriesRoutes, { ensureInquiriesColumns } from './routes/admin.inquiries.routes.js';
 import notificationRoutes from './routes/notifications.routes.js';
 import { initExamRemindersJob } from './jobs/exam-reminders.job.js';
 import { initExamAutocompleteJob } from './jobs/exam-autocomplete.job.js';
@@ -138,6 +138,11 @@ ensureOrganizationsColumns().catch((err) => {
 // Auto-heal public exams columns if missing
 ensurePublicExamsColumns().catch((err) => {
   console.error('[Startup] Failed to auto-initialize public_exams columns:', err);
+});
+
+// Auto-heal contact_submissions / leads columns if missing
+ensureInquiriesColumns().catch((err) => {
+  console.error('[Startup] Failed to auto-initialize inquiries columns:', err);
 });
 
 // Auto-heal and sync exams catalog with qualifications and partner programs

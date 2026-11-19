@@ -17,9 +17,9 @@ router.get('/', async (req, res) => {
     const params = [];
 
     if (type === 'partner') {
-      query += ' AND subject LIKE "%Partner Application%"';
+      query += ' AND (subject LIKE "%Partner%" OR subject LIKE "%Center Lead%" OR center_name IS NOT NULL)';
     } else if (type === 'general') {
-      query += ' AND subject NOT LIKE "%Partner Application%"';
+      query += ' AND (subject NOT LIKE "%Partner%" AND subject NOT LIKE "%Center Lead%" AND center_name IS NULL)';
     }
 
     if (status && status !== 'all') {
@@ -34,6 +34,68 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.error('Error fetching admin inquiries:', error);
     res.status(500).json({ error: 'Failed to fetch inquiries' });
+  }
+});
+
+// POST /api/admin/inquiries - Create new lead from admin panel
+router.post('/', async (req, res) => {
+  try {
+    const {
+      center_name,
+      name,
+      contact_person,
+      address,
+      location,
+      district,
+      state,
+      country,
+      phone,
+      whatsapp,
+      website,
+      message,
+      email,
+      subject,
+      status
+    } = req.body;
+
+    const leadCenter = center_name?.trim() || name?.trim();
+    if (!leadCenter) {
+      return res.status(400).json({ error: 'Center Name is required.' });
+    }
+
+    const id = uuidv4();
+    const person = contact_person?.trim() || name?.trim() || leadCenter;
+    const leadSubject = subject?.trim() || `Center Lead: ${leadCenter}`;
+    const validStatus = ['new', 'read', 'replied'].includes(status) ? status : 'new';
+
+    await pool.query(
+      `INSERT INTO contact_submissions 
+       (id, name, center_name, email, phone, whatsapp, address, location, district, state, country, website, subject, message, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id,
+        person,
+        leadCenter,
+        email?.trim() || null,
+        phone?.trim() || null,
+        whatsapp?.trim() || null,
+        address?.trim() || null,
+        location?.trim() || null,
+        district?.trim() || null,
+        state?.trim() || null,
+        country?.trim() || null,
+        website?.trim() || null,
+        leadSubject,
+        message?.trim() || null,
+        validStatus
+      ]
+    );
+
+    const [[created]] = await pool.query('SELECT * FROM contact_submissions WHERE id = ?', [id]);
+    res.status(201).json({ message: 'Lead added successfully', inquiry: created });
+  } catch (error) {
+    console.error('Error creating admin inquiry:', error);
+    res.status(500).json({ error: 'Failed to create lead' });
   }
 });
 
@@ -58,19 +120,51 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, phone, subject, message, status } = req.body;
+    const {
+      name,
+      center_name,
+      contact_person,
+      email,
+      phone,
+      whatsapp,
+      address,
+      location,
+      district,
+      state,
+      country,
+      website,
+      subject,
+      message,
+      status
+    } = req.body;
 
-    if (!name || !email) {
-      return res.status(400).json({ error: 'Name and email are required.' });
-    }
-
+    const leadCenter = center_name?.trim() || name?.trim();
+    const person = contact_person?.trim() || name?.trim() || leadCenter || 'Contact Person';
     const validStatus = ['new', 'read', 'replied'].includes(status) ? status : 'read';
 
     await pool.query(
       `UPDATE contact_submissions 
-       SET name = ?, email = ?, phone = ?, subject = ?, message = ?, status = ? 
+       SET name = ?, center_name = ?, email = ?, phone = ?, whatsapp = ?,
+           address = ?, location = ?, district = ?, state = ?, country = ?,
+           website = ?, subject = ?, message = ?, status = ? 
        WHERE id = ?`,
-      [name, email, phone || null, subject || 'General Inquiry', message || '', validStatus, id]
+      [
+        person,
+        leadCenter || null,
+        email?.trim() || null,
+        phone?.trim() || null,
+        whatsapp?.trim() || null,
+        address?.trim() || null,
+        location?.trim() || null,
+        district?.trim() || null,
+        state?.trim() || null,
+        country?.trim() || null,
+        website?.trim() || null,
+        subject || `Center Lead: ${leadCenter || person}`,
+        message || '',
+        validStatus,
+        id
+      ]
     );
 
     const [[updated]] = await pool.query('SELECT * FROM contact_submissions WHERE id = ?', [id]);
@@ -196,7 +290,7 @@ router.post('/:id/convert-partner', async (req, res) => {
   }
 });
 
-// DELETE /api/admin/inquiries/:id - Delete submission
+// Delete submission
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -207,6 +301,35 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete inquiry' });
   }
 });
+
+// Auto-heal contact_submissions columns
+export async function ensureInquiriesColumns() {
+  try {
+    await pool.query('ALTER TABLE contact_submissions MODIFY COLUMN name VARCHAR(255) NULL');
+    await pool.query('ALTER TABLE contact_submissions MODIFY COLUMN email VARCHAR(255) NULL');
+    await pool.query('ALTER TABLE contact_submissions MODIFY COLUMN phone VARCHAR(50) NULL');
+
+    const [cols] = await pool.query('DESCRIBE contact_submissions');
+    const existing = cols.map(c => c.Field);
+
+    const addCol = async (name, def) => {
+      if (!existing.includes(name)) {
+        await pool.query(`ALTER TABLE contact_submissions ADD COLUMN ${name} ${def}`);
+      }
+    };
+
+    await addCol('center_name', 'VARCHAR(255) NULL AFTER name');
+    await addCol('address', 'TEXT NULL');
+    await addCol('location', 'VARCHAR(255) NULL');
+    await addCol('district', 'VARCHAR(100) NULL');
+    await addCol('state', 'VARCHAR(100) NULL');
+    await addCol('country', 'VARCHAR(100) NULL');
+    await addCol('whatsapp', 'VARCHAR(50) NULL');
+    await addCol('website', 'VARCHAR(255) NULL');
+  } catch (err) {
+    console.error('[Startup] Failed to ensure contact_submissions columns:', err);
+  }
+}
 
 export default router;
 
