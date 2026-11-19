@@ -5,7 +5,7 @@
       <!-- ═══ HEADER ROW ═══ -->
       <div class="admin-header-row">
         <div>
-          <h1 class="admin-title">Inquiries</h1>
+          <h1 class="admin-title">Leads</h1>
         </div>
 
         <div class="header-actions">
@@ -18,7 +18,7 @@
       <!-- Loading State -->
       <div v-if="loading" class="loading-state-box">
         <span class="spinner-sm-red"></span>
-        <p class="loading-text">Loading inquiries...</p>
+        <p class="loading-text">Loading leads...</p>
       </div>
 
       <div v-else>

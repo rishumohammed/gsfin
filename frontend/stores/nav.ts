@@ -19,7 +19,7 @@ export const useNavStore = defineStore('nav', {
     navItems: [
       // MAIN
       { label: 'Dashboard', icon: 'mdi-view-dashboard-outline', route: '/dashboard/admin', roles: ['super_admin', 'main_admin', 'sub_admin', 'sub_center_staff'] },
-      { label: 'Inquiries', icon: 'mdi-email-outline', route: '/dashboard/admin/inquiries', roles: ['super_admin', 'main_admin', 'sub_admin'] },
+      { label: 'Leads', icon: 'mdi-email-outline', route: '/dashboard/admin/inquiries', roles: ['super_admin', 'main_admin', 'sub_admin'] },
       
       // PARTNERS
       { label: 'Partners', icon: 'mdi-office-building-outline', route: '/admin/multi-tenant', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'PARTNERS' },

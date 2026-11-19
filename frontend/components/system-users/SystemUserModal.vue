@@ -146,7 +146,7 @@ const modules = [
   { id: 'proctoring', label: 'Proctoring Governance', hasApprove: true },
   { id: 'qualifications', label: 'Qualifications Catalog', hasApprove: true },
   { id: 'tokens', label: 'Tokens & Wallet', hasApprove: true },
-  { id: 'inquiries', label: 'Inquiries', hasApprove: false },
+  { id: 'inquiries', label: 'Leads', hasApprove: false },
   { id: 'reports', label: 'Reports & Audits', hasApprove: false }
 ];
 
