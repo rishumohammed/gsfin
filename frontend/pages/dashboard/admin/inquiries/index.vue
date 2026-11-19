@@ -63,6 +63,7 @@
                 <option value="new">New</option>
                 <option value="read">Read</option>
                 <option value="replied">Replied</option>
+                <option value="converted">Converted</option>
               </select>
             </div>
           </div>
@@ -297,7 +298,7 @@
                           class="status-btn" 
                           :class="getStatusClass(selectedItem?.status)" 
                           @click="toggleStatus(selectedItem)" 
-                          title="Click to toggle status: New → Read → Replied"
+                          title="Click to toggle status: New → Read → Replied → Converted"
                         >
                           <span class="status-dot"></span>
                           {{ selectedItem?.status ? selectedItem.status.toUpperCase() : '' }}
@@ -372,7 +373,7 @@
                           class="status-btn" 
                           :class="getStatusClass(selectedItem?.status)" 
                           @click="toggleStatus(selectedItem)" 
-                          title="Click to toggle status: New → Read → Replied"
+                          title="Click to toggle status: New → Read → Replied → Converted"
                         >
                           <span class="status-dot"></span>
                           {{ selectedItem?.status ? selectedItem.status.toUpperCase() : '' }}
@@ -679,6 +680,19 @@
                         <div class="status-pill-text">
                           <span class="status-pill-title">Replied</span>
                           <span class="status-pill-sub">Contacted</span>
+                        </div>
+                      </button>
+
+                      <button 
+                        type="button" 
+                        class="status-radio-pill pill-converted" 
+                        :class="{ 'selected': editForm.status === 'converted' }"
+                        @click="editForm.status = 'converted'"
+                      >
+                        <span class="status-dot-sm bg-indigo"></span>
+                        <div class="status-pill-text">
+                          <span class="status-pill-title">Converted</span>
+                          <span class="status-pill-sub">Partner Center</span>
                         </div>
                       </button>
                     </div>
@@ -1375,12 +1389,13 @@ const getStatusClass = (status: string) => {
     case 'new': return 'status-new';
     case 'read': return 'status-read';
     case 'replied': return 'status-replied';
+    case 'converted': return 'status-converted';
     default: return 'status-read';
   }
 };
 
 const toggleStatus = async (item: any) => {
-  const nextStatus = item.status === 'new' ? 'read' : item.status === 'read' ? 'replied' : 'new';
+  const nextStatus = item.status === 'new' ? 'read' : item.status === 'read' ? 'replied' : item.status === 'replied' ? 'converted' : 'new';
   await updateStatus(item, nextStatus);
 };
 
@@ -1538,13 +1553,13 @@ const executeConvertToPartner = async () => {
 
     await api.post(`/admin/inquiries/${convertForm.value.inquiryId}/convert-partner`, payload);
 
-    // Update local item status to replied
+    // Update local item status to converted
     const item = inquiries.value.find(i => i.id === convertForm.value.inquiryId);
     if (item) {
-      item.status = 'replied';
+      item.status = 'converted';
     }
     if (selectedItem.value && selectedItem.value.id === convertForm.value.inquiryId) {
-      selectedItem.value.status = 'replied';
+      selectedItem.value.status = 'converted';
     }
 
     convertedOrgName.value = payload.name;
@@ -2020,6 +2035,15 @@ onMounted(() => {
 }
 .status-replied .status-dot {
   background: #059669;
+}
+.status-converted {
+  background: rgba(99, 102, 241, 0.09);
+  color: #4F46E5;
+  border-color: rgba(99, 102, 241, 0.25);
+}
+.status-converted .status-dot {
+  background: #4F46E5;
+  box-shadow: 0 0 6px rgba(99, 102, 241, 0.4);
 }
 .status-btn:hover {
   transform: translateY(-1px);
@@ -2597,6 +2621,10 @@ onMounted(() => {
   background: rgba(16, 185, 129, 0.08);
   border-color: #059669;
 }
+.status-radio-pill.pill-converted.selected {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: #4F46E5;
+}
 .status-dot-sm {
   width: 8px;
   height: 8px;
@@ -2606,6 +2634,7 @@ onMounted(() => {
 .bg-red { background: #E31B23; }
 .bg-slate { background: #64748B; }
 .bg-emerald { background: #059669; }
+.bg-indigo { background: #4F46E5; }
 
 .status-pill-text {
   display: flex;
@@ -2619,6 +2648,7 @@ onMounted(() => {
 .pill-new .status-pill-title { color: #E31B23; }
 .pill-read .status-pill-title { color: #334155; }
 .pill-replied .status-pill-title { color: #059669; }
+.pill-converted .status-pill-title { color: #4F46E5; }
 .status-pill-sub {
   font-size: 0.68rem;
   color: #64748B;

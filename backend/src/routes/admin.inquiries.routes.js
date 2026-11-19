@@ -140,7 +140,7 @@ router.put('/:id', async (req, res) => {
 
     const leadCenter = center_name?.trim() || name?.trim();
     const person = contact_person?.trim() || name?.trim() || leadCenter || 'Contact Person';
-    const validStatus = ['new', 'read', 'replied'].includes(status) ? status : 'read';
+    const validStatus = ['new', 'read', 'replied', 'converted'].includes(status) ? status : 'read';
 
     await pool.query(
       `UPDATE contact_submissions 
@@ -181,7 +181,7 @@ router.patch('/:id/status', async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    if (!['new', 'read', 'replied'].includes(status)) {
+    if (!['new', 'read', 'replied', 'converted'].includes(status)) {
       return res.status(400).json({ error: 'Invalid status value' });
     }
 
@@ -275,8 +275,8 @@ router.post('/:id/convert-partner', async (req, res) => {
       }
     }
 
-    // Mark inquiry as replied
-    await pool.query('UPDATE contact_submissions SET status = "replied" WHERE id = ?', [id]);
+    // Mark inquiry as converted
+    await pool.query('UPDATE contact_submissions SET status = "converted" WHERE id = ?', [id]);
 
     res.json({
       success: true,
@@ -308,6 +308,7 @@ export async function ensureInquiriesColumns() {
     await pool.query('ALTER TABLE contact_submissions MODIFY COLUMN name VARCHAR(255) NULL');
     await pool.query('ALTER TABLE contact_submissions MODIFY COLUMN email VARCHAR(255) NULL');
     await pool.query('ALTER TABLE contact_submissions MODIFY COLUMN phone VARCHAR(50) NULL');
+    await pool.query("ALTER TABLE contact_submissions MODIFY COLUMN status ENUM('new', 'read', 'replied', 'converted') DEFAULT 'new'");
 
     const [cols] = await pool.query('DESCRIBE contact_submissions');
     const existing = cols.map(c => c.Field);

@@ -85,7 +85,8 @@ export const JOB_APPLICATION_STATUS = {
 export const CONTACT_STATUS = {
   NEW: 'new',
   READ: 'read',
-  REPLIED: 'replied'
+  REPLIED: 'replied',
+  CONVERTED: 'converted'
 };
 
 export const STUDENT_EMPLOYMENT_STATUS = {
