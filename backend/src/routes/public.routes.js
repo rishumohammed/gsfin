@@ -105,27 +105,16 @@ const handlePublicLeadSubmission = async (req, res) => {
     const person = contact_name?.trim() || name?.trim() || leadCenter;
     const leadSubject = `Partner Center Lead: ${leadCenter}`;
 
-    let compiledMessage = message?.trim() || '';
-    const details = [];
-    if (address?.trim()) details.push(`Address: ${address.trim()}`);
-    if (location?.trim()) details.push(`Location: ${location.trim()}`);
-    if (district?.trim()) details.push(`District: ${district.trim()}`);
-    if (state?.trim()) details.push(`State: ${state.trim()}`);
-    if (country?.trim()) details.push(`Country: ${country.trim()}`);
-    if (whatsapp?.trim()) details.push(`WhatsApp: ${whatsapp.trim()}`);
-    if (website?.trim()) details.push(`Website: ${website.trim()}`);
+    let leadMessage = message?.trim() || '';
+    const extraDetails = [];
     if (programs && Array.isArray(programs) && programs.length > 0) {
-      details.push(`Accreditation Programs: ${programs.join(', ')}`);
+      extraDetails.push(`Accreditation Programs: ${programs.join(', ')}`);
     }
     if (institution_type?.trim()) {
-      details.push(`Institution Type: ${institution_type.trim()}`);
+      extraDetails.push(`Institution Type: ${institution_type.trim()}`);
     }
-
-    if (details.length > 0) {
-      compiledMessage = `Organization Name: ${leadCenter}\n` +
-        `Contact Person: ${person}\n` +
-        details.join('\n') +
-        (compiledMessage ? `\nNotes: ${compiledMessage}` : '');
+    if (extraDetails.length > 0) {
+      leadMessage = extraDetails.join('\n') + (leadMessage ? `\nNotes: ${leadMessage}` : '');
     }
 
     await pool.query(
@@ -146,7 +135,7 @@ const handlePublicLeadSubmission = async (req, res) => {
         country?.trim() || null,
         website?.trim() || null,
         leadSubject,
-        compiledMessage || null
+        leadMessage || null
       ]
     );
 

@@ -344,7 +344,7 @@
 
                 <div>
                   <span class="detail-label detail-label-block">Message &amp; Notes:</span>
-                  <div class="message-content-box">{{ selectedItem?.message || parsePartnerDetails(selectedItem).notes || 'No message provided.' }}</div>
+                  <div class="message-content-box">{{ parsePartnerDetails(selectedItem).notes || 'No message provided.' }}</div>
                 </div>
               </div>
 
@@ -390,7 +390,7 @@
 
                 <div>
                   <span class="detail-label detail-label-block">Message:</span>
-                  <div class="message-content-box">{{ selectedItem?.message }}</div>
+                  <div class="message-content-box">{{ parsePartnerDetails(selectedItem).notes || 'No message provided.' }}</div>
                 </div>
               </div>
 
@@ -1322,7 +1322,11 @@ const parsePartnerDetails = (item: any) => {
   if (typeMatch) institutionType = typeMatch[1].trim();
 
   const notesMatch = msg.match(/(?:Notes|Additional Message|Applicant Notes):\s*([\s\S]+)/i);
-  if (notesMatch) notes = notesMatch[1].trim();
+  if (notesMatch) {
+    notes = notesMatch[1].trim();
+  } else if (msg.includes('Organization Name:') || msg.includes('Contact Person:') || msg.includes('[AUTHORIZED TRAINING CENTER') || msg.includes('[GSFIN TRAINING CENTER')) {
+    notes = '';
+  }
 
   // Parse from subject if institution, country, or city not in message
   if (item.subject) {
@@ -1347,7 +1351,7 @@ const parsePartnerDetails = (item: any) => {
     city: city || '',
     programs: programs,
     institutionType: institutionType || 'Accredited Center',
-    notes: notes || msg
+    notes: notes
   };
 };
 
@@ -1474,7 +1478,7 @@ const openEditModal = (item: any) => {
     institution: item.center_name || details.institution || '',
     institutionType: details.institutionType || 'Authorized Training Center',
     programs: details.programs && details.programs.length > 0 ? [...details.programs] : (isPart ? ['CODEX HACCP', 'ISO 22000'] : []),
-    notes: item.message || details.notes || ''
+    notes: details.notes || (item.message && !item.message.includes('Organization Name:') ? item.message : '')
   };
   editModalOpen.value = true;
 };
