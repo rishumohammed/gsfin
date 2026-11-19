@@ -176,8 +176,8 @@ router.get('/reports/analytics', async (req, res) => {
         total_exams: Number(overview.total_exams) || 0,
         total_attempts: Number(overview.total_attempts) || 0,
         passed_attempts: Number(overview.passed_attempts) || 0,
-        pass_rate: overview.total_attempts > 0 
-          ? Math.round((overview.passed_attempts / overview.total_attempts) * 100) 
+        pass_rate: overview.total_attempts > 0
+          ? Math.round((overview.passed_attempts / overview.total_attempts) * 100)
           : 0,
         total_certificates: Number(overview.total_certificates) || 0,
         total_qualifications: Number(overview.total_qualifications) || 0,
@@ -434,8 +434,8 @@ router.post('/organizations', async (req, res) => {
       console.warn('Failed to dispatch welcome email:', emailErr.message);
     }
 
-    res.status(201).json({ 
-      id, 
+    res.status(201).json({
+      id,
       message: 'Partner center organization created successfully and credentials provisioned.',
       tempPassword
     });

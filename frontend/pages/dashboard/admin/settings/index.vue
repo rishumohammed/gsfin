@@ -440,7 +440,7 @@
 
             <!-- 7. Certification Signatory & Registry Settings Tab -->
             <div v-if="activeCategory === 'talent_hunt'" class="fade-in">
-              <TalentHuntSettingsTab />
+              <CertificateSignatorySettingsTab />
             </div>
 
             <!-- 8. Education Levels Tab -->
@@ -482,7 +482,7 @@ import { ref, onMounted, computed, watch, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useApi } from '@/composables/useApi';
 import EmailTemplatesTab from '@/components/admin/settings/EmailTemplatesTab.vue';
-import TalentHuntSettingsTab from '@/components/admin/settings/TalentHuntSettingsTab.vue';
+import CertificateSignatorySettingsTab from '@/components/admin/settings/CertificateSignatorySettingsTab.vue';
 import EducationLevelsTab from '@/components/admin/settings/EducationLevelsTab.vue';
 import PartnerSettingsTab from '@/components/admin/settings/PartnerSettingsTab.vue';
 
