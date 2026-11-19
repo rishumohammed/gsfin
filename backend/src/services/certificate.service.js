@@ -264,7 +264,7 @@ export class CertificateService {
         doc.fontSize(9.5).fillColor('#333333').font('Helvetica-Bold')
           .text('Global Standard Food Safety & Integrity Network - GSFIN', 0, footerY + 15, { align: 'center' });
         doc.fontSize(8).fillColor('#666666').font('Helvetica')
-          .text('Verified Personnel Certification Registry | www.gsfin.org', 0, footerY + 30, { align: 'center' });
+          .text('Verified Personnel Certification Registry | www.gsfin.uk', 0, footerY + 30, { align: 'center' });
 
         doc.end();
       } catch (error) {

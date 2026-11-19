@@ -17,11 +17,21 @@ The platform architecture strictly isolates storage into dedicated persistent Do
 
 ---
 
-## 2. Quick Start Deployment
+## 2. Quick Start Deployment (gsfin.uk)
+
+### Automated 1-Command Deployment & Update:
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+---
+
+### Manual Deployment Steps:
 
 ### Step 1: Clone or Copy Repository to Server
 ```bash
-git clone <repo-url> gsfin
+git clone https://github.com/rishumohammed/gsfin.git gsfin
 cd gsfin
 ```
 
@@ -30,10 +40,14 @@ Copy the production environment template and configure your secrets:
 ```bash
 cp .env.docker.example .env
 ```
-Edit `.env` to set:
+Default domain settings configured for `gsfin.uk`:
+- `FRONTEND_URL=https://gsfin.uk`
+- `APP_URL=https://gsfin.uk/api`
+- `RESEND_FROM=noreply@gsfin.uk`
+
+Configure your production secrets in `.env`:
 - `MYSQL_ROOT_PASSWORD` and `MYSQL_PASSWORD`
 - `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET`
-- `FRONTEND_URL` and `APP_URL` (your domain or public IP)
 - `RESEND_API_KEY` (for transaction & notification emails)
 
 ### Step 3: Build & Launch Services
@@ -50,7 +64,7 @@ You should see all 5 containers in a healthy/running state:
 - `gsfin_redis` (Healthy)
 - `gsfin_backend` (Running, migrations executed automatically)
 - `gsfin_frontend` (Running)
-- `gsfin_nginx` (Listening on port 80/443)
+- `gsfin_nginx` (Listening on port 80/443 for `gsfin.uk`)
 
 ---
 

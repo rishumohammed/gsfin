@@ -10,7 +10,7 @@ class EmailService {
   constructor() {
     this.ready = false;
     this.resendApiKey = '';
-    this.fromEmail = 'noreply@gsfin.org';
+    this.fromEmail = 'noreply@gsfin.uk';
     this.fromName = 'GSFIN Certifying Authority';
     this.sendMail = this.sendEmail.bind(this);
     this.init();
@@ -28,7 +28,7 @@ class EmailService {
       }
 
       this.resendApiKey = configMap.resend_api_key || process.env.RESEND_API_KEY || '';
-      this.fromEmail = configMap.smtp_from_email || configMap.resend_from_email || process.env.RESEND_FROM || process.env.SMTP_FROM || 'noreply@gsfin.org';
+      this.fromEmail = configMap.smtp_from_email || configMap.resend_from_email || process.env.RESEND_FROM || process.env.SMTP_FROM || 'noreply@gsfin.uk';
       this.fromName = configMap.smtp_from_name || process.env.SMTP_FROM_NAME || 'GSFIN Certifying Authority';
 
       if (this.resendApiKey && this.resendApiKey.trim().length > 0) {

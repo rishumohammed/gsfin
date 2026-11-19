@@ -50,7 +50,7 @@
                 <i class="mdi mdi-chevron-right channel-arrow"></i>
               </a>
 
-              <a href="mailto:support@gsfin.org" @click="visible = false" class="channel-card">
+              <a href="mailto:support@gsfin.uk" @click="visible = false" class="channel-card">
                 <div class="channel-icon bg-red-light text-red">
                   <i class="mdi mdi-email-fast-outline"></i>
                 </div>
@@ -123,7 +123,7 @@ const handleTopicClick = (topic: string) => {
   } else if (topic === 'Certificate Help') {
     window.location.href = '/verify';
   } else {
-    window.location.href = 'mailto:support@gsfin.org?subject=' + encodeURIComponent(topic);
+    window.location.href = 'mailto:support@gsfin.uk?subject=' + encodeURIComponent(topic);
   }
 };
 

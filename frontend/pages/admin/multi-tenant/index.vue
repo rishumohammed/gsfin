@@ -2237,7 +2237,7 @@ function getLoginUrl() {
   if (typeof window !== 'undefined') {
     return `${window.location.origin}/login`;
   }
-  return 'https://gsfin.org/login';
+  return 'https://gsfin.uk/login';
 }
 
 async function copyText(text: string, fieldKey: string) {

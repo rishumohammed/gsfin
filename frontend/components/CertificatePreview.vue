@@ -94,7 +94,7 @@
       <!-- Footer Band -->
       <div class="cert-footer">
         <div class="footer-title">Global Standard Food Safety &amp; Integrity Network - GSFIN</div>
-        <div class="footer-sub">Verified Personnel Certification Registry | www.gsfin.org</div>
+        <div class="footer-sub">Verified Personnel Certification Registry | www.gsfin.uk</div>
       </div>
     </div>
   </div>

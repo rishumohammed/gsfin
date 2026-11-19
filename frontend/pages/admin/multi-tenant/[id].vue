@@ -1487,7 +1487,7 @@ const getLoginUrl = () => {
   if (typeof window !== 'undefined') {
     return `${window.location.origin}/login`;
   }
-  return 'https://gsfin.org/login';
+  return 'https://gsfin.uk/login';
 };
 
 const copyText = async (text: string, fieldKey: string) => {
