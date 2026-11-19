@@ -29,7 +29,7 @@ const SYSTEM_ROLES = [
 router.get('/', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   try {
     const [users] = await pool.query(`
-      SELECT id, name, email, phone, role, status, last_login_at, created_at, NULL as permissions_json 
+      SELECT id, name, email, phone, role, status, last_login_at, created_at, permissions_json 
       FROM users 
       WHERE role IN (?)
       ORDER BY created_at DESC
@@ -112,7 +112,7 @@ router.post('/', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), a
 
 // 3. Update System User
 router.put('/:id', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
-  const { name, phone, role, permissions_json } = req.body;
+  const { name, email, phone, role, permissions_json } = req.body;
   const targetId = req.params.id;
 
   if (role && !SYSTEM_ROLES.includes(role)) {
@@ -126,14 +126,30 @@ router.put('/:id', authenticateJWT, authorizeRoles('super_admin', 'main_admin'),
     const [existing] = await connection.query('SELECT email FROM users WHERE id = ? AND role IN (?)', [targetId, SYSTEM_ROLES]);
     if (existing.length === 0) return res.status(404).json({ message: 'System user not found' });
 
-    const permsStr = permissions_json ? JSON.stringify(permissions_json) : null;
+    if (email && email !== existing[0].email) {
+      const [emailConflict] = await connection.query('SELECT id FROM users WHERE email = ? AND id != ?', [email, targetId]);
+      if (emailConflict.length > 0) {
+        return res.status(400).json({ message: 'Email address already exists' });
+      }
+    }
 
-    await connection.query(
-      'UPDATE users SET name = COALESCE(?, name), phone = COALESCE(?, phone), role = COALESCE(?, role), permissions_json = ? WHERE id = ?',
-      [name, phone, role, permsStr, targetId]
-    );
+    const permsStr = permissions_json !== undefined
+      ? (permissions_json ? JSON.stringify(permissions_json) : null)
+      : undefined;
 
-    await logAudit(connection, req.user.id, 'UPDATE_USER', existing[0].email, { role, permissions_json });
+    if (permsStr !== undefined) {
+      await connection.query(
+        'UPDATE users SET name = COALESCE(?, name), email = COALESCE(?, email), phone = COALESCE(?, phone), role = COALESCE(?, role), permissions_json = ? WHERE id = ?',
+        [name, email, phone, role, permsStr, targetId]
+      );
+    } else {
+      await connection.query(
+        'UPDATE users SET name = COALESCE(?, name), email = COALESCE(?, email), phone = COALESCE(?, phone), role = COALESCE(?, role) WHERE id = ?',
+        [name, email, phone, role, targetId]
+      );
+    }
+
+    await logAudit(connection, req.user.id, 'UPDATE_USER', email || existing[0].email, { role, permissions_json });
 
     await connection.commit();
     res.json({ message: 'System user updated successfully' });
