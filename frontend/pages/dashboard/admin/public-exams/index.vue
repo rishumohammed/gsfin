@@ -56,154 +56,143 @@
           <span class="total-count-badge">Total: {{ filteredExams.length }} Exams</span>
         </div>
 
-        <div class="table-responsive">
-          <table class="gsfin-table">
-            <thead>
-              <tr>
-                <th class="th-exam-std">Exam Standard</th>
-                <th class="th-exam-cfg">Questions &amp; Duration</th>
-                <th class="th-exam-status text-center">Status</th>
-                <th class="th-exam-engage text-center">Engagement</th>
-                <th class="th-exam-date">Created</th>
-                <th class="th-actions th-exam-actions text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Loading State -->
-              <tr v-if="loading">
-                <td colspan="6" class="text-center py-12 text-slate-500">
-                  <span class="spinner-sm-red"></span>
-                  <div class="mt-2 text-xs font-medium text-slate-500">Loading certification exams...</div>
-                </td>
-              </tr>
+        <!-- ═══ CERTIFICATION EXAMS CARDS LIST ═══ -->
+        <div class="partner-cards-list">
+          <!-- Loading State -->
+          <div v-if="loading" class="panel-loading-state">
+            <span class="spinner-sm-red"></span>
+            <div class="mt-2 text-xs font-medium text-slate-500">Loading certification exams...</div>
+          </div>
 
-              <!-- Empty State -->
-              <tr v-else-if="filteredExams.length === 0">
-                <td colspan="6" class="text-center py-16 px-4">
-                  <div class="empty-state-icon-box mb-3">
-                    <i class="mdi mdi-clipboard-text-off-outline text-3xl text-slate-400"></i>
-                  </div>
-                  <h3 class="text-base font-semibold text-slate-900 mb-1">No Certification Exams Found</h3>
-                  <p class="text-xs text-slate-500 max-w-md mx-auto mb-5">
-                    There are no certification exams matching your current filter criteria. Create your first exam to get started.
-                  </p>
-                  <NuxtLink
-                    to="/dashboard/admin/public-exams/create"
-                    class="btn-red inline-flex items-center gap-1.5"
-                  >
-                    <i class="mdi mdi-plus"></i> Create Exam
-                  </NuxtLink>
-                </td>
-              </tr>
+          <!-- Empty State -->
+          <div v-else-if="filteredExams.length === 0" class="panel-empty-state">
+            <i class="mdi mdi-clipboard-text-off-outline text-4xl block mb-2 text-slate-400"></i>
+            <h3 class="text-base font-semibold text-slate-900 mb-1">No Certification Exams Found</h3>
+            <p class="text-xs text-slate-500 max-w-md mx-auto mb-5">
+              There are no certification exams matching your current filter criteria. Create your first exam to get started.
+            </p>
+            <NuxtLink
+              to="/dashboard/admin/public-exams/create"
+              class="btn-red inline-flex items-center gap-1.5"
+            >
+              <i class="mdi mdi-plus"></i> Create Exam
+            </NuxtLink>
+          </div>
 
-              <!-- Data Rows -->
-              <tr v-for="item in paginatedExams" :key="item.id">
-                <!-- Col 1: Exam Standard -->
-                <td>
-                  <div class="exam-cell-row">
-                    <div class="exam-thumb">
-                      <img v-if="item.image_url" :src="item.image_url" :alt="item.name" />
-                      <div v-else class="exam-thumb-fallback">
-                        <i class="mdi mdi-certificate-outline"></i>
-                      </div>
-                    </div>
-                    <div class="exam-info-wrap">
-                      <div class="exam-name-text">{{ item.name }}</div>
-                      <div v-if="item.description" class="exam-desc-text">
-                        {{ item.description }}
-                      </div>
-                      <div class="exam-meta-line">
-                        <span class="exam-slug-tag">Code: {{ item.slug }}</span>
-                        <template v-if="item.difficulty_level">
-                          <span class="dot">•</span>
-                          <span class="exam-level-tag">Level: {{ item.difficulty_level }}</span>
-                        </template>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-
-                <!-- Col 2: Questions & Duration -->
-                <td>
-                  <div class="exam-config-cell">
-                    <div class="exam-config-line">
-                      <span class="exam-q-count">{{ item.total_questions || 0 }} Questions</span>
-                      <span class="dot">•</span>
-                      <span class="exam-duration">{{ item.duration_minutes }} Mins</span>
-                      <span class="dot">•</span>
-                      <span class="exam-pass-badge">Pass: {{ item.pass_percentage }}%</span>
-                    </div>
-                    <div class="mt-1">
-                      <div 
-                        :class="[
-                          'pool-pill',
-                          (item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0
-                            ? 'pool-pill-ready'
-                            : 'pool-pill-need'
-                        ]"
-                        :title="`Requires at least 3× questions in Question Bank (${(item.total_questions || 0) * 3} required)`"
-                      >
-                        <i :class="['mdi', (item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0 ? 'mdi-check-circle' : 'mdi-alert-circle-outline']"></i>
-                        <span>Bank: {{ item.question_count || 0 }} / {{ (item.total_questions || 0) * 3 }}</span>
-                        <span class="pool-pill-tag">
-                          {{ (item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0 ? 'Ready' : `Need +${Math.max(0, ((item.total_questions || 0) * 3) - (item.question_count || 0))}` }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-
-                <!-- Col 3: Status -->
-                <td class="text-center">
-                  <span :class="['badge-chip', item.status === 'published' ? 'chip-green' : (item.status === 'draft' ? 'chip-slate' : 'chip-amber')]">
-                    {{ getStatusLabel(item.status) }}
-                  </span>
-                </td>
-
-                <!-- Col 4: Engagement -->
-                <td class="text-center">
-                  <div class="font-semibold text-slate-900 text-xs">{{ item.attempts_count || 0 }} Attempts</div>
-                  <div class="text-[11px] text-slate-400 font-medium mt-0.5">{{ item.candidate_count || 0 }} Candidates</div>
-                </td>
-
-                <!-- Col 5: Created Date -->
-                <td>
-                  <span class="text-xs text-slate-500 font-medium whitespace-nowrap">{{ formatDate(item.created_at) }}</span>
-                </td>
-
-                <!-- Col 6: Actions (5 Icon-Only Buttons in One Row) -->
-                <td>
-                  <div class="actions-cell">
-                    <!-- 1. Question Bank -->
+          <!-- Exam Cards -->
+          <div
+            v-for="item in paginatedExams"
+            :key="item.id"
+            class="partner-card"
+          >
+            <div class="partner-card-header">
+              <!-- Left Identity -->
+              <div class="partner-identity-left">
+                <div class="partner-logo-avatar">
+                  <i class="mdi mdi-file-certificate-outline"></i>
+                </div>
+                <div class="partner-identity-info">
+                  <div class="partner-title-row">
                     <NuxtLink
                       :to="`/dashboard/admin/public-exams/questions?examId=${item.id}`"
-                      class="btn-table-action icon-only btn-qb"
-                      title="Question Bank"
+                      class="partner-name-link"
+                      title="Open Question Bank for this Exam"
                     >
-                      <i class="mdi mdi-database-outline"></i>
+                      {{ item.name }}
                     </NuxtLink>
-                    <!-- 2. Edit Settings -->
+                    <span
+                      :class="[
+                        'partner-status-tag',
+                        item.status === 'published' ? 'tag-active' :
+                        item.status === 'draft' ? 'tag-inactive' : 'tag-amber'
+                      ]"
+                    >
+                      <span class="pulse-dot"></span>
+                      {{ getStatusLabel(item.status).toUpperCase() }}
+                    </span>
+                    <span class="partner-type-tag font-mono">{{ item.slug }}</span>
+                    <span v-if="item.difficulty_level" class="partner-type-tag capitalize">Level: {{ item.difficulty_level }}</span>
+                  </div>
+
+                  <div class="partner-meta-strip">
+                    <span class="partner-meta-item">
+                      <i class="mdi mdi-help-circle-outline"></i> {{ item.total_questions || 0 }} Questions
+                    </span>
+                    <span class="partner-meta-item">
+                      <i class="mdi mdi-clock-outline"></i> {{ item.duration_minutes }} Mins
+                    </span>
+                    <span class="partner-meta-item font-semibold text-slate-700">
+                      <i class="mdi mdi-check-circle-outline"></i> Pass: {{ item.pass_percentage }}%
+                    </span>
+                    <span
+                      :class="[
+                        'pool-pill',
+                        (item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0
+                          ? 'pool-pill-ready'
+                          : 'pool-pill-need'
+                      ]"
+                      :title="`Requires at least 3× questions in Question Bank (${(item.total_questions || 0) * 3} required)`"
+                    >
+                      <i :class="['mdi', (item.question_count || 0) >= (item.total_questions || 0) * 3 && (item.total_questions || 0) > 0 ? 'mdi-check-circle' : 'mdi-alert-circle-outline']"></i>
+                      <span>Bank: {{ item.question_count || 0 }} / {{ (item.total_questions || 0) * 3 }}</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Stats & Actions -->
+              <div class="partner-header-right">
+                <div class="partner-stat-pill">
+                  <div class="stat-cell">
+                    <span class="stat-num text-indigo">{{ item.question_count || 0 }}</span>
+                    <span class="stat-lbl">Bank Questions</span>
+                  </div>
+                  <div class="stat-divider"></div>
+                  <div class="stat-cell">
+                    <span class="stat-num text-emerald">{{ item.attempts_count || 0 }}</span>
+                    <span class="stat-lbl">Attempts</span>
+                  </div>
+                  <div class="stat-divider"></div>
+                  <div class="stat-cell">
+                    <span class="stat-num text-slate-800">{{ item.candidate_count || 0 }}</span>
+                    <span class="stat-lbl">Candidates</span>
+                  </div>
+                </div>
+
+                <div class="card-action-cluster">
+                  <!-- Primary Action: Question Bank -->
+                  <NuxtLink
+                    :to="`/dashboard/admin/public-exams/questions?examId=${item.id}`"
+                    class="btn-view-batches"
+                    title="Open Question Bank"
+                  >
+                    <span>Question Bank</span>
+                    <i class="mdi mdi-arrow-right"></i>
+                  </NuxtLink>
+
+                  <!-- Icon Actions Row -->
+                  <div class="card-icon-actions">
                     <NuxtLink
                       :to="`/dashboard/admin/public-exams/create?id=${item.id}`"
-                      class="btn-table-action icon-only btn-edit"
-                      title="Edit Exam Settings"
+                      class="btn-icon-action"
+                      title="Edit Exam Configuration"
                     >
                       <i class="mdi mdi-pencil-outline"></i>
                     </NuxtLink>
-                    <!-- 3. Duplicate Exam -->
+
                     <button
                       type="button"
-                      class="btn-table-action icon-only btn-warn"
+                      class="btn-icon-action"
                       title="Duplicate Exam"
                       @click="duplicateExam(item.id)"
                     >
                       <i class="mdi mdi-content-copy"></i>
                     </button>
-                    <!-- 4. Toggle Status (Publish / Unpublish) -->
+
                     <button
                       v-if="item.status !== 'published'"
                       type="button"
-                      class="btn-table-action icon-only btn-success"
+                      class="btn-icon-action text-emerald hover:bg-emerald-50"
                       title="Publish to Catalog"
                       @click="changeStatus(item.id, 'published')"
                     >
@@ -212,26 +201,26 @@
                     <button
                       v-else
                       type="button"
-                      class="btn-table-action icon-only btn-pause"
+                      class="btn-icon-action text-amber hover:bg-amber-50"
                       title="Unpublish (Revert to Draft)"
                       @click="changeStatus(item.id, 'draft')"
                     >
                       <i class="mdi mdi-pause-circle-outline"></i>
                     </button>
-                    <!-- 5. Delete Exam -->
+
                     <button
                       type="button"
-                      class="btn-table-action icon-only btn-danger"
+                      class="btn-icon-action btn-icon-del"
                       title="Delete Exam"
                       @click="confirmDelete(item)"
                     >
                       <i class="mdi mdi-trash-can-outline"></i>
                     </button>
                   </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <!-- Global GSFIN Pagination Component -->
           <AppPagination
@@ -239,7 +228,7 @@
             v-model="page"
             v-model:items-per-page="perPage"
             :total-items="filteredExams.length"
-            :per-page-options="[10, 25, 50]"
+            :per-page-options="[10, 25, 50, 100]"
           />
         </div>
       </div>
@@ -783,7 +772,7 @@ onMounted(() => {
 
 .dot {
   color: #CBD5E1;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 /* Question Pool Indicator */
@@ -811,7 +800,236 @@ onMounted(() => {
 }
 
 .pool-pill-tag {
-  font-weight: 700;
+  font-weight: 600;
+}
+
+/* ═════ CARD ROW LIST STYLES ═════ */
+.partner-cards-list {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.partner-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.02);
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+.partner-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(227, 27, 35, 0.25);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+.partner-card-header {
+  padding: 20px 24px;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.partner-identity-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 300px;
+}
+.partner-logo-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(227, 27, 35, 0.08) 0%, rgba(227, 27, 35, 0.16) 100%);
+  border: 1px solid rgba(227, 27, 35, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  color: #E31B23;
+  flex-shrink: 0;
+}
+.partner-identity-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.partner-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.partner-name-link {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.partner-name-link:hover {
+  color: #E31B23;
+}
+.partner-status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 50px;
+  letter-spacing: 0.04em;
+  border: none;
+}
+.tag-active {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+.tag-inactive {
+  background: rgba(100, 116, 139, 0.1);
+  color: #64748B;
+}
+.tag-amber {
+  background: rgba(245, 158, 11, 0.1);
+  color: #D97706;
+}
+.partner-type-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 3px 10px;
+  border-radius: 50px;
+}
+.partner-meta-strip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: #64748B;
+}
+.partner-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.partner-meta-item i {
+  color: #94A3B8;
+  font-size: 0.95rem;
+}
+.partner-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.partner-stat-pill {
+  display: flex;
+  align-items: center;
+  background: #F8FAFC;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  padding: 8px 16px;
+  gap: 14px;
+}
+.stat-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.15;
+}
+.stat-num {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0F172A;
+}
+.stat-lbl {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+.stat-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(15, 23, 42, 0.1);
+}
+.card-action-cluster {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn-view-batches {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  background: #E31B23;
+  color: #FFFFFF;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(227, 27, 35, 0.2);
+  white-space: nowrap;
+}
+.btn-view-batches:hover {
+  background: #C41219;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(227, 27, 35, 0.28);
+}
+.btn-view-batches i {
+  font-size: 0.95rem;
+  transition: transform 0.15s ease;
+}
+.btn-view-batches:hover i {
+  transform: translateX(3px);
+}
+.card-icon-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-icon-action {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: #FFFFFF;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 1rem;
+  text-decoration: none;
+}
+.btn-icon-action:hover {
+  background: #F8FAFC;
+  color: #0F172A;
+  border-color: rgba(15, 23, 42, 0.2);
+}
+.btn-icon-del:hover {
+  background: #FEF2F2;
+  color: #E31B23;
+  border-color: rgba(227, 27, 35, 0.25);
+}
+.panel-loading-state, .panel-empty-state {
+  padding: 48px;
+  text-align: center;
+  color: #64748B;
 }
 
 /* Badge Chips */

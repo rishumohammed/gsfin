@@ -148,111 +148,106 @@
           <span class="total-count-badge">Total: {{ filteredBranches.length }} Branches</span>
         </div>
 
-        <div class="table-responsive">
-          <table class="gsfin-table">
-            <thead>
-              <tr>
-                <th class="th-branch">Branch / Training Center</th>
-                <th class="th-loc">Jurisdiction / Location</th>
-                <th class="th-num text-center">Batches</th>
-                <th class="th-num text-center">Candidates</th>
-                <th class="th-health text-center">Integrity Health</th>
-                <th class="th-num text-center">Violations</th>
-                <th class="th-actions th-act text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="loading">
-                <td colspan="7" class="text-center py-12 text-slate-500">
-                  <span class="spinner-sm-red"></span>
-                  <div class="mt-2 text-xs font-medium text-slate-500">Loading branch proctoring data...</div>
-                </td>
-              </tr>
-              <tr v-else-if="filteredBranches.length === 0">
-                <td colspan="7" class="text-center py-16 text-slate-500">
-                  <i class="mdi mdi-domain-off text-3xl text-slate-400 block mb-2"></i>
-                  <div class="font-semibold text-slate-800">No Branches Found</div>
-                  <div class="text-xs text-slate-400 mt-1">No training center branches match your search criteria.</div>
-                </td>
-              </tr>
-              <tr
-                v-for="branch in filteredBranches"
-                :key="branch.id"
-                class="clickable-row"
-                @click="selectBranch(branch)"
-              >
-                <!-- Branch Name -->
-                <td>
-                  <div class="branch-cell-wrap">
-                    <div class="branch-icon-box" :class="branch.id === 'branch-direct-portal' ? 'bg-indigo-light text-indigo' : 'bg-red-light text-red'">
-                      <i :class="branch.id === 'branch-direct-portal' ? 'mdi mdi-earth' : 'mdi mdi-domain'"></i>
-                    </div>
-                    <div>
-                      <div class="branch-title">{{ branch.name }}</div>
-                      <div class="branch-sub">{{ branch.code }} &bull; {{ branch.type }}</div>
-                    </div>
+        <!-- Level 1 Branches Cards List -->
+        <div class="partner-cards-list">
+          <div v-if="loading" class="panel-loading-state">
+            <span class="spinner-sm-red"></span>
+            <div class="mt-2 text-xs font-medium text-slate-500">Loading branch proctoring data...</div>
+          </div>
+          <div v-else-if="filteredBranches.length === 0" class="panel-empty-state">
+            <i class="mdi mdi-domain-off text-4xl text-slate-400 block mb-2"></i>
+            <div class="font-semibold text-slate-800">No Branches Found</div>
+            <div class="text-xs text-slate-400 mt-1">No training center branches match your search criteria.</div>
+          </div>
+          <div
+            v-for="branch in filteredBranches"
+            :key="branch.id"
+            class="partner-card"
+          >
+            <div class="partner-card-header">
+              <!-- Left Identity -->
+              <div class="partner-identity-left">
+                <div class="partner-logo-avatar" :class="branch.id === 'branch-direct-portal' ? 'bg-indigo-light text-indigo' : 'bg-red-light text-red'">
+                  <i :class="branch.id === 'branch-direct-portal' ? 'mdi mdi-earth' : 'mdi mdi-domain'"></i>
+                </div>
+                <div class="partner-identity-info">
+                  <div class="partner-title-row">
+                    <span
+                      class="partner-name-link cursor-pointer"
+                      @click="selectBranch(branch)"
+                      title="Inspect Batches for this Branch"
+                    >
+                      {{ branch.name }}
+                    </span>
+                    <span
+                      v-if="(branch.flagged_count || 0) > 0"
+                      class="partner-status-tag tag-inactive"
+                    >
+                      <span class="pulse-dot bg-red"></span>
+                      {{ branch.flagged_count }} Flagged
+                    </span>
+                    <span
+                      v-else-if="(branch.pending_review_count || 0) > 0"
+                      class="partner-status-tag tag-amber"
+                    >
+                      <span class="pulse-dot bg-amber"></span>
+                      {{ branch.pending_review_count }} Review
+                    </span>
+                    <span
+                      v-else
+                      class="partner-status-tag tag-active"
+                    >
+                      <span class="pulse-dot"></span>
+                      Clean Health
+                    </span>
+                    <span class="partner-type-tag">{{ branch.code }}</span>
+                    <span class="partner-type-tag">{{ branch.type }}</span>
                   </div>
-                </td>
 
-                <!-- Jurisdiction / Location -->
-                <td>
-                  <div class="text-xs font-semibold text-slate-800">{{ branch.city }}</div>
-                  <div class="text-[11px] text-slate-400">{{ branch.country }}</div>
-                </td>
-
-                <!-- Batches -->
-                <td class="text-center">
-                  <span class="badge-count-pill">{{ branch.total_batches || (branch.batches ? branch.batches.length : 0) }} Batches</span>
-                </td>
-
-                <!-- Candidates -->
-                <td class="text-center">
-                  <span class="text-xs font-semibold text-slate-900">{{ branch.total_candidates || 0 }}</span>
-                  <span class="text-[11px] text-slate-400 block">Candidates</span>
-                </td>
-
-                <!-- Integrity Health -->
-                <td class="text-center">
-                  <span
-                    v-if="(branch.flagged_count || 0) > 0"
-                    class="badge-chip chip-red"
-                  >
-                    <i class="mdi mdi-alert-circle mr-1"></i> {{ branch.flagged_count }} Flagged
-                  </span>
-                  <span
-                    v-else-if="(branch.pending_review_count || 0) > 0"
-                    class="badge-chip chip-amber"
-                  >
-                    <i class="mdi mdi-clock-outline mr-1"></i> {{ branch.pending_review_count }} Review
-                  </span>
-                  <span
-                    v-else
-                    class="badge-chip chip-green"
-                  >
-                    <i class="mdi mdi-check-circle mr-1"></i> Clean
-                  </span>
-                </td>
-
-                <!-- Violations -->
-                <td class="text-center">
-                  <div class="text-xs font-semibold" :class="(branch.total_violations || 0) > 0 ? 'text-red-600' : 'text-slate-600'">
-                    {{ branch.total_violations || 0 }} Total
+                  <div class="partner-meta-strip">
+                    <span class="partner-meta-item">
+                      <i class="mdi mdi-map-marker-outline"></i> {{ branch.city }}, {{ branch.country }}
+                    </span>
+                    <span v-if="(branch.high_severity_count || 0) > 0" class="partner-meta-item text-red font-semibold">
+                      <i class="mdi mdi-alert-octagon"></i> {{ branch.high_severity_count }} High Risk Violations
+                    </span>
                   </div>
-                  <div v-if="(branch.high_severity_count || 0) > 0" class="text-[11px] font-semibold text-red-700">
-                    {{ branch.high_severity_count }} High Risk
-                  </div>
-                </td>
+                </div>
+              </div>
 
-                <!-- Action Button -->
-                <td class="text-center" @click.stop="selectBranch(branch)">
-                  <button class="btn-action-drill">
-                    <span>View Batches</span>
-                    <i class="mdi mdi-arrow-right"></i>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+              <!-- Right Stats & Actions -->
+              <div class="partner-header-right">
+                <div class="partner-stat-pill">
+                  <div class="stat-cell">
+                    <span class="stat-num text-indigo">{{ branch.total_batches || (branch.batches ? branch.batches.length : 0) }}</span>
+                    <span class="stat-lbl">Batches</span>
+                  </div>
+                  <div class="stat-divider"></div>
+                  <div class="stat-cell">
+                    <span class="stat-num text-slate-800">{{ branch.total_candidates || 0 }}</span>
+                    <span class="stat-lbl">Candidates</span>
+                  </div>
+                  <div class="stat-divider"></div>
+                  <div class="stat-cell">
+                    <span class="stat-num" :class="(branch.total_violations || 0) > 0 ? 'text-red' : 'text-emerald'">
+                      {{ branch.total_violations || 0 }}
+                    </span>
+                    <span class="stat-lbl">Violations</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  class="btn-view-batches"
+                  @click="selectBranch(branch)"
+                  title="View Exam Batches"
+                >
+                  <span>View Batches</span>
+                  <i class="mdi mdi-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -318,104 +313,104 @@
           <span class="total-count-badge">Total: {{ filteredBatches.length }} Exam Batches</span>
         </div>
 
-        <div class="table-responsive">
-          <table class="gsfin-table">
-            <thead>
-              <tr>
-                <th class="th-batch">Exam Batch &amp; Code</th>
-                <th class="th-exam-name">Certification Exam</th>
-                <th class="th-sched">Schedule Window</th>
-                <th class="th-status text-center">Status</th>
-                <th class="th-candidates text-center">Candidates</th>
-                <th class="th-proc-status text-center">Proctoring Status</th>
-                <th class="th-actions th-batch-act text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="filteredBatches.length === 0">
-                <td colspan="7" class="text-center py-16 text-slate-500">
-                  <i class="mdi mdi-calendar-remove text-3xl text-slate-400 block mb-2"></i>
-                  <div class="font-semibold text-slate-800">No Batches Found for this Branch</div>
-                  <div class="text-xs text-slate-400 mt-1">This branch does not have any active or recorded exam batches matching the filter.</div>
-                </td>
-              </tr>
-              <tr
-                v-for="batch in filteredBatches"
-                :key="batch.id"
-                class="clickable-row"
-                @click="selectBatch(batch)"
-              >
-                <!-- Batch Code & Info -->
-                <td>
-                  <div class="flex items-center gap-3">
-                    <div class="batch-icon-badge">
-                      <i class="mdi mdi-calendar-check"></i>
-                    </div>
-                    <div>
-                      <div class="batch-code-text">{{ batch.batch_code }}</div>
-                      <div class="batch-sub-text">Created: {{ formatDate(batch.created_at) }}</div>
-                    </div>
+        <!-- Level 2 Batches Cards List -->
+        <div class="partner-cards-list">
+          <div v-if="filteredBatches.length === 0" class="panel-empty-state">
+            <i class="mdi mdi-calendar-remove text-4xl text-slate-400 block mb-2"></i>
+            <div class="font-semibold text-slate-800">No Batches Found for this Branch</div>
+            <div class="text-xs text-slate-400 mt-1">This branch does not have any active or recorded exam batches matching the filter.</div>
+          </div>
+          <div
+            v-for="batch in filteredBatches"
+            :key="batch.id"
+            class="partner-card"
+          >
+            <div class="partner-card-header">
+              <!-- Left Identity -->
+              <div class="partner-identity-left">
+                <div class="partner-logo-avatar bg-purple-light text-purple">
+                  <i class="mdi mdi-calendar-check"></i>
+                </div>
+                <div class="partner-identity-info">
+                  <div class="partner-title-row">
+                    <span
+                      class="partner-name-link cursor-pointer"
+                      @click="selectBatch(batch)"
+                      title="Inspect Candidate Proctoring Logs for this Batch"
+                    >
+                      {{ batch.exam_name }}
+                    </span>
+                    <span
+                      v-if="(batch.flagged_count || 0) > 0"
+                      class="partner-status-tag tag-inactive"
+                    >
+                      <span class="pulse-dot bg-red"></span>
+                      {{ batch.flagged_count }} Flagged
+                    </span>
+                    <span
+                      v-else-if="(batch.pending_review_count || 0) > 0"
+                      class="partner-status-tag tag-amber"
+                    >
+                      <span class="pulse-dot bg-amber"></span>
+                      {{ batch.pending_review_count }} Review
+                    </span>
+                    <span
+                      v-else
+                      class="partner-status-tag tag-active"
+                    >
+                      <span class="pulse-dot"></span>
+                      Clean
+                    </span>
+                    <span class="partner-type-tag font-mono">{{ batch.batch_code }}</span>
                   </div>
-                </td>
 
-                <!-- Certification Exam Standard -->
-                <td>
-                  <div class="font-semibold text-slate-900 text-xs">{{ batch.exam_name }}</div>
-                  <div class="text-[11px] text-slate-400">GSFIN Standardized Framework</div>
-                </td>
-
-                <!-- Schedule Window -->
-                <td>
-                  <div v-if="batch.opens_at" class="text-xs text-slate-700">
-                    <span class="font-medium text-slate-400">Opens:</span> {{ formatDate(batch.opens_at) }}
+                  <div class="partner-meta-strip">
+                    <span v-if="batch.created_at" class="partner-meta-item">
+                      <i class="mdi mdi-calendar-blank"></i> Created: {{ formatDate(batch.created_at) }}
+                    </span>
+                    <span v-if="batch.opens_at" class="partner-meta-item">
+                      <i class="mdi mdi-clock-outline"></i> Window: {{ formatDate(batch.opens_at) }} &rarr; {{ formatDate(batch.closes_at) }}
+                    </span>
+                    <span v-else class="partner-meta-item">
+                      <i class="mdi mdi-infinity"></i> Continuous Session
+                    </span>
                   </div>
-                  <div v-if="batch.closes_at" class="text-xs text-slate-700 mt-0.5">
-                    <span class="font-medium text-slate-400">Closes:</span> {{ formatDate(batch.closes_at) }}
+                </div>
+              </div>
+
+              <!-- Right Stats & Actions -->
+              <div class="partner-header-right">
+                <div class="partner-stat-pill">
+                  <div class="stat-cell">
+                    <span class="stat-num text-slate-800">{{ batch.total_candidates || 0 }}</span>
+                    <span class="stat-lbl">Enrolled</span>
                   </div>
-                  <div v-if="!batch.opens_at && !batch.closes_at" class="text-xs text-slate-400">
-                    Continuous Session
+                  <div class="stat-divider"></div>
+                  <div class="stat-cell">
+                    <span class="stat-num text-amber">{{ batch.pending_review_count || 0 }}</span>
+                    <span class="stat-lbl">Review</span>
                   </div>
-                </td>
+                  <div class="stat-divider"></div>
+                  <div class="stat-cell">
+                    <span class="stat-num" :class="(batch.flagged_count || 0) > 0 ? 'text-red' : 'text-emerald'">
+                      {{ batch.flagged_count || 0 }}
+                    </span>
+                    <span class="stat-lbl">Flagged</span>
+                  </div>
+                </div>
 
-                <!-- Batch Status -->
-                <td class="text-center">
-                  <span :class="['badge-chip', batch.status === 'open' ? 'chip-green' : (batch.status === 'closed' ? 'chip-slate' : 'chip-amber')]">
-                    {{ batch.status || 'Active' }}
-                  </span>
-                </td>
-
-                <!-- Candidates -->
-                <td class="text-center">
-                  <span class="text-xs font-semibold text-slate-900">{{ batch.total_candidates || 0 }}</span>
-                  <span class="text-[11px] text-slate-400 block">Enrolled</span>
-                </td>
-
-                <!-- Proctoring Health -->
-                <td class="text-center">
-                  <span v-if="(batch.flagged_count || 0) > 0" class="badge-chip chip-red">
-                    {{ batch.flagged_count }} Flagged
-                  </span>
-                  <span v-else-if="(batch.pending_review_count || 0) > 0" class="badge-chip chip-amber">
-                    {{ batch.pending_review_count }} Review Needed
-                  </span>
-                  <span v-else-if="(batch.violations_count || 0) > 0" class="badge-chip chip-amber">
-                    {{ batch.violations_count }} Violations
-                  </span>
-                  <span v-else class="badge-chip chip-green">
-                    All Clean
-                  </span>
-                </td>
-
-                <!-- Action Button -->
-                <td class="text-center" @click.stop="selectBatch(batch)">
-                  <button class="btn-action-drill">
-                    <span>Audit Details</span>
-                    <i class="mdi mdi-arrow-right"></i>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                <button
+                  type="button"
+                  class="btn-view-batches"
+                  @click="selectBatch(batch)"
+                  title="Audit Proctoring Details"
+                >
+                  <span>Audit Logs</span>
+                  <i class="mdi mdi-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1152,6 +1147,207 @@ onMounted(() => {
   border-radius: 20px;
   white-space: nowrap;
 }
+
+/* ═════ PROCTORING CARDS LIST STYLES ═════ */
+.partner-cards-list {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.partner-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.02);
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+.partner-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(227, 27, 35, 0.25);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+.partner-card-header {
+  padding: 20px 24px;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.partner-identity-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 300px;
+}
+.partner-logo-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+.partner-identity-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.partner-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.partner-name-link {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.partner-name-link:hover {
+  color: #E31B23;
+}
+.partner-status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 50px;
+  letter-spacing: 0.04em;
+  border: none;
+}
+.tag-active {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+.tag-inactive {
+  background: rgba(239, 68, 68, 0.1);
+  color: #DC2626;
+}
+.tag-amber {
+  background: rgba(245, 158, 11, 0.1);
+  color: #D97706;
+}
+.partner-type-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 3px 10px;
+  border-radius: 50px;
+}
+.partner-meta-strip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: #64748B;
+}
+.partner-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.partner-meta-item i {
+  color: #94A3B8;
+  font-size: 0.95rem;
+}
+.partner-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.partner-stat-pill {
+  display: flex;
+  align-items: center;
+  background: #F8FAFC;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  padding: 8px 16px;
+  gap: 14px;
+}
+.stat-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.15;
+}
+.stat-num {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0F172A;
+}
+.stat-lbl {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+.stat-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(15, 23, 42, 0.1);
+}
+.btn-view-batches {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  background: #E31B23;
+  color: #FFFFFF;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(227, 27, 35, 0.2);
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+}
+.btn-view-batches:hover {
+  background: #C41219;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(227, 27, 35, 0.28);
+}
+.btn-view-batches i {
+  font-size: 0.95rem;
+  transition: transform 0.15s ease;
+}
+.btn-view-batches:hover i {
+  transform: translateX(3px);
+}
+.panel-loading-state, .panel-empty-state {
+  padding: 48px;
+  text-align: center;
+  color: #64748B;
+}
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10B981;
+}
+.bg-red { background: #DC2626 !important; }
+.bg-amber { background: #D97706 !important; }
 
 /* Scope Banners */
 .branch-scope-banner,

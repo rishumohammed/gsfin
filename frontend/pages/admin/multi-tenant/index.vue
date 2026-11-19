@@ -97,59 +97,90 @@
             </div>
           </div>
 
-          <div class="table-responsive">
-            <table class="gsfin-table">
-              <thead>
-                <tr>
-                  <th>Partner Center</th>
-                  <th>Exam Title</th>
-                  <th>Status</th>
-                  <th>Student Metrics</th>
-                  <th>Created At</th>
-                  <th class="text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-if="loadingOverview">
-                  <td colspan="6" class="text-center py-6 text-slate-500">
-                    <span class="spinner-sm-red"></span> Loading Live Feed...
-                  </td>
-                </tr>
-                <tr v-else-if="filteredBatches.length === 0">
-                  <td colspan="6" class="text-center py-8 text-slate-500">
-                    <i class="mdi mdi-layers-off-outline text-3xl block mb-2 text-slate-400"></i>
-                    No Active Batches Found
-                  </td>
-                </tr>
-                <tr v-for="b in paginatedBatches" :key="b.id">
-                  <td class="font-semibold text-slate-900">{{ b.org_name || 'Partner Center' }}</td>
-                  <td>{{ b.exam_name || b.exam_title || 'Certification Exam' }}</td>
-                  <td>
-                    <span :class="['badge-chip', getBatchStatusClass(b.status)]">
-                      {{ b.status }}
-                    </span>
-                  </td>
-                  <td>
-                    <div class="metrics-pill-row">
-                      <span class="chip-blue">Total: {{ b.student_count || 0 }}</span>
-                      <span class="chip-green">Passed: {{ b.passed_count || 0 }}</span>
-                      <span class="chip-red">Failed: {{ b.failed_count || 0 }}</span>
-                      <span class="chip-amber">In Progress: {{ b.in_progress_count || 0 }}</span>
+          <!-- Batches Cards List -->
+          <div class="partner-cards-list">
+            <div v-if="loadingOverview" class="panel-loading-state">
+              <span class="spinner-sm-red"></span> Loading Live Batches Feed...
+            </div>
+            <div v-else-if="filteredBatches.length === 0" class="panel-empty-state">
+              <i class="mdi mdi-layers-off-outline text-4xl block mb-2 text-slate-400"></i>
+              <div class="font-semibold text-slate-700">No Active Batches Found</div>
+              <div class="text-sm text-slate-500">No exam batches match your search filter.</div>
+            </div>
+            <div
+              v-for="b in paginatedBatches"
+              :key="b.id"
+              class="partner-card"
+            >
+              <div class="partner-card-header">
+                <div class="partner-identity-left">
+                  <div class="partner-logo-avatar bg-indigo-light text-indigo">
+                    <i class="mdi mdi-layers-triple"></i>
+                  </div>
+                  <div class="partner-identity-info">
+                    <div class="partner-title-row">
+                      <NuxtLink
+                        :to="'/admin/multi-tenant/batches/' + b.id"
+                        class="partner-name-link"
+                        title="View Batch Candidate Roster"
+                      >
+                        {{ b.exam_name || b.exam_title || 'Certification Exam' }}
+                      </NuxtLink>
+                      <span
+                        :class="[
+                          'partner-status-tag',
+                          b.status === 'in_progress' ? 'tag-active' :
+                          b.status === 'completed' ? 'tag-inactive' : 'tag-amber'
+                        ]"
+                      >
+                        <span class="pulse-dot"></span>
+                        {{ (b.status || 'CREATED').replace('_', ' ').toUpperCase() }}
+                      </span>
+                      <span class="partner-type-tag font-mono">Batch #{{ b.id.slice(0, 8) }}</span>
                     </div>
-                  </td>
-                  <td class="text-slate-500">{{ formatDate(b.created_at) }}</td>
-                  <td class="text-right">
-                    <NuxtLink
-                      :to="'/admin/multi-tenant/batches/' + b.id"
-                      class="btn-table-action btn-view no-underline"
-                      title="View Candidate Roster & Certificates"
-                    >
-                      <i class="mdi mdi-arrow-right"></i>
-                    </NuxtLink>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+
+                    <div class="partner-meta-strip">
+                      <span class="partner-meta-item font-semibold text-slate-800">
+                        <i class="mdi mdi-office-building"></i> {{ b.org_name || 'Partner Center' }}
+                      </span>
+                      <span v-if="b.created_at" class="partner-meta-item">
+                        <i class="mdi mdi-calendar-blank"></i> Conducted: {{ formatDate(b.created_at) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Batch Stats Summary Pill & Action -->
+                <div class="partner-header-right">
+                  <div class="partner-stat-pill">
+                    <div class="stat-cell">
+                      <span class="stat-num text-indigo">{{ b.student_count || 0 }}</span>
+                      <span class="stat-lbl">Candidates</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-cell">
+                      <span class="stat-num text-emerald">{{ b.passed_count || 0 }}</span>
+                      <span class="stat-lbl">Passed</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-cell">
+                      <span class="stat-num text-red">{{ b.failed_count || 0 }}</span>
+                      <span class="stat-lbl">Failed</span>
+                    </div>
+                  </div>
+
+                  <NuxtLink
+                    :to="'/admin/multi-tenant/batches/' + b.id"
+                    class="btn-view-batches"
+                    title="View Candidate Roster & Certificates"
+                  >
+                    <span>View Roster</span>
+                    <i class="mdi mdi-arrow-right"></i>
+                  </NuxtLink>
+                </div>
+              </div>
+            </div>
+
             <AppPagination
               v-if="filteredBatches.length > 0"
               v-model="batchPage"
@@ -193,121 +224,114 @@
             </div>
           </div>
 
-          <div class="table-responsive">
-            <table class="gsfin-table partner-centers-table">
-              <thead>
-                <tr>
-                  <th class="th-partner-center">Partner Center</th>
-                  <th class="th-exam-perf">Exam Candidates</th>
-                  <th class="th-contact">Contact Information</th>
-                  <th class="th-tokens text-center">Wallet Tokens</th>
-                  <th class="th-status text-center">Status</th>
-                  <th class="th-actions text-center w-48">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-if="loadingOrgs">
-                  <td colspan="6" class="text-center py-6 text-slate-500">
-                    <span class="spinner-sm-red"></span> Loading Partner Centers...
-                  </td>
-                </tr>
-                <tr v-else-if="filteredOrganizations.length === 0">
-                  <td colspan="6" class="text-center py-8 text-slate-500">No Partner Centers Found</td>
-                </tr>
-                <tr v-for="org in paginatedOrganizations" :key="org.id">
-                  <!-- Col 1: Partner Center -->
-                  <td>
-                    <NuxtLink :to="`/admin/multi-tenant/${org.id}`" class="partner-title-cell text-decoration-none group">
-                      <div class="partner-icon-avatar group-hover:bg-red-50 transition">
-                        <i class="mdi mdi-domain"></i>
-                      </div>
-                      <div class="partner-name-wrap">
-                        <div class="partner-org-name">{{ org.name }}</div>
-                        <div class="partner-org-type">{{ org.institution_type || 'Authorized Training Center' }}</div>
-                      </div>
-                    </NuxtLink>
-                  </td>
-
-                  <!-- Col 2: Exam Performance (Attended & Passed) -->
-                  <td>
-                    <div class="exam-perf-cell">
-                      <div class="metric-chip chip-attended" :title="`${org.attended_students || 0} candidates attended exams`">
-                        <i class="mdi mdi-account-group"></i>
-                        <span>Attended: <strong>{{ org.attended_students || 0 }}</strong></span>
-                      </div>
-                      <div class="metric-chip chip-passed" :title="`${org.passed_students || 0} candidates passed exams`">
-                        <i class="mdi mdi-check-decagram"></i>
-                        <span>Passed: <strong>{{ org.passed_students || 0 }}</strong></span>
-                      </div>
+          <!-- Partner Centers Cards List -->
+          <div class="partner-cards-list">
+            <div v-if="loadingOrgs" class="panel-loading-state">
+              <span class="spinner-sm-red"></span> Loading Partner Centers...
+            </div>
+            <div v-else-if="filteredOrganizations.length === 0" class="panel-empty-state">
+              <i class="mdi mdi-domain-off text-4xl block mb-2 text-slate-400"></i>
+              <div class="font-semibold text-slate-700">No Partner Centers Found</div>
+              <div class="text-sm text-slate-500">Try adjusting your search query or status filter.</div>
+            </div>
+            <div
+              v-for="org in paginatedOrganizations"
+              :key="org.id"
+              class="partner-card"
+            >
+              <div class="partner-card-header">
+                <div class="partner-identity-left">
+                  <div class="partner-logo-avatar">
+                    <i class="mdi mdi-domain"></i>
+                  </div>
+                  <div class="partner-identity-info">
+                    <div class="partner-title-row">
+                      <NuxtLink
+                        :to="`/admin/multi-tenant/${org.id}`"
+                        class="partner-name-link"
+                        title="View Partner Profile"
+                      >
+                        {{ org.name }}
+                      </NuxtLink>
+                      <button
+                        type="button"
+                        class="partner-status-tag"
+                        :class="org.status === 'active' ? 'tag-active' : 'tag-inactive'"
+                        @click="toggleOrgStatus(org)"
+                        :title="org.status === 'active' ? 'Click to Suspend Center' : 'Click to Activate Center'"
+                      >
+                        <span class="pulse-dot"></span>
+                        {{ org.status === 'active' ? 'Accredited Center' : 'Suspended' }}
+                      </button>
+                      <span class="partner-type-tag">{{ org.institution_type || 'Authorized Training Center' }}</span>
                     </div>
-                  </td>
 
-                  <!-- Col 3: Contact Information -->
-                  <td>
-                    <div class="col-contact-info">
-                      <a :href="`mailto:${org.contact_email}`" class="contact-email-link" :title="`Email ${org.contact_email}`">
-                        <i class="mdi mdi-email-outline contact-icon"></i>
-                        <span>{{ org.contact_email }}</span>
+                    <div class="partner-meta-strip">
+                      <a :href="`mailto:${org.contact_email}`" class="partner-meta-item text-slate-600 hover:text-red transition-colors">
+                        <i class="mdi mdi-email-outline"></i> {{ org.contact_email }}
                       </a>
-                      <div v-if="org.contact_phone" class="contact-phone-row">
-                        <i class="mdi mdi-phone-outline contact-icon"></i>
-                        <span>{{ org.contact_phone }}</span>
-                      </div>
-                      <div v-else class="contact-phone-row text-muted">
-                        <i class="mdi mdi-phone-off-outline contact-icon"></i>
-                        <span>No phone</span>
-                      </div>
+                      <span v-if="org.contact_phone" class="partner-meta-item">
+                        <i class="mdi mdi-phone-outline"></i> {{ org.contact_phone }}
+                      </span>
+                      <span class="partner-meta-item">
+                        <i class="mdi mdi-map-marker-outline"></i> {{ org.city || 'Global' }}, {{ org.country || 'Jurisdiction' }}
+                      </span>
                     </div>
-                  </td>
+                  </div>
+                </div>
 
-                  <!-- Col 4: Wallet Tokens -->
-                  <td class="text-center">
-                    <button
-                      type="button"
-                      class="badge-token-count hover:shadow-xs cursor-pointer transition-all"
+                <!-- Partner Stats Summary Pill & Actions -->
+                <div class="partner-header-right">
+                  <div class="partner-stat-pill">
+                    <div class="stat-cell">
+                      <span class="stat-num text-indigo">{{ org.attended_students || 0 }}</span>
+                      <span class="stat-lbl">Candidates</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-cell">
+                      <span class="stat-num text-emerald">{{ org.passed_students || 0 }}</span>
+                      <span class="stat-lbl">Passed</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div
+                      class="stat-cell cursor-pointer"
                       title="Click to Take Back / Refund Tokens"
                       @click="openTokenAdjustmentModal(org)"
                     >
-                      <i class="mdi mdi-ticket-confirmation"></i> {{ org.tokens_remaining || org.token_balance || 0 }} Tokens
-                    </button>
-                  </td>
+                      <span class="stat-num text-amber">{{ org.tokens_remaining || org.token_balance || 0 }}</span>
+                      <span class="stat-lbl">Tokens</span>
+                    </div>
+                  </div>
 
-                  <!-- Col 6: Status -->
-                  <td class="text-center">
-                    <button
-                      class="status-btn"
-                      :class="org.status === 'active' ? 'status-active' : 'status-suspended'"
-                      @click="toggleOrgStatus(org)"
-                      :title="org.status === 'active' ? 'Click to Suspend Center' : 'Click to Activate Center'"
+                  <div class="card-action-cluster">
+                    <NuxtLink
+                      :to="`/admin/multi-tenant/${org.id}`"
+                      class="btn-view-batches"
+                      title="View Center"
                     >
-                      <span class="status-dot"></span>
-                      {{ (org.status || 'ACTIVE').toUpperCase() }}
-                    </button>
-                  </td>
+                      <span>View Center</span>
+                      <i class="mdi mdi-arrow-right"></i>
+                    </NuxtLink>
 
-                  <!-- Col 7: Actions -->
-                  <td class="text-center">
-                    <div class="actions-cell">
-                      <NuxtLink :to="`/admin/multi-tenant/${org.id}`" class="btn-table-action btn-view" title="View Center">
-                        <i class="mdi mdi-eye-outline"></i>
-                      </NuxtLink>
-                      <button class="btn-table-action btn-refund" title="Take Back / Refund Tokens" @click="openTokenAdjustmentModal(org)">
+                    <div class="card-icon-actions">
+                      <button class="btn-icon-action" title="Refund Tokens" @click="openTokenAdjustmentModal(org)">
                         <i class="mdi mdi-cash-refund"></i>
                       </button>
-                      <button class="btn-table-action btn-edit" title="Edit Center" @click="editOrg(org)">
+                      <button class="btn-icon-action" title="Edit Center" @click="editOrg(org)">
                         <i class="mdi mdi-pencil-outline"></i>
                       </button>
-                      <button class="btn-table-action btn-key" title="Reset Password" @click="openResetPasswordModal(org)">
+                      <button class="btn-icon-action" title="Reset Password" @click="openResetPasswordModal(org)">
                         <i class="mdi mdi-key-outline"></i>
                       </button>
-                      <button class="btn-table-action btn-danger" title="Delete Center" @click="deleteOrg(org)">
+                      <button class="btn-icon-action btn-icon-del" title="Delete Center" @click="deleteOrg(org)">
                         <i class="mdi mdi-trash-can-outline"></i>
                       </button>
                     </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <AppPagination
               v-if="filteredOrganizations.length > 0"
               v-model="orgPage"
@@ -2774,6 +2798,245 @@ function getTxTypeClass(type: string) {
   border: 1px solid rgba(15, 23, 42, 0.12);
   background: #FFFFFF;
   color: #64748B;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-icon-refresh:hover:not(:disabled) {
+  border-color: #E31B23;
+  color: #E31B23;
+}
+
+/* ═════ PARTNER CARDS LIST STYLES ═════ */
+.partner-cards-list {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.partner-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.02);
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+.partner-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(227, 27, 35, 0.25);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+.partner-card-header {
+  padding: 20px 24px;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.partner-identity-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 300px;
+}
+.partner-logo-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(227, 27, 35, 0.08) 0%, rgba(227, 27, 35, 0.16) 100%);
+  border: 1px solid rgba(227, 27, 35, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  color: #E31B23;
+  flex-shrink: 0;
+}
+.partner-identity-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.partner-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.partner-name-link {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.partner-name-link:hover {
+  color: #E31B23;
+}
+.partner-status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 50px;
+  letter-spacing: 0.04em;
+  border: none;
+  cursor: pointer;
+}
+.tag-active {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+.tag-inactive {
+  background: rgba(239, 68, 68, 0.1);
+  color: #DC2626;
+}
+.tag-amber {
+  background: rgba(245, 158, 11, 0.1);
+  color: #D97706;
+}
+.partner-type-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 3px 10px;
+  border-radius: 50px;
+}
+.partner-meta-strip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: #64748B;
+}
+.partner-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.partner-meta-item i {
+  color: #94A3B8;
+  font-size: 0.95rem;
+}
+.partner-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.partner-stat-pill {
+  display: flex;
+  align-items: center;
+  background: #F8FAFC;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  padding: 8px 16px;
+  gap: 14px;
+}
+.stat-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.15;
+}
+.stat-num {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0F172A;
+}
+.stat-lbl {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+.stat-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(15, 23, 42, 0.1);
+}
+.card-action-cluster {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn-view-batches {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  background: #E31B23;
+  color: #FFFFFF;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(227, 27, 35, 0.2);
+  white-space: nowrap;
+}
+.btn-view-batches:hover {
+  background: #C41219;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(227, 27, 35, 0.28);
+}
+.btn-view-batches i {
+  font-size: 0.95rem;
+  transition: transform 0.15s ease;
+}
+.btn-view-batches:hover i {
+  transform: translateX(3px);
+}
+.card-icon-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-icon-action {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: #FFFFFF;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 1rem;
+}
+.btn-icon-action:hover {
+  background: #F8FAFC;
+  color: #0F172A;
+  border-color: rgba(15, 23, 42, 0.2);
+}
+.btn-icon-del:hover {
+  background: #FEF2F2;
+  color: #E31B23;
+  border-color: rgba(227, 27, 35, 0.25);
+}
+.panel-loading-state, .panel-empty-state {
+  padding: 48px;
+  text-align: center;
+  color: #64748B;
+}
   display: flex;
   align-items: center;
   justify-content: center;
