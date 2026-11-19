@@ -107,24 +107,35 @@ class ProctoringService {
     // Try fetching from public_exam_attempts first
     const [publicAttempts] = await pool.query(
       `SELECT ea.*, e.name as exam_title, e.enable_proctoring, e.max_proctoring_warnings,
-              COALESCE(c.name, ea.guest_name) as candidate_name, COALESCE(c.email, ea.guest_email) as candidate_email,
+              COALESCE(c.name, u.name, s.name, ea.guest_name, 'Candidate') as candidate_name, 
+              COALESCE(c.email, u.email, s.email, ea.guest_email, 'No email recorded') as candidate_email,
+              COALESCE(c.phone, u.phone, s.phone, ea.guest_phone) as candidate_phone,
+              COALESCE(s.face_photo, c.selfie_url) as candidate_face_photo,
               c.metadata as candidate_metadata
        FROM public_exam_attempts ea
        JOIN public_exams e ON ea.exam_id = e.id
        LEFT JOIN public_exam_candidates c ON ea.candidate_id = c.id
+       LEFT JOIN users u ON ea.candidate_id = u.id
+       LEFT JOIN students s ON ea.candidate_id = s.id
        WHERE ea.id = ?`,
       [attemptId]
     );
 
     if (publicAttempts.length > 0) {
       const att = publicAttempts[0];
-      if (!att.reference_selfie_url && att.candidate_metadata) {
-        try {
-          const m = typeof att.candidate_metadata === 'string' ? JSON.parse(att.candidate_metadata) : att.candidate_metadata;
-          if (m && m.reference_photo_url) {
-            att.reference_selfie_url = m.reference_photo_url;
-          }
-        } catch (_) {}
+      if (!att.reference_selfie_url) {
+        if (att.candidate_face_photo) {
+          att.reference_selfie_url = att.candidate_face_photo;
+        } else if (att.candidate_metadata) {
+          try {
+            const m = typeof att.candidate_metadata === 'string' ? JSON.parse(att.candidate_metadata) : att.candidate_metadata;
+            if (m && m.reference_photo_url) {
+              att.reference_selfie_url = m.reference_photo_url;
+            } else if (m && m.face_photo) {
+              att.reference_selfie_url = m.face_photo;
+            }
+          } catch (_) {}
+        }
       }
       return { type: 'public', ...att };
     }

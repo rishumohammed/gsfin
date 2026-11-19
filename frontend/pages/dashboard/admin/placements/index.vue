@@ -34,8 +34,8 @@
         <!-- Application Distribution -->
         <v-col cols="12" md="4">
           <v-card class="pa-6 rounded-lg shadow-sm fill-height dashboard-card">
-            <div class="text-h6 font-weight-bold mb-4">Application Status</div>
-            <div style="height: 300px" class="d-flex align-center justify-center">
+            <div class="text-h6 font-semibold mb-4">Application Status</div>
+            <div class="h-72 d-flex align-center justify-center">
               <client-only>
                 <Bar v-if="chartData.datasets[0].data.length > 0" :data="chartData" :options="chartOptions" />
                 <div v-else class="text-caption text-grey text-center">

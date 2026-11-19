@@ -6,6 +6,8 @@ import { authenticateJWT, authorizeRoles } from '../middleware/auth.js';
 import { WalletService } from '../services/wallet.service.js';
 import { BatchService } from '../services/batch.service.js';
 import { ExamSessionService } from '../services/exam-session.service.js';
+import { ExamCatalogService } from '../services/exam-catalog.service.js';
+import emailService from '../services/email.service.js';
 
 const router = express.Router();
 
@@ -66,18 +68,23 @@ router.get('/students', async (req, res) => {
 
 router.post('/students', async (req, res) => {
   const orgId = getOrgId(req);
-  const { name, email, phone, password, education_level, institution_name, gender, dob } = req.body;
+  const { name, email, phone, password, face_photo, face_descriptor, education_level, institution_name, gender, dob } = req.body;
 
   if (!name || !email) {
     return res.status(400).json({ message: 'Student full name and email address are required.' });
   }
 
   try {
-    // Ensure column existence dynamically so insertion never fails if migration hasn't run yet
+    // Ensure table columns exist dynamically
     try {
       await pool.query(`
         ALTER TABLE students
           ADD COLUMN IF NOT EXISTS password VARCHAR(255) NULL AFTER email,
+          ADD COLUMN IF NOT EXISTS initial_password VARCHAR(255) NULL AFTER password,
+          ADD COLUMN IF NOT EXISTS face_photo LONGTEXT NULL,
+          ADD COLUMN IF NOT EXISTS face_descriptor TEXT NULL,
+          ADD COLUMN IF NOT EXISTS otp_code VARCHAR(10) NULL,
+          ADD COLUMN IF NOT EXISTS otp_expires_at DATETIME NULL,
           ADD COLUMN IF NOT EXISTS education_level VARCHAR(100) NULL AFTER phone,
           ADD COLUMN IF NOT EXISTS institution_name VARCHAR(255) NULL AFTER education_level,
           ADD COLUMN IF NOT EXISTS gender VARCHAR(50) NULL AFTER institution_name,
@@ -87,14 +94,20 @@ router.post('/students', async (req, res) => {
       // Ignore if columns exist or ALTER unsupported
     }
 
-    let hashedPassword = null;
-    if (password) {
-      hashedPassword = await bcrypt.hash(password, 10);
-    }
+    // Generate clean initial password if not supplied
+    const rawPassword = password && password.trim().length > 0
+      ? password.trim()
+      : 'GSFIN-' + Math.floor(100000 + Math.random() * 900000);
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
+    // Generate 6-digit OTP verification code valid for 24 hours
+    const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+    const otpExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
     const id = uuidv4();
     await pool.query(
-      `INSERT INTO students (id, org_id, name, email, phone, password, education_level, institution_name, gender, dob) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO students (id, org_id, name, email, phone, password, initial_password, face_photo, face_descriptor, otp_code, otp_expires_at, education_level, institution_name, gender, dob) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id, 
         orgId, 
@@ -102,6 +115,11 @@ router.post('/students', async (req, res) => {
         email, 
         phone || null, 
         hashedPassword, 
+        rawPassword,
+        face_photo || null,
+        face_descriptor ? (typeof face_descriptor === 'string' ? face_descriptor : JSON.stringify(face_descriptor)) : null,
+        otpCode,
+        otpExpiresAt,
         education_level || null, 
         institution_name || null, 
         gender || null, 
@@ -109,7 +127,39 @@ router.post('/students', async (req, res) => {
       ]
     );
 
-    res.status(201).json({ id, message: 'Candidate student registered under your sub-center.' });
+    // Fetch center name for email branding
+    let centerName = 'GSFIN Authorized Test Center';
+    try {
+      const [orgs] = await pool.query('SELECT name FROM organizations WHERE id = ?', [orgId]);
+      if (orgs.length > 0 && orgs[0].name) centerName = orgs[0].name;
+    } catch (orgErr) {
+      // Non-fatal
+    }
+
+    // Dispatch credentials & security OTP email
+    try {
+      await emailService.sendCandidateCredentialsAndOtp({
+        to: email,
+        studentName: name,
+        email,
+        password: rawPassword,
+        otpCode,
+        centerName
+      });
+    } catch (emailErr) {
+      console.error('Candidate credentials email notice (non-fatal):', emailErr.message);
+    }
+
+    res.status(201).json({
+      id,
+      name,
+      email,
+      initial_password: rawPassword,
+      otp_code: otpCode,
+      has_face: !!face_photo,
+      face_photo: face_photo || null,
+      message: 'Candidate student registered successfully! Access credentials and security OTP dispatched via email.'
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -197,7 +247,7 @@ router.get('/students/:id', async (req, res) => {
 router.put('/students/:id', async (req, res) => {
   const orgId = getOrgId(req);
   const { id } = req.params;
-  const { name, email, phone, password, education_level, institution_name, gender, dob } = req.body;
+  const { name, email, phone, password, face_photo, face_descriptor, education_level, institution_name, gender, dob } = req.body;
 
   if (!name || !email) {
     return res.status(400).json({ message: 'Candidate name and email are required.' });
@@ -222,22 +272,29 @@ router.put('/students/:id', async (req, res) => {
 
     const formattedDob = dob ? dob.slice(0, 10) : null;
 
+    let updateSql = `UPDATE students SET name = ?, email = ?, phone = ?, education_level = ?, institution_name = ?, gender = ?, dob = ?`;
+    const params = [name, email, phone || null, education_level || null, institution_name || null, gender || null, formattedDob];
+
     if (password && password.trim().length > 0) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await pool.query(
-        `UPDATE students 
-         SET name = ?, email = ?, phone = ?, password = ?, education_level = ?, institution_name = ?, gender = ?, dob = ?
-         WHERE id = ? AND org_id = ?`,
-        [name, email, phone || null, hashedPassword, education_level || null, institution_name || null, gender || null, formattedDob, id, orgId]
-      );
-    } else {
-      await pool.query(
-        `UPDATE students 
-         SET name = ?, email = ?, phone = ?, education_level = ?, institution_name = ?, gender = ?, dob = ?
-         WHERE id = ? AND org_id = ?`,
-        [name, email, phone || null, education_level || null, institution_name || null, gender || null, formattedDob, id, orgId]
-      );
+      const rawPassword = password.trim();
+      const hashedPassword = await bcrypt.hash(rawPassword, 10);
+      updateSql += `, password = ?, initial_password = ?`;
+      params.push(hashedPassword, rawPassword);
     }
+
+    if (face_photo) {
+      updateSql += `, face_photo = ?`;
+      params.push(face_photo);
+      if (face_descriptor) {
+        updateSql += `, face_descriptor = ?`;
+        params.push(typeof face_descriptor === 'string' ? face_descriptor : JSON.stringify(face_descriptor));
+      }
+    }
+
+    updateSql += ` WHERE id = ? AND org_id = ?`;
+    params.push(id, orgId);
+
+    await pool.query(updateSql, params);
 
     res.json({ message: 'Candidate details updated successfully.' });
   } catch (error) {
@@ -380,8 +437,9 @@ router.get('/transactions', async (req, res) => {
 // ─── 3. Exam Catalog View ───────────────────────────────────────────────────
 
 router.get('/exams', async (req, res) => {
+  const orgId = getOrgId(req);
   try {
-    const [exams] = await pool.query(`SELECT * FROM exams WHERE status = 'active' ORDER BY name ASC`);
+    const exams = await ExamCatalogService.getAuthorizedExamsForOrg(orgId);
     res.json(exams);
   } catch (error) {
     res.status(500).json({ message: error.message });

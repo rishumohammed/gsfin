@@ -152,13 +152,13 @@
           <table class="gsfin-table">
             <thead>
               <tr>
-                <th style="min-width: 260px;">Branch / Training Center</th>
-                <th style="min-width: 160px;">Jurisdiction / Location</th>
-                <th style="min-width: 130px; text-align: center;">Batches</th>
-                <th style="min-width: 140px; text-align: center;">Candidates</th>
-                <th style="min-width: 170px; text-align: center;">Integrity Health</th>
-                <th style="min-width: 140px; text-align: center;">Violations</th>
-                <th class="th-actions" style="min-width: 130px; text-align: center;">Action</th>
+                <th class="th-branch">Branch / Training Center</th>
+                <th class="th-loc">Jurisdiction / Location</th>
+                <th class="th-num text-center">Batches</th>
+                <th class="th-num text-center">Candidates</th>
+                <th class="th-health text-center">Integrity Health</th>
+                <th class="th-num text-center">Violations</th>
+                <th class="th-actions th-act text-center">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -322,13 +322,13 @@
           <table class="gsfin-table">
             <thead>
               <tr>
-                <th style="min-width: 250px;">Exam Batch &amp; Code</th>
-                <th style="min-width: 220px;">Certification Exam</th>
-                <th style="min-width: 170px;">Schedule Window</th>
-                <th style="min-width: 110px; text-align: center;">Status</th>
-                <th style="min-width: 120px; text-align: center;">Candidates</th>
-                <th style="min-width: 150px; text-align: center;">Proctoring Status</th>
-                <th class="th-actions" style="min-width: 150px; text-align: center;">Action</th>
+                <th class="th-batch">Exam Batch &amp; Code</th>
+                <th class="th-exam-name">Certification Exam</th>
+                <th class="th-sched">Schedule Window</th>
+                <th class="th-status text-center">Status</th>
+                <th class="th-candidates text-center">Candidates</th>
+                <th class="th-proc-status text-center">Proctoring Status</th>
+                <th class="th-actions th-batch-act text-center">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -487,12 +487,12 @@
           <table class="gsfin-table">
             <thead>
               <tr>
-                <th style="min-width: 250px;">Candidate &amp; Biometric</th>
-                <th style="min-width: 140px; text-align: center;">Exam Result</th>
-                <th style="min-width: 140px; text-align: center;">Proctoring Verdict</th>
-                <th style="min-width: 200px;">Violations Detected</th>
-                <th style="min-width: 150px;">Attempt Timestamps</th>
-                <th class="th-actions" style="min-width: 130px; text-align: center;">Audit Action</th>
+                <th class="th-candidate">Candidate &amp; Biometric</th>
+                <th class="th-result text-center">Exam Result</th>
+                <th class="th-verdict text-center">Proctoring Verdict</th>
+                <th class="th-violations">Violations Detected</th>
+                <th class="th-attempt-time">Attempt Timestamps</th>
+                <th class="th-actions th-audit-act text-center">Audit Action</th>
               </tr>
             </thead>
             <tbody>
@@ -880,6 +880,25 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.th-branch { min-width: 260px; }
+.th-loc { min-width: 160px; }
+.th-num { min-width: 130px; }
+.th-health { min-width: 170px; }
+.th-act { min-width: 130px; }
+.th-batch { min-width: 250px; }
+.th-exam-name { min-width: 220px; }
+.th-sched { min-width: 170px; }
+.th-status { min-width: 110px; }
+.th-candidates { min-width: 120px; }
+.th-proc-status { min-width: 150px; }
+.th-batch-act { min-width: 150px; }
+.th-candidate { min-width: 250px; }
+.th-result { min-width: 140px; }
+.th-verdict { min-width: 140px; }
+.th-violations { min-width: 200px; }
+.th-attempt-time { min-width: 150px; }
+.th-audit-act { min-width: 130px; }
+
 .gsfin-admin-page {
   padding: 24px 32px;
   background: #FAFAFD;

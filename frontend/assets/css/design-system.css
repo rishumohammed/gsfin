@@ -354,10 +354,35 @@ button {
 .flex-col, .d-flex-column { flex-direction: column !important; }
 .flex-row, .d-flex-row { flex-direction: row !important; }
 
+/* Grid Utilities */
+.grid { display: grid !important; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+
+@media (min-width: 1024px) {
+  .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+
+@media (max-width: 1024px) {
+  .grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+
+@media (max-width: 640px) {
+  .grid-cols-4, .grid-cols-2 { grid-template-columns: 1fr !important; }
+}
+
+.space-y-4 > * + * { margin-top: 16px !important; }
+.space-y-6 > * + * { margin-top: 24px !important; }
+
 .gap-05, .gap-0\.5 { gap: 2px !important; }
 .gap-1 { gap: 4px !important; }
 .gap-1-5, .gap-1\.5 { gap: 6px !important; }
 .gap-2 { gap: 8px !important; }
+.gap-2-5, .gap-2\.5 { gap: 10px !important; }
 .gap-3 { gap: 12px !important; }
 .gap-4 { gap: 16px !important; }
 .gap-6 { gap: 24px !important; }

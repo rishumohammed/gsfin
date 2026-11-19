@@ -1,5 +1,5 @@
 <template>
-  <div class="questions-page min-h-screen pb-16" style="background-color: #FAFAFD;">
+  <div class="questions-page min-h-screen pb-16">
     <!-- Page Header Bar -->
     <div class="exam-header-bar mb-8">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -950,6 +950,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.questions-page {
+  background-color: #FAFAFD;
+}
+
 /* Page Header Bar */
 .exam-header-bar {
   background: #FFFFFF;

@@ -18,6 +18,7 @@ import adminConfigRoutes from './routes/admin.config.routes.js';
 import adminFaqsRoutes from './routes/admin.faqs.routes.js';
 import adminQualificationsRoutes from './routes/admin.qualifications.routes.js';
 import { ensureQualificationsTable } from './services/qualification-seeder.service.js';
+import { ExamCatalogService } from './services/exam-catalog.service.js';
 import proctoringRoutes from './routes/proctoring.routes.js';
 import { authenticateJWT, authorizeRoles } from './middleware/auth.js';
 import { initSocket } from './socket/index.js';
@@ -139,6 +140,11 @@ ensureOrganizationsColumns().catch((err) => {
 // Auto-heal public exams columns if missing
 ensurePublicExamsColumns().catch((err) => {
   console.error('[Startup] Failed to auto-initialize public_exams columns:', err);
+});
+
+// Auto-heal and sync exams catalog with qualifications and partner programs
+ExamCatalogService.ensureExamsCatalog().catch((err) => {
+  console.error('[Startup] Failed to auto-initialize exams catalog:', err);
 });
 
 httpServer.listen(PORT, '0.0.0.0', () => {

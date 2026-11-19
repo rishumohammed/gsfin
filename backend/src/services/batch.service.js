@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { pool } from '../db/connection.js';
 import { WalletService } from './wallet.service.js';
+import { ExamCatalogService } from './exam-catalog.service.js';
 
 export class BatchService {
   /**
@@ -24,6 +25,12 @@ export class BatchService {
         throw new Error('Exam not found or is currently retired.');
       }
       const exam = exams[0];
+
+      // Validate partner center authorization for this certification program
+      const isAuthorized = await ExamCatalogService.isOrgAuthorizedForExam(connection, orgId, exam.name);
+      if (!isAuthorized) {
+        throw new Error(`Your partner center is not authorized for the '${exam.name}' certification program.`);
+      }
 
       // 2. Validate students belong to this sub-center
       const [students] = await connection.query(

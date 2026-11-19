@@ -60,12 +60,12 @@
           <table class="gsfin-table">
             <thead>
               <tr>
-                <th style="min-width: 280px;">Exam Standard</th>
-                <th style="min-width: 220px;">Questions &amp; Duration</th>
-                <th style="min-width: 140px; text-align: center;">Status</th>
-                <th style="min-width: 130px; text-align: center;">Engagement</th>
-                <th style="min-width: 110px;">Created</th>
-                <th class="th-actions" style="min-width: 190px; text-align: center;">Actions</th>
+                <th class="th-exam-std">Exam Standard</th>
+                <th class="th-exam-cfg">Questions &amp; Duration</th>
+                <th class="th-exam-status text-center">Status</th>
+                <th class="th-exam-engage text-center">Engagement</th>
+                <th class="th-exam-date">Created</th>
+                <th class="th-actions th-exam-actions text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -574,6 +574,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.th-exam-std { min-width: 280px; }
+.th-exam-cfg { min-width: 220px; }
+.th-exam-status { min-width: 140px; }
+.th-exam-engage { min-width: 130px; }
+.th-exam-date { min-width: 110px; }
+.th-exam-actions { min-width: 190px; }
+
 .table-select-filter {
   width: auto;
   min-width: 150px;

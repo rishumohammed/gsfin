@@ -52,8 +52,14 @@ function formatMySQL(dateStr) {
 }
 let examsColumnsEnsured = false;
 export async function ensurePublicExamsColumns() {
-  if (examsColumnsEnsured) return;
   try {
+    const [existingCols] = await pool.query(`
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'public_exams'
+    `);
+    const colNames = new Set(existingCols.map((c) => c.COLUMN_NAME.toLowerCase()));
+
     const columns = [
       { name: 'qualification_id', def: 'CHAR(36) NULL' },
       { name: 'deleted_at', def: 'DATETIME NULL' },
@@ -63,10 +69,13 @@ export async function ensurePublicExamsColumns() {
       { name: 'enforce_fullscreen', def: 'TINYINT(1) DEFAULT 0' },
       { name: 'proctoring_config', def: 'JSON NULL' }
     ];
+
     for (const col of columns) {
-      try {
-        await pool.query(`ALTER TABLE public_exams ADD COLUMN ${col.name} ${col.def}`);
-      } catch (_) {}
+      if (!colNames.has(col.name.toLowerCase())) {
+        try {
+          await pool.query(`ALTER TABLE public_exams ADD COLUMN ${col.name} ${col.def}`);
+        } catch (_) {}
+      }
     }
     try {
       await pool.query('ALTER TABLE public_exam_attempts ADD COLUMN assigned_question_ids JSON NULL');
@@ -589,11 +598,30 @@ router.post('/', async (req, res) => {
 
     // Enforce 1-to-1 Mapping: Check if qualification already has an active exam
     if (qualification_id) {
-      const [existingQualExam] = await pool.query(
-        'SELECT id, name FROM public_exams WHERE qualification_id = ? AND deleted_at IS NULL',
-        [qualification_id]
-      );
-      if (existingQualExam.length > 0) {
+      let existingQualExam = [];
+      try {
+        const [rows] = await pool.query(
+          'SELECT id, name FROM public_exams WHERE qualification_id = ? AND deleted_at IS NULL',
+          [qualification_id]
+        );
+        existingQualExam = rows;
+      } catch (colErr) {
+        if (colErr.message && colErr.message.includes('qualification_id')) {
+          try {
+            await pool.query('ALTER TABLE public_exams ADD COLUMN qualification_id CHAR(36) NULL');
+            const [retryRows] = await pool.query(
+              'SELECT id, name FROM public_exams WHERE qualification_id = ? AND deleted_at IS NULL',
+              [qualification_id]
+            );
+            existingQualExam = retryRows;
+          } catch (e2) {
+            existingQualExam = [];
+          }
+        } else {
+          console.warn('Qualification exam check warning:', colErr.message);
+        }
+      }
+      if (existingQualExam && existingQualExam.length > 0) {
         return res.status(400).json({
           message: `Certification "${name}" is already linked to exam "${existingQualExam[0].name}". Each certification has exactly one exam.`
         });

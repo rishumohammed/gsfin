@@ -110,8 +110,7 @@
             placeholder="Search approved tutors..."
             prepend-inner-icon="mdi-magnify"
             variant="outlined" density="compact"
-            class="ma-4 mb-2" hide-details clearable
-            style="max-width: 480px"
+            class="ma-4 mb-2 max-w-lg" hide-details clearable
           />
           <v-data-table
             :headers="approvedHeaders"
@@ -190,8 +189,7 @@
             placeholder="Search rejected tutors..."
             prepend-inner-icon="mdi-magnify"
             variant="outlined" density="compact"
-            class="ma-4 mb-2" hide-details clearable
-            style="max-width: 480px"
+            class="ma-4 mb-2 max-w-lg" hide-details clearable
           />
           <v-data-table
             :headers="rejectedHeaders"

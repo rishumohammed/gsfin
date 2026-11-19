@@ -211,13 +211,13 @@
                   <span class="exam-count-badge">{{ partner.exams.length }} Exams</span>
                 </div>
 
-                <!-- ═══ EXAM CONDUCTED CARD ═══ -->
+                <!-- ═══ EXAM CONDUCTED CARD (Summary linked to dedicated inner page) ═══ -->
                 <div
                   v-for="(exam, exIdx) in partner.exams"
                   :key="exam.batch_id || exIdx"
                   class="exam-conducted-card"
                 >
-                  <div class="exam-card-header" @click="toggleExam(partner.id + '-' + (exam.batch_id || exIdx))">
+                  <div class="exam-card-content">
                     <div class="exam-title-box">
                       <div class="exam-icon-box">
                         <i class="mdi mdi-file-document-check-outline"></i>
@@ -247,130 +247,22 @@
                     <div class="exam-header-right">
                       <div class="exam-attendance-summary">
                         <span class="badge-attendees">
-                          <i class="mdi mdi-account-group"></i> {{ exam.students.length }} Attended Candidates
+                          <i class="mdi mdi-account-group"></i> {{ exam.students ? exam.students.length : (exam.total_students || 0) }} Attended Candidates
                         </span>
                         <span class="badge-certs">
-                          <i class="mdi mdi-certificate"></i> {{ exam.total_certificates }} Certified
+                          <i class="mdi mdi-certificate"></i> {{ exam.total_certificates || 0 }} Certified
                         </span>
                       </div>
 
-                      <button
-                        class="btn-chevron-sm"
-                        type="button"
-                        :title="isExamExpanded(partner.id + '-' + (exam.batch_id || exIdx)) ? 'Collapse Exam' : 'Expand Exam'"
+                      <NuxtLink
+                        :to="'/dashboard/admin/certificates/batch/' + (exam.batch_id || exIdx)"
+                        class="btn-view-roster"
+                        title="View Candidate Roster & Certificates for this Batch"
                       >
-                        <i :class="['mdi', isExamExpanded(partner.id + '-' + (exam.batch_id || exIdx)) ? 'mdi-chevron-up' : 'mdi-chevron-down']"></i>
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- ═══ STUDENTS ATTENDED & CERTIFICATES ═══ -->
-                  <div v-show="isExamExpanded(partner.id + '-' + (exam.batch_id || exIdx))" class="exam-card-body">
-                    <div v-if="exam.students.length === 0" class="no-students-box">
-                      No students attended or registered for this exam session yet.
-                    </div>
-
-                    <div v-else class="students-table-wrap">
-                      <table class="students-table">
-                        <thead>
-                          <tr>
-                            <th>Candidate / Student</th>
-                            <th>Attendance / Exam Status</th>
-                            <th>Certificate Serial ID</th>
-                            <th>Issued Date</th>
-                            <th>Cert Status</th>
-                            <th class="text-right">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr v-for="std in exam.students" :key="std.assignment_id || std.cert_number">
-                            <td>
-                              <div class="student-cell">
-                                <div class="student-avatar">
-                                  {{ getInitials(std.student_name) }}
-                                </div>
-                                <div>
-                                  <div class="font-semibold text-slate-900 text-sm">{{ std.student_name || 'Candidate' }}</div>
-                                  <div class="text-xs text-slate-400 font-medium">{{ std.student_email }}</div>
-                                </div>
-                              </div>
-                            </td>
-
-                            <td>
-                              <div class="flex items-center gap-2">
-                                <span :class="['chip-pill', getExamStatusClass(std.exam_status)]">
-                                  {{ formatExamStatus(std.exam_status) }}
-                                </span>
-                                <span v-if="std.attempts_used" class="text-xs text-slate-400 font-medium">
-                                  (Attempt {{ std.attempts_used }})
-                                </span>
-                              </div>
-                            </td>
-
-                            <td>
-                              <div v-if="std.cert_number" class="cert-serial-cell">
-                                <i class="mdi mdi-file-certificate text-red text-lg"></i>
-                                <span class="font-mono font-semibold text-slate-900 text-xs tracking-wider">{{ std.cert_number }}</span>
-                                <button
-                                  class="btn-copy-id"
-                                  :title="copySuccessId === std.cert_number ? 'Copied!' : 'Copy Certificate Number'"
-                                  @click.stop="copyToClipboard(std.cert_number)"
-                                >
-                                  <i :class="['mdi', copySuccessId === std.cert_number ? 'mdi-check text-emerald' : 'mdi-content-copy']"></i>
-                                </button>
-                              </div>
-                              <div v-else class="text-xs text-slate-400 italic">
-                                No Certificate Issued
-                              </div>
-                            </td>
-
-                            <td class="text-slate-500 font-medium text-xs whitespace-nowrap">
-                              {{ std.issued_at ? formatDate(std.issued_at) : '—' }}
-                            </td>
-
-                            <td>
-                              <span
-                                v-if="std.cert_number"
-                                :class="['chip-pill', std.cert_status === 'revoked' ? 'chip-red' : 'chip-green']"
-                              >
-                                {{ std.cert_status || 'active' }}
-                              </span>
-                              <span v-else class="chip-pill chip-muted">
-                                Pending
-                              </span>
-                            </td>
-
-                            <td class="text-right">
-                              <div v-if="std.cert_number" class="action-btn-group">
-                                <button
-                                  class="btn-icon-action btn-icon-view"
-                                  title="Download PDF Certificate"
-                                  @click.stop="downloadCert(std.cert_number)"
-                                >
-                                  <i class="mdi mdi-download"></i>
-                                </button>
-                                <button
-                                  v-if="std.cert_status !== 'revoked' && canManage"
-                                  class="btn-icon-action btn-icon-delete"
-                                  title="Revoke Certificate"
-                                  @click.stop="confirmRevoke(std)"
-                                >
-                                  <i class="mdi mdi-close-octagon"></i>
-                                </button>
-                                <button
-                                  v-if="std.cert_status === 'revoked' && canManage"
-                                  class="btn-icon-action btn-icon-warn"
-                                  title="Re-issue Certificate"
-                                  @click.stop="confirmReissue(std)"
-                                >
-                                  <i class="mdi mdi-refresh"></i>
-                                </button>
-                              </div>
-                              <span v-else class="text-xs text-slate-400">—</span>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
+                        <i class="mdi mdi-account-multiple-outline"></i>
+                        <span>View Candidates &amp; Certificates</span>
+                        <i class="mdi mdi-arrow-right"></i>
+                      </NuxtLink>
                     </div>
                   </div>
                 </div>
@@ -1319,23 +1211,51 @@ onMounted(() => {
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 16px;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.02);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
 }
+.exam-conducted-card:hover {
+  border-color: rgba(201, 37, 44, 0.2);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
 
-.exam-card-header {
+.exam-card-content {
   padding: 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  cursor: pointer;
-  user-select: none;
   background: #FFFFFF;
-  transition: background 0.15s ease;
   flex-wrap: wrap;
 }
-.exam-card-header:hover {
-  background: #FBFBFE;
+
+.btn-view-roster {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  background: #C9252C;
+  color: #FFFFFF;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(201, 37, 44, 0.22);
+  white-space: nowrap;
+}
+.btn-view-roster:hover {
+  background: #B01E24;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(201, 37, 44, 0.35);
+}
+.btn-view-roster i.mdi-arrow-right {
+  font-size: 0.95rem;
+  transition: transform 0.15s ease;
+}
+.btn-view-roster:hover i.mdi-arrow-right {
+  transform: translateX(3px);
 }
 
 .exam-title-box {

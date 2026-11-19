@@ -314,6 +314,65 @@ class EmailService {
       console.error('Failed to send face re-enrollment email:', error);
     }
   }
+
+  async sendCandidateCredentialsAndOtp({ to, studentName, email, password, otpCode, centerName }) {
+    try {
+      const subject = `Your Examination Credentials & Security OTP - GSFIN Accreditation`;
+      const html = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+          <div style="background: #0f172a; padding: 24px 32px; border-bottom: 3px solid #e31b23;">
+            <h2 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em;">GSFIN GLOBAL STANDARDS</h2>
+            <p style="color: #94a3b8; margin: 4px 0 0 0; font-size: 13px;">Official Candidate Examination Access &amp; Biometric Verification</p>
+          </div>
+          <div style="padding: 32px;">
+            <p style="font-size: 16px; color: #1e293b; margin-top: 0;">Dear <strong>${studentName}</strong>,</p>
+            <p style="font-size: 14px; color: #475569; line-height: 1.6;">
+              You have been enrolled as an official certification candidate by <strong>${centerName || 'your authorized GSFIN Test Center'}</strong>.
+              Please retain these credentials securely. You will be required to authenticate with your password and complete live camera face verification before taking your proctored certification examinations.
+            </p>
+
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 24px 0;">
+              <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 12px;">Candidate Access Credentials</div>
+              
+              <div style="margin-bottom: 12px;">
+                <span style="font-size: 12px; color: #64748b; display: block;">Username / Login Email:</span>
+                <strong style="font-size: 15px; color: #0f172a; font-family: monospace;">${email}</strong>
+              </div>
+
+              <div style="margin-bottom: 12px;">
+                <span style="font-size: 12px; color: #64748b; display: block;">Exam Access Password:</span>
+                <strong style="font-size: 15px; color: #0f172a; font-family: monospace;">${password}</strong>
+              </div>
+
+              ${otpCode ? `
+              <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 16px; margin-top: 16px;">
+                <span style="font-size: 12px; color: #991b1b; display: block; font-weight: 600;">One-Time Security OTP Code:</span>
+                <div style="font-size: 26px; font-weight: 700; color: #e31b23; letter-spacing: 6px; font-family: monospace; margin-top: 4px;">${otpCode}</div>
+                <span style="font-size: 11px; color: #b91c1c;">Use this 6-digit code for 2-factor verification on the exam login screen.</span>
+              </div>
+              ` : ''}
+            </div>
+
+            <div style="background: #f1f5f9; border-left: 4px solid #0f172a; padding: 14px 16px; border-radius: 4px; margin-bottom: 24px;">
+              <p style="margin: 0; font-size: 13px; color: #334155; line-height: 1.5;">
+                <strong>Biometric Live Check:</strong> Ensure your computer or smartphone has an operational camera. The exam portal will perform biometric face matching against your enrolled profile before granting sitting access.
+              </p>
+            </div>
+
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 0;">GSFIN Global Standards &bull; Accreditation &amp; Assessment Security</p>
+          </div>
+        </div>
+      `;
+
+      await this.sendEmail({
+        to,
+        subject,
+        html
+      });
+    } catch (error) {
+      console.error('Failed to send candidate credentials email:', error);
+    }
+  }
 }
 
 export default new EmailService();

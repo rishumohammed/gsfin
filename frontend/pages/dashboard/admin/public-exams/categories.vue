@@ -1,5 +1,5 @@
 <template>
-  <div class="categories-page min-h-screen pb-16" style="background-color: #FAFAFD;">
+  <div class="categories-page min-h-screen pb-16">
     <!-- Page Header -->
     <div class="bg-white border-b border-slate-200/80 shadow-xs mb-8">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -387,6 +387,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.categories-page {
+  background-color: #FAFAFD;
+}
+
 .modal-card {
   background: #FFFFFF !important;
   border-radius: 20px !important;

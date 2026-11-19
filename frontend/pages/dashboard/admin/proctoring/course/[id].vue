@@ -28,7 +28,7 @@
           variant="outlined"
           density="compact"
           hide-details
-          style="max-width: 160px"
+          class="max-w-xs"
         ></v-select>
       </v-card-text>
     </v-card>

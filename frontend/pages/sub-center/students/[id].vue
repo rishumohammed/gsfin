@@ -470,7 +470,7 @@
     <Teleport to="body">
       <Transition name="fade">
         <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
-          <div class="modal-card" style="max-width: 580px;">
+          <div class="modal-card modal-card-candidate-edit">
             <div class="modal-header">
               <div class="flex items-center gap-3">
                 <div class="icon-box-lg bg-red-light text-red">
@@ -485,8 +485,8 @@
             </div>
 
             <form @submit.prevent="updateCandidate">
-              <div class="modal-body" style="overflow-y: auto; max-height: calc(88vh - 140px); padding-bottom: 24px;">
-                <div class="form-row-2 mb-4" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <div class="modal-body modal-scrollable-body">
+                <div class="form-grid-two mb-4">
                   <div class="form-group mb-0">
                     <label class="form-label-xs">Full Name <span class="required-star">*</span></label>
                     <div class="input-with-icon">
@@ -595,7 +595,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useNuxtApp } from '#app';
+import { useApi } from '@/composables/useApi';
 
 definePageMeta({
   layout: 'dashboard',
@@ -605,8 +605,7 @@ definePageMeta({
 
 const route = useRoute();
 const router = useRouter();
-const { $api } = useNuxtApp();
-const api = $api as any;
+const api = useApi();
 
 const studentId = computed(() => String(route.params.id));
 const student = ref<any>(null);
@@ -1624,6 +1623,24 @@ function formatDate(val: any) {
 .fade-in {
   animation: fadeIn 0.2s ease-in;
 }
+
+.modal-card-candidate-edit {
+  max-width: 580px;
+}
+
+.modal-scrollable-body {
+  overflow-y: auto;
+  max-height: calc(88vh - 140px);
+  padding-bottom: 24px;
+}
+
+.form-grid-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@keyframes fadeIn {
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }

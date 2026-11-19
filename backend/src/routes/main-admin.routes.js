@@ -326,7 +326,7 @@ router.get('/organizations/:id', async (req, res) => {
 router.get('/batches/:id', async (req, res) => {
   try {
     const [batches] = await pool.query(
-      `SELECT b.*, o.name as org_name, e.name as exam_name, e.duration_minutes 
+      `SELECT b.*, o.name as org_name, o.contact_email, o.contact_phone, o.city, o.country, e.name as exam_name, e.duration_minutes 
        FROM batches b
        JOIN organizations o ON b.org_id = o.id
        JOIN exams e ON b.exam_id = e.id
@@ -336,7 +336,10 @@ router.get('/batches/:id', async (req, res) => {
     if (batches.length === 0) return res.status(404).json({ message: 'Batch not found.' });
 
     const [assignments] = await pool.query(
-      `SELECT ea.*, s.name as student_name, s.email as student_email, c.pdf_url as certificate_url, c.certificate_number
+      `SELECT ea.*, s.name as student_name, s.email as student_email, s.phone as student_phone, s.face_photo,
+              c.id as certificate_id, c.pdf_url as certificate_url,
+              COALESCE(c.certificate_number, c.cert_number, CONCAT('CERT-', UPPER(SUBSTRING(c.id, 1, 8)))) as certificate_number,
+              c.issued_at, COALESCE(c.status, 'active') as cert_status
        FROM exam_assignments ea
        JOIN students s ON ea.student_id = s.id
        LEFT JOIN certificates c ON ea.id = c.assignment_id
@@ -345,7 +348,16 @@ router.get('/batches/:id', async (req, res) => {
       [req.params.id]
     );
 
-    res.json({ batch: batches[0], assignments });
+    const stats = {
+      total_candidates: assignments.length,
+      passed_count: assignments.filter(a => a.status === 'passed').length,
+      failed_count: assignments.filter(a => a.status === 'failed').length,
+      in_progress_count: assignments.filter(a => a.status === 'in_progress').length,
+      not_started_count: assignments.filter(a => a.status === 'not_started').length,
+      certified_count: assignments.filter(a => !!a.certificate_number).length
+    };
+
+    res.json({ batch: batches[0], assignments, stats });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -1170,6 +1182,143 @@ router.get('/certificates/hierarchy', async (req, res) => {
     res.json(partnerTree);
   } catch (error) {
     console.error('Fetch certificate hierarchy error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ─── Single Exam Batch Candidate Certificates Roster ─────────────────────────
+
+router.get('/certificates/batches/:batchId', async (req, res) => {
+  const { batchId } = req.params;
+  try {
+    let batch = null;
+    const [batchRows] = await pool.query(`
+      SELECT 
+        b.id as batch_id,
+        b.org_id,
+        b.exam_id,
+        b.status as batch_status,
+        b.opens_at,
+        b.closes_at,
+        b.created_at,
+        e.name as exam_name,
+        e.duration_minutes,
+        e.max_attempts,
+        o.name as org_name,
+        o.contact_email,
+        o.contact_phone,
+        o.city,
+        o.country,
+        o.institution_type
+      FROM batches b
+      JOIN exams e ON b.exam_id = e.id
+      JOIN organizations o ON b.org_id = o.id
+      WHERE b.id = ?
+    `, [batchId]);
+
+    if (batchRows.length > 0) {
+      batch = batchRows[0];
+    } else {
+      if (batchId.startsWith('direct-') || batchId.startsWith('pub-')) {
+        const rawExamId = batchId.replace(/^direct-/, '').replace(/^pub-/, '');
+        const [pubExams] = await pool.query(
+          `SELECT id as exam_id, name as exam_name, duration_minutes FROM public_exams WHERE id = ? OR slug = ? LIMIT 1`,
+          [rawExamId, rawExamId]
+        );
+        if (pubExams.length > 0) {
+          batch = {
+            batch_id: batchId,
+            org_id: 'gsfin-direct',
+            org_name: 'GSFIN Global Examination Board',
+            contact_email: 'support@gsfin.org',
+            contact_phone: '+41-44-668-0000',
+            city: 'Zurich / London',
+            country: 'International',
+            institution_type: 'GSFIN Central Authority',
+            exam_id: pubExams[0].exam_id,
+            exam_name: pubExams[0].exam_name,
+            duration_minutes: pubExams[0].duration_minutes || 60,
+            batch_status: 'open',
+            created_at: new Date()
+          };
+        }
+      }
+    }
+
+    if (!batch) {
+      return res.status(404).json({ message: 'Exam batch not found.' });
+    }
+
+    let students = [];
+    if (batch.org_id === 'gsfin-direct') {
+      const [pubCerts] = await pool.query(`
+        SELECT 
+          c.id as certificate_id,
+          CONCAT('CERT-PUB-', UPPER(SUBSTRING(c.id, 1, 8))) as cert_number,
+          c.candidate_name as student_name,
+          c.candidate_email as student_email,
+          'N/A' as student_phone,
+          c.created_at as issued_at,
+          'active' as cert_status,
+          'passed' as exam_status,
+          1 as attempts_used,
+          1 as max_attempts,
+          c.id as assignment_id,
+          c.pdf_url
+        FROM public_exam_issued_certificates c
+        WHERE c.exam_id = ?
+        ORDER BY c.created_at DESC
+      `, [batch.exam_id]);
+      students = pubCerts;
+    } else {
+      const [rows] = await pool.query(`
+        SELECT 
+          ea.id as assignment_id,
+          ea.batch_id,
+          ea.student_id,
+          ea.status as exam_status,
+          ea.attempts_used,
+          ea.max_attempts,
+          ea.created_at as enrolled_at,
+          s.name as student_name,
+          s.email as student_email,
+          s.phone as student_phone,
+          s.face_photo,
+          c.id as certificate_id,
+          COALESCE(c.cert_number, CONCAT('CERT-', UPPER(SUBSTRING(c.id, 1, 8)))) as cert_number,
+          c.issued_at,
+          COALESCE(c.status, 'active') as cert_status,
+          c.pdf_url
+        FROM exam_assignments ea
+        JOIN students s ON ea.student_id = s.id
+        LEFT JOIN certificates c ON ea.id = c.assignment_id
+        WHERE ea.batch_id = ?
+        ORDER BY s.name ASC
+      `, [batchId]);
+      students = rows;
+    }
+
+    const totalCandidates = students.length;
+    const passedCount = students.filter(s => s.exam_status === 'passed').length;
+    const failedCount = students.filter(s => s.exam_status === 'failed').length;
+    const inProgressCount = students.filter(s => s.exam_status === 'in_progress').length;
+    const notStartedCount = students.filter(s => s.exam_status === 'not_started').length;
+    const certifiedCount = students.filter(s => !!s.cert_number).length;
+
+    res.json({
+      batch,
+      students,
+      stats: {
+        total_candidates: totalCandidates,
+        passed_count: passedCount,
+        failed_count: failedCount,
+        in_progress_count: inProgressCount,
+        not_started_count: notStartedCount,
+        certified_count: certifiedCount
+      }
+    });
+  } catch (error) {
+    console.error('Fetch batch certificates error:', error);
     res.status(500).json({ message: error.message });
   }
 });

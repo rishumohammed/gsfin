@@ -90,17 +90,17 @@
         <v-col cols="12" md="4">
           <v-card rounded="xl" border class="shadow-card pa-6 mb-4">
             <v-img v-if="viewingCourse.thumbnail_url" :src="getImageUrl(viewingCourse.thumbnail_url)" height="180" class="rounded-lg mb-4" cover></v-img>
-            <div v-else class="rounded-lg mb-4 bg-grey-lighten-3 d-flex align-center justify-center" style="height: 180px;">
+            <div v-else class="rounded-lg mb-4 bg-grey-lighten-3 d-flex align-center justify-center h-44">
               <v-icon size="64" color="grey-lighten-1">mdi-image-off-outline</v-icon>
             </div>
 
-            <h2 class="text-h5 font-weight-black mb-2">{{ viewingCourse.title }}</h2>
+            <h2 class="text-h5 font-semibold mb-2">{{ viewingCourse.title }}</h2>
             <p class="text-body-2 text-blue-grey-600 mb-4">{{ viewingCourse.short_description || viewingCourse.description?.substring(0, 200) || 'No description.' }}</p>
 
             <v-divider class="mb-4"></v-divider>
 
             <div class="mb-3">
-              <div class="text-caption text-grey text-uppercase font-weight-bold mb-1">Tutor</div>
+              <div class="text-caption text-grey text-uppercase font-medium mb-1">Tutor</div>
               <div class="font-weight-medium">
                 <v-icon size="small" class="mr-1 text-indigo">mdi-account-tie</v-icon>
                 {{ viewingCourse.tutor_name }}
@@ -183,16 +183,16 @@
 
           <!-- Full Description -->
           <v-card rounded="xl" border class="shadow-card pa-6 mb-4">
-            <h3 class="text-h6 font-weight-bold mb-3">
+            <h3 class="text-h6 font-semibold mb-3">
               <v-icon class="mr-2" size="20">mdi-text-box-outline</v-icon>
               Course Description
             </h3>
-            <div class="text-body-1 text-blue-grey-700" style="white-space: pre-line;">{{ viewingCourse.description || 'No description provided.' }}</div>
+            <div class="text-body-1 text-blue-grey-700 whitespace-pre-line">{{ viewingCourse.description || 'No description provided.' }}</div>
           </v-card>
 
           <!-- Full Curriculum -->
           <v-card rounded="xl" border class="shadow-card pa-6">
-            <h3 class="text-h6 font-weight-bold mb-4">
+            <h3 class="text-h6 font-semibold mb-4">
               <v-icon class="mr-2" size="20">mdi-book-open-page-variant</v-icon>
               Course Curriculum
             </h3>

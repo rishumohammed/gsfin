@@ -9,7 +9,7 @@
 
     <div class="apple-table-card">
       <div class="pa-4 border-b d-flex align-center flex-wrap gap-4">
-        <div style="width: 200px;">
+        <div class="w-52">
           <AppInput
             v-model="filters.status"
             type="select"
@@ -21,7 +21,7 @@
         
         <v-spacer></v-spacer>
         
-        <div style="width: 300px;">
+        <div class="w-72">
           <AppInput
             v-model="search"
             placeholder="Search student or invoice#"

@@ -106,16 +106,17 @@
                   <th>Status</th>
                   <th>Student Metrics</th>
                   <th>Created At</th>
+                  <th class="text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-if="loadingOverview">
-                  <td colspan="5" class="text-center py-6 text-slate-500">
+                  <td colspan="6" class="text-center py-6 text-slate-500">
                     <span class="spinner-sm-red"></span> Loading Live Feed...
                   </td>
                 </tr>
                 <tr v-else-if="filteredBatches.length === 0">
-                  <td colspan="5" class="text-center py-8 text-slate-500">
+                  <td colspan="6" class="text-center py-8 text-slate-500">
                     <i class="mdi mdi-layers-off-outline text-3xl block mb-2 text-slate-400"></i>
                     No Active Batches Found
                   </td>
@@ -137,6 +138,15 @@
                     </div>
                   </td>
                   <td class="text-slate-500">{{ formatDate(b.created_at) }}</td>
+                  <td class="text-right">
+                    <NuxtLink
+                      :to="'/admin/multi-tenant/batches/' + b.id"
+                      class="btn-table-action btn-view no-underline"
+                      title="View Candidate Roster & Certificates"
+                    >
+                      <i class="mdi mdi-arrow-right"></i>
+                    </NuxtLink>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -192,7 +202,7 @@
                   <th class="th-contact">Contact Information</th>
                   <th class="th-tokens text-center">Wallet Tokens</th>
                   <th class="th-status text-center">Status</th>
-                  <th class="th-actions text-center" style="width: 195px; min-width: 195px;">Actions</th>
+                  <th class="th-actions text-center w-48">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -531,7 +541,7 @@
                   <th>Payment / Wire Ref</th>
                   <th>Requested Date</th>
                   <th>Status</th>
-                  <th class="th-actions" style="width: 190px; min-width: 190px; text-align: center;">Actions</th>
+                  <th class="th-actions text-center w-48">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -941,21 +951,24 @@
       </Transition>
     </Teleport>
  
-    <!-- Reset Password Modal -->
+    <!-- Reset Password / Credentials Provisioning Modal -->
     <Teleport to="body">
       <Transition name="fade">
         <div v-if="showResetModal" class="modal-overlay" @click.self="closeResetModal">
           <div class="modal-card">
             <div class="modal-header">
-              <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-purple-50 text-purple-700 flex items-center justify-center font-semibold">
-                  <i class="mdi mdi-key-variant"></i>
+              <div class="flex items-center gap-2.5">
+                <div :class="[
+                  'w-8 h-8 rounded-lg flex items-center justify-center text-sm',
+                  resetSuccessResult ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'
+                ]">
+                  <i :class="['mdi', resetSuccessResult ? 'mdi-check-decagram' : 'mdi-key-variant']"></i>
                 </div>
                 <div>
-                  <h3 class="m-0 text-base font-semibold text-slate-900">
-                    {{ resetSuccessResult?.isNewAccount ? 'Partner Account Created' : 'Reset Partner Password' }}
+                  <h3 class="m-0 text-sm font-semibold text-slate-900 leading-tight">
+                    {{ resetSuccessResult?.isNewAccount ? 'Partner Account Created' : (resetSuccessResult ? 'Password Reset Complete' : 'Reset Partner Password') }}
                   </h3>
-                  <p class="m-0 text-xs text-slate-500">{{ selectedResetOrg?.name }}</p>
+                  <p class="m-0 text-xs text-slate-500 leading-tight">{{ selectedResetOrg?.name }}</p>
                 </div>
               </div>
               <button class="modal-close-btn" @click="closeResetModal"><i class="mdi mdi-close"></i></button>
@@ -1000,37 +1013,108 @@
                 </div>
               </div>
 
-              <!-- Success State -->
-              <div v-else class="text-center py-2">
-                <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3 text-2xl">
-                  <i class="mdi mdi-check-circle-outline"></i>
-                </div>
-                <h4 class="text-base font-semibold text-slate-900 mb-1">
-                  {{ resetSuccessResult.isNewAccount ? 'Partner Center Successfully Created' : 'Password Successfully Updated' }}
-                </h4>
-                <p class="text-xs text-slate-500 mb-4">
-                  Credentials for <strong>{{ resetSuccessResult.email }}</strong> are ready.
-                  <span v-if="resetSendEmail" class="text-emerald-700 font-semibold block mt-1">Email notification dispatched successfully.</span>
-                </p>
-
-                <div class="p-3 bg-slate-100 border border-slate-200 rounded-lg flex items-center justify-between text-left mb-2">
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-xs text-slate-500 uppercase font-semibold">Initial Password:</span>
-                    <span class="font-mono font-semibold text-base text-slate-900 select-all tracking-wide">{{ resetSuccessResult.tempPassword }}</span>
+              <!-- Success State: Structured Credentials Card -->
+              <div v-else class="py-1">
+                <div class="text-center mb-4">
+                  <div class="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-2.5 text-2xl shadow-sm">
+                    <i class="mdi mdi-check-decagram"></i>
                   </div>
-                  <button 
-                    class="btn-table-action btn-edit" 
-                    :title="copiedPassword ? 'Copied!' : 'Copy to Clipboard'"
-                    @click="copyToClipboard(resetSuccessResult.tempPassword)"
-                  >
-                    <i :class="['mdi', copiedPassword ? 'mdi-check' : 'mdi-content-copy']"></i>
-                  </button>
+                  <h4 class="text-base font-semibold text-slate-900 m-0">
+                    {{ resetSuccessResult.isNewAccount ? 'Partner Account Provisioned' : 'Credentials Successfully Updated' }}
+                  </h4>
+                  <p class="text-xs text-slate-500 mt-1 mb-0">
+                    Credentials for <span class="font-medium text-slate-700">{{ selectedResetOrg?.name || 'Partner Center' }}</span> are ready.
+                  </p>
+                  <div v-if="resetSendEmail" class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                    <i class="mdi mdi-email-check-outline text-emerald-600"></i>
+                    <span>Email notification dispatched to {{ resetSuccessResult.email }}</span>
+                  </div>
                 </div>
-                <span v-if="copiedPassword" class="text-xs text-emerald-600 font-semibold block">Copied to clipboard!</span>
+
+                <div class="credentials-card">
+                  <!-- Portal URL Row -->
+                  <div class="credential-row">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="credential-label">Portal Login URL</span>
+                      <button 
+                        type="button"
+                        class="btn-credential-copy" 
+                        :class="{ 'copied': copiedField === 'url' }"
+                        @click="copyText(getLoginUrl(), 'url')"
+                      >
+                        <i :class="['mdi', copiedField === 'url' ? 'mdi-check text-emerald-600' : 'mdi-content-copy']"></i>
+                        <span>{{ copiedField === 'url' ? 'Copied' : 'Copy' }}</span>
+                      </button>
+                    </div>
+                    <div class="credential-value-box">
+                      <i class="mdi mdi-link-variant text-slate-400 text-sm"></i>
+                      <span class="credential-text truncate">{{ getLoginUrl() }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Login Email Row -->
+                  <div class="credential-row">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="credential-label">Authorized Login Email</span>
+                      <button 
+                        type="button"
+                        class="btn-credential-copy" 
+                        :class="{ 'copied': copiedField === 'email' }"
+                        @click="copyText(resetSuccessResult.email, 'email')"
+                      >
+                        <i :class="['mdi', copiedField === 'email' ? 'mdi-check text-emerald-600' : 'mdi-content-copy']"></i>
+                        <span>{{ copiedField === 'email' ? 'Copied' : 'Copy' }}</span>
+                      </button>
+                    </div>
+                    <div class="credential-value-box">
+                      <i class="mdi mdi-email-outline text-slate-400 text-sm"></i>
+                      <span class="credential-text truncate font-mono select-all">{{ resetSuccessResult.email }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Temporary Password Row -->
+                  <div class="credential-row">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="credential-label">{{ resetSuccessResult.isNewAccount ? 'Initial Login Password' : 'Temporary Password' }}</span>
+                      <div class="flex items-center gap-1.5">
+                        <button 
+                          type="button"
+                          class="btn-credential-copy" 
+                          :title="showPassword ? 'Hide password' : 'Show password'"
+                          @click="showPassword = !showPassword"
+                        >
+                          <i :class="['mdi', showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline']"></i>
+                          <span>{{ showPassword ? 'Hide' : 'Show' }}</span>
+                        </button>
+                        <button 
+                          type="button"
+                          class="btn-credential-copy" 
+                          :class="{ 'copied': copiedField === 'password' }"
+                          @click="copyText(resetSuccessResult.tempPassword, 'password')"
+                        >
+                          <i :class="['mdi', copiedField === 'password' ? 'mdi-check text-emerald-600' : 'mdi-content-copy']"></i>
+                          <span>{{ copiedField === 'password' ? 'Copied' : 'Copy' }}</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="credential-value-box credential-password-box">
+                      <i class="mdi mdi-lock-outline text-slate-400 text-sm"></i>
+                      <span class="credential-text font-mono font-medium text-slate-900 select-all tracking-wider">
+                        {{ showPassword ? resetSuccessResult.tempPassword : '••••••••••••' }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Security Note -->
+                  <div class="security-notice-pill">
+                    <i class="mdi mdi-shield-check-outline text-emerald-600 flex-shrink-0 text-base"></i>
+                    <span>Temporary credentials — user will be prompted to set a permanent password upon first login.</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="modal-footer">
+            <div class="modal-footer" :class="{ 'justify-between': resetSuccessResult }">
               <template v-if="!resetSuccessResult">
                 <button class="btn-glass" @click="closeResetModal" :disabled="resettingPassword">Cancel</button>
                 <button class="btn-red" @click="executePasswordReset" :disabled="resettingPassword">
@@ -1039,6 +1123,14 @@
                 </button>
               </template>
               <template v-else>
+                <button 
+                  type="button"
+                  class="btn-glass flex items-center gap-1.5" 
+                  @click="copyAllCredentials"
+                >
+                  <i :class="['mdi', copiedField === 'all' ? 'mdi-check text-emerald-600' : 'mdi-content-copy']"></i>
+                  <span>{{ copiedField === 'all' ? 'Credentials Copied!' : 'Copy All Credentials' }}</span>
+                </button>
                 <button class="btn-red" @click="closeResetModal">Done</button>
               </template>
             </div>
@@ -1053,44 +1145,70 @@
         <div v-if="showApproveModal" class="modal-overlay" @click.self="showApproveModal = false">
           <div class="modal-card">
             <div class="modal-header">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-sm">
                   <i class="mdi mdi-cash-check"></i>
                 </div>
                 <div>
-                  <h3 class="m-0 text-base font-semibold text-slate-900">Confirm Payment &amp; Issue Tokens</h3>
-                  <p class="m-0 text-xs text-slate-500">{{ selectedRequest?.org_name }}</p>
+                  <h3 class="m-0 text-sm font-semibold text-slate-900 leading-tight">Confirm Payment &amp; Issue Tokens</h3>
+                  <p class="m-0 text-xs text-slate-500 leading-tight">{{ selectedRequest?.org_name }}</p>
                 </div>
               </div>
               <button class="modal-close-btn" @click="showApproveModal = false"><i class="mdi mdi-close"></i></button>
             </div>
 
             <div class="modal-body">
-              <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg mb-4 text-xs text-emerald-900 leading-relaxed">
-                Confirming this request will immediately credit <strong>{{ selectedRequest?.token_count }} Tokens</strong> to <strong>{{ selectedRequest?.org_name }}</strong>'s wallet for exam batch enrollments.
+              <!-- Token Credit Hero Banner -->
+              <div class="token-credit-hero">
+                <div class="flex items-center gap-3">
+                  <div class="token-credit-icon">
+                    <i class="mdi mdi-database-plus-outline"></i>
+                  </div>
+                  <div>
+                    <div class="token-credit-amount">+{{ selectedRequest?.token_count }} Tokens</div>
+                    <div class="token-credit-sub">Will be credited to {{ selectedRequest?.org_name }}'s wallet</div>
+                  </div>
+                </div>
+                <div class="token-credit-badge">
+                  <i class="mdi mdi-check-circle-outline"></i>
+                  <span>Ready to Credit</span>
+                </div>
               </div>
 
-              <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 mb-4 text-xs space-y-2">
-                <div class="flex justify-between">
-                  <span class="text-slate-500">Package Requested:</span>
-                  <span class="font-semibold text-slate-800">{{ selectedRequest?.package_name }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-slate-500">Token Amount:</span>
-                  <span class="font-semibold text-slate-900">{{ selectedRequest?.token_count }} Tokens</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-slate-500">Amount Due:</span>
-                  <span class="font-semibold text-emerald-600">${{ Number(selectedRequest?.amount || 0).toFixed(2) }}</span>
-                </div>
-                <div v-if="selectedRequest?.payment_reference" class="flex justify-between">
-                  <span class="text-slate-500">Partner Payment Ref:</span>
-                  <span class="font-mono text-slate-700">{{ selectedRequest?.payment_reference }}</span>
+              <!-- Transaction Summary Card -->
+              <div class="request-summary-card">
+                <div class="summary-grid">
+                  <div class="summary-item">
+                    <span class="summary-label">Package Requested</span>
+                    <span class="summary-val font-semibold text-slate-800">
+                      <i class="mdi mdi-package-variant-closed text-slate-400 mr-1"></i>
+                      {{ selectedRequest?.package_name }}
+                    </span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="summary-label">Amount Collected</span>
+                    <span class="summary-val font-semibold text-emerald-600 font-mono">
+                      ${{ Number(selectedRequest?.amount || 0).toFixed(2) }} USD
+                    </span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="summary-label">Tokens to Issue</span>
+                    <span class="summary-val font-semibold text-slate-900 font-mono">
+                      {{ selectedRequest?.token_count }} Tokens
+                    </span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="summary-label">Partner Payment Ref</span>
+                    <span v-if="selectedRequest?.payment_reference" class="summary-val font-mono text-xs text-slate-800 bg-white border border-slate-200/80 px-2 py-0.5 rounded select-all inline-block truncate">
+                      {{ selectedRequest?.payment_reference }}
+                    </span>
+                    <span v-else class="summary-val text-slate-400 italic text-xs">None provided</span>
+                  </div>
                 </div>
               </div>
 
               <div class="form-group mb-3">
-                <label class="form-label">Payment / Receipt Reference <span class="text-slate-400 font-normal">(Optional)</span></label>
+                <label class="form-label">Official Receipt / Reference ID <span class="text-slate-400 font-normal">(Optional)</span></label>
                 <input
                   v-model="approveForm.payment_reference"
                   type="text"
@@ -1100,13 +1218,12 @@
               </div>
 
               <div class="form-group mb-0">
-                <label class="form-label">Administrative Notes <span class="text-slate-400 font-normal">(Optional)</span></label>
+                <label class="form-label">Approval Audit Notes <span class="text-slate-400 font-normal">(Optional)</span></label>
                 <textarea
                   v-model="approveForm.admin_notes"
                   rows="2"
-                  placeholder="e.g. Payment collected in full via standard bank transfer"
-                  class="modal-input"
-                  style="resize: none;"
+                  placeholder="e.g. Payment verified via bank statement"
+                  class="modal-input resize-none"
                 ></textarea>
               </div>
             </div>
@@ -1114,7 +1231,7 @@
             <div class="modal-footer">
               <button class="btn-glass" @click="showApproveModal = false">Cancel</button>
               <button class="btn-emerald" :disabled="approvingRequest" @click="confirmApproveRequest">
-                <i :class="['mdi', approvingRequest ? 'mdi-loading spin-icon' : 'mdi-check-bold']"></i>
+                <i :class="['mdi', approvingRequest ? 'mdi-loading spin-icon' : 'mdi-check-decagram-outline']"></i>
                 {{ approvingRequest ? 'Crediting Tokens...' : 'Confirm & Credit Tokens' }}
               </button>
             </div>
@@ -1129,29 +1246,33 @@
         <div v-if="showRejectModal" class="modal-overlay" @click.self="showRejectModal = false">
           <div class="modal-card">
             <div class="modal-header">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-xl">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-red-50 text-red-600 border border-red-100 flex items-center justify-center text-sm">
                   <i class="mdi mdi-alert-circle-outline"></i>
                 </div>
                 <div>
-                  <h3 class="m-0 text-base font-semibold text-slate-900">Reject Token Request</h3>
-                  <p class="m-0 text-xs text-slate-500">{{ selectedRequest?.org_name }}</p>
+                  <h3 class="m-0 text-sm font-semibold text-slate-900 leading-tight">Reject Token Purchase Request</h3>
+                  <p class="m-0 text-xs text-slate-500 leading-tight">{{ selectedRequest?.org_name }}</p>
                 </div>
               </div>
               <button class="modal-close-btn" @click="showRejectModal = false"><i class="mdi mdi-close"></i></button>
             </div>
 
             <div class="modal-body">
-              <p class="text-xs text-slate-600 mb-3">
-                Are you sure you want to reject this request for <strong>{{ selectedRequest?.package_name }}</strong>? The partner will be notified of the reason.
-              </p>
+              <div class="p-3 bg-red-50 border border-red-100 rounded-xl mb-4 text-xs text-red-900 leading-relaxed flex items-start gap-2.5">
+                <i class="mdi mdi-alert-outline text-red-500 text-base flex-shrink-0 mt-0.5"></i>
+                <div>
+                  You are rejecting the purchase request for <strong>{{ selectedRequest?.package_name }}</strong> ({{ selectedRequest?.token_count }} Tokens) from <strong>{{ selectedRequest?.org_name }}</strong>.
+                  The partner will be notified of this action.
+                </div>
+              </div>
 
               <div class="form-group mb-0">
                 <label class="form-label">Reason for Rejection *</label>
                 <textarea
                   v-model="rejectForm.admin_notes"
                   rows="3"
-                  placeholder="e.g. Payment was not received within the required window / Reference ID not found"
+                  placeholder="e.g. Payment not received within required window / Reference ID not verifiable"
                   class="modal-input"
                   required
                 ></textarea>
@@ -1269,8 +1390,7 @@
                   v-model="tokenAdjustmentReason"
                   rows="2"
                   :placeholder="tokenAdjustmentMode === 'refund' ? 'e.g. Offline payment refunded, order cancelled, or adjustment of duplicate approval' : 'e.g. Complimentary test tokens or promotional credit'"
-                  class="modal-input"
-                  style="resize: none;"
+                  class="modal-input resize-none"
                 ></textarea>
               </div>
 
@@ -1515,6 +1635,8 @@ const resetSendEmail = ref(true);
 const resettingPassword = ref(false);
 const resetSuccessResult = ref<{ email: string; tempPassword: string; isNewAccount?: boolean } | null>(null);
 const copiedPassword = ref(false);
+const showPassword = ref(true);
+const copiedField = ref<string | null>(null);
 
 // Exams state
 const exams = ref<any[]>([]);
@@ -1948,6 +2070,8 @@ function openResetPasswordModal(org: any) {
   resetSendEmail.value = true;
   resetSuccessResult.value = null;
   copiedPassword.value = false;
+  copiedField.value = null;
+  showPassword.value = true;
   showResetModal.value = true;
 }
 
@@ -1956,16 +2080,46 @@ function closeResetModal() {
   selectedResetOrg.value = null;
   resetSuccessResult.value = null;
   customResetPassword.value = '';
+  copiedField.value = null;
+  showPassword.value = true;
 }
 
-async function copyToClipboard(text: string) {
+function getLoginUrl() {
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/login`;
+  }
+  return 'https://gsfin.org/login';
+}
+
+async function copyText(text: string, fieldKey: string) {
   try {
     await navigator.clipboard.writeText(text);
-    copiedPassword.value = true;
-    setTimeout(() => { copiedPassword.value = false; }, 3000);
+    copiedField.value = fieldKey;
+    setTimeout(() => {
+      if (copiedField.value === fieldKey) copiedField.value = null;
+    }, 2500);
   } catch (err) {
     console.error('Failed to copy to clipboard', err);
   }
+}
+
+async function copyAllCredentials() {
+  if (!resetSuccessResult.value) return;
+  const loginUrl = getLoginUrl();
+  const orgName = selectedResetOrg.value?.name || 'Partner Center';
+  const text = [
+    `GSFIN Partner Portal Credentials`,
+    `Organization: ${orgName}`,
+    `Portal Login URL: ${loginUrl}`,
+    `Authorized Email: ${resetSuccessResult.value.email}`,
+    `Temporary Password: ${resetSuccessResult.value.tempPassword}`,
+    `Note: Temporary credentials. Please set a permanent password upon first login.`
+  ].join('\n');
+  await copyText(text, 'all');
+}
+
+async function copyToClipboard(text: string) {
+  await copyText(text, 'password');
 }
 
 async function executePasswordReset() {
@@ -2786,6 +2940,188 @@ function getTxTypeClass(type: string) {
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
+}
+
+/* ── Credentials Provisioning Card ── */
+.credentials-card {
+  background: #F8FAFC;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.credential-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.credential-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748B;
+}
+
+.btn-credential-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.4;
+}
+
+.btn-credential-copy:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+  border-color: rgba(15, 23, 42, 0.2);
+}
+
+.btn-credential-copy.copied {
+  background: #ECFDF5;
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.credential-value-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 8px;
+  padding: 8px 12px;
+  transition: border-color 0.15s;
+}
+
+.credential-value-box:hover {
+  border-color: rgba(15, 23, 42, 0.25);
+}
+
+.credential-text {
+  font-size: 0.84rem;
+  color: #1E293B;
+  flex: 1;
+}
+
+.credential-password-box {
+  background: #FFFFFF;
+  border-color: rgba(227, 27, 35, 0.2);
+}
+
+.security-notice-pill {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #F0FDF4;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  color: #166534;
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+/* ── Token Request Approve Modal Styles ── */
+.token-credit-hero {
+  background: linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.token-credit-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #D1FAE5;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.token-credit-amount {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #065F46;
+  font-family: inherit;
+  line-height: 1.2;
+}
+
+.token-credit-sub {
+  font-size: 0.74rem;
+  color: #047857;
+  margin-top: 2px;
+}
+
+.token-credit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #A7F3D0;
+  color: #065F46;
+}
+
+.request-summary-card {
+  background: #F8FAFC;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 500px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.summary-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748B;
+}
+
+.summary-val {
+  font-size: 0.84rem;
+  color: #0F172A;
 }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.25s; }

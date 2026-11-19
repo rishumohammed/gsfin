@@ -40,7 +40,7 @@
             density="compact"
             hide-details
             rounded="lg"
-            style="max-width: 200px;"
+            class="max-w-xs"
           ></v-select>
         </div>
 
@@ -52,13 +52,13 @@
               </v-avatar>
               <div class="flex-grow-1">
                 <div class="d-flex align-center justify-space-between mb-1">
-                  <div class="text-subtitle-1 font-weight-black">{{ review.student_name }}</div>
-                  <div class="text-caption text-grey font-weight-bold">{{ formatDate(review.date) }}</div>
+                  <div class="text-subtitle-1 font-semibold text-slate-900">{{ review.student_name }}</div>
+                  <div class="text-caption text-slate-500 font-medium">{{ formatDate(review.date) }}</div>
                 </div>
                 <v-rating :model-value="review.rating" color="amber-darken-2" density="compact" readonly size="x-small" class="mb-2"></v-rating>
-                <div class="text-body-2 font-weight-bold text-primary mb-2">{{ review.course_title }}</div>
-                <div class="text-caption font-weight-bold text-grey-darken-1 mb-2">Tutor: {{ review.tutor_name }}</div>
-                <p class="text-body-2 text-grey-darken-2 italic">"{{ review.comment }}"</p>
+                <div class="text-body-2 font-medium text-slate-800 mb-2">{{ review.course_title }}</div>
+                <div class="text-caption font-medium text-slate-500 mb-2">Tutor: {{ review.tutor_name }}</div>
+                <p class="text-body-2 text-slate-600 italic">"{{ review.comment }}"</p>
               </div>
               <v-btn icon="mdi-delete-outline" variant="text" color="error" size="small"></v-btn>
             </div>
@@ -68,7 +68,7 @@
         <!-- Empty State -->
         <div v-else class="pa-12 text-center">
           <v-icon size="64" color="grey-lighten-2" class="mb-4">mdi-star-off-outline</v-icon>
-          <h3 class="text-h6 font-weight-bold text-grey-darken-1">No reviews found</h3>
+          <h3 class="text-h6 font-semibold text-slate-700">No reviews found</h3>
           <p class="text-body-2 text-grey">Ratings and feedback from students will appear here.</p>
         </div>
       </v-card>

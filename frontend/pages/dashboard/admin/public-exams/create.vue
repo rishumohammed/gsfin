@@ -1,5 +1,5 @@
 <template>
-  <div class="exam-create-page min-h-screen pb-16" style="background-color: #FAFAFD;">
+  <div class="exam-create-page min-h-screen pb-16">
     <!-- Page Header -->
     <div class="exam-header-bar mb-8">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -234,7 +234,7 @@
                     type="file"
                     ref="fileInputRef"
                     accept="image/*"
-                    style="display: none;"
+                    class="hidden"
                     @change="onFileSelected"
                   />
 
@@ -1093,6 +1093,10 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.exam-create-page {
+  background-color: #FAFAFD;
+}
+
 /* Top Page Header Bar */
 .exam-header-bar {
   background: #FFFFFF;

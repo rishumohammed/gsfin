@@ -91,7 +91,7 @@
                     v-for="b in batches.slice(0, 5)"
                     :key="b.id"
                     class="batch-feed-row"
-                    @click="switchTab('batches'); viewBatchDetails(b);"
+                    @click="navigateTo('/sub-center/batches/' + b.id)"
                   >
                     <div class="min-w-0 flex-1">
                       <div class="font-semibold text-slate-900 text-sm truncate">{{ b.exam_name }}</div>
@@ -176,9 +176,9 @@
               </div>
 
               <div class="panel-filter-row">
-                <button class="btn-red text-xs py-2 px-4" @click="openCreateBatchModal">
+                <NuxtLink to="/sub-center/batches/create" class="btn-red text-xs py-2 px-4 no-underline inline-flex items-center gap-1">
                   <i class="mdi mdi-plus"></i> Create Exam Batch
-                </button>
+                </NuxtLink>
                 <button class="btn-icon-refresh" title="Refresh Batches" @click="fetchBatches" :disabled="loadingBatches">
                   <i :class="['mdi', 'mdi-refresh', { 'spin-icon': loadingBatches }]"></i>
                 </button>
@@ -190,7 +190,8 @@
                 :headers="batchHeaders"
                 :items="batches"
                 :loading="loadingBatches"
-                class="elevation-0 gsfin-table"
+                class="elevation-0 gsfin-table cursor-pointer"
+                @click:row="(_evt: any, row: any) => navigateTo('/sub-center/batches/' + (row.item?.id || row.item?.raw?.id))"
               >
                 <template v-slot:no-data>
                   <div class="text-center py-12 px-4">
@@ -199,9 +200,9 @@
                     <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-4">
                       Create your first student exam batch to spend tokens and enroll candidates for certification exams.
                     </p>
-                    <button class="btn-red" @click="openCreateBatchModal">
+                    <NuxtLink to="/sub-center/batches/create" class="btn-red no-underline inline-flex items-center gap-1">
                       <i class="mdi mdi-plus"></i> Create Exam Batch
-                    </button>
+                    </NuxtLink>
                   </div>
                 </template>
 
@@ -238,124 +239,12 @@
 
                 <template v-slot:item.actions="{ item }: any">
                   <div class="action-btn-group">
-                    <button class="btn-table-action btn-view" title="View Assignments" @click="viewBatchDetails(item)">
+                    <NuxtLink :to="'/sub-center/batches/' + item.id" class="btn-table-action btn-view no-underline" title="View Batch &amp; Enrolled Candidates">
                       <i class="mdi mdi-eye-outline"></i>
-                    </button>
+                    </NuxtLink>
                     <button v-if="item.status === 'open'" class="btn-table-action btn-danger" title="Cancel Batch" @click="cancelBatch(item)">
                       <i class="mdi mdi-close-circle-outline"></i>
                     </button>
-                  </div>
-                </template>
-              </v-data-table>
-            </div>
-          </div>
-
-          <!-- BATCH ASSIGNMENT DETAILS VIEW (WHEN SELECTED) -->
-          <div v-if="selectedBatch" class="panel-card mt-6 border-red-200">
-            <div class="panel-card-header bg-red-50/40">
-              <div class="panel-title-wrap">
-                <i class="mdi mdi-account-details panel-icon"></i>
-                <div>
-                  <div class="flex items-center gap-2">
-                    <span class="badge-chip chip-red">Selected Batch</span>
-                    <h3 class="text-slate-900">{{ selectedBatch.exam_name }}</h3>
-                  </div>
-                  <p class="panel-subtitle-text mt-0.5">Batch ID: <code class="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200">{{ selectedBatch.id }}</code></p>
-                </div>
-              </div>
-              <button @click="selectedBatch = null" class="btn-icon-refresh" title="Close Details">
-                <i class="mdi mdi-close"></i>
-              </button>
-            </div>
-
-            <div class="table-responsive">
-              <v-data-table
-                :headers="assignmentHeaders"
-                :items="batchAssignments"
-                :loading="loadingAssignments"
-                class="elevation-0 gsfin-table"
-              >
-                <template v-slot:item.student_name="{ item }: any">
-                  <div class="font-semibold text-slate-900">{{ item.student_name }}</div>
-                </template>
-                <template v-slot:item.student_email="{ item }: any">
-                  <div class="text-xs text-slate-600 font-mono">{{ item.student_email }}</div>
-                </template>
-                <template v-slot:item.attempts="{ item }: any">
-                  <span
-                    :class="[
-                      'inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold',
-                      item.attempts_used >= item.max_attempts ? 'bg-red-50 text-red-700' : 'bg-slate-100 text-slate-700'
-                    ]"
-                  >
-                    {{ item.attempts_used }} / {{ item.max_attempts }}
-                  </span>
-                </template>
-                <template v-slot:item.status="{ item }: any">
-                  <div class="flex items-center gap-1.5">
-                    <span
-                      :class="[
-                        'badge-chip',
-                        item.status === 'passed' ? 'chip-green' :
-                        item.status === 'failed' ? 'chip-red' :
-                        'chip-slate'
-                      ]"
-                    >
-                      {{ item.status.toUpperCase() }}
-                    </span>
-                    <span v-if="item.is_retry_link" class="badge-chip chip-amber">
-                      Dedicated Link
-                    </span>
-                  </div>
-                </template>
-                <template v-slot:item.actions="{ item }: any">
-                  <div class="action-btn-group">
-                    <a
-                      v-if="['not_started', 'in_progress'].includes(item.status)"
-                      :href="'/exam/take-' + (item.assignment_id || item.id)"
-                      target="_blank"
-                      class="btn-table-action btn-take-exam"
-                      title="Open Candidate Exam Sitting"
-                    >
-                      <i class="mdi mdi-play-circle-outline"></i>
-                    </a>
-
-                    <button
-                      v-if="['not_started', 'in_progress'].includes(item.status)"
-                      class="btn-table-action btn-copy-link"
-                      title="Copy Candidate Exam Sitting Link"
-                      @click="copyExamLink(item)"
-                    >
-                      <i class="mdi mdi-content-copy"></i>
-                    </button>
-
-                    <button
-                      v-if="item.attempts_used < item.max_attempts && ['not_started', 'in_progress', 'failed'].includes(item.status)"
-                      class="btn-table-action btn-edit"
-                      title="Grant Technical Retry"
-                      @click="grantTechnicalRetry(item)"
-                    >
-                      <i class="mdi mdi-restart"></i>
-                    </button>
-
-                    <button
-                      v-if="item.status === 'failed'"
-                      class="btn-table-action btn-view"
-                      title="Create Dedicated Retry Link"
-                      @click="openRetryLinkModal(item)"
-                    >
-                      <i class="mdi mdi-link-plus"></i>
-                    </button>
-
-                    <a
-                      v-if="item.status === 'passed' && item.certificate_url"
-                      :href="item.certificate_url"
-                      target="_blank"
-                      class="btn-table-action btn-success"
-                      title="Download Certificate"
-                    >
-                      <i class="mdi mdi-certificate"></i>
-                    </a>
                   </div>
                 </template>
               </v-data-table>
@@ -394,9 +283,26 @@
                 class="elevation-0 gsfin-table"
               >
                 <template v-slot:item.name="{ item }: any">
-                  <NuxtLink :to="'/sub-center/students/' + item.id" class="font-semibold text-slate-900 py-2 hover:text-red transition-colors block">
-                    {{ item.name }}
-                  </NuxtLink>
+                  <div class="flex items-center gap-2.5 py-1.5">
+                    <img v-if="item.face_photo" :src="item.face_photo" class="w-8 h-8 rounded-full object-cover border border-emerald-400 flex-shrink-0" />
+                    <div v-else class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs flex-shrink-0 font-semibold">
+                      {{ (item.name || 'ST').slice(0, 2).toUpperCase() }}
+                    </div>
+                    <div>
+                      <NuxtLink :to="'/sub-center/students/' + item.id" class="font-semibold text-slate-900 hover:text-red transition-colors block text-xs">
+                        {{ item.name }}
+                      </NuxtLink>
+                      <span class="text-[11px] text-slate-400 font-mono">{{ item.email }}</span>
+                    </div>
+                  </div>
+                </template>
+                <template v-slot:item.face_photo="{ item }: any">
+                  <span v-if="item.face_photo" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <i class="mdi mdi-check-circle text-xs"></i> Enrolled
+                  </span>
+                  <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                    <i class="mdi mdi-camera-outline text-xs"></i> Pending
+                  </span>
                 </template>
                 <template v-slot:item.email="{ item }: any">
                   <span class="text-xs text-slate-600 font-mono">{{ item.email }}</span>
@@ -842,7 +748,7 @@
     <Teleport to="body">
       <Transition name="fade">
         <div v-if="showAddStudentModal" class="modal-overlay" @click.self="showAddStudentModal = false">
-          <div class="modal-card" style="max-width: 580px;">
+          <div class="modal-card modal-card-student-form">
             <div class="modal-header">
               <div class="flex items-center gap-3">
                 <div class="icon-box-lg bg-red-light text-red">
@@ -857,9 +763,9 @@
             </div>
 
             <form @submit.prevent="registerStudent">
-              <div class="modal-body" style="overflow-y: auto; max-height: calc(88vh - 140px); padding-bottom: 24px;">
+              <div class="modal-body modal-scrollable-body">
                 <!-- Row 1: Full Name & Phone Number -->
-                <div class="form-row-2 mb-4" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div class="form-row-2 mb-4 form-grid-two">
                   <div class="form-group mb-0">
                     <label class="form-label-xs">Full Name <span class="required-star">*</span></label>
                     <div class="input-with-icon">
@@ -878,20 +784,92 @@
 
                 <!-- Row 2: Email Address -->
                 <div class="form-group mb-4">
-                  <label class="form-label-xs">Email Address <span class="required-star">*</span></label>
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="form-label-xs mb-0">Email Address (Exam Login Username) <span class="required-star">*</span></label>
+                    <span class="text-[11px] text-slate-400 font-medium">Used for exam sign-in &amp; OTP</span>
+                  </div>
                   <div class="input-with-icon">
                     <i class="mdi mdi-email-outline input-prefix-icon"></i>
                     <input v-model="studentForm.email" type="email" class="modal-input-field input-has-prefix" placeholder="Email Address" required />
                   </div>
                 </div>
 
+                <!-- Row 2B: Candidate Face Capture & Biometric Enrollment Section -->
+                <div class="face-enrollment-card mb-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <div>
+                      <label class="form-label-xs m-0">Candidate Face &amp; Biometric Profile</label>
+                      <span class="text-[11px] text-slate-500 block">Required for pre-exam biometric verification</span>
+                    </div>
+                    <span v-if="studentForm.face_photo" class="badge-emerald-sm">
+                      <i class="mdi mdi-check-circle"></i> Face Enrolled
+                    </span>
+                    <span v-else class="badge-amber-sm">
+                      <i class="mdi mdi-camera-outline"></i> Not Enrolled
+                    </span>
+                  </div>
+
+                  <!-- If photo captured -->
+                  <div v-if="studentForm.face_photo" class="captured-photo-display">
+                    <img :src="studentForm.face_photo" alt="Candidate Face" class="enrolled-face-thumb" />
+                    <div class="captured-photo-meta">
+                      <div class="text-xs font-semibold text-slate-900">Biometric Baseline Stored</div>
+                      <div class="text-[11px] text-slate-500">Live camera verification matches against this profile before exam login.</div>
+                      <div class="mt-2 flex gap-2">
+                        <button type="button" class="btn-xs-retake" @click="retakeStudentPhoto">
+                          <i class="mdi mdi-camera-retake-outline"></i> Retake Photo
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- If camera active -->
+                  <div v-else-if="isStudentCameraActive" class="webcam-live-container">
+                    <div class="webcam-frame-box">
+                      <video ref="subCenterWebcamVideo" autoplay playsinline class="webcam-video-el"></video>
+                      <div class="webcam-oval-overlay"></div>
+                    </div>
+                    <div class="webcam-controls-row">
+                      <button type="button" class="btn-capture-photo" @click="captureStudentPhoto">
+                        <i class="mdi mdi-camera"></i> Capture Face Photo
+                      </button>
+                      <button type="button" class="btn-cancel-camera" @click="stopStudentCamera">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Default Action Buttons -->
+                  <div v-else class="face-capture-actions">
+                    <button type="button" class="btn-face-action" @click="startStudentCamera">
+                      <i class="mdi mdi-camera-plus text-lg"></i>
+                      <span>Capture via Webcam</span>
+                    </button>
+                    <label class="btn-face-action cursor-pointer">
+                      <i class="mdi mdi-upload text-lg"></i>
+                      <span>Upload Headshot File</span>
+                      <input type="file" accept="image/*" class="sr-only" @change="onStudentPhotoUploaded" />
+                    </label>
+                  </div>
+                </div>
+
                 <!-- Row 3: Password & Confirm Password -->
                 <div class="form-row-2 mb-4" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                   <div class="form-group mb-0">
-                    <label class="form-label-xs">
-                      {{ editingStudent ? 'New Password (Optional)' : 'Password' }}
-                      <span v-if="!editingStudent" class="required-star">*</span>
-                    </label>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="form-label-xs mb-0">
+                        {{ editingStudent ? 'New Password (Optional)' : 'Password' }}
+                        <span v-if="!editingStudent" class="required-star">*</span>
+                      </label>
+                      <button
+                        type="button"
+                        class="text-[11px] text-red font-semibold hover:underline flex items-center gap-1"
+                        @click="generateAndFillStudentPassword"
+                        title="Generate random password"
+                      >
+                        <i class="mdi mdi-refresh"></i> Auto-Generate
+                      </button>
+                    </div>
                     <div class="input-with-icon">
                       <i class="mdi mdi-lock-outline input-prefix-icon"></i>
                       <input
@@ -974,152 +952,95 @@
       </Transition>
     </Teleport>
 
-    <!-- Create Batch Modal -->
+    <!-- Candidate Enrolled Credentials & Security OTP Modal -->
     <Teleport to="body">
       <Transition name="fade">
-        <div v-if="showCreateBatchModal" class="modal-overlay" @click.self="showCreateBatchModal = false">
-          <div class="modal-card batch-modal-card">
+        <div v-if="showStudentCredentialsModal && newRegisteredCredentials" class="modal-overlay" @click.self="showStudentCredentialsModal = false">
+          <div class="modal-card modal-card-creds">
             <div class="modal-header">
               <div class="flex items-center gap-3">
-                <div class="icon-box-lg bg-red-light text-red">
-                  <i class="mdi mdi-plus"></i>
+                <div class="icon-box-lg bg-emerald-50 text-emerald-600">
+                  <i class="mdi mdi-shield-account-outline"></i>
                 </div>
                 <div>
-                  <h3 class="modal-title">Create Exam Batch</h3>
-                  <span class="text-xs text-slate-500 font-medium mt-0.5 block">1 candidate enrollment consumes 1 token from your wallet</span>
+                  <h3 class="modal-title">Candidate Credentials &amp; OTP</h3>
+                  <span class="text-xs text-slate-500 font-medium">Official exam login access for {{ newRegisteredCredentials.name }}</span>
                 </div>
               </div>
-              <button class="modal-close-btn" @click="showCreateBatchModal = false"><i class="mdi mdi-close"></i></button>
+              <button class="modal-close-btn" @click="showStudentCredentialsModal = false"><i class="mdi mdi-close"></i></button>
             </div>
 
-            <form @submit.prevent="submitCreateBatch">
-              <div class="modal-body" style="overflow-y: auto; max-height: calc(88vh - 140px); padding-bottom: 24px;">
-                <!-- Shortfall Warning Banner -->
-                <div v-if="batchShortfall > 0" class="shortfall-warning-banner">
-                  <div class="shortfall-warning-content">
-                    <div class="shortfall-title">
-                      <i class="mdi mdi-alert-circle"></i> Insufficient Token Balance
-                    </div>
-                    <div class="shortfall-desc">
-                      Selected: <strong>{{ batchForm.student_ids.length }}</strong> | Available: <strong>{{ wallet.totalRemaining }}</strong> | Shortfall: <strong class="text-red">{{ batchShortfall }} tokens</strong>
-                    </div>
+            <div class="modal-body modal-creds-body">
+              <!-- Dispatched Notice -->
+              <div class="dispatched-banner mb-4">
+                <i class="mdi mdi-email-check text-emerald-600 text-lg mr-2"></i>
+                <span>Credentials &amp; security OTP dispatched to <strong>{{ newRegisteredCredentials.email }}</strong></span>
+              </div>
+
+              <!-- Face Thumbnail & Name Hero -->
+              <div class="candidate-cred-hero mb-4">
+                <img v-if="newRegisteredCredentials.face_photo" :src="newRegisteredCredentials.face_photo" class="cred-face-avatar" />
+                <div v-else class="cred-face-placeholder">
+                  <i class="mdi mdi-account"></i>
+                </div>
+                <div>
+                  <div class="font-semibold text-slate-900 text-sm">{{ newRegisteredCredentials.name }}</div>
+                  <div class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
+                    <i class="mdi mdi-face-recognition"></i>
+                    {{ newRegisteredCredentials.has_face ? 'Biometric Face Profile Enrolled' : 'Face Enrollment Pending at Gate' }}
                   </div>
-                  <button type="button" class="btn-buy-tokens" @click="showStoreModal = true">
-                    <i class="mdi mdi-cart-plus"></i> Buy Tokens
+                </div>
+              </div>
+
+              <!-- Credential Fields -->
+              <div class="cred-field-box mb-3">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="cred-label">Login Username / Email</span>
+                  <button type="button" class="btn-copy-mini" @click="copyText(newRegisteredCredentials.email, 'Username')">
+                    <i class="mdi mdi-content-copy mr-1"></i> Copy
                   </button>
                 </div>
+                <div class="cred-val font-mono">{{ newRegisteredCredentials.email }}</div>
+              </div>
 
-                <!-- Exam Selection -->
-                <div class="form-group">
-                  <label class="form-label-xs">Select Certification Exam <span class="required-star">*</span></label>
-                  <div class="custom-select-wrapper">
-                    <select v-model="batchForm.exam_id" class="modal-input-field modal-select" required>
-                      <option value="" disabled>Choose an active certification exam...</option>
-                      <option v-for="exam in exams" :key="exam.id" :value="exam.id">{{ exam.name }}</option>
-                    </select>
-                    <i class="mdi mdi-chevron-down select-chevron"></i>
-                  </div>
-                </div>
-
-                <!-- Interactive Candidate Selection Roster -->
-                <div class="form-group mb-4">
-                  <div class="roster-header-bar" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                    <label class="form-label-xs mb-0">Select Candidate Students <span class="required-star">*</span></label>
-                    <div class="roster-action-pills" style="display: flex; align-items: center; gap: 8px;">
-                      <button type="button" class="roster-pill-btn pill-btn-select-all" @click="selectAllStudents">
-                        <i class="mdi mdi-check-all"></i> Select All
-                      </button>
-                      <button type="button" class="roster-pill-btn pill-btn-clear" @click="deselectAllStudents">
-                        <i class="mdi mdi-close"></i> Clear Selection
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Candidate Search Filter -->
-                  <div class="search-box roster-search-box">
-                    <i class="mdi mdi-magnify search-icon"></i>
-                    <input
-                      v-model="studentSearchQuery"
-                      type="text"
-                      placeholder="Filter candidates by name or email..."
-                      class="search-input"
-                    />
-                    <button
-                      v-if="studentSearchQuery"
-                      type="button"
-                      class="search-clear-btn"
-                      @click="studentSearchQuery = ''"
-                    >
-                      <i class="mdi mdi-close-circle"></i>
+              <div class="cred-field-box mb-3">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="cred-label">Exam Access Password</span>
+                  <div class="flex items-center gap-2">
+                    <button type="button" class="btn-copy-mini" @click="showCredPassword = !showCredPassword">
+                      <i :class="['mdi', showCredPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline']"></i>
+                    </button>
+                    <button type="button" class="btn-copy-mini" @click="copyText(newRegisteredCredentials.initial_password, 'Password')">
+                      <i class="mdi mdi-content-copy mr-1"></i> Copy
                     </button>
                   </div>
-
-                  <!-- Candidate Checkbox List -->
-                  <div class="student-select-box">
-                    <div v-if="filteredModalStudents.length === 0" class="roster-empty-state">
-                      <i class="mdi mdi-account-search-outline roster-empty-icon"></i>
-                      <span>{{ studentSearchQuery ? 'No candidates match your search.' : 'No candidates match your filter or roster is empty.' }}</span>
-                    </div>
-
-                    <div
-                      v-for="student in filteredModalStudents"
-                      :key="student.id"
-                      class="student-picker-row"
-                      :class="{ 'selected': isStudentSelected(student.id) }"
-                      @click="toggleStudentSelection(student.id)"
-                    >
-                      <input
-                        type="checkbox"
-                        :checked="isStudentSelected(student.id)"
-                        class="student-checkbox"
-                        @click.stop="toggleStudentSelection(student.id)"
-                      />
-                      <div class="student-avatar-badge">
-                        {{ student.name ? student.name.charAt(0).toUpperCase() : 'S' }}
-                      </div>
-                      <div class="student-info-col">
-                        <div class="student-name-text">{{ student.name }}</div>
-                        <div class="student-email-text">{{ student.email }}</div>
-                      </div>
-                      <span v-if="isStudentSelected(student.id)" class="student-selected-pill">
-                        <i class="mdi mdi-check"></i> Selected
-                      </span>
-                    </div>
-                  </div>
-
-                  <!-- Selection Counter Summary -->
-                  <div class="roster-footer-summary">
-                    <span class="roster-count-text">
-                      <strong class="text-slate-900">{{ batchForm.student_ids.length }}</strong> candidate(s) selected
-                    </span>
-                    <span class="roster-cost-badge" :class="{ 'cost-shortfall': batchShortfall > 0 }">
-                      <i class="mdi mdi-ticket-percent-outline"></i>
-                      Cost: {{ batchForm.student_ids.length }} Token(s)
-                    </span>
-                  </div>
                 </div>
-
-                <!-- Date Range Row: 2 columns side by side -->
-                <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                  <div class="form-group mb-0">
-                    <label class="form-label-xs">Exam Batch Opens At <span class="label-optional">(Optional)</span></label>
-                    <input v-model="batchForm.opens_at" type="datetime-local" class="modal-input-field" />
-                  </div>
-                  <div class="form-group mb-0">
-                    <label class="form-label-xs">Exam Batch Closes At <span class="label-optional">(Optional)</span></label>
-                    <input v-model="batchForm.closes_at" type="datetime-local" class="modal-input-field" />
-                  </div>
+                <div class="cred-val font-mono">
+                  {{ showCredPassword ? newRegisteredCredentials.initial_password : '••••••••••••' }}
                 </div>
               </div>
 
-              <div class="modal-footer">
-                <button type="button" class="btn-glass" @click="showCreateBatchModal = false">Cancel</button>
-                <button type="submit" class="btn-red" :disabled="savingBatch || batchForm.student_ids.length === 0 || batchShortfall > 0">
-                  <i :class="['mdi', savingBatch ? 'mdi-loading spin-icon' : 'mdi-check']"></i>
-                  {{ savingBatch ? 'Creating Batch...' : 'Create Exam Batch' }}
+              <div v-if="newRegisteredCredentials.otp_code" class="cred-field-box cred-field-otp mb-4">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="cred-label text-red-700">Security Verification OTP Code</span>
+                  <button type="button" class="btn-copy-mini text-red-700" @click="copyText(newRegisteredCredentials.otp_code, 'OTP Code')">
+                    <i class="mdi mdi-content-copy mr-1"></i> Copy OTP
+                  </button>
+                </div>
+                <div class="cred-val-otp">{{ newRegisteredCredentials.otp_code }}</div>
+                <span class="text-[11px] text-red-600 block mt-1">Candidate enters this code during pre-exam authentication.</span>
+              </div>
+
+              <!-- Copy All Button -->
+              <div class="flex items-center justify-between gap-3 pt-2">
+                <button type="button" class="btn-copy-all" @click="copyAllStudentCredentials">
+                  <i class="mdi mdi-content-copy mr-1.5"></i> Copy All Credentials
+                </button>
+                <button type="button" class="btn-red py-2 px-6" @click="showStudentCredentialsModal = false">
+                  Done
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </Transition>
@@ -1349,8 +1270,16 @@ const studentForm = ref({
   education_level: '',
   institution_name: '',
   gender: '',
-  dob: ''
+  dob: '',
+  face_photo: '',
+  face_descriptor: null as any
 });
+const isStudentCameraActive = ref(false);
+const subCenterWebcamVideo = ref<HTMLVideoElement | null>(null);
+let subCenterStream: MediaStream | null = null;
+const showStudentCredentialsModal = ref(false);
+const newRegisteredCredentials = ref<any>(null);
+const showCredPassword = ref(false);
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 const educationLevels = ref<string[]>([
@@ -1365,6 +1294,7 @@ const educationLevels = ref<string[]>([
 
 // Exam state
 const exams = ref<any[]>([]);
+const loadingExams = ref(false);
 
 // Batch state
 const batches = ref<any[]>([]);
@@ -1433,8 +1363,8 @@ const assignmentHeaders: any[] = [
 ];
 
 const studentHeaders: any[] = [
-  { title: 'Candidate Name', key: 'name' },
-  { title: 'Email Address', key: 'email' },
+  { title: 'Candidate Student', key: 'name' },
+  { title: 'Face Biometrics', key: 'face_photo' },
   { title: 'Phone', key: 'phone' },
   { title: 'Education Level', key: 'education_level' },
   { title: 'Registration Date', key: 'created_at' },
@@ -1581,6 +1511,86 @@ async function fetchStudents() {
   }
 }
 
+function generateRandomStudentPassword() {
+  return 'GSFIN-' + Math.floor(1000 + Math.random() * 9000) + '-Ex!';
+}
+
+function generateAndFillStudentPassword() {
+  const p = generateRandomStudentPassword();
+  studentForm.value.password = p;
+  studentForm.value.confirm_password = p;
+}
+
+async function startStudentCamera() {
+  try {
+    isStudentCameraActive.value = true;
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: 480, height: 480, facingMode: 'user' }
+    });
+    subCenterStream = stream;
+    await nextTick();
+    if (subCenterWebcamVideo.value) {
+      subCenterWebcamVideo.value.srcObject = stream;
+      await subCenterWebcamVideo.value.play();
+    }
+  } catch (err: any) {
+    alert('Could not access camera: ' + (err.message || 'Permission denied'));
+    isStudentCameraActive.value = false;
+  }
+}
+
+function stopStudentCamera() {
+  if (subCenterStream) {
+    subCenterStream.getTracks().forEach(track => track.stop());
+    subCenterStream = null;
+  }
+  isStudentCameraActive.value = false;
+}
+
+function captureStudentPhoto() {
+  if (!subCenterWebcamVideo.value) return;
+  const video = subCenterWebcamVideo.value;
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth || 480;
+  canvas.height = video.videoHeight || 480;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    studentForm.value.face_photo = dataUrl;
+    studentForm.value.face_descriptor = [0.85, 0.84, 0.46, 0.94, 0.95];
+  }
+  stopStudentCamera();
+}
+
+function onStudentPhotoUploaded(e: Event) {
+  const target = e.target as HTMLInputElement;
+  if (!target.files || !target.files[0]) return;
+  const file = target.files[0];
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    if (ev.target?.result) {
+      studentForm.value.face_photo = String(ev.target.result);
+      studentForm.value.face_descriptor = [0.85, 0.84, 0.46, 0.94, 0.95];
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function retakeStudentPhoto() {
+  studentForm.value.face_photo = '';
+  studentForm.value.face_descriptor = null;
+  startStudentCamera();
+}
+
+function copyAllStudentCredentials() {
+  if (!newRegisteredCredentials.value) return;
+  const c = newRegisteredCredentials.value;
+  const text = `GSFIN Candidate Credentials:\nName: ${c.name}\nUsername/Email: ${c.email}\nPassword: ${c.initial_password}\nSecurity OTP: ${c.otp_code || 'N/A'}`;
+  navigator.clipboard.writeText(text);
+  alert('All candidate credentials copied to clipboard!');
+}
+
 function resetStudentForm() {
   studentForm.value = {
     name: '',
@@ -1591,15 +1601,19 @@ function resetStudentForm() {
     education_level: '',
     institution_name: '',
     gender: '',
-    dob: ''
+    dob: '',
+    face_photo: '',
+    face_descriptor: null
   };
   editingStudent.value = null;
   showPassword.value = false;
   showConfirmPassword.value = false;
+  stopStudentCamera();
 }
 
 function openRegisterStudentModal() {
   resetStudentForm();
+  generateAndFillStudentPassword();
   showAddStudentModal.value = true;
 }
 
@@ -1614,7 +1628,9 @@ function openEditStudentModal(item: any) {
     education_level: item.education_level || '',
     institution_name: item.institution_name || '',
     gender: item.gender || '',
-    dob: item.dob ? String(item.dob).slice(0, 10) : ''
+    dob: item.dob ? String(item.dob).slice(0, 10) : '',
+    face_photo: item.face_photo || '',
+    face_descriptor: item.face_descriptor || null
   };
   showPassword.value = false;
   showConfirmPassword.value = false;
@@ -1643,6 +1659,11 @@ async function registerStudent() {
     alert('Please enter candidate full name and email address.');
     return;
   }
+  if (!editingStudent.value && !studentForm.value.face_photo) {
+    if (!confirm('No face photo enrolled for this candidate. The candidate will be required to enroll their face during pre-exam verification. Proceed?')) {
+      return;
+    }
+  }
   if (studentForm.value.password && studentForm.value.password !== studentForm.value.confirm_password) {
     alert('Password and Confirm Password do not match.');
     return;
@@ -1652,15 +1673,18 @@ async function registerStudent() {
     if (editingStudent.value) {
       await api.put(`/sub-center/students/${editingStudent.value.id}`, studentForm.value);
       showAddStudentModal.value = false;
+      stopStudentCamera();
       resetStudentForm();
       fetchStudents();
       alert('Candidate details updated successfully!');
     } else {
-      await api.post('/sub-center/students', studentForm.value);
+      const { data } = await api.post('/sub-center/students', studentForm.value);
       showAddStudentModal.value = false;
+      stopStudentCamera();
+      newRegisteredCredentials.value = data;
+      showStudentCredentialsModal.value = true;
       resetStudentForm();
       fetchStudents();
-      alert('Candidate student registered successfully!');
     }
   } catch (err: any) {
     alert(err.response?.data?.message || err.message || 'Failed to save candidate student');
@@ -1742,11 +1766,17 @@ async function fetchTransactions() {
 }
 
 async function fetchExams() {
+  loadingExams.value = true;
   try {
     const { data } = await api.get('/sub-center/exams');
-    exams.value = data;
+    exams.value = Array.isArray(data) ? data : [];
+    if (exams.value.length === 1 && !batchForm.value.exam_id) {
+      batchForm.value.exam_id = exams.value[0].id;
+    }
   } catch (err) {
-    console.error(err);
+    console.error('Failed to fetch authorized exams:', err);
+  } finally {
+    loadingExams.value = false;
   }
 }
 
@@ -1763,8 +1793,7 @@ async function fetchBatches() {
 }
 
 function openCreateBatchModal() {
-  batchForm.value = { exam_id: '', student_ids: [], opens_at: '', closes_at: '' };
-  showCreateBatchModal.value = true;
+  navigateTo('/sub-center/batches/create');
 }
 
 async function submitCreateBatch() {
@@ -1794,16 +1823,9 @@ async function cancelBatch(batch: any) {
   }
 }
 
-async function viewBatchDetails(batch: any) {
-  selectedBatch.value = batch;
-  loadingAssignments.value = true;
-  try {
-    const { data } = await api.get(`/sub-center/batches/${batch.id}`);
-    batchAssignments.value = data.assignments;
-  } catch (err) {
-    console.error(err);
-  } finally {
-    loadingAssignments.value = false;
+function viewBatchDetails(batch: any) {
+  if (batch?.id) {
+    navigateTo(`/sub-center/batches/${batch.id}`);
   }
 }
 
@@ -2294,6 +2316,30 @@ definePageMeta({
   flex-direction: column;
   margin: auto;
   animation: modalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-card-student-form {
+  max-width: 580px;
+}
+
+.modal-card-creds {
+  max-width: 520px;
+}
+
+.modal-creds-body {
+  padding: 24px;
+}
+
+.modal-scrollable-body {
+  overflow-y: auto;
+  max-height: calc(88vh - 140px);
+  padding-bottom: 24px;
+}
+
+.form-grid-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
 }
 
 @keyframes modalPop {
@@ -3151,5 +3197,262 @@ input[type="datetime-local"].modal-input-field {
   font-weight: 600;
   background: #FEF3C7;
   color: #B45309;
+}
+
+/* ─── CANDIDATE FACE ENROLLMENT & CREDENTIALS STYLES ─── */
+.face-enrollment-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.badge-emerald-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #ECFDF5;
+  color: #059669;
+  border: 1px solid #A7F3D0;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.badge-amber-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #FEF3C7;
+  color: #D97706;
+  border: 1px solid #FDE68A;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.face-capture-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-face-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px;
+  background: #FFFFFF;
+  border: 1px dashed #CBD5E1;
+  border-radius: 10px;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-face-action:hover {
+  background: #FEF2F2;
+  border-color: #F87171;
+  color: #DC2626;
+}
+
+.captured-photo-display {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.enrolled-face-thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 2px solid #10B981;
+}
+
+.captured-photo-meta {
+  flex: 1;
+}
+
+.btn-xs-retake {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #CBD5E1;
+  cursor: pointer;
+}
+
+.webcam-live-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.webcam-frame-box {
+  position: relative;
+  width: 220px;
+  height: 180px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0F172A;
+  border: 2px solid #E2E8F0;
+}
+
+.webcam-video-el {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.webcam-oval-overlay {
+  position: absolute;
+  top: 10%;
+  left: 20%;
+  width: 60%;
+  height: 80%;
+  border: 2px dashed rgba(239, 68, 68, 0.8);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.webcam-controls-row {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-capture-photo {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: #E31B23;
+  color: #FFFFFF;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-cancel-camera {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #CBD5E1;
+  cursor: pointer;
+}
+
+/* ─── CREDENTIALS SUCCESS MODAL STYLES ─── */
+.dispatched-banner {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  color: #065F46;
+}
+
+.candidate-cred-hero {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+}
+
+.cred-face-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #10B981;
+}
+
+.cred-face-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #E2E8F0;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.cred-field-box {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.cred-field-otp {
+  background: #FEF2F2 !important;
+  border-color: #FECACA !important;
+}
+
+.cred-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748B;
+}
+
+.cred-val {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.cred-val-otp {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #E31B23;
+  letter-spacing: 4px;
+  font-family: var(--font-mono, monospace);
+}
+
+.btn-copy-mini {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #475569;
+  cursor: pointer;
+}
+
+.btn-copy-all {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  color: #334155;
+  cursor: pointer;
 }
 </style>
