@@ -443,58 +443,7 @@
               <div class="modal-body">
                 <div class="modal-stack">
 
-                  <!-- 1. STATUS OPTION -->
-                  <div class="form-section-card">
-                    <div class="section-card-header">
-                      <span class="form-label-bold">
-                        <i class="mdi mdi-flag-checkered mr-1"></i> Status
-                      </span>
-                      <span class="section-sub-tip">Initial lead status</span>
-                    </div>
-
-                    <div class="status-options-grid">
-                      <button 
-                        type="button" 
-                        class="status-radio-pill pill-new" 
-                        :class="{ 'selected': createForm.status === 'new' }"
-                        @click="createForm.status = 'new'"
-                      >
-                        <span class="status-dot-sm bg-red"></span>
-                        <div class="status-pill-text">
-                          <span class="status-pill-title">New</span>
-                          <span class="status-pill-sub">Not reviewed</span>
-                        </div>
-                      </button>
-
-                      <button 
-                        type="button" 
-                        class="status-radio-pill pill-read" 
-                        :class="{ 'selected': createForm.status === 'read' }"
-                        @click="createForm.status = 'read'"
-                      >
-                        <span class="status-dot-sm bg-slate"></span>
-                        <div class="status-pill-text">
-                          <span class="status-pill-title">Read</span>
-                          <span class="status-pill-sub">In review</span>
-                        </div>
-                      </button>
-
-                      <button 
-                        type="button" 
-                        class="status-radio-pill pill-replied" 
-                        :class="{ 'selected': createForm.status === 'replied' }"
-                        @click="createForm.status = 'replied'"
-                      >
-                        <span class="status-dot-sm bg-emerald"></span>
-                        <div class="status-pill-text">
-                          <span class="status-pill-title">Replied</span>
-                          <span class="status-pill-sub">Contacted</span>
-                        </div>
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- 2. CENTER & CONTACT PERSON -->
+                  <!-- 1. CENTER & CONTACT PERSON -->
                   <div class="form-grid-2">
                     <div class="form-group">
                       <label class="form-label">Center Name <span class="required-asterisk">*</span></label>
@@ -1166,7 +1115,7 @@ const createForm = ref({
   state: '',
   country: 'India',
   message: '',
-  status: 'new'
+  status: 'read'
 });
 
 const openCreateLeadModal = () => {
@@ -1183,7 +1132,7 @@ const openCreateLeadModal = () => {
     state: '',
     country: 'India',
     message: '',
-    status: 'new'
+    status: 'read'
   };
   createModalOpen.value = true;
 };

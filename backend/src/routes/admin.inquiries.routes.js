@@ -66,7 +66,7 @@ router.post('/', async (req, res) => {
     const id = uuidv4();
     const person = contact_person?.trim() || name?.trim() || leadCenter;
     const leadSubject = subject?.trim() || `Center Lead: ${leadCenter}`;
-    const validStatus = ['new', 'read', 'replied'].includes(status) ? status : 'new';
+    const validStatus = ['new', 'read', 'replied'].includes(status) ? status : 'read';
 
     await pool.query(
       `INSERT INTO contact_submissions 
