@@ -56,8 +56,8 @@ export async function ensureOrganizationsColumns() {
   }
 }
 
-// Require main_admin or super_admin role for all routes in this router
-router.use(authenticateJWT, authorizeRoles('main_admin', 'super_admin'));
+// Require admin roles for all routes in this router
+router.use(authenticateJWT, authorizeRoles('super_admin', 'main_admin', 'sub_admin', 'admin'));
 
 // ─── 1. Real-Time Read-Only Dashboard & Reporting ───────────────────────────
 

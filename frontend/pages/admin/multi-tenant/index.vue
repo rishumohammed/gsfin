@@ -23,7 +23,7 @@
           </div>
           <div class="metric-info">
             <span class="metric-label">Partner Centers</span>
-            <span class="metric-value">{{ overview.metrics.totalSubCenters || 0 }}</span>
+            <span class="metric-value">{{ overview?.metrics?.totalSubCenters || 0 }}</span>
             <span class="metric-sub text-indigo">Active Partners</span>
           </div>
         </div>
@@ -34,7 +34,7 @@
           </div>
           <div class="metric-info">
             <span class="metric-label">Active Batches</span>
-            <span class="metric-value">{{ overview.metrics.activeBatches || 0 }}</span>
+            <span class="metric-value">{{ overview?.metrics?.activeBatches || 0 }}</span>
             <span class="metric-sub text-emerald">Active Sessions</span>
           </div>
         </div>
@@ -45,7 +45,7 @@
           </div>
           <div class="metric-info">
             <span class="metric-label">Token Requests</span>
-            <span class="metric-value">{{ overview.metrics.pendingTokenRequests || tokenRequestCounts.pending || 0 }}</span>
+            <span class="metric-value">{{ overview?.metrics?.pendingTokenRequests || tokenRequestCounts.pending || 0 }}</span>
             <span class="metric-sub text-amber font-semibold">Pending Approval</span>
           </div>
         </div>
@@ -56,7 +56,7 @@
           </div>
           <div class="metric-info">
             <span class="metric-label">Tokens Issued</span>
-            <span class="metric-value">{{ overview.metrics.totalTokensSold || 0 }}</span>
+            <span class="metric-value">{{ overview?.metrics?.totalTokensSold || 0 }}</span>
             <span class="metric-sub text-red">Total Issued</span>
           </div>
         </div>
@@ -1732,7 +1732,7 @@ const projectedTokenBalance = computed(() => {
 
 // Computed Filtered Data Arrays
 const filteredBatches = computed(() => {
-  let list = overview.value.recentBatches || [];
+  let list = Array.isArray(overview.value?.recentBatches) ? overview.value.recentBatches : [];
   if (batchStatusFilter.value !== 'all') {
     list = list.filter((b: any) => b.status === batchStatusFilter.value);
   }
@@ -1748,7 +1748,7 @@ const filteredBatches = computed(() => {
 });
 
 const filteredOrganizations = computed(() => {
-  let list = organizations.value || [];
+  let list = Array.isArray(organizations.value) ? organizations.value : [];
   if (orgStatusFilter.value !== 'all') {
     list = list.filter((o: any) => o.status === orgStatusFilter.value);
   }
@@ -2001,7 +2001,12 @@ async function fetchOverview() {
   loadingOverview.value = true;
   try {
     const { data } = await api.get('/main-admin/dashboard/overview');
-    overview.value = data;
+    if (data && typeof data === 'object') {
+      overview.value = {
+        metrics: data.metrics || {},
+        recentBatches: Array.isArray(data.recentBatches) ? data.recentBatches : []
+      };
+    }
   } catch (err) {
     console.error('Error fetching overview', err);
   } finally {
@@ -2013,7 +2018,7 @@ async function fetchOrganizations() {
   loadingOrgs.value = true;
   try {
     const { data } = await api.get('/main-admin/organizations');
-    organizations.value = data;
+    organizations.value = Array.isArray(data) ? data : [];
   } catch (err) {
     console.error(err);
   } finally {
