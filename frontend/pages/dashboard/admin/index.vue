@@ -32,7 +32,6 @@
               <div :class="['kpi-icon-box', getKpiColorClass(stat.color)]">
                 <i :class="`mdi ${stat.icon}`"></i>
               </div>
-              <span class="kpi-badge">Live</span>
             </div>
             <div class="kpi-body">
               <span class="kpi-value">{{ stat.value }}</span>
@@ -396,17 +395,6 @@ onMounted(fetchData);
 .kpi-indigo { background: rgba(79, 70, 229, 0.08); color: #4F46E5; }
 .kpi-emerald { background: rgba(16, 185, 129, 0.08); color: #059669; }
 .kpi-amber { background: rgba(245, 158, 11, 0.08); color: #D97706; }
-
-.kpi-badge {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 2px 8px;
-  border-radius: 50px;
-  background: #F1F5F9;
-  color: #64748B;
-}
 
 .kpi-value {
   display: block;
