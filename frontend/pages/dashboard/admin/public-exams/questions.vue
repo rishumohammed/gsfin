@@ -538,6 +538,14 @@
       </div>
     </v-dialog>
     </div>
+
+    <!-- Floating Toast Notification -->
+    <Transition name="fade">
+      <div v-if="toastMessage" class="q-toast" :class="toastType">
+        <i class="mdi" :class="toastType === 'error' ? 'mdi-alert-circle' : 'mdi-check-circle'"></i>
+        <span>{{ toastMessage }}</span>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -573,6 +581,20 @@ const csvFileInput = ref<HTMLInputElement | null>(null);
 const selectedCsvFileName = ref('');
 const parsedCsvData = ref<any[]>([]);
 const importing = ref(false);
+
+// Toast Notification State
+const toastMessage = ref('');
+const toastType = ref<'success' | 'error'>('success');
+let toastTimer: any = null;
+
+function showToast(msg: string, type: 'success' | 'error' = 'success') {
+  toastMessage.value = msg;
+  toastType.value = type;
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toastMessage.value = '';
+  }, 3200);
+}
 
 function triggerCsvSelect() {
   if (csvFileInput.value) {
@@ -748,29 +770,29 @@ async function runBulkImport() {
       const parsed = JSON.parse(importJsonText.value.trim());
       importing.value = true;
       await api.post(`/admin/public-exams/${selectedExamId.value}/questions/bulk`, { questions: parsed });
-      alert('Questions imported successfully!');
       importOpen.value = false;
       fetchQuestions();
+      showToast('Questions imported successfully!');
     } catch (err: any) {
       console.error('JSON import error:', err);
-      alert(err.response?.data?.message || 'Invalid JSON format or parameters.');
+      showToast(err.response?.data?.message || 'Invalid JSON format or parameters.', 'error');
     } finally {
       importing.value = false;
     }
   } else {
     if (parsedCsvData.value.length === 0) {
-      alert('Please select a valid CSV file first.');
+      showToast('Please select a valid CSV file first.', 'error');
       return;
     }
     importing.value = true;
     try {
       await api.post(`/admin/public-exams/${selectedExamId.value}/questions/bulk`, { questions: parsedCsvData.value });
-      alert(`Successfully imported ${parsedCsvData.value.length} questions from CSV!`);
       importOpen.value = false;
       fetchQuestions();
+      showToast(`Successfully imported ${parsedCsvData.value.length} questions from CSV!`);
     } catch (err: any) {
       console.error('CSV import error:', err);
-      alert(err.response?.data?.message || 'Error occurred while uploading CSV.');
+      showToast(err.response?.data?.message || 'Error occurred while uploading CSV.', 'error');
     } finally {
       importing.value = false;
     }
@@ -854,18 +876,18 @@ async function saveQuestion() {
     }
     delete payload.correct_answer_msq;
 
-    if (editingQuestionId.value) {
+    const isEdit = !!editingQuestionId.value;
+    if (isEdit) {
       await api.put(`/admin/public-exams/${selectedExamId.value}/questions/${editingQuestionId.value}`, payload);
-      alert('Question updated successfully!');
     } else {
       await api.post(`/admin/public-exams/${selectedExamId.value}/questions`, payload);
-      alert('Question added successfully!');
     }
     questionDialog.value = false;
     fetchQuestions();
+    showToast(isEdit ? 'Question updated successfully!' : 'Question added successfully!');
   } catch (err: any) {
     console.error('Save question error:', err);
-    alert(err.response?.data?.message || 'Error occurred while saving question.');
+    showToast(err.response?.data?.message || 'Error occurred while saving question.', 'error');
   } finally {
     savingQuestion.value = false;
   }
@@ -891,11 +913,11 @@ async function duplicateQuestion(q: any) {
     };
     
     await api.post(`/admin/public-exams/${selectedExamId.value}/questions`, payload);
-    alert('Question duplicated successfully!');
     fetchQuestions();
+    showToast('Question duplicated successfully!');
   } catch (err: any) {
     console.error('Duplicate question error:', err);
-    alert(err.response?.data?.message || 'Failed to duplicate question.');
+    showToast(err.response?.data?.message || 'Failed to duplicate question.', 'error');
   }
 }
 
@@ -912,8 +934,10 @@ async function deleteQuestion() {
     deleteConfirmDialog.value = false;
     targetQuestion.value = null;
     fetchQuestions();
-  } catch (err) {
+    showToast('Question deleted successfully!');
+  } catch (err: any) {
     console.error('Delete question error:', err);
+    showToast(err.response?.data?.message || 'Failed to delete question.', 'error');
   } finally {
     deleting.value = false;
   }
@@ -1834,5 +1858,39 @@ onMounted(() => {
   accent-color: #E31B23;
   width: 16px;
   height: 16px;
+}
+
+/* Floating Toast */
+.q-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25);
+  z-index: 99999;
+}
+.q-toast.success {
+  background: #0F172A;
+  color: #F8FAFC;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.q-toast.success i {
+  color: #10B981;
+  font-size: 1.15rem;
+}
+.q-toast.error {
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+.q-toast.error i {
+  color: #DC2626;
+  font-size: 1.15rem;
 }
 </style>
