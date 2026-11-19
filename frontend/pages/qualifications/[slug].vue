@@ -98,16 +98,6 @@
                   </div>
                 </div>
               </div>
-
-              <!-- Hero Actions Row -->
-              <div class="hero-actions-row" style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
-                <NuxtLink :to="`/public-exams/${item?.slug || slug}`" class="btn-red" style="text-decoration: none;">
-                  <i class="mdi mdi-play-circle-outline"></i> Take Certification Exam
-                </NuxtLink>
-                <button type="button" class="btn-glass" @click="openPartnerModal()">
-                  <i class="mdi mdi-handshake-outline"></i> Inquire via Authorized Center
-                </button>
-              </div>
             </div>
 
             <!-- Right: Qualification Image -->
@@ -267,42 +257,6 @@
 
           <!-- Right Sidebar Column -->
           <div class="detail-sidebar-col">
-            
-            <!-- Sticky Action Box -->
-            <div class="sidebar-action-box">
-              <div class="action-head text-center">
-                <i class="mdi mdi-certificate action-badge-icon"></i>
-                <h3>Personnel Certification</h3>
-                <p>Validated under international conformity standards for certified food professionals.</p>
-              </div>
-
-              <div class="sidebar-btn-group">
-                <NuxtLink :to="`/public-exams/${item?.slug || slug}`" class="btn-red w-full justify-center" style="text-decoration: none;">
-                  <i class="mdi mdi-play-circle-outline mr-1"></i> Take Certification Exam
-                </NuxtLink>
-                <button class="btn-glass w-full justify-center" @click="openPartnerModal()">
-                  <i class="mdi mdi-handshake-outline mr-1"></i> Become Authorized Center
-                </button>
-                <button class="btn-glass w-full justify-center" @click="openPartnerModal()">
-                  <i class="mdi mdi-email-outline mr-1"></i> Inquire as Candidate
-                </button>
-              </div>
-
-              <div class="sidebar-features-list">
-                <div class="sidebar-feat">
-                  <i class="mdi mdi-security icon-green"></i>
-                  <span>Official Anti-Counterfeit Digital Verification</span>
-                </div>
-                <div class="sidebar-feat">
-                  <i class="mdi mdi-file-certificate-outline icon-red-sm"></i>
-                  <span>Global QR-Coded Transcript &amp; Certificate</span>
-                </div>
-                <div class="sidebar-feat">
-                  <i class="mdi mdi-monitor-account icon-indigo"></i>
-                  <span>AI &amp; Human Proctored Assessment</span>
-                </div>
-              </div>
-            </div>
 
             <!-- Support Box -->
             <div class="sidebar-support-box">
@@ -312,7 +266,7 @@
               <p class="support-desc">
                 Our international certification advisors can assist your institution in mapping standard curricula.
               </p>
-              <a href="mailto:support@gsfin.org" class="support-link">
+              <a href="mailto:support@gsfin.uk" class="support-link">
                 Contact Certification Desk <i class="mdi mdi-arrow-right"></i>
               </a>
             </div>

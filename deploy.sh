@@ -69,3 +69,4 @@ echo -e "${GREEN}  Domain: https://gsfin.uk                             ${NC}"
 echo -e "${GREEN}  API:    https://gsfin.uk/api                         ${NC}"
 echo -e "${GREEN}======================================================${NC}"
 echo -e "To view live logs, run: ${YELLOW}docker compose logs -f${NC}\n"
+
