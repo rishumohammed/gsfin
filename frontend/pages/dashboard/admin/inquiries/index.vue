@@ -621,12 +621,13 @@
 
                     <div class="form-group">
                       <label class="form-label">Country</label>
-                      <input 
+                      <select 
                         v-model="createForm.country" 
-                        type="text" 
-                        class="form-input" 
-                        placeholder="e.g. India"
-                      />
+                        class="form-select"
+                      >
+                        <option value="" disabled>Select Country</option>
+                        <option v-for="c in availableCountries" :key="c" :value="c">{{ c }}</option>
+                      </select>
                     </div>
                   </div>
 
@@ -861,12 +862,13 @@
 
                     <div class="form-group">
                       <label class="form-label">Country</label>
-                      <input 
+                      <select 
                         v-model="editForm.country" 
-                        type="text" 
-                        class="form-input" 
-                        placeholder="e.g. United Kingdom"
-                      />
+                        class="form-select"
+                      >
+                        <option value="" disabled>Select Country</option>
+                        <option v-for="c in availableCountries" :key="c" :value="c">{{ c }}</option>
+                      </select>
                     </div>
                   </div>
 
@@ -991,12 +993,13 @@
                     <div class="form-group">
                       <label class="form-label">Country &amp; City</label>
                       <div class="dual-input-row">
-                        <input 
+                        <select 
                           v-model="convertForm.country" 
-                          type="text" 
-                          class="form-input" 
-                          placeholder="Country"
-                        />
+                          class="form-select"
+                        >
+                          <option value="" disabled>Select Country</option>
+                          <option v-for="c in availableCountries" :key="c" :value="c">{{ c }}</option>
+                        </select>
                         <input 
                           v-model="convertForm.city" 
                           type="text" 
@@ -1096,6 +1099,57 @@ const statusFilter = ref('all');
 const detailModalOpen = ref(false);
 const selectedItem = ref<any>(null);
 
+// Country options from Partner Settings
+const DEFAULT_COUNTRIES = [
+  'India',
+  'United Arab Emirates',
+  'Saudi Arabia',
+  'Qatar',
+  'Oman',
+  'Kuwait',
+  'Bahrain',
+  'United Kingdom',
+  'United States',
+  'Singapore',
+  'Malaysia',
+  'Australia',
+  'Canada',
+  'Germany',
+  'Egypt',
+  'South Africa',
+  'Nigeria',
+  'Kenya',
+  'Philippines',
+  'Sri Lanka',
+  'Pakistan',
+  'Bangladesh',
+  'Indonesia'
+];
+
+const availableCountries = ref<string[]>([...DEFAULT_COUNTRIES]);
+
+const fetchCountries = async () => {
+  try {
+    const res = await api.get('/admin/config');
+    const data = res.data;
+    let rawCountries: any = null;
+    if (Array.isArray(data)) {
+      const cItem = data.find((c: any) => c.key === 'partner_countries');
+      if (cItem) rawCountries = cItem.value;
+    } else if (data && typeof data === 'object') {
+      rawCountries = data.partner_countries;
+    }
+    if (rawCountries) {
+      const parsed = typeof rawCountries === 'string' ? JSON.parse(rawCountries) : rawCountries;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        availableCountries.value = parsed;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load partner countries:', err);
+  }
+};
+
 // Create Lead Modal State
 const createModalOpen = ref(false);
 const creatingLead = ref(false);
@@ -1110,7 +1164,7 @@ const createForm = ref({
   location: '',
   district: '',
   state: '',
-  country: '',
+  country: 'India',
   message: '',
   status: 'new'
 });
@@ -1127,7 +1181,7 @@ const openCreateLeadModal = () => {
     location: '',
     district: '',
     state: '',
-    country: '',
+    country: 'India',
     message: '',
     status: 'new'
   };
@@ -1397,6 +1451,10 @@ const openViewModal = (item: any) => {
 const openEditModal = (item: any) => {
   const details = parsePartnerDetails(item);
   const isPart = !!item.center_name || isPartnerApp(item.subject);
+  const countryVal = item.country || details.country || '';
+  if (countryVal && !availableCountries.value.includes(countryVal)) {
+    availableCountries.value.push(countryVal);
+  }
   editForm.value = {
     id: item.id,
     center_name: item.center_name || (isPart ? details.institution : ''),
@@ -1409,7 +1467,7 @@ const openEditModal = (item: any) => {
     location: item.location || details.city || '',
     district: item.district || '',
     state: item.state || '',
-    country: item.country || details.country || '',
+    country: countryVal,
     subject: item.subject || `Center Lead: ${item.center_name || item.name || 'Lead'}`,
     status: item.status || 'read',
     isPartner: isPart,
@@ -1490,13 +1548,17 @@ const saveEditSubmission = async () => {
 
 const openConvertModal = (item: any) => {
   const details = parsePartnerDetails(item);
+  const chosenCountry = item.country || (details.country && details.country !== 'Global Jurisdiction' ? details.country : 'India');
+  if (chosenCountry && !availableCountries.value.includes(chosenCountry)) {
+    availableCountries.value.push(chosenCountry);
+  }
   convertForm.value = {
     inquiryId: item.id,
     name: item.center_name || (details.institution && details.institution !== 'Institution' ? details.institution : (item.name || 'Partner Organization')),
     contact_person: item.name || '',
     contact_email: item.email || '',
     contact_phone: item.phone || item.whatsapp || '',
-    country: item.country || (details.country && details.country !== 'Global Jurisdiction' ? details.country : 'India'),
+    country: chosenCountry,
     city: [item.location, item.district, item.state].filter(Boolean).join(', ') || details.city || '',
     institution_type: details.institutionType || 'Authorized Training Center',
     programs: details.programs && details.programs.length > 0 ? [...details.programs] : ['CODEX HACCP', 'ISO 22000']
@@ -1560,6 +1622,7 @@ const confirmDelete = async (item: any) => {
 
 onMounted(() => {
   fetchInquiries();
+  fetchCountries();
 });
 </script>
 

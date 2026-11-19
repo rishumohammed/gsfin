@@ -811,12 +811,13 @@
 
               <div class="hl-group">
                 <label class="hl-label">Country</label>
-                <input
+                <select
                   v-model="homeLeadForm.country"
-                  type="text"
-                  class="hl-input"
-                  placeholder="e.g. India"
-                />
+                  class="hl-input hl-select"
+                >
+                  <option value="" disabled>Select Country</option>
+                  <option v-for="c in availableCountries" :key="c" :value="c">{{ c }}</option>
+                </select>
               </div>
             </div>
 
@@ -1290,6 +1291,47 @@ async function submitPartnerInquiry() {
 }
 
 // ── Home Page Lead Form ──
+const DEFAULT_COUNTRIES = [
+  'India',
+  'United Arab Emirates',
+  'Saudi Arabia',
+  'Qatar',
+  'Oman',
+  'Kuwait',
+  'Bahrain',
+  'United Kingdom',
+  'United States',
+  'Singapore',
+  'Malaysia',
+  'Australia',
+  'Canada',
+  'Germany',
+  'Egypt',
+  'South Africa',
+  'Nigeria',
+  'Kenya',
+  'Philippines',
+  'Sri Lanka',
+  'Pakistan',
+  'Bangladesh',
+  'Indonesia'
+];
+
+const availableCountries = computed<string[]>(() => {
+  const raw = publicConfig.value?.partner_countries;
+  if (raw) {
+    try {
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    } catch {
+      // fallback
+    }
+  }
+  return DEFAULT_COUNTRIES;
+});
+
 const homeLeadForm = ref({
   center_name: '',
   name: '',
@@ -1301,7 +1343,7 @@ const homeLeadForm = ref({
   location: '',
   district: '',
   state: '',
-  country: '',
+  country: 'India',
   message: ''
 });
 
@@ -1321,7 +1363,7 @@ const resetHomeLeadForm = () => {
     location: '',
     district: '',
     state: '',
-    country: '',
+    country: 'India',
     message: ''
   };
   homeLeadSuccess.value = false;
@@ -1426,7 +1468,8 @@ onUnmounted(() => {
 }
 
 .hl-input,
-.hl-textarea {
+.hl-textarea,
+.hl-select {
   width: 100%;
   padding: 11px 14px;
   border-radius: 10px;
@@ -1438,6 +1481,11 @@ onUnmounted(() => {
   box-sizing: border-box;
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hl-select {
+  cursor: pointer;
+  appearance: auto;
 }
 
 .hl-input:focus,
