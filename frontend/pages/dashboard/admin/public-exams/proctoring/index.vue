@@ -1066,15 +1066,14 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  flex-wrap: wrap;
+  gap: 20px;
 }
 .partner-identity-left {
   display: flex;
   align-items: center;
   gap: 16px;
   flex: 1;
-  min-width: 300px;
+  min-width: 0;
 }
 .partner-logo-avatar {
   width: 52px;
@@ -1163,7 +1162,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 14px;
-  flex-wrap: wrap;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 .partner-stat-pill {
   display: flex;
@@ -1240,6 +1240,29 @@ onMounted(() => {
 }
 .bg-red { background: #DC2626 !important; }
 .bg-amber { background: #D97706 !important; }
+
+@media (max-width: 1024px) {
+  .partner-card-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .partner-header-right {
+    width: 100%;
+    justify-content: space-between;
+    margin-left: 0;
+    padding-top: 14px;
+    border-top: 1px solid rgba(15, 23, 42, 0.06);
+  }
+}
+
+@media (max-width: 640px) {
+  .partner-header-right {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+}
 
 /* Scope Banners */
 .branch-scope-banner,

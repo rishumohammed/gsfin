@@ -33,7 +33,7 @@
               <input
                 v-model="search"
                 type="text"
-                placeholder="Search exams by name or certification..."
+                placeholder="Search exams by name, code, or certification..."
                 class="table-search-input"
               />
             </div>
@@ -802,12 +802,90 @@ onMounted(() => {
   font-weight: 600;
 }
 
+/* ═════ PANEL CARD & FILTER BAR STYLES ═════ */
+.panel-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
+  overflow: hidden;
+}
+.panel-card-header {
+  padding: 18px 24px;
+  background: #FAFAFD;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.panel-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-icon {
+  position: absolute;
+  left: 14px;
+  color: #94A3B8;
+  font-size: 1.1rem;
+}
+.table-search-input {
+  padding: 9px 14px 9px 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #FFFFFF;
+  font-size: 0.86rem;
+  color: #0F172A;
+  outline: none;
+  width: 320px;
+  max-width: 100%;
+  transition: border-color 0.2s;
+}
+.table-search-input:focus {
+  border-color: #E31B23;
+}
+.table-select-filter {
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #FFFFFF;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #0F172A;
+  outline: none;
+  cursor: pointer;
+  height: 40px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.table-select-filter:focus {
+  border-color: #E31B23;
+}
+.total-count-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  background: #F1F5F9;
+  padding: 6px 14px;
+  border-radius: 50px;
+  white-space: nowrap;
+}
+
 /* ═════ CARD ROW LIST STYLES ═════ */
 .partner-cards-list {
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  background: #FAFAFD;
 }
 .partner-card {
   background: #FFFFFF;
@@ -828,15 +906,14 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  flex-wrap: wrap;
+  gap: 20px;
 }
 .partner-identity-left {
   display: flex;
   align-items: center;
   gap: 16px;
   flex: 1;
-  min-width: 300px;
+  min-width: 0;
 }
 .partner-logo-avatar {
   width: 52px;
@@ -855,6 +932,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 .partner-title-row {
   display: flex;
@@ -928,7 +1006,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 14px;
-  flex-wrap: wrap;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 .partner-stat-pill {
   display: flex;
@@ -936,43 +1015,45 @@ onMounted(() => {
   background: #F8FAFC;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 14px;
-  padding: 8px 16px;
-  gap: 14px;
+  padding: 6px 14px;
+  gap: 12px;
 }
 .stat-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
   line-height: 1.15;
+  min-width: 58px;
 }
 .stat-num {
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   font-weight: 600;
   color: #0F172A;
 }
 .stat-lbl {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 600;
   color: #64748B;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 .stat-divider {
   width: 1px;
-  height: 24px;
-  background: rgba(15, 23, 42, 0.1);
+  height: 22px;
+  background: rgba(15, 23, 42, 0.08);
 }
 .card-action-cluster {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 .btn-view-batches {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 18px;
+  gap: 6px;
+  padding: 8px 16px;
   background: #E31B23;
   color: #FFFFFF;
   font-size: 0.82rem;
@@ -998,7 +1079,7 @@ onMounted(() => {
 .card-icon-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 .btn-icon-action {
   width: 34px;
@@ -1012,7 +1093,7 @@ onMounted(() => {
   justify-content: center;
   cursor: pointer;
   transition: all 0.15s ease;
-  font-size: 1rem;
+  font-size: 0.95rem;
   text-decoration: none;
 }
 .btn-icon-action:hover {
@@ -1024,6 +1105,32 @@ onMounted(() => {
   background: #FEF2F2;
   color: #E31B23;
   border-color: rgba(227, 27, 35, 0.25);
+}
+
+@media (max-width: 1024px) {
+  .partner-card-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .partner-header-right {
+    width: 100%;
+    justify-content: space-between;
+    margin-left: 0;
+    padding-top: 14px;
+    border-top: 1px solid rgba(15, 23, 42, 0.06);
+  }
+}
+
+@media (max-width: 640px) {
+  .partner-header-right {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .card-action-cluster {
+    justify-content: space-between;
+  }
 }
 .panel-loading-state, .panel-empty-state {
   padding: 48px;
