@@ -980,59 +980,154 @@
         <div v-if="showResetModal" class="modal-overlay" @click.self="closeResetModal">
           <div class="modal-card">
             <div class="modal-header">
-              <div class="flex items-center gap-2.5">
+              <div class="modal-title-row">
                 <div :class="[
-                  'w-8 h-8 rounded-lg flex items-center justify-center text-sm',
+                  'modal-header-icon',
                   resetSuccessResult ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'
                 ]">
                   <i :class="['mdi', resetSuccessResult ? 'mdi-check-decagram' : 'mdi-key-variant']"></i>
                 </div>
-                <div>
-                  <h3 class="m-0 text-sm font-semibold text-slate-900 leading-tight">
+                <div class="modal-title-text">
+                  <h3>
                     {{ resetSuccessResult?.isNewAccount ? 'Partner Account Created' : (resetSuccessResult ? 'Password Reset Complete' : 'Reset Partner Password') }}
                   </h3>
-                  <p class="m-0 text-xs text-slate-500 leading-tight">{{ selectedResetOrg?.name }}</p>
+                  <p>{{ selectedResetOrg?.name || 'Partner Account' }}</p>
                 </div>
               </div>
-              <button class="modal-close-btn" @click="closeResetModal"><i class="mdi mdi-close"></i></button>
+              <button class="modal-close-btn" @click="closeResetModal" aria-label="Close modal"><i class="mdi mdi-close"></i></button>
             </div>
             
             <div class="modal-body">
               <div v-if="!resetSuccessResult">
-                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg mb-4 text-xs text-slate-600 leading-relaxed">
-                  Reset login credentials for <strong>{{ selectedResetOrg?.name }}</strong>. 
-                  Target account email: <strong class="text-slate-900">{{ selectedResetOrg?.contact_email }}</strong>.
-                </div>
-
-                <div class="form-group mb-3">
-                  <label class="form-label">Password Mode</label>
-                  <div class="flex gap-4 mt-1">
-                    <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                      <input type="radio" value="auto" v-model="resetPasswordMode" />
-                      <span>Auto-generate secure password</span>
-                    </label>
-                    <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                      <input type="radio" value="custom" v-model="resetPasswordMode" />
-                      <span>Custom password</span>
-                    </label>
+                <!-- Partner Target Account Card -->
+                <div class="partner-target-card mb-4">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <div class="target-card-avatar">
+                        <i class="mdi mdi-office-building text-red-600"></i>
+                      </div>
+                      <div class="min-w-0">
+                        <div class="target-card-name truncate">{{ selectedResetOrg?.name }}</div>
+                        <div class="target-card-email truncate">
+                          <i class="mdi mdi-email-outline"></i>
+                          <span>{{ selectedResetOrg?.contact_email }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <span class="target-card-badge">
+                      <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                      Partner Center
+                    </span>
                   </div>
                 </div>
 
-                <div v-if="resetPasswordMode === 'custom'" class="form-group mb-3">
-                  <label class="form-label">New Password *</label>
-                  <input
-                    v-model="customResetPassword"
-                    type="text"
-                    placeholder="Enter new strong password"
-                    class="modal-input"
-                  />
+                <!-- Password Mode Selection -->
+                <div class="form-group mb-4">
+                  <label class="form-label">Password Mode</label>
+                  <div class="grid grid-cols-2 gap-3 mt-1">
+                    <button
+                      type="button"
+                      class="mode-selector-card"
+                      :class="{ 'active': resetPasswordMode === 'auto' }"
+                      @click="resetPasswordMode = 'auto'"
+                    >
+                      <div class="mode-card-header">
+                        <div class="mode-icon-box" :class="{ 'active': resetPasswordMode === 'auto' }">
+                          <i class="mdi mdi-auto-fix"></i>
+                        </div>
+                        <div class="mode-radio-circle" :class="{ 'active': resetPasswordMode === 'auto' }">
+                          <span v-if="resetPasswordMode === 'auto'" class="mode-radio-dot"></span>
+                        </div>
+                      </div>
+                      <div class="mode-card-body">
+                        <span class="mode-title">Auto-Generate</span>
+                        <span class="mode-desc">High-entropy secure password</span>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="mode-selector-card"
+                      :class="{ 'active': resetPasswordMode === 'custom' }"
+                      @click="resetPasswordMode = 'custom'"
+                    >
+                      <div class="mode-card-header">
+                        <div class="mode-icon-box" :class="{ 'active': resetPasswordMode === 'custom' }">
+                          <i class="mdi mdi-form-textbox-password"></i>
+                        </div>
+                        <div class="mode-radio-circle" :class="{ 'active': resetPasswordMode === 'custom' }">
+                          <span v-if="resetPasswordMode === 'custom'" class="mode-radio-dot"></span>
+                        </div>
+                      </div>
+                      <div class="mode-card-body">
+                        <span class="mode-title">Custom Password</span>
+                        <span class="mode-desc">Set specific password manually</span>
+                      </div>
+                    </button>
+                  </div>
                 </div>
 
-                <div class="form-group mb-2">
-                  <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                    <input type="checkbox" v-model="resetSendEmail" />
-                    <span>Send email notification with login instructions</span>
-                  </label>
+                <!-- Custom Password Input Field -->
+                <div v-if="resetPasswordMode === 'custom'" class="form-group mb-4">
+                  <div class="flex items-center justify-between">
+                    <label class="form-label">New Password <span class="text-red-500">*</span></label>
+                    <button 
+                      type="button" 
+                      class="text-[11px] font-medium text-red-600 hover:text-red-700 hover:underline flex items-center gap-1"
+                      @click="generateRandomCustomPassword"
+                    >
+                      <i class="mdi mdi-dice-5-outline"></i>
+                      <span>Suggest strong password</span>
+                    </button>
+                  </div>
+                  <div class="relative mt-1">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <i class="mdi mdi-lock-outline text-base"></i>
+                    </div>
+                    <input
+                      v-model="customResetPassword"
+                      :type="customPasswordVisible ? 'text' : 'password'"
+                      placeholder="Enter new strong password"
+                      class="modal-input !pl-10 !pr-10"
+                    />
+                    <button
+                      type="button"
+                      class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                      @click="customPasswordVisible = !customPasswordVisible"
+                      :title="customPasswordVisible ? 'Hide password' : 'Show password'"
+                    >
+                      <i :class="['mdi', customPasswordVisible ? 'mdi-eye-off-outline' : 'mdi-eye-outline', 'text-base']"></i>
+                    </button>
+                  </div>
+                  <div class="flex items-center gap-1.5 mt-1 text-[11px] text-slate-400">
+                    <i class="mdi mdi-information-outline"></i>
+                    <span>Minimum 8 characters with letters, numbers or symbols.</span>
+                  </div>
+                </div>
+
+                <!-- Email Notification Switch -->
+                <div 
+                  class="notification-toggle-card cursor-pointer" 
+                  @click="resetSendEmail = !resetSendEmail"
+                >
+                  <div class="flex items-center gap-3">
+                    <div 
+                      class="w-9 h-9 rounded-xl flex items-center justify-center text-lg transition-colors"
+                      :class="resetSendEmail ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/60' : 'bg-slate-100 text-slate-400 border border-slate-200/80'"
+                    >
+                      <i class="mdi mdi-email-fast-outline"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-xs font-semibold text-slate-800 leading-snug">Send Email Notification</div>
+                      <div class="text-[11px] text-slate-500 leading-tight mt-0.5 truncate">
+                        Dispatches login credentials directly to {{ selectedResetOrg?.contact_email }}
+                      </div>
+                    </div>
+                    <!-- Custom Toggle Switch -->
+                    <div class="modern-toggle" :class="{ 'active': resetSendEmail }">
+                      <div class="toggle-knob"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1140,9 +1235,19 @@
             <div class="modal-footer" :class="{ 'justify-between': resetSuccessResult }">
               <template v-if="!resetSuccessResult">
                 <button class="btn-glass" @click="closeResetModal" :disabled="resettingPassword">Cancel</button>
-                <button class="btn-red" @click="executePasswordReset" :disabled="resettingPassword">
-                  <span v-if="resettingPassword"><span class="spinner-sm-white"></span> Resetting...</span>
-                  <span v-else>Confirm &amp; Reset Password</span>
+                <button 
+                  class="btn-red" 
+                  @click="executePasswordReset" 
+                  :disabled="resettingPassword || (resetPasswordMode === 'custom' && !customResetPassword.trim())"
+                >
+                  <span v-if="resettingPassword" class="flex items-center gap-2">
+                    <span class="spinner-sm-white"></span>
+                    <span>Resetting...</span>
+                  </span>
+                  <span v-else class="flex items-center gap-2">
+                    <i class="mdi mdi-lock-reset text-base"></i>
+                    <span>Confirm &amp; Reset Password</span>
+                  </span>
                 </button>
               </template>
               <template v-else>
@@ -1154,7 +1259,10 @@
                   <i :class="['mdi', copiedField === 'all' ? 'mdi-check text-emerald-600' : 'mdi-content-copy']"></i>
                   <span>{{ copiedField === 'all' ? 'Credentials Copied!' : 'Copy All Credentials' }}</span>
                 </button>
-                <button class="btn-red" @click="closeResetModal">Done</button>
+                <button class="btn-red flex items-center gap-1.5" @click="closeResetModal">
+                  <i class="mdi mdi-check"></i>
+                  <span>Done</span>
+                </button>
               </template>
             </div>
           </div>
@@ -1659,6 +1767,7 @@ const resettingPassword = ref(false);
 const resetSuccessResult = ref<{ email: string; tempPassword: string; isNewAccount?: boolean } | null>(null);
 const copiedPassword = ref(false);
 const showPassword = ref(true);
+const customPasswordVisible = ref(false);
 const copiedField = ref<string | null>(null);
 
 // Exams state
@@ -2095,6 +2204,7 @@ function openResetPasswordModal(org: any) {
   selectedResetOrg.value = org;
   resetPasswordMode.value = 'auto';
   customResetPassword.value = '';
+  customPasswordVisible.value = false;
   resetSendEmail.value = true;
   resetSuccessResult.value = null;
   copiedPassword.value = false;
@@ -2108,8 +2218,19 @@ function closeResetModal() {
   selectedResetOrg.value = null;
   resetSuccessResult.value = null;
   customResetPassword.value = '';
+  customPasswordVisible.value = false;
   copiedField.value = null;
   showPassword.value = true;
+}
+
+function generateRandomCustomPassword() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*';
+  let pass = '';
+  for (let i = 0; i < 14; i++) {
+    pass += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  customResetPassword.value = pass;
+  customPasswordVisible.value = true;
 }
 
 function getLoginUrl() {
@@ -3235,6 +3356,170 @@ function getTxTypeClass(type: string) {
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
+}
+
+/* ── Partner Password Reset Modal Styles ── */
+.partner-target-card {
+  background: #F8FAFC;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.target-card-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #FEF2F2;
+  border: 1px solid rgba(227, 27, 35, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.target-card-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0F172A;
+  line-height: 1.25;
+}
+.target-card-email {
+  font-size: 0.74rem;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+.target-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid rgba(220, 38, 38, 0.15);
+  flex-shrink: 0;
+}
+
+.mode-selector-card {
+  background: #FFFFFF;
+  border: 1.5px solid rgba(15, 23, 42, 0.1);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.mode-selector-card:hover {
+  border-color: rgba(15, 23, 42, 0.2);
+  background: #F8FAFC;
+}
+.mode-selector-card.active {
+  border-color: #E31B23;
+  background: rgba(227, 27, 35, 0.03);
+  box-shadow: 0 0 0 1px #E31B23;
+}
+.mode-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mode-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #F1F5F9;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: all 0.15s ease;
+}
+.mode-icon-box.active {
+  background: #FEF2F2;
+  color: #E31B23;
+}
+.mode-radio-circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #CBD5E1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.mode-radio-circle.active {
+  border-color: #E31B23;
+}
+.mode-radio-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #E31B23;
+}
+.mode-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mode-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0F172A;
+}
+.mode-desc {
+  font-size: 0.68rem;
+  color: #64748B;
+  line-height: 1.3;
+}
+
+.notification-toggle-card {
+  background: #F8FAFC;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  padding: 10px 14px;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.notification-toggle-card:hover {
+  background: #F1F5F9;
+  border-color: rgba(15, 23, 42, 0.14);
+}
+.modern-toggle {
+  width: 38px;
+  height: 22px;
+  border-radius: 9999px;
+  background: #CBD5E1;
+  position: relative;
+  transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+.modern-toggle.active {
+  background: #10B981;
+}
+.toggle-knob {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+.modern-toggle.active .toggle-knob {
+  transform: translateX(16px);
 }
 
 /* ── Credentials Provisioning Card ── */
