@@ -7,7 +7,7 @@
 
         <v-icon size="72" color="grey-lighten-2" class="mb-6">mdi-map-marker-off-outline</v-icon>
 
-        <h1 class="text-h4 font-weight-black mb-3">Page Not Found</h1>
+        <h1 class="text-h4 font-weight-medium mb-3">Page Not Found</h1>
         <p class="text-body-1 text-grey mb-8 mx-auto" style="max-width: 420px;">
           The page you're looking for doesn't exist or may have been moved.
           Double-check the URL or head back to a safe place.
@@ -18,7 +18,7 @@
             color="primary"
             size="large"
             rounded="xl"
-            class="px-8 font-weight-bold"
+            class="px-8 font-weight-medium"
             :to="homeRoute"
             prepend-icon="mdi-home-outline"
           >
@@ -28,8 +28,8 @@
             variant="outlined"
             size="large"
             rounded="xl"
-            class="px-8 font-weight-bold"
-            @click="$router.back()"
+            class="px-8 font-weight-medium"
+            @click="goBack"
             prepend-icon="mdi-arrow-left"
           >
             Go Back
@@ -41,11 +41,18 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 
 definePageMeta({ layout: false });
 
+const router = useRouter();
 const authStore = useAuthStore();
+
+function goBack() {
+  router.back();
+}
 
 const layoutName = computed(() =>
   authStore.isAuthenticated ? 'dashboard' : 'public'
@@ -72,7 +79,7 @@ const homeRoute = computed(() => {
   font-size: clamp(80px, 15vw, 160px);
   font-weight: 600;
   line-height: 1;
-  background: linear-gradient(135deg, #5624D0 0%, #A435F0 100%);
+  background: linear-gradient(135deg, #E31B23 0%, #0F172A 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

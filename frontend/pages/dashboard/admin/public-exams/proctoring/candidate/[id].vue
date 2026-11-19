@@ -2,7 +2,7 @@
   <v-container fluid class="pa-6">
     <!-- Header -->
     <div class="d-flex align-center mb-6">
-      <v-btn icon="mdi-arrow-left" variant="text" class="mr-4" @click="$router.back()"></v-btn>
+      <v-btn icon="mdi-arrow-left" variant="text" class="mr-4" @click="router.back()"></v-btn>
       <v-avatar :color="getAvatarColor(candidate?.name || '')" size="48" class="mr-4">
         <span class="text-h6 font-weight-semibold text-white">{{ initials(candidate?.name || '') }}</span>
       </v-avatar>
@@ -91,7 +91,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useApi } from '@/composables/useApi';
 
 // Define page meta without type errors
@@ -102,6 +102,7 @@ definePageMeta({
 });
 
 const route = useRoute();
+const router = useRouter();
 const api = useApi();
 const loading = ref(true);
 const candidate = ref<any>(null);
