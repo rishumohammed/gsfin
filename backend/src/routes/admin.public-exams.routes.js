@@ -594,6 +594,18 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Exam Name and SEO Slug are required' });
     }
 
+    // If a soft-deleted exam exists with the same slug, purge it so it does not block the unique constraint
+    const [deletedWithSlug] = await pool.query(
+      'SELECT id FROM public_exams WHERE slug = ? AND deleted_at IS NOT NULL',
+      [slug]
+    );
+    if (deletedWithSlug && deletedWithSlug.length > 0) {
+      for (const d of deletedWithSlug) {
+        await pool.query('DELETE FROM public_exam_questions WHERE exam_id = ?', [d.id]);
+        await pool.query('DELETE FROM public_exams WHERE id = ?', [d.id]);
+      }
+    }
+
     const targetCategoryId = category_id || 'cat-food-safety-001';
 
     // Enforce 1-to-1 Mapping: Check if qualification already has an active exam
@@ -770,11 +782,21 @@ router.put('/:id', async (req, res) => {
 // DELETE /api/admin/public-exams/:id
 router.delete('/:id', async (req, res) => {
   try {
-    await pool.query('UPDATE public_exams SET deleted_at = NOW(), registration_status = "closed" WHERE id = ?', [req.params.id]);
+    const examId = req.params.id;
+    const [attempts] = await pool.query('SELECT COUNT(*) as count FROM public_exam_attempts WHERE exam_id = ?', [examId]);
+    if (attempts[0].count === 0) {
+      await pool.query('DELETE FROM public_exam_questions WHERE exam_id = ?', [examId]);
+      await pool.query('DELETE FROM public_exams WHERE id = ?', [examId]);
+    } else {
+      await pool.query(
+        'UPDATE public_exams SET deleted_at = NOW(), slug = CONCAT(slug, "_deleted_", UNIX_TIMESTAMP()), registration_status = "closed" WHERE id = ?',
+        [examId]
+      );
+    }
     res.json({ message: 'Exam deleted successfully' });
   } catch (error) {
     console.error('Delete admin exam error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: error.message || 'Internal server error' });
   }
 });
 
