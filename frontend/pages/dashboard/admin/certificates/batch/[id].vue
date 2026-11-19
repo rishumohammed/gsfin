@@ -186,9 +186,6 @@
               </div>
               <div>
                 <h3 class="panel-title">Candidate Roster &amp; Issued Certificates</h3>
-                <p class="panel-subtitle">
-                  Full examination sitting logs, candidate scores, issued credential numbers, and PDF certificates.
-                </p>
               </div>
             </div>
 

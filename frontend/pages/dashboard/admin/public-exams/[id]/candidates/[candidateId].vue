@@ -7,8 +7,7 @@
       </v-btn>
       <div class="d-flex align-center justify-space-between flex-wrap gap-4">
         <div>
-          <h1 class="text-h4 font-weight-bold mb-1">Candidate Details</h1>
-          <p class="text-subtitle-2 text-secondary">Review profile and exam attempt information.</p>
+          <h1 class="text-h4 font-weight-semibold mb-0">Candidate Details</h1>
         </div>
         <div class="d-flex gap-2">
           <v-btn

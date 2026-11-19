@@ -216,9 +216,6 @@
               </div>
               <div>
                 <h3 class="panel-title">Enrolled Candidates Roster</h3>
-                <p class="panel-subtitle">
-                  Comprehensive candidate participation, examination sitting statuses, and issued certificate serials.
-                </p>
               </div>
             </div>
 

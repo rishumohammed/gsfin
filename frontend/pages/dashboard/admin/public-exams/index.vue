@@ -6,7 +6,6 @@
       <div class="admin-header-row">
         <div>
           <h1 class="admin-title">Exams</h1>
-          <p class="admin-subtitle">Configure official certification exams, question bank pools, proctoring controls, and passing standards.</p>
         </div>
 
         <div class="header-actions">

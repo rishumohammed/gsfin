@@ -21,9 +21,6 @@
                   {{ selectedExam.name }}
                 </span>
               </div>
-              <p class="header-page-subtitle">
-                Manage exam questions, set marking schemes, options explanations, and bulk import using CSV/JSON formats.
-              </p>
             </div>
           </div>
 

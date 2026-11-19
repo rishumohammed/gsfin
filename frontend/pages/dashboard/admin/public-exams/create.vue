@@ -17,9 +17,6 @@
               <h1 class="header-page-title">
                 {{ isEditMode ? 'Edit Certification Exam' : 'Create Certification Exam' }}
               </h1>
-              <p class="header-page-subtitle">
-                {{ isEditMode ? 'Modify qualification curriculum, passing criteria, and proctoring rules for this exam.' : 'Set up certification course standards, question parameters, proctoring options, and credential rules for Partner Centers.' }}
-              </p>
             </div>
           </div>
 

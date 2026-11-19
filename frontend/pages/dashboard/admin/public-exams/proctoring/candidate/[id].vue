@@ -7,8 +7,7 @@
         <span class="text-h6 font-weight-semibold text-white">{{ initials(candidate?.name || '') }}</span>
       </v-avatar>
       <div>
-        <h1 class="text-h4 font-weight-semibold mb-1 text-dark">{{ candidate?.name || 'Loading...' }}</h1>
-        <p class="text-subtitle-1 text-medium-emphasis mb-0">Select an exam attempt to view detailed proctoring logs.</p>
+        <h1 class="text-h4 font-weight-semibold mb-0 text-dark">{{ candidate?.name || 'Loading...' }}</h1>
       </div>
       <v-spacer></v-spacer>
       <v-chip

@@ -4,8 +4,7 @@
     <div class="d-flex align-center mb-8 gap-4">
       <v-btn icon="mdi-arrow-left" variant="tonal" class="mr-2" to="/dashboard/admin/public-exams"></v-btn>
       <div>
-        <h1 class="text-h4 font-weight-bold mb-1">Results &amp; Analytics</h1>
-        <p class="text-subtitle-2 text-secondary">Monitor guest entrance test scores and view analytics dashboards for this exam.</p>
+        <h1 class="text-h4 font-weight-semibold mb-0">Results &amp; Analytics</h1>
       </div>
       <v-spacer></v-spacer>
       <div>

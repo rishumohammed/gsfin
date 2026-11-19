@@ -526,7 +526,6 @@
               <i class="mdi mdi-ticket-percent-outline panel-icon"></i>
               <div>
                 <h3>Partner Token Purchase Requests</h3>
-                <p class="panel-subtitle-text">Verify offline payment collections and approve token allocations for partner centers</p>
               </div>
             </div>
 

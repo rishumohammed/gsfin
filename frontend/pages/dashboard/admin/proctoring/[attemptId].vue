@@ -34,10 +34,6 @@
       <!-- ═══ HEADER ROW & ACTIONS BAR ═══ -->
       <div class="admin-header-row mb-6">
         <div>
-          <div class="eyebrow-chip mb-1.5">
-            <i class="mdi mdi-shield-search"></i>
-            <span>EXAMINATION PROCTORING &amp; AUDIT GOVERNANCE</span>
-          </div>
           <h1 class="admin-title">AI Proctoring Audit Review</h1>
           <div class="flex items-center gap-2.5 mt-1.5 flex-wrap">
             <span class="attempt-id-chip">

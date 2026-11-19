@@ -9,8 +9,7 @@
 
     <div class="d-flex justify-space-between align-center mb-6">
       <div>
-        <h1 class="text-h4 font-weight-semibold mb-1 text-dark">{{ examTitle }}</h1>
-        <p class="text-subtitle-1 text-medium-emphasis mb-0">Review candidates and their proctoring flags for this exam.</p>
+        <h1 class="text-h4 font-weight-semibold mb-0 text-dark">{{ examTitle }}</h1>
       </div>
     </div>
 

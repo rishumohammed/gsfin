@@ -5,14 +5,7 @@
       <!-- ═══ HEADER ROW ═══ -->
       <div class="admin-header-row">
         <div>
-          <div class="eyebrow-chip mb-1">
-            <i class="mdi mdi-shield-check"></i>
-            <span>EXAMINATION GOVERNANCE &amp; INTEGRITY</span>
-          </div>
           <h1 class="admin-title">Proctoring Management</h1>
-          <p class="admin-subtitle">
-            Hierarchical proctoring audit: Branch / Partner Center &rarr; Exam Batch &rarr; Candidate Proctoring Details.
-          </p>
         </div>
       </div>
 
