@@ -1005,7 +1005,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useApi } from '@/composables/useApi';
 import AppPagination from '@/components/common/AppPagination.vue';
@@ -1050,7 +1050,13 @@ const paginatedStaff = computed(() => {
   return staff.value.slice(start, start + staffPerPage.value);
 });
 
-const activeTab = ref('overview');
+const activeTab = ref((route.query.tab as string) || 'overview');
+
+watch(() => route.query.tab, (newTab) => {
+  if (newTab && typeof newTab === 'string') {
+    activeTab.value = newTab;
+  }
+});
 const showEditModal = ref(false);
 
 const viewBatchDetails = (batch: any) => {

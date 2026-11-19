@@ -139,19 +139,25 @@
             :key="partner.id"
             class="partner-card"
           >
-            <!-- ═══ PARTNER CARD HEADER ═══ -->
-            <div class="partner-card-header" @click="togglePartner(partner.id)">
+            <!-- ═══ PARTNER CARD ROW ═══ -->
+            <div class="partner-card-header">
               <div class="partner-identity-left">
                 <div class="partner-logo-avatar">
                   <i class="mdi mdi-domain"></i>
                 </div>
                 <div class="partner-identity-info">
                   <div class="partner-title-row">
-                    <h3 class="partner-name">{{ partner.name }}</h3>
+                    <NuxtLink
+                      :to="'/admin/multi-tenant/' + partner.id + '?tab=batches'"
+                      class="partner-name-link"
+                      title="View Partner Profile and Batches"
+                    >
+                      {{ partner.name }}
+                    </NuxtLink>
                     <span :class="['partner-status-tag', partner.status === 'active' ? 'tag-active' : 'tag-inactive']">
                       {{ partner.status === 'active' ? 'Accredited Center' : partner.status }}
                     </span>
-                    <span class="partner-type-tag">{{ partner.type || 'Authorized Testing Center' }}</span>
+                    <span class="partner-type-tag">{{ partner.type || 'Authorized Training Center' }}</span>
                   </div>
 
                   <div class="partner-meta-strip">
@@ -168,7 +174,7 @@
                 </div>
               </div>
 
-              <!-- Partner Stats Summary Pill & Expand Chevron -->
+              <!-- Partner Stats Summary Pill & View Batches Action -->
               <div class="partner-header-right">
                 <div class="partner-stat-pill">
                   <div class="stat-cell">
@@ -187,85 +193,14 @@
                   </div>
                 </div>
 
-                <button
-                  class="btn-chevron-toggle"
-                  type="button"
-                  :title="isPartnerExpanded(partner.id) ? 'Collapse' : 'Expand'"
+                <NuxtLink
+                  :to="'/admin/multi-tenant/' + partner.id + '?tab=batches'"
+                  class="btn-view-batches"
+                  title="View Exam Batches & Candidates in Partner Profile"
                 >
-                  <i :class="['mdi', isPartnerExpanded(partner.id) ? 'mdi-chevron-up' : 'mdi-chevron-down']"></i>
-                </button>
-              </div>
-            </div>
-
-            <!-- ═══ PARTNER CARD BODY: EXAMS CONDUCTED ═══ -->
-            <div v-show="isPartnerExpanded(partner.id)" class="partner-card-body">
-              <div v-if="partner.exams.length === 0" class="no-exams-box">
-                <i class="mdi mdi-clipboard-text-clock-outline text-2xl text-slate-400 mb-1 block"></i>
-                <div>No exams conducted yet by this partner center.</div>
-              </div>
-
-              <div v-else class="conducted-exams-group">
-                <div class="section-sub-header">
-                  <i class="mdi mdi-certificate-outline"></i>
-                  <span>Exams Conducted by {{ partner.name }}</span>
-                  <span class="exam-count-badge">{{ partner.exams.length }} Exams</span>
-                </div>
-
-                <!-- ═══ EXAM CONDUCTED CARD (Summary linked to dedicated inner page) ═══ -->
-                <div
-                  v-for="(exam, exIdx) in partner.exams"
-                  :key="exam.batch_id || exIdx"
-                  class="exam-conducted-card"
-                >
-                  <div class="exam-card-content">
-                    <div class="exam-title-box">
-                      <div class="exam-icon-box">
-                        <i class="mdi mdi-file-document-check-outline"></i>
-                      </div>
-                      <div>
-                        <h4 class="exam-title">{{ exam.exam_name }}</h4>
-                        <div class="exam-sub-info">
-                          <span
-                            v-if="exam.batch_id && !exam.batch_id.startsWith('pub-') && !exam.batch_id.startsWith('direct-')"
-                            class="batch-id-chip font-mono"
-                          >
-                            Batch #{{ exam.batch_id.slice(0, 8) }}
-                          </span>
-                          <span v-if="exam.duration_minutes" class="exam-meta-chip">
-                            <i class="mdi mdi-clock-outline"></i> {{ exam.duration_minutes }} Mins
-                          </span>
-                          <span v-if="exam.created_at" class="exam-meta-chip">
-                            <i class="mdi mdi-calendar-blank-outline"></i> {{ formatDate(exam.created_at) }}
-                          </span>
-                          <span :class="['batch-status-chip', exam.batch_status === 'open' ? 'chip-batch-open' : 'chip-batch-closed']">
-                            {{ exam.batch_status || 'conducted' }}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="exam-header-right">
-                      <div class="exam-attendance-summary">
-                        <span class="badge-attendees">
-                          <i class="mdi mdi-account-group"></i> {{ exam.students ? exam.students.length : (exam.total_students || 0) }} Attended Candidates
-                        </span>
-                        <span class="badge-certs">
-                          <i class="mdi mdi-certificate"></i> {{ exam.total_certificates || 0 }} Certified
-                        </span>
-                      </div>
-
-                      <NuxtLink
-                        :to="'/dashboard/admin/certificates/batch/' + (exam.batch_id || exIdx)"
-                        class="btn-view-roster"
-                        title="View Candidate Roster & Certificates for this Batch"
-                      >
-                        <i class="mdi mdi-account-multiple-outline"></i>
-                        <span>View Candidates &amp; Certificates</span>
-                        <i class="mdi mdi-arrow-right"></i>
-                      </NuxtLink>
-                    </div>
-                  </div>
-                </div>
+                  <span>View Batches</span>
+                  <i class="mdi mdi-arrow-right"></i>
+                </NuxtLink>
               </div>
             </div>
           </div>
@@ -407,9 +342,6 @@ const statusFilter = ref('All');
 const viewMode = ref<'partners' | 'table'>('partners');
 const copySuccessId = ref<string | null>(null);
 
-const expandedPartners = ref<Record<string, boolean>>({});
-const expandedExams = ref<Record<string, boolean>>({});
-
 const canManage = computed(() => {
   const role = authStore.userRole;
   return role === 'super_admin' || role === 'main_admin';
@@ -423,41 +355,6 @@ const verificationRate = computed(() => {
   const rate = Math.round((activeCount.value / certs.value.length) * 100);
   return `${rate}%`;
 });
-
-// Expand/Collapse state helpers
-const isPartnerExpanded = (id: string) => {
-  return expandedPartners.value[id] !== false; // default open
-};
-
-const isExamExpanded = (key: string) => {
-  return expandedExams.value[key] !== false; // default open
-};
-
-const togglePartner = (id: string) => {
-  expandedPartners.value[id] = !isPartnerExpanded(id);
-};
-
-const toggleExam = (key: string) => {
-  expandedExams.value[key] = !isExamExpanded(key);
-};
-
-const expandAll = () => {
-  filteredPartners.value.forEach(p => {
-    expandedPartners.value[p.id] = true;
-    p.exams.forEach((e: any, idx: number) => {
-      expandedExams.value[p.id + '-' + (e.batch_id || idx)] = true;
-    });
-  });
-};
-
-const collapseAll = () => {
-  filteredPartners.value.forEach(p => {
-    expandedPartners.value[p.id] = false;
-    p.exams.forEach((e: any, idx: number) => {
-      expandedExams.value[p.id + '-' + (e.batch_id || idx)] = false;
-    });
-  });
-};
 
 // Clipboard copy helper
 const copyToClipboard = async (text: string) => {
@@ -1027,8 +924,6 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  cursor: pointer;
-  user-select: none;
   flex-wrap: wrap;
 }
 .partner-identity-left {
@@ -1062,12 +957,17 @@ onMounted(() => {
   gap: 10px;
   flex-wrap: wrap;
 }
-.partner-name {
+.partner-name-link {
   font-size: 1.15rem;
   font-weight: 600;
   color: #0F172A;
   margin: 0;
   letter-spacing: -0.01em;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.partner-name-link:hover {
+  color: #E31B23;
 }
 .partner-status-tag {
   font-size: 0.7rem;
@@ -1150,289 +1050,40 @@ onMounted(() => {
   height: 24px;
   background: rgba(15, 23, 42, 0.1);
 }
-.btn-chevron-toggle {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  background: #FFFFFF;
-  color: #475569;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  cursor: pointer;
-  transition: all 0.18s ease;
-}
-.btn-chevron-toggle:hover {
-  background: #F1F5F9;
-  color: #E31B23;
-}
-
-.partner-card-body {
-  border-top: 1px solid rgba(15, 23, 42, 0.06);
-  background: #FAFAFD;
-  padding: 22px;
-}
-
-.section-sub-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #475569;
-  margin-bottom: 14px;
-}
-.section-sub-header i {
-  color: #E31B23;
-  font-size: 1.1rem;
-}
-.exam-count-badge {
-  background: rgba(227, 27, 35, 0.08);
-  color: #E31B23;
-  padding: 2px 10px;
-  border-radius: 50px;
-  font-size: 0.72rem;
-  font-weight: 600;
-}
-
-.conducted-exams-group {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* Exam Conducted Card */
-.exam-conducted-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.02);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow: hidden;
-}
-.exam-conducted-card:hover {
-  border-color: rgba(201, 37, 44, 0.2);
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
-}
-
-.exam-card-content {
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  background: #FFFFFF;
-  flex-wrap: wrap;
-}
-
-.btn-view-roster {
+.btn-view-batches {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 16px;
-  background: #C9252C;
+  gap: 8px;
+  padding: 9px 18px;
+  background: #E31B23;
   color: #FFFFFF;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  border-radius: 10px;
+  border-radius: 12px;
   text-decoration: none;
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 6px rgba(201, 37, 44, 0.22);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(227, 27, 35, 0.2);
   white-space: nowrap;
 }
-.btn-view-roster:hover {
-  background: #B01E24;
-  color: #FFFFFF;
+.btn-view-batches:hover {
+  background: #C41219;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(201, 37, 44, 0.35);
+  box-shadow: 0 4px 12px rgba(227, 27, 35, 0.28);
 }
-.btn-view-roster i.mdi-arrow-right {
+.btn-view-batches i {
   font-size: 0.95rem;
   transition: transform 0.15s ease;
 }
-.btn-view-roster:hover i.mdi-arrow-right {
+.btn-view-batches:hover i {
   transform: translateX(3px);
 }
 
-.exam-title-box {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.exam-icon-box {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: rgba(79, 70, 229, 0.08);
-  color: #4F46E5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.3rem;
-  flex-shrink: 0;
-}
-.exam-title {
-  font-size: 0.98rem;
-  font-weight: 600;
-  color: #0F172A;
-  margin: 0 0 4px 0;
-}
-.exam-sub-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.batch-id-chip {
-  background: #F1F5F9;
-  color: #334155;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 0.72rem;
-  font-weight: 600;
-}
-.exam-meta-chip {
-  font-size: 0.74rem;
-  color: #64748B;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.batch-status-chip {
-  font-size: 0.68rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: 50px;
-  letter-spacing: 0.04em;
-}
-.chip-batch-open {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
-}
-.chip-batch-closed {
-  background: #F1F5F9;
+.panel-loading-state, .panel-empty-state {
+  padding: 48px;
+  text-align: center;
   color: #64748B;
 }
 
-.exam-header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.exam-attendance-summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.badge-attendees {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #F1F5F9;
-  color: #334155;
-  font-size: 0.76rem;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 10px;
-}
-.badge-certs {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
-  font-size: 0.76rem;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 10px;
-}
-.btn-chevron-sm {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  background: #FFFFFF;
-  color: #64748B;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.btn-chevron-sm:hover {
-  background: #F1F5F9;
-  color: #E31B23;
-}
-
-.exam-card-body {
-  border-top: 1px solid rgba(15, 23, 42, 0.06);
-  background: #FFFFFF;
-  padding: 0;
-}
-
-.students-table-wrap {
-  width: 100%;
-  overflow-x: auto;
-}
-.students-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-.students-table th {
-  padding: 10px 18px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #64748B;
-  background: #FAFAFD;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-  white-space: nowrap;
-}
-.students-table td {
-  padding: 12px 18px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.04);
-  font-size: 0.84rem;
-  vertical-align: middle;
-}
-.students-table tbody tr:hover {
-  background: #F8FAFD;
-}
-
-.student-cell {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.student-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%);
-  color: #334155;
-  font-weight: 600;
-  font-size: 0.74rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-}
-
-.cert-serial-cell {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
 .btn-copy-id {
   background: transparent;
   border: none;
@@ -1446,28 +1097,6 @@ onMounted(() => {
 .btn-copy-id:hover {
   color: #E31B23;
   background: rgba(227, 27, 35, 0.06);
-}
-
-.chip-muted {
-  background: #F1F5F9;
-  color: #64748B;
-}
-.chip-indigo {
-  background: rgba(79, 70, 229, 0.1);
-  color: #4F46E5;
-}
-
-.no-exams-box, .no-students-box {
-  padding: 28px;
-  text-align: center;
-  color: #94A3B8;
-  font-size: 0.88rem;
-  font-weight: 600;
-}
-.panel-loading-state, .panel-empty-state {
-  padding: 48px;
-  text-align: center;
-  color: #64748B;
 }
 
 /* Tables */
