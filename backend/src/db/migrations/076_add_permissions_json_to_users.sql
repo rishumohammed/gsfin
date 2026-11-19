@@ -9,3 +9,4 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   metadata JSON NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
