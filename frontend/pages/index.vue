@@ -640,7 +640,7 @@
                 <svg width="15" height="15" viewBox="0 0 24 24">
                   <use href="#v-lock" />
                 </svg>
-                <span>Direct portal link: <NuxtLink to="/verify">https://exam.gsfin.uk/verify-certificate/</NuxtLink></span>
+                <span>Direct portal link: <NuxtLink to="/verify">https://gsfin.uk/verify</NuxtLink></span>
               </div>
             </div>
 
