@@ -82,18 +82,6 @@
               Settings <span class="bc-slash">/</span> <span class="bc-current">{{ currentCategoryObj?.title }}</span>
             </div>
           </div>
-
-          <!-- Quick Category Switcher Pills -->
-          <div class="category-pills-row custom-scrollbar">
-            <button
-              v-for="c in settingsCards"
-              :key="c.id"
-              @click="selectCategory(c)"
-              :class="['pill-btn', { 'pill-btn--active': activeCategory === c.id }]"
-            >
-              <i :class="`mdi ${c.icon}`"></i> {{ c.title.split(' ')[0] }}
-            </button>
-          </div>
         </div>
 
         <!-- Inner Form Container Card -->
@@ -811,38 +799,6 @@ watch(
 }
 .bc-slash { margin: 0 6px; color: #94A3B8; }
 .bc-current { color: #0F172A; }
-
-.category-pills-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  overflow-x: auto;
-  max-width: 100%;
-  padding-bottom: 4px;
-}
-
-.pill-btn {
-  background: #FFFFFF;
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  padding: 6px 14px;
-  border-radius: 10px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #64748B;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-.pill-btn:hover {
-  background: #F8FAFC;
-  color: #0F172A;
-}
-.pill-btn--active {
-  background: #E31B23 !important;
-  color: #FFFFFF !important;
-  border-color: #E31B23 !important;
-  box-shadow: 0 2px 8px rgba(227, 27, 35, 0.25);
-}
 
 .inner-form-card {
   background: #FFFFFF;
