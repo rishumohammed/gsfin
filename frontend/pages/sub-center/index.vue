@@ -91,7 +91,7 @@
                     v-for="b in batches.slice(0, 5)"
                     :key="b.id"
                     class="batch-feed-row"
-                    @click="navigateTo('/sub-center/batches/' + b.id)"
+                    @click="goToBatch(b.id)"
                   >
                     <div class="min-w-0 flex-1">
                       <div class="font-semibold text-slate-900 text-sm truncate">{{ b.exam_name }}</div>
@@ -191,7 +191,7 @@
                 :items="batches"
                 :loading="loadingBatches"
                 class="elevation-0 gsfin-table cursor-pointer"
-                @click:row="(_evt: any, row: any) => navigateTo('/sub-center/batches/' + (row.item?.id || row.item?.raw?.id))"
+                @click:row="(_evt: any, row: any) => goToBatch(row.item?.id || row.item?.raw?.id)"
               >
                 <template v-slot:no-data>
                   <div class="text-center py-12 px-4">
@@ -1043,7 +1043,8 @@
                 <div class="flex items-center justify-between mb-1">
                   <span class="cred-label">Login Username / Email</span>
                   <button type="button" class="btn-copy-mini" @click="copyText(newRegisteredCredentials.email, 'Username')">
-                    <i class="mdi mdi-content-copy mr-1"></i> Copy
+                    <i class="mdi mr-1" :class="copiedField === 'Username' ? 'mdi-check text-emerald-600' : 'mdi-content-copy'"></i>
+                    {{ copiedField === 'Username' ? 'Copied!' : 'Copy' }}
                   </button>
                 </div>
                 <div class="cred-val font-mono">{{ newRegisteredCredentials.email }}</div>
@@ -1057,7 +1058,8 @@
                       <i :class="['mdi', showCredPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline']"></i>
                     </button>
                     <button type="button" class="btn-copy-mini" @click="copyText(newRegisteredCredentials.initial_password, 'Password')">
-                      <i class="mdi mdi-content-copy mr-1"></i> Copy
+                      <i class="mdi mr-1" :class="copiedField === 'Password' ? 'mdi-check text-emerald-600' : 'mdi-content-copy'"></i>
+                      {{ copiedField === 'Password' ? 'Copied!' : 'Copy' }}
                     </button>
                   </div>
                 </div>
@@ -1070,7 +1072,8 @@
                 <div class="flex items-center justify-between mb-1">
                   <span class="cred-label text-red-700">Security Verification OTP Code</span>
                   <button type="button" class="btn-copy-mini text-red-700" @click="copyText(newRegisteredCredentials.otp_code, 'OTP Code')">
-                    <i class="mdi mdi-content-copy mr-1"></i> Copy OTP
+                    <i class="mdi mr-1" :class="copiedField === 'OTP Code' ? 'mdi-check text-emerald-600' : 'mdi-content-copy'"></i>
+                    {{ copiedField === 'OTP Code' ? 'Copied!' : 'Copy OTP' }}
                   </button>
                 </div>
                 <div class="cred-val-otp">{{ newRegisteredCredentials.otp_code }}</div>
@@ -1613,6 +1616,26 @@ function retakeStudentPhoto() {
   studentForm.value.face_photo = '';
   studentForm.value.face_descriptor = null;
   startStudentCamera();
+}
+
+function goToBatch(id: string) {
+  if (!id) return;
+  router.push(`/sub-center/batches/${id}`);
+}
+
+const copiedField = ref<string | null>(null);
+
+async function copyText(text: string, fieldKey: string) {
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    copiedField.value = fieldKey;
+    setTimeout(() => {
+      if (copiedField.value === fieldKey) copiedField.value = null;
+    }, 2500);
+  } catch (err) {
+    console.error('Failed to copy to clipboard', err);
+  }
 }
 
 function copyAllStudentCredentials() {
