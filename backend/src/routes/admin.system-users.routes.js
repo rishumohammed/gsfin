@@ -20,7 +20,7 @@ const logAudit = async (connection, userId, action, target, metadata) => {
 };
 
 const SYSTEM_ROLES = [
-  'super_admin', 'sub_admin', 'crm_agent', 
+  'main_admin', 'super_admin', 'sub_admin', 'crm_agent', 
   'placement_coordinator', 'finance_staff', 
   'exam_manager', 'lms_user'
 ];
@@ -38,12 +38,13 @@ router.get('/', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), as
     // Calculate dashboard stats
     const total = users.length;
     const active = users.filter(u => u.status === 'active').length;
-    const crm = users.filter(u => u.role === 'crm_agent').length;
+    const superAdmin = users.filter(u => u.role === 'super_admin' || u.role === 'main_admin').length;
     const subAdmin = users.filter(u => u.role === 'sub_admin').length;
+    const crm = users.filter(u => u.role === 'crm_agent').length;
 
     res.json({ 
       users,
-      stats: { total, active, crm, subAdmin }
+      stats: { total, active, superAdmin, subAdmin, crm }
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

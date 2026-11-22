@@ -109,7 +109,10 @@
                   <div class="user-cell">
                     <div class="user-avatar">{{ getUserInitials(user.name) }}</div>
                     <div>
-                      <div class="user-name">{{ user.name }}</div>
+                      <div class="user-name">
+                        {{ user.name }}
+                        <span v-if="isCurrentUser(user)" class="chip-current-user">You</span>
+                      </div>
                       <div class="user-email text-slate-500">{{ user.email }}</div>
                     </div>
                   </div>
@@ -146,7 +149,12 @@
                     >
                       <i :class="['mdi', user.status === 'active' ? 'mdi-account-minus' : 'mdi-account-check']"></i>
                     </button>
-                    <button class="btn-table-action btn-danger" title="Delete Account" @click="confirmDelete(user)">
+                    <button
+                      class="btn-table-action btn-danger"
+                      :title="isCurrentUser(user) ? 'Cannot delete your own account' : 'Delete Account'"
+                      :disabled="isCurrentUser(user)"
+                      @click="confirmDelete(user)"
+                    >
                       <i class="mdi mdi-trash-can-outline"></i>
                     </button>
                   </div>
@@ -256,6 +264,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import SystemUserModal from '@/components/system-users/SystemUserModal.vue';
 import { useApi } from '@/composables/useApi';
+import { useAuthStore } from '@/stores/auth';
 import AppPagination from '@/components/common/AppPagination.vue';
 
 definePageMeta({
@@ -264,10 +273,16 @@ definePageMeta({
 });
 
 const api = useApi();
+const authStore = useAuthStore();
 const loading = ref(false);
 const users = ref<any[]>([]);
 const stats = ref<any>({});
 const search = ref('');
+
+const isCurrentUser = (u: any) => {
+  if (!u || !authStore.user) return false;
+  return authStore.user.id === u.id || authStore.user.email === u.email;
+};
 
 const showUserModal = ref(false);
 const selectedUser = ref<any>(null);
@@ -451,6 +466,22 @@ onMounted(fetchData);
 .role-main { background: rgba(79, 70, 229, 0.1); color: #4F46E5; }
 .role-sub { background: rgba(245, 158, 11, 0.1); color: #D97706; }
 .role-default { background: rgba(100, 116, 139, 0.1); color: #64748B; }
+
+.chip-current-user {
+  background: rgba(227, 27, 35, 0.1);
+  color: #E31B23;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 50px;
+  margin-left: 6px;
+  text-transform: uppercase;
+}
+
+.btn-table-action:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
 
 .badge-chip { display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; }
 .chip-green { background: rgba(16, 185, 129, 0.1); color: #059669; }

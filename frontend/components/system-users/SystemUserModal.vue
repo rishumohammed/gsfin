@@ -40,7 +40,19 @@
             bg-color="white"
           ></v-text-field>
 
-
+          <v-select
+            v-model="formData.role"
+            :items="roles"
+            item-title="label"
+            item-value="value"
+            label="System Role *"
+            variant="outlined"
+            required
+            class="mb-4"
+            bg-color="white"
+            :hint="getRoleDescription(formData.role)"
+            persistent-hint
+          ></v-select>
 
           <div v-if="!isEdit">
             <v-text-field

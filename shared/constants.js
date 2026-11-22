@@ -1,5 +1,6 @@
 export const USER_ROLES = {
   SUPER_ADMIN: 'super_admin',
+  MAIN_ADMIN: 'main_admin',
   SUB_ADMIN: 'sub_admin',
   LMS_USER: 'lms_user',
   PLACEMENT_COORDINATOR: 'placement_coordinator',
