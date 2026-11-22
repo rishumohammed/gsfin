@@ -23,7 +23,7 @@ import proctoringRoutes from './routes/proctoring.routes.js';
 import { authenticateJWT, authorizeRoles } from './middleware/auth.js';
 import { initSocket } from './socket/index.js';
 import adminSystemUsersRoutes, { ensureActiveAdmin } from './routes/admin.system-users.routes.js';
-import adminEmailTemplatesRoutes from './routes/admin.email-templates.routes.js';
+import adminEmailTemplatesRoutes, { ensureEmailTemplates } from './routes/admin.email-templates.routes.js';
 import adminInquiriesRoutes, { ensureInquiriesColumns } from './routes/admin.inquiries.routes.js';
 import notificationRoutes from './routes/notifications.routes.js';
 import { initExamRemindersJob } from './jobs/exam-reminders.job.js';
@@ -158,6 +158,11 @@ ensureActiveAdmin().catch((err) => {
 // Auto-heal students columns if missing
 ensureStudentsColumns().catch((err) => {
   console.error('[Startup] Failed to auto-initialize students columns:', err);
+});
+
+// Auto-heal email_templates table and seed default templates if missing
+ensureEmailTemplates().catch((err) => {
+  console.error('[Startup] Failed to auto-initialize email templates:', err);
 });
 
 httpServer.listen(PORT, '0.0.0.0', () => {
