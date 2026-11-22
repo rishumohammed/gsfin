@@ -809,6 +809,23 @@ function triggerViolation(reason: string) {
   proctoringWarning.value.message = `${reason} (Integrity Violation Strike ${proctoringWarning.value.count} of ${proctoringWarning.value.max})`;
   proctoringWarning.value.show = true;
 
+  // Log real-time proctoring event to backend
+  try {
+    const violationType = reason.toLowerCase().includes('full-screen') || reason.toLowerCase().includes('fullscreen')
+      ? 'fullscreen_exit'
+      : reason.toLowerCase().includes('tab switch')
+      ? 'tab_switch'
+      : reason.toLowerCase().includes('blur')
+      ? 'window_blur'
+      : 'integrity_violation';
+
+    api.post(`/assignment-session/${assignmentId.value}/proctoring-event`, {
+      attempt_id: activeAttempt.value.attemptId,
+      type: violationType,
+      reason
+    }).catch(() => {});
+  } catch (_) {}
+
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     try {
       window.speechSynthesis.cancel();

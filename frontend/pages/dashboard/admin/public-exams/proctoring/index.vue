@@ -804,8 +804,8 @@ function formatViolation(raw: string) {
 
 function getSelfieUrl(pathStr: string) {
   if (!pathStr) return '';
-  if (pathStr.startsWith('http')) return pathStr;
-  const base = (runtimeConfig.public?.apiBase || '/api').replace('/api', '');
+  if (pathStr.startsWith('data:') || pathStr.startsWith('http://') || pathStr.startsWith('https://')) return pathStr;
+  const base = (runtimeConfig.public?.apiBase || '/api').replace(/\/api\/?$/, '');
   return base + (pathStr.startsWith('/') ? pathStr : '/' + pathStr);
 }
 

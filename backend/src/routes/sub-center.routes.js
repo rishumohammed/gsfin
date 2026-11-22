@@ -8,9 +8,65 @@ import { BatchService } from '../services/batch.service.js';
 import { ExamSessionService } from '../services/exam-session.service.js';
 import { ExamCatalogService } from '../services/exam-catalog.service.js';
 import emailService from '../services/email.service.js';
+import { CertificateService } from '../services/certificate.service.js';
 import { getFrontendUrl, getBackendUrl } from '../utils/url-helper.js';
 
 const router = express.Router();
+
+// Auto-healer for certificates table columns
+export const ensureCertificatesColumns = async () => {
+  try {
+    const requiredColumns = [
+      { name: 'cert_number', type: 'VARCHAR(100) NULL' },
+      { name: 'status', type: "ENUM('active', 'revoked') DEFAULT 'active'" },
+      { name: 'pdf_url', type: 'VARCHAR(255) NULL' },
+      { name: 'issued_at', type: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP' }
+    ];
+
+    let existingColNames = new Set();
+    try {
+      const [cols] = await pool.query('SHOW COLUMNS FROM certificates');
+      existingColNames = new Set(cols.map(c => c.Field.toLowerCase()));
+    } catch (e) {
+      // Create certificates table if missing
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS certificates (
+          id CHAR(36) PRIMARY KEY,
+          assignment_id CHAR(36) NOT NULL UNIQUE,
+          cert_number VARCHAR(100) NULL,
+          status ENUM('active', 'revoked') DEFAULT 'active',
+          issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          pdf_url VARCHAR(255) NULL
+        )
+      `);
+      return;
+    }
+
+    for (const col of requiredColumns) {
+      if (!existingColNames.has(col.name.toLowerCase())) {
+        try {
+          await pool.query(`ALTER TABLE certificates ADD COLUMN \`${col.name}\` ${col.type}`);
+          console.log(`[Auto-Heal] Added column '${col.name}' to certificates table.`);
+        } catch (addErr) {
+          if (addErr.errno !== 1060 && !addErr.message?.includes('Duplicate column')) {
+            console.warn(`[Auto-Heal] Column '${col.name}' add warning:`, addErr.message);
+          }
+        }
+      }
+    }
+
+    // Backfill any empty certificate numbers for completed exams
+    try {
+      await pool.query(`
+        UPDATE certificates 
+        SET cert_number = CONCAT('GSFIN-', UPPER(SUBSTRING(id, 1, 8))) 
+        WHERE cert_number IS NULL OR cert_number = ''
+      `);
+    } catch (_) {}
+  } catch (err) {
+    console.error('[Auto-Heal] Error in ensureCertificatesColumns:', err);
+  }
+};
 
 // Auto-healer for students table columns to ensure cross-MySQL compatibility without IF NOT EXISTS syntax errors
 export const ensureStudentsColumns = async () => {
@@ -1113,21 +1169,68 @@ router.post('/assignments/:id/retry-link', async (req, res) => {
 router.get('/certificates', async (req, res) => {
   const orgId = getOrgId(req);
   try {
+    await ensureCertificatesColumns();
+
+    // Auto-reconcile passed assignments that miss certificates table record
+    try {
+      const [passedWithoutCert] = await pool.query(
+        `SELECT ea.id as assignment_id, s.name as student_name, 
+                COALESCE(e.name, pe.name, 'Certification Exam') as exam_name,
+                ea.updated_at
+         FROM exam_assignments ea
+         JOIN students s ON ea.student_id = s.id
+         JOIN batches b ON ea.batch_id = b.id
+         LEFT JOIN exams e ON ea.exam_id = e.id
+         LEFT JOIN public_exams pe ON ea.exam_id = pe.id
+         LEFT JOIN certificates c ON ea.id = c.assignment_id
+         WHERE b.org_id = ? AND ea.status = 'passed' AND c.id IS NULL`,
+        [orgId]
+      );
+
+      for (const missing of passedWithoutCert) {
+        try {
+          const { pdfUrl, certificateNumber } = await CertificateService.generateParticipationCertificate(
+            missing.student_name,
+            missing.exam_name,
+            missing.updated_at || new Date()
+          );
+          const certId = uuidv4();
+          await pool.query(
+            `INSERT INTO certificates (id, assignment_id, cert_number, status, issued_at, pdf_url)
+             VALUES (?, ?, ?, 'active', NOW(), ?)
+             ON DUPLICATE KEY UPDATE pdf_url = VALUES(pdf_url)`,
+            [certId, missing.assignment_id, certificateNumber, pdfUrl]
+          );
+        } catch (genErr) {
+          console.warn('Auto-reconcile certificate generation failed for assignment:', missing.assignment_id, genErr.message);
+        }
+      }
+    } catch (recErr) {
+      console.warn('Certificate auto-reconciliation check error:', recErr.message);
+    }
+
     const [certificates] = await pool.query(
-      `SELECT c.id, c.cert_number as certificate_number, c.issued_at as issue_date, c.pdf_url,
-              s.name as student_name, s.email as student_email,
-              e.name as exam_name, b.id as batch_id
+      `SELECT c.id, 
+              COALESCE(c.cert_number, CONCAT('GSFIN-', UPPER(SUBSTRING(c.id, 1, 8)))) as certificate_number, 
+              c.issued_at as issue_date, 
+              c.pdf_url,
+              s.name as student_name, 
+              s.email as student_email,
+              COALESCE(e.name, pe.name, 'Certification Exam') as exam_name, 
+              b.id as batch_id
        FROM certificates c
        JOIN exam_assignments ea ON c.assignment_id = ea.id
        JOIN students s ON ea.student_id = s.id
        JOIN batches b ON ea.batch_id = b.id
-       JOIN exams e ON b.exam_id = e.id
+       LEFT JOIN exams e ON b.exam_id = e.id
+       LEFT JOIN public_exams pe ON b.exam_id = pe.id
        WHERE b.org_id = ?
        ORDER BY c.issued_at DESC`,
       [orgId]
     );
     res.json(certificates);
   } catch (error) {
+    console.error('Error in GET /sub-center/certificates:', error);
     res.status(500).json({ message: error.message });
   }
 });

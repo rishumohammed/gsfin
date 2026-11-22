@@ -612,7 +612,7 @@
                       <div class="action-btn-group justify-end">
                         <a
                           v-if="item.pdf_url"
-                          :href="item.pdf_url"
+                          :href="formatPdfUrl(item.pdf_url)"
                           target="_blank"
                           class="btn-table-action btn-edit"
                           title="Download PDF"
@@ -2336,6 +2336,14 @@ function formatDate(dateStr: string) {
   } catch (e) {
     return String(dateStr);
   }
+}
+
+function formatPdfUrl(url: string) {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const config = useRuntimeConfig();
+  const base = (config.public?.apiBase || '/api').replace(/\/api\/?$/, '');
+  return `${base}${url.startsWith('/') ? url : '/' + url}`;
 }
 
 definePageMeta({

@@ -12,10 +12,15 @@ export class ExamSessionService {
       await connection.beginTransaction();
 
       const [assignments] = await connection.query(
-        `SELECT ea.*, e.name as exam_name, e.duration_minutes, s.name as student_name, s.email as student_email
+        `SELECT ea.*, 
+                COALESCE(e.name, pe.name, 'Certification Exam') as exam_name, 
+                COALESCE(e.duration_minutes, 60) as duration_minutes, 
+                s.name as student_name, s.email as student_email,
+                s.face_photo, s.face_descriptor
          FROM exam_assignments ea
-         JOIN exams e ON ea.exam_id = e.id
          JOIN students s ON ea.student_id = s.id
+         LEFT JOIN exams e ON ea.exam_id = e.id
+         LEFT JOIN public_exams pe ON ea.exam_id = pe.id
          WHERE ea.id = ? FOR UPDATE`,
         [assignmentId]
       );
@@ -40,12 +45,27 @@ export class ExamSessionService {
       const attemptId = uuidv4();
       const startedAt = new Date();
 
-      // Create new attempt record
-      await connection.query(
-        `INSERT INTO exam_attempts (id, assignment_id, started_at)
-         VALUES (?, ?, ?)`,
-        [attemptId, assignmentId, startedAt]
-      );
+      // Create new attempt record with proctoring baseline
+      try {
+        await connection.query(
+          `INSERT INTO exam_attempts (id, assignment_id, started_at, proctoring_status, reference_selfie_url, baseline_vector)
+           VALUES (?, ?, ?, 'approved', ?, ?)`,
+          [
+            attemptId, 
+            assignmentId, 
+            startedAt, 
+            assign.face_photo || null, 
+            assign.face_descriptor ? (typeof assign.face_descriptor === 'string' ? assign.face_descriptor : JSON.stringify(assign.face_descriptor)) : null
+          ]
+        );
+      } catch (insertErr) {
+        // Graceful fallback if proctoring columns are missing
+        await connection.query(
+          `INSERT INTO exam_attempts (id, assignment_id, started_at)
+           VALUES (?, ?, ?)`,
+          [attemptId, assignmentId, startedAt]
+        );
+      }
 
       // Increment attempts_used if starting first time or starting a new attempt
       await connection.query(
@@ -88,12 +108,14 @@ export class ExamSessionService {
       const [attempts] = await connection.query(
         `SELECT att.*, ea.id as assignment_id, ea.attempts_used, ea.max_attempts, ea.student_id, ea.exam_id,
                 ea.batch_id, ea.wallet_id, b.org_id,
-                s.name as student_name, e.name as exam_name
+                s.name as student_name,
+                COALESCE(e.name, pe.name, 'Certification Exam') as exam_name
          FROM exam_attempts att
          JOIN exam_assignments ea ON att.assignment_id = ea.id
          JOIN batches b ON ea.batch_id = b.id
          JOIN students s ON ea.student_id = s.id
-         JOIN exams e ON ea.exam_id = e.id
+         LEFT JOIN exams e ON ea.exam_id = e.id
+         LEFT JOIN public_exams pe ON ea.exam_id = pe.id
          WHERE att.id = ? FOR UPDATE`,
         [attemptId]
       );
@@ -105,13 +127,38 @@ export class ExamSessionService {
       const endedAt = new Date();
       const result = passed ? 'pass' : 'fail';
 
+      // Determine proctoring status
+      let proctoringStatus = 'approved';
+      try {
+        const [viol] = await connection.query(
+          `SELECT COUNT(*) as count FROM proctoring_events 
+           WHERE attempt_id = ? AND type IN ('proxy_mismatch', 'multiple_faces', 'face_absent', 'devtools_open', 'mobile_phone_detected', 'phone_detected', 'suspicious_object')`,
+          [attemptId]
+        );
+        if (viol[0] && viol[0].count > 0) {
+          proctoringStatus = 'pending_review';
+        }
+      } catch (_) {}
+
       // 1. Update current attempt row
-      await connection.query(
-        `UPDATE exam_attempts 
-         SET ended_at = ?, end_reason = ?, result = ?
-         WHERE id = ?`,
-        [endedAt, endReason, result, attemptId]
-      );
+      try {
+        await connection.query(
+          `UPDATE exam_attempts 
+           SET ended_at = ?, end_reason = ?, result = ?, proctoring_status = ?
+           WHERE id = ?`,
+          [endedAt, endReason, result, proctoringStatus, attemptId]
+        );
+      } catch (updErr) {
+        // Fallback without proctoring_status if column unmigrated
+        await connection.query(
+          `UPDATE exam_attempts 
+           SET ended_at = ?, end_reason = ?, result = ?
+           WHERE id = ?`,
+          [endedAt, endReason, result, attemptId]
+        );
+      }
+
+      let certDetails = null;
 
       // 2. Handle status & automatic retry logic
       if (endReason === 'technical_void') {
@@ -144,19 +191,35 @@ export class ExamSessionService {
 
           // Generate Certificate (uniform template)
           try {
-            const { pdfUrl } = await CertificateService.generateParticipationCertificate(
+            const { pdfUrl, certificateNumber } = await CertificateService.generateParticipationCertificate(
               att.student_name,
               att.exam_name,
               endedAt
             );
+            certDetails = { pdfUrl, certificateNumber };
 
             const certId = uuidv4();
-            await connection.query(
-              `INSERT INTO certificates (id, assignment_id, issued_at, pdf_url)
-               VALUES (?, ?, NOW(), ?)
-               ON DUPLICATE KEY UPDATE pdf_url = VALUES(pdf_url)`,
-              [certId, assignmentId, pdfUrl]
-            );
+            const certNo = certificateNumber || `GSFIN-${Date.now().toString(36).toUpperCase()}`;
+
+            try {
+              await connection.query(
+                `INSERT INTO certificates (id, assignment_id, cert_number, status, issued_at, pdf_url)
+                 VALUES (?, ?, ?, 'active', NOW(), ?)
+                 ON DUPLICATE KEY UPDATE 
+                   pdf_url = VALUES(pdf_url),
+                   cert_number = COALESCE(cert_number, VALUES(cert_number)),
+                   status = 'active'`,
+                [certId, assignmentId, certNo, pdfUrl]
+              );
+            } catch (certInsertErr) {
+              // Fallback for schema without cert_number / status
+              await connection.query(
+                `INSERT INTO certificates (id, assignment_id, issued_at, pdf_url)
+                 VALUES (?, ?, NOW(), ?)
+                 ON DUPLICATE KEY UPDATE pdf_url = VALUES(pdf_url)`,
+                [certId, assignmentId, pdfUrl]
+              );
+            }
           } catch (certErr) {
             console.error('Certificate generation error (non-fatal):', certErr);
           }
@@ -186,7 +249,14 @@ export class ExamSessionService {
       }
 
       await connection.commit();
-      return { success: true, assignmentId, endReason, result };
+      return { 
+        success: true, 
+        assignmentId, 
+        endReason, 
+        result,
+        certificate_url: certDetails?.pdfUrl || null,
+        certificate_number: certDetails?.certificateNumber || null
+      };
     } catch (error) {
       await connection.rollback();
       throw error;

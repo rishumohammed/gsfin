@@ -789,9 +789,10 @@ const openPreview = (url: string) => {
 
 const backendUrl = (path: string) => {
   if (!path) return '';
-  if (path.startsWith('http')) return path;
+  if (path.startsWith('data:') || path.startsWith('http://') || path.startsWith('https://')) return path;
   const config = useRuntimeConfig();
-  return `${config.public.apiBase.replace('/api', '')}${path}`;
+  const base = (config.public?.apiBase || '/api').replace(/\/api\/?$/, '');
+  return `${base}${path.startsWith('/') ? path : '/' + path}`;
 };
 
 const getInitials = (name?: string) => {

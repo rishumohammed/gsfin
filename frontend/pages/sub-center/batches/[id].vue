@@ -470,7 +470,7 @@
                       <!-- 7. Download Certificate -->
                       <a
                         v-if="item.status === 'passed' && item.certificate_url"
-                        :href="item.certificate_url"
+                        :href="formatPdfUrl(item.certificate_url)"
                         target="_blank"
                         class="btn-table-action btn-cert"
                         title="Download Verified Certificate"
@@ -1039,6 +1039,14 @@ function exportRosterCSV() {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+}
+
+function formatPdfUrl(url: string) {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const config = useRuntimeConfig();
+  const base = (config.public?.apiBase || '/api').replace(/\/api\/?$/, '');
+  return `${base}${url.startsWith('/') ? url : '/' + url}`;
 }
 
 // ─── EDIT BATCH SCHEDULE ───

@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { pool } from '../db/connection.js';
 import { ExamSessionService } from '../services/exam-session.service.js';
 import emailService from '../services/email.service.js';
+import proctoringService from '../services/proctoring.service.js';
 
 const router = express.Router();
 
@@ -12,15 +13,20 @@ router.get('/:assignmentId/details', async (req, res) => {
   const { assignmentId } = req.params;
   try {
     const [assignments] = await pool.query(
-      `SELECT ea.*, e.name as exam_name, e.description as exam_description, 
-              e.duration_minutes, s.id as student_id, s.name as student_name, s.email as student_email,
+      `SELECT ea.*, 
+              COALESCE(e.name, pe.name, 'Certification Exam') as exam_name, 
+              COALESCE(e.description, pe.description, 'GSFIN Standard Certification Examination') as exam_description, 
+              COALESCE(e.duration_minutes, 60) as duration_minutes, 
+              s.id as student_id, s.name as student_name, s.email as student_email,
               s.face_photo, s.face_descriptor,
-              b.opens_at, b.closes_at, o.name as org_name, c.pdf_url as certificate_url
+              b.opens_at, b.closes_at, o.name as org_name, c.pdf_url as certificate_url,
+              COALESCE(c.cert_number, CONCAT('GSFIN-', UPPER(SUBSTRING(c.id, 1, 8)))) as certificate_number
        FROM exam_assignments ea
-       JOIN exams e ON ea.exam_id = e.id
        JOIN students s ON ea.student_id = s.id
        JOIN batches b ON ea.batch_id = b.id
        JOIN organizations o ON s.org_id = o.id
+       LEFT JOIN exams e ON ea.exam_id = e.id
+       LEFT JOIN public_exams pe ON ea.exam_id = pe.id
        LEFT JOIN certificates c ON ea.id = c.assignment_id
        WHERE ea.id = ?`,
       [assignmentId]
@@ -229,11 +235,11 @@ router.post('/:assignmentId/verify-face', async (req, res) => {
       } catch (distErr) {
         console.warn('Descriptor distance calc error:', distErr);
       }
-    } else if (!student.face_photo && live_photo) {
+    } else if (live_photo) {
       // First-time face enrollment during sitting gate!
       await pool.query(
         `UPDATE students SET face_photo = ?, face_descriptor = ? WHERE id = ?`,
-        [live_photo, live_descriptor ? JSON.stringify(live_descriptor) : null, student.id]
+        [live_photo, live_descriptor ? (typeof live_descriptor === 'string' ? live_descriptor : JSON.stringify(live_descriptor)) : null, student.id]
       );
     }
 
@@ -250,6 +256,17 @@ router.post('/:assignmentId/verify-face', async (req, res) => {
         `UPDATE exam_assignments SET face_verified = 1 WHERE id = ?`,
         [assignmentId]
       );
+
+      // Also ensure latest attempt has this reference selfie photo
+      if (live_photo) {
+        await pool.query(
+          `UPDATE exam_attempts 
+           SET reference_selfie_url = COALESCE(reference_selfie_url, ?)
+           WHERE assignment_id = ?
+           ORDER BY started_at DESC LIMIT 1`,
+          [live_photo, assignmentId]
+        );
+      }
     } catch (e) {}
 
     res.json({
@@ -260,6 +277,29 @@ router.post('/:assignmentId/verify-face', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+// ─── 1C. Record Proctoring Event (Tab Switch, Fullscreen Exit, Blur, Camera) ──
+
+router.post('/:assignmentId/proctoring-event', async (req, res) => {
+  const { assignmentId } = req.params;
+  const { attempt_id, type, reason, metadata } = req.body;
+  if (!attempt_id || !type) {
+    return res.status(400).json({ message: 'attempt_id and type are required' });
+  }
+
+  try {
+    const event = await proctoringService.logEvent(attempt_id, type, {
+      reason,
+      assignmentId,
+      timestamp: new Date().toISOString(),
+      ...(metadata || {})
+    });
+    res.status(201).json(event);
+  } catch (err) {
+    console.warn('Proctoring event logging warning:', err.message);
+    res.status(200).json({ ok: false, error: err.message });
   }
 });
 
