@@ -33,3 +33,4 @@ SET subject = 'Registration Confirmed: {{exam_name}} - Exam Details & Access Lin
   <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">GSFIN Global Standards &bull; Verified Personnel Certification Network</p>
 </div>'
 WHERE id = 'exam_registration_success';
+

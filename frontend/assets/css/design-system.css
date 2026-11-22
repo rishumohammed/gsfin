@@ -1608,3 +1608,142 @@ button {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* ==========================================================================
+   GLOBAL UTILITY SYSTEM (UNIVERSAL LAYOUT & UTILITY SAFETY NET)
+   Guarantees that flexbox, responsive grids, gap, spacing, and sizing utilities
+   work flawlessly across all existing and future pages without Tailwind dependency.
+   ========================================================================== */
+
+/* Display & Flexbox */
+.flex { display: flex !important; }
+.inline-flex { display: inline-flex !important; }
+.flex-col { flex-direction: column !important; }
+.flex-row { flex-direction: row !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+.flex-nowrap { flex-wrap: nowrap !important; }
+.flex-1 { flex: 1 1 0% !important; }
+.flex-shrink-0 { flex-shrink: 0 !important; }
+.items-center { align-items: center !important; }
+.items-start { align-items: flex-start !important; }
+.items-end { align-items: flex-end !important; }
+.items-stretch { align-items: stretch !important; }
+.justify-center { justify-content: center !important; }
+.justify-between { justify-content: space-between !important; }
+.justify-end { justify-content: flex-end !important; }
+.justify-start { justify-content: flex-start !important; }
+
+/* Grid Utilities */
+.grid { display: grid !important; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+.grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)) !important; }
+
+.col-span-1 { grid-column: span 1 / span 1 !important; }
+.col-span-2 { grid-column: span 2 / span 2 !important; }
+.col-span-3 { grid-column: span 3 / span 3 !important; }
+.col-span-4 { grid-column: span 4 / span 4 !important; }
+.col-span-5 { grid-column: span 5 / span 5 !important; }
+.col-span-6 { grid-column: span 6 / span 6 !important; }
+.col-span-7 { grid-column: span 7 / span 7 !important; }
+.col-span-8 { grid-column: span 8 / span 8 !important; }
+.col-span-12 { grid-column: span 12 / span 12 !important; }
+
+@media (min-width: 768px) {
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  .md\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)) !important; }
+  .md\:col-span-3 { grid-column: span 3 / span 3 !important; }
+  .md\:col-span-4 { grid-column: span 4 / span 4 !important; }
+  .md\:col-span-6 { grid-column: span 6 / span 6 !important; }
+  .md\:col-span-8 { grid-column: span 8 / span 8 !important; }
+  .md\:col-span-9 { grid-column: span 9 / span 9 !important; }
+  .md\:col-span-12 { grid-column: span 12 / span 12 !important; }
+  .md\:flex-row { flex-direction: row !important; }
+}
+
+@media (min-width: 1024px) {
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+}
+
+/* Gap Utilities */
+.gap-1 { gap: 4px !important; }
+.gap-1\.5 { gap: 6px !important; }
+.gap-2 { gap: 8px !important; }
+.gap-2\.5 { gap: 10px !important; }
+.gap-3 { gap: 12px !important; }
+.gap-4 { gap: 16px !important; }
+.gap-5 { gap: 20px !important; }
+.gap-6 { gap: 24px !important; }
+.gap-8 { gap: 32px !important; }
+
+/* Spacing Stacks */
+.space-y-1 > * + * { margin-top: 4px !important; }
+.space-y-2 > * + * { margin-top: 8px !important; }
+.space-y-3 > * + * { margin-top: 12px !important; }
+.space-y-4 > * + * { margin-top: 16px !important; }
+.space-y-6 > * + * { margin-top: 24px !important; }
+
+/* Sizing Utilities */
+.w-8 { width: 32px !important; }
+.h-8 { height: 32px !important; }
+.w-10 { width: 40px !important; }
+.h-10 { height: 40px !important; }
+.w-12 { width: 48px !important; }
+.h-12 { height: 48px !important; }
+.w-14 { width: 56px !important; }
+.h-14 { height: 56px !important; }
+.w-16 { width: 64px !important; }
+.h-16 { height: 64px !important; }
+.w-full { width: 100% !important; }
+
+/* Border Radii */
+.rounded-md { border-radius: 8px !important; }
+.rounded-lg { border-radius: 12px !important; }
+.rounded-xl { border-radius: 16px !important; }
+.rounded-2xl { border-radius: 20px !important; }
+.rounded-full { border-radius: 9999px !important; }
+
+/* Backgrounds */
+.bg-white { background-color: #FFFFFF !important; }
+.bg-slate-50 { background-color: #F8FAFC !important; }
+.bg-slate-100 { background-color: #F1F5F9 !important; }
+.bg-red-50 { background-color: #FEF2F2 !important; }
+.bg-emerald-50 { background-color: #ECFDF5 !important; }
+.bg-blue-50 { background-color: #EFF6FF !important; }
+.bg-amber-50 { background-color: #FFFBEB !important; }
+
+/* Borders */
+.border { border: 1px solid #E2E8F0 !important; }
+.border-b { border-bottom: 1px solid #E2E8F0 !important; }
+.border-t { border-top: 1px solid #E2E8F0 !important; }
+.border-slate-100 { border-color: #F1F5F9 !important; }
+.border-slate-200 { border-color: #E2E8F0 !important; }
+.border-red-100 { border-color: #FEE2E2 !important; }
+.border-emerald-200 { border-color: #A7F3D0 !important; }
+
+/* Text Utilities */
+.text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+.text-sm { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+.text-base { font-size: 1rem !important; line-height: 1.5rem !important; }
+.text-lg { font-size: 1.125rem !important; line-height: 1.75rem !important; }
+.text-xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+.text-2xl { font-size: 1.5rem !important; line-height: 2rem !important; }
+.font-medium { font-weight: 500 !important; }
+.font-semibold { font-weight: 600 !important; }
+.font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace !important; }
+
+.text-slate-400 { color: #94A3B8 !important; }
+.text-slate-500 { color: #64748B !important; }
+.text-slate-600 { color: #475569 !important; }
+.text-slate-700 { color: #334155 !important; }
+.text-slate-800 { color: #1E293B !important; }
+.text-slate-900 { color: #0F172A !important; }
+.text-red { color: #E31B23 !important; }
+.text-emerald-600 { color: #059669 !important; }
+.text-blue-600 { color: #2563EB !important; }
+.text-amber-600 { color: #D97706 !important; }
