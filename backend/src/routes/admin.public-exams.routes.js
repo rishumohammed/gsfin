@@ -80,6 +80,17 @@ export async function ensurePublicExamsColumns() {
     try {
       await pool.query('ALTER TABLE public_exam_attempts ADD COLUMN assigned_question_ids JSON NULL');
     } catch (_) {}
+
+    // Ensure standard food safety categories exist in public_exam_categories for foreign key integrity
+    try {
+      await pool.query(`
+        INSERT IGNORE INTO public_exam_categories (id, name, slug, description, status) VALUES 
+        ('cat-food-safety-001', 'Food Safety Standards', 'food-safety-standards', 'International food safety and hygiene qualification standards', 'active'),
+        ('cat-mgmt-systems-002', 'Management Systems', 'management-systems', 'ISO and enterprise quality management systems', 'active'),
+        ('cat-gfsi-standards-003', 'Global GFSI Standards', 'global-gfsi-standards', 'GFSI benchmarked global manufacturing standards', 'active')
+      `);
+    } catch (_) {}
+
     examsColumnsEnsured = true;
   } catch (err) {
     console.error('Error ensuring public_exams columns:', err);
@@ -608,6 +619,19 @@ router.post('/', async (req, res) => {
 
     const targetCategoryId = category_id || 'cat-food-safety-001';
 
+    // Verify targetCategoryId exists in public_exam_categories, auto-insert if missing
+    try {
+      const [catExists] = await pool.query('SELECT id FROM public_exam_categories WHERE id = ?', [targetCategoryId]);
+      if (catExists.length === 0) {
+        await pool.query(`
+          INSERT IGNORE INTO public_exam_categories (id, name, slug, description, status) VALUES 
+          (?, 'Food Safety Standards', 'food-safety-standards', 'International food safety and hygiene qualification standards', 'active')
+        `, [targetCategoryId]);
+      }
+    } catch (catErr) {
+      console.warn('Failed to verify/insert target category:', catErr.message);
+    }
+
     // Enforce 1-to-1 Mapping: Check if qualification already has an active exam
     if (qualification_id) {
       let existingQualExam = [];
@@ -709,6 +733,20 @@ router.put('/:id', async (req, res) => {
     
     if (updates.length === 0) {
       return res.json({ message: 'Nothing to update' });
+    }
+
+    if (req.body.category_id) {
+      try {
+        const [catExists] = await pool.query('SELECT id FROM public_exam_categories WHERE id = ?', [req.body.category_id]);
+        if (catExists.length === 0) {
+          await pool.query(`
+            INSERT IGNORE INTO public_exam_categories (id, name, slug, description, status) VALUES 
+            (?, 'Food Safety Standards', 'food-safety-standards', 'International food safety and hygiene qualification standards', 'active')
+          `, [req.body.category_id]);
+        }
+      } catch (catErr) {
+        console.warn('Failed to verify/insert target category:', catErr.message);
+      }
     }
 
     const [existing] = await pool.query('SELECT registration_end_date, exam_start_date, status, total_questions FROM public_exams WHERE id = ?', [req.params.id]);
