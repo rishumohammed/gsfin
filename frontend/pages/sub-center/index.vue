@@ -2273,7 +2273,7 @@ async function fetchCertificates() {
   loadingCertificates.value = true;
   try {
     const { data } = await api.get('/sub-center/certificates');
-    certificates.value = data;
+    certificates.value = Array.isArray(data) ? data : (data?.certificates || data?.data || []);
   } catch (err) {
     console.error('Error fetching certificates:', err);
   } finally {
