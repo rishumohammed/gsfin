@@ -3,18 +3,18 @@
     <div class="admin-wrap">
 
       <!-- ═══ 1. TOP HEADER & BREADCRUMBS ═══ -->
-      <div class="admin-header-row mb-6">
+      <div class="admin-header-row">
         <div>
-          <div class="flex items-center gap-2 mb-2 flex-wrap">
+          <div class="header-breadcrumbs">
             <NuxtLink to="/sub-center?tab=batches" class="btn-back-link">
               <i class="mdi mdi-arrow-left"></i> Back to Exam Batches
             </NuxtLink>
-            <span class="text-slate-300">/</span>
+            <span class="bc-sep">/</span>
             <div class="breadcrumb-trail">
               <NuxtLink to="/sub-center" class="bc-link">Partner Portal</NuxtLink>
-              <i class="mdi mdi-chevron-right bc-sep"></i>
+              <i class="mdi mdi-chevron-right bc-icon"></i>
               <NuxtLink to="/sub-center?tab=batches" class="bc-link">Exam Batches</NuxtLink>
-              <i class="mdi mdi-chevron-right bc-sep"></i>
+              <i class="mdi mdi-chevron-right bc-icon"></i>
               <span class="bc-current">Create Batch</span>
             </div>
           </div>
@@ -32,7 +32,7 @@
       </div>
 
       <!-- ═══ 2. REAL-TIME TOKEN WALLET KPI RIBBON ═══ -->
-      <div class="metrics-grid mb-6">
+      <div class="metrics-grid">
         <!-- 1. Available Wallet Balance -->
         <div class="metric-card metric-card-emerald">
           <div class="metric-icon-box bg-emerald-light">
@@ -71,7 +71,7 @@
 
         <!-- 4. Projected Balance -->
         <div :class="['metric-card', isShortfall ? 'metric-card-red' : 'metric-card-slate']">
-          <div :class="['metric-icon-box', isShortfall ? 'bg-red-light' : 'bg-slate-100']">
+          <div :class="['metric-icon-box', isShortfall ? 'bg-red-light' : 'bg-slate-light']">
             <i :class="['mdi', isShortfall ? 'mdi-alert-circle-outline text-red' : 'mdi-wallet-travel text-slate-700']"></i>
           </div>
           <div class="metric-info">
@@ -79,7 +79,7 @@
             <span :class="['metric-value', isShortfall ? 'text-red' : 'text-slate-800']">
               {{ (wallet.totalRemaining ?? 0) - selectedStudentIds.length }}
             </span>
-            <span :class="['metric-sub', isShortfall ? 'text-red font-semibold' : 'text-slate-400']">
+            <span :class="['metric-sub font-semibold', isShortfall ? 'text-red' : 'text-slate-400']">
               {{ isShortfall ? `Shortfall: ${selectedStudentIds.length - (wallet.totalRemaining ?? 0)} tokens` : 'Sufficient Balance' }}
             </span>
           </div>
@@ -87,26 +87,26 @@
       </div>
 
       <!-- ═══ 3. TOKEN SHORTFALL WARNING ALERT ═══ -->
-      <div v-if="isShortfall" class="p-4 bg-red-50 border border-red-200 rounded-2xl mb-6 flex items-center justify-between gap-4 flex-wrap">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-red-100 text-red flex items-center justify-center text-xl flex-shrink-0">
+      <div v-if="isShortfall" class="shortfall-alert-card">
+        <div class="shortfall-alert-left">
+          <div class="shortfall-icon-box">
             <i class="mdi mdi-alert-circle"></i>
           </div>
           <div>
-            <h4 class="text-sm font-semibold text-red-900 m-0">Insufficient Wallet Token Balance</h4>
-            <p class="text-xs text-red-700 m-0 mt-0.5">
-              You selected <strong>{{ selectedStudentIds.length }}</strong> students, but only have <strong>{{ wallet.totalRemaining ?? 0 }}</strong> tokens remaining.
+            <h4 class="shortfall-title">Insufficient Wallet Token Balance</h4>
+            <p class="shortfall-desc">
+              You selected <strong>{{ selectedStudentIds.length }}</strong> students, but only have <strong>{{ wallet.totalRemaining ?? 0 }}</strong> tokens remaining in your wallet.
               Shortfall: <strong>{{ selectedStudentIds.length - (wallet.totalRemaining ?? 0) }} token(s)</strong>.
             </p>
           </div>
         </div>
-        <NuxtLink to="/sub-center?tab=wallet" class="btn-red text-xs py-2 px-4 inline-flex items-center gap-1.5 no-underline">
+        <NuxtLink to="/sub-center?tab=wallet" class="btn-red text-xs py-2 px-4 no-underline">
           <i class="mdi mdi-cart-plus"></i> Buy More Tokens
         </NuxtLink>
       </div>
 
       <!-- ═══ 4. MAIN WORKSPACE PANELS ═══ -->
-      <div class="space-y-6">
+      <div class="panels-container">
 
         <!-- ─── SECTION 1: CERTIFICATION EXAM & SCHEDULE ─── -->
         <div class="panel-card">
@@ -115,26 +115,28 @@
               <i class="mdi mdi-calendar-clock panel-icon"></i>
               <div>
                 <h3>1. Certification Exam &amp; Schedule Window</h3>
-                <p class="panel-subtitle-text">Choose the approved qualification exam and optional time limits</p>
+                <p class="panel-subtitle-text">Choose the approved qualification exam and optional sitting time limits</p>
               </div>
             </div>
             <span v-if="exams.length > 0" class="badge-chip chip-green">
-              <i class="mdi mdi-check-decagram mr-1"></i>
+              <i class="mdi mdi-check-decagram"></i>
               {{ exams.length }} Authorized Program{{ exams.length > 1 ? 's' : '' }} Available
             </span>
           </div>
 
-          <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <!-- Select Exam -->
-              <div class="form-group md:col-span-1">
+          <div class="card-content-body">
+            <!-- 3-Column Responsive Grid -->
+            <div class="exam-schedule-grid">
+              <!-- Column 1: Select Exam -->
+              <div class="form-group">
                 <label class="form-label-xs">
-                  Certification Exam <span class="text-red">*</span>
+                  Certification Exam <span class="required-star">*</span>
                 </label>
-                <div class="custom-select-wrapper">
+                <div class="input-with-icon custom-select-wrapper">
+                  <i class="mdi mdi-certificate-outline input-prefix-icon"></i>
                   <select 
                     v-model="batchForm.exam_id" 
-                    class="modal-input-field modal-select" 
+                    class="modal-input-field modal-select input-has-prefix" 
                     required 
                     :disabled="loadingExams || exams.length === 0"
                   >
@@ -147,51 +149,57 @@
                   </select>
                   <i class="mdi mdi-chevron-down select-chevron"></i>
                 </div>
-                <span v-if="!loadingExams && exams.length === 0" class="text-xs text-amber-600 mt-1 block">
+                <span v-if="!loadingExams && exams.length === 0" class="form-help-warn">
                   No approved training programs have been enabled for this branch center.
                 </span>
               </div>
 
-              <!-- Exam Window Opens At -->
-              <div class="form-group md:col-span-1">
+              <!-- Column 2: Exam Window Opens At -->
+              <div class="form-group">
                 <label class="form-label-xs">
-                  Exam Window Opens At <span class="text-slate-400 font-normal">(Optional)</span>
+                  Exam Window Opens At <span class="optional-tag">(Optional)</span>
                 </label>
-                <input
-                  v-model="batchForm.opens_at"
-                  type="datetime-local"
-                  class="modal-input-field"
-                />
-                <span class="text-[11px] text-slate-400 mt-1 block">Leave blank to open immediately</span>
+                <div class="input-with-icon">
+                  <i class="mdi mdi-calendar-start input-prefix-icon"></i>
+                  <input
+                    v-model="batchForm.opens_at"
+                    type="datetime-local"
+                    class="modal-input-field input-has-prefix"
+                  />
+                </div>
+                <span class="form-help-text">Leave blank to open immediately</span>
               </div>
 
-              <!-- Exam Window Closes At -->
-              <div class="form-group md:col-span-1">
+              <!-- Column 3: Exam Window Closes At -->
+              <div class="form-group">
                 <label class="form-label-xs">
-                  Exam Window Closes At <span class="text-slate-400 font-normal">(Optional)</span>
+                  Exam Window Closes At <span class="optional-tag">(Optional)</span>
                 </label>
-                <input
-                  v-model="batchForm.closes_at"
-                  type="datetime-local"
-                  class="modal-input-field"
-                />
-                <span class="text-[11px] text-slate-400 mt-1 block">Leave blank for open-ended window</span>
+                <div class="input-with-icon">
+                  <i class="mdi mdi-calendar-end input-prefix-icon"></i>
+                  <input
+                    v-model="batchForm.closes_at"
+                    type="datetime-local"
+                    class="modal-input-field input-has-prefix"
+                  />
+                </div>
+                <span class="form-help-text">Leave blank for open-ended window</span>
               </div>
             </div>
 
             <!-- Quick Schedule Presets -->
-            <div class="mt-4 pt-4 border-t border-slate-100 flex items-center gap-2 flex-wrap">
-              <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Quick Schedule:</span>
-              <button type="button" class="preset-pill" @click="applySchedulePreset(7)">
+            <div class="schedule-presets-bar">
+              <span class="preset-label">Quick Schedule:</span>
+              <button type="button" class="preset-chip-btn" @click="applySchedulePreset(7)">
                 <i class="mdi mdi-calendar-clock"></i> 7 Days Window
               </button>
-              <button type="button" class="preset-pill" @click="applySchedulePreset(14)">
+              <button type="button" class="preset-chip-btn" @click="applySchedulePreset(14)">
                 <i class="mdi mdi-calendar-clock"></i> 14 Days Window
               </button>
-              <button type="button" class="preset-pill" @click="applySchedulePreset(30)">
+              <button type="button" class="preset-chip-btn" @click="applySchedulePreset(30)">
                 <i class="mdi mdi-calendar-clock"></i> 30 Days Window
               </button>
-              <button type="button" class="preset-pill text-slate-500" @click="clearSchedule">
+              <button type="button" class="preset-chip-btn preset-chip-clear" @click="clearSchedule">
                 <i class="mdi mdi-close"></i> Open-Ended (No Expiration)
               </button>
             </div>
@@ -200,13 +208,13 @@
 
         <!-- ─── SECTION 2: CANDIDATE STUDENTS MANAGEMENT ─── -->
         <div class="panel-card">
-          <div class="panel-card-header flex-wrap gap-3">
+          <div class="panel-card-header">
             <div class="panel-title-wrap">
               <i class="mdi mdi-account-group-outline panel-icon"></i>
               <div>
-                <h3>2. Select Students Roster <span class="text-red">*</span></h3>
+                <h3>2. Select Students Roster <span class="required-star">*</span></h3>
                 <p class="panel-subtitle-text">
-                  Select students to enroll in this batch. Click any student row to toggle selection.
+                  Select candidates to enroll in this batch. Click any student row to toggle selection.
                 </p>
               </div>
             </div>
@@ -223,55 +231,57 @@
           </div>
 
           <!-- Filter & Bulk Actions Bar -->
-          <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 flex-wrap">
-            <!-- Search Input -->
-            <div class="search-input-wrap flex-1 max-w-md">
-              <i class="mdi mdi-magnify search-icon"></i>
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Search students by name, email, phone..."
-                class="table-search-input w-full"
-              />
-              <button v-if="searchQuery" type="button" class="search-clear-btn" @click="searchQuery = ''">
-                <i class="mdi mdi-close-circle"></i>
-              </button>
-            </div>
+          <div class="roster-toolbar">
+            <!-- Left: Search and Mode Pills -->
+            <div class="roster-toolbar-left">
+              <div class="search-input-wrap">
+                <i class="mdi mdi-magnify search-icon"></i>
+                <input
+                  v-model="searchQuery"
+                  type="text"
+                  placeholder="Search students by name, email..."
+                  class="table-search-input"
+                />
+                <button v-if="searchQuery" type="button" class="search-clear-btn" @click="searchQuery = ''">
+                  <i class="mdi mdi-close-circle"></i>
+                </button>
+              </div>
 
-            <!-- Quick Filter Tabs (All / Selected / Unselected) -->
-            <div class="flex items-center gap-2 flex-wrap">
+              <!-- Filter Tabs (All / Selected / Unselected) -->
               <div class="filter-mode-pills">
                 <button
                   type="button"
-                  :class="['filter-pill-btn', filterMode === 'all' ? 'active' : '']"
+                  :class="['filter-pill-btn', { active: filterMode === 'all' }]"
                   @click="filterMode = 'all'"
                 >
                   All ({{ students.length }})
                 </button>
                 <button
                   type="button"
-                  :class="['filter-pill-btn', filterMode === 'selected' ? 'active-green' : '']"
+                  :class="['filter-pill-btn', { 'active-green': filterMode === 'selected' }]"
                   @click="filterMode = 'selected'"
                 >
                   Selected ({{ selectedStudentIds.length }})
                 </button>
                 <button
                   type="button"
-                  :class="['filter-pill-btn', filterMode === 'unselected' ? 'active' : '']"
+                  :class="['filter-pill-btn', { active: filterMode === 'unselected' }]"
                   @click="filterMode = 'unselected'"
                 >
                   Unselected ({{ students.length - selectedStudentIds.length }})
                 </button>
               </div>
+            </div>
 
-              <!-- Bulk Action Buttons -->
+            <!-- Right: Bulk Actions -->
+            <div class="roster-toolbar-right">
               <button
                 type="button"
                 class="btn-bulk-action"
                 @click="selectAllFiltered"
                 :title="`Select all ${filteredStudents.length} filtered students`"
               >
-                <i class="mdi mdi-check-all text-emerald"></i> Select All Filtered ({{ filteredStudents.length }})
+                <i class="mdi mdi-check-all text-emerald"></i> Select All ({{ filteredStudents.length }})
               </button>
               <button
                 type="button"
@@ -285,41 +295,41 @@
           </div>
 
           <!-- Selected Candidates Summary Tray (Collapsible chip list) -->
-          <div v-if="selectedStudentIds.length > 0" class="p-3 bg-emerald-50/50 border-b border-emerald-100 flex items-center justify-between gap-2 flex-wrap">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-[11px] font-semibold text-emerald-800 uppercase tracking-wider">Selected ({{ selectedStudentIds.length }}):</span>
-              <div class="flex items-center gap-1.5 flex-wrap max-h-24 overflow-y-auto">
+          <div v-if="selectedStudentIds.length > 0" class="selected-summary-tray">
+            <div class="tray-inner">
+              <span class="tray-label">Selected ({{ selectedStudentIds.length }}):</span>
+              <div class="tray-chips">
                 <span
                   v-for="st in selectedStudentsPreview"
                   :key="st.id"
-                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-white border border-emerald-200 text-slate-800 shadow-2xs"
+                  class="tray-chip"
                 >
                   <span>{{ st.name }}</span>
-                  <button type="button" class="text-slate-400 hover:text-red cursor-pointer ml-0.5" @click.stop="toggleStudent(st.id)">
-                    <i class="mdi mdi-close-circle text-xs"></i>
+                  <button type="button" class="tray-chip-remove" @click.stop="toggleStudent(st.id)">
+                    <i class="mdi mdi-close-circle"></i>
                   </button>
                 </span>
-                <span v-if="selectedStudentIds.length > 12" class="text-xs text-emerald-700 font-medium">
+                <span v-if="selectedStudentIds.length > 12" class="tray-more-text">
                   +{{ selectedStudentIds.length - 12 }} more
                 </span>
               </div>
             </div>
-            <button type="button" class="text-xs text-emerald-700 hover:underline font-semibold cursor-pointer" @click="clearAllSelections">
+            <button type="button" class="tray-deselect-btn" @click="clearAllSelections">
               Deselect All
             </button>
           </div>
 
           <!-- ═══ STUDENTS TABLE ═══ -->
           <div class="table-responsive">
-            <div v-if="loadingStudents" class="text-center py-16 text-slate-500">
+            <div v-if="loadingStudents" class="table-empty-box">
               <span class="spinner-sm-red mb-2"></span>
               <p class="text-xs font-medium">Loading students...</p>
             </div>
 
-            <div v-else-if="filteredStudents.length === 0" class="text-center py-16 text-slate-400">
-              <i class="mdi mdi-account-search-outline text-4xl block mb-2 text-slate-300"></i>
-              <p class="text-sm font-semibold text-slate-700 m-0">No Students Found</p>
-              <p class="text-xs text-slate-400 mt-1 m-0">
+            <div v-else-if="filteredStudents.length === 0" class="table-empty-box">
+              <i class="mdi mdi-account-search-outline empty-icon"></i>
+              <h4 class="empty-title">No Students Found</h4>
+              <p class="empty-desc">
                 {{ searchQuery ? 'No students match your search filter.' : 'Your student directory is currently empty. Please add students first.' }}
               </p>
               <NuxtLink v-if="students.length === 0" to="/sub-center?tab=students" class="btn-red text-xs py-1.5 px-3 mt-4 inline-flex items-center gap-1 no-underline">
@@ -330,18 +340,18 @@
             <table v-else class="gsfin-table">
               <thead>
                 <tr>
-                  <th class="w-12 text-center">
+                  <th class="th-checkbox">
                     <input
                       type="checkbox"
-                      class="custom-checkbox cursor-pointer"
+                      class="custom-checkbox"
                       :checked="isAllFilteredSelected"
                       :indeterminate.prop="isIndeterminate"
                       @click="toggleSelectAllFiltered"
                       title="Select or deselect all students on this view"
                     />
                   </th>
-                  <th>Student Name</th>
-                  <th>Contact Info</th>
+                  <th>Student Account</th>
+                  <th>Phone Number</th>
                   <th>Education / Program</th>
                   <th>Registered Date</th>
                   <th class="text-right">Enrollment Status</th>
@@ -351,14 +361,14 @@
                 <tr
                   v-for="student in paginatedStudents"
                   :key="student.id"
-                  :class="['cursor-pointer', { 'row-selected': isSelected(student.id) }]"
+                  :class="['table-row-selectable', { 'row-selected': isSelected(student.id) }]"
                   @click="toggleStudent(student.id)"
                 >
                   <!-- Checkbox -->
-                  <td class="text-center" @click.stop>
+                  <td class="td-checkbox" @click.stop>
                     <input
                       type="checkbox"
-                      class="custom-checkbox cursor-pointer"
+                      class="custom-checkbox"
                       :checked="isSelected(student.id)"
                       @change="toggleStudent(student.id)"
                     />
@@ -376,28 +386,28 @@
                       <div v-else class="candidate-avatar-circle">
                         {{ student.name ? student.name.charAt(0).toUpperCase() : 'S' }}
                       </div>
-                      <div>
-                        <div class="font-semibold text-slate-900 text-xs leading-tight">{{ student.name }}</div>
-                        <span v-if="student.id" class="text-[10px] text-slate-400 font-mono">ID: {{ student.id.slice(0, 8) }}</span>
+                      <div class="candidate-info-col">
+                        <div class="candidate-name">{{ student.name }}</div>
+                        <div class="candidate-email">{{ student.email }}</div>
                       </div>
                     </div>
                   </td>
 
-                  <!-- Contact Info -->
+                  <!-- Phone Number -->
                   <td>
-                    <div class="text-xs text-slate-700 font-mono leading-tight">{{ student.email }}</div>
-                    <div v-if="student.phone" class="text-[11px] text-slate-400 mt-0.5">{{ student.phone }}</div>
+                    <span v-if="student.phone" class="text-slate-700 font-mono text-xs">{{ student.phone }}</span>
+                    <span v-else class="text-slate-300 text-xs">—</span>
                   </td>
 
                   <!-- Education -->
                   <td>
-                    <span class="text-xs text-slate-700 font-medium">{{ student.education_level || 'General / Professional' }}</span>
-                    <span v-if="student.institution_name" class="text-[11px] text-slate-400 block truncate max-w-xs">{{ student.institution_name }}</span>
+                    <div class="text-xs text-slate-800 font-medium">{{ student.education_level || 'General / Professional' }}</div>
+                    <div v-if="student.institution_name" class="text-[11px] text-slate-400 truncate max-w-xs">{{ student.institution_name }}</div>
                   </td>
 
                   <!-- Registered Date -->
                   <td>
-                    <span class="text-xs text-slate-500">{{ formatDate(student.created_at) }}</span>
+                    <span class="text-xs text-slate-600">{{ formatDate(student.created_at) }}</span>
                   </td>
 
                   <!-- Selection Status Pill -->
@@ -414,34 +424,34 @@
             </table>
           </div>
 
-          <!-- Pagination / Page Size Footer -->
-          <div v-if="filteredStudents.length > pageSize" class="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between flex-wrap gap-2 text-xs text-slate-600">
-            <div>
-              Showing <strong>{{ (currentPage - 1) * pageSize + 1 }}</strong> - <strong>{{ Math.min(currentPage * pageSize, filteredStudents.length) }}</strong> of <strong>{{ filteredStudents.length }}</strong> candidates
+          <!-- Pagination Bar -->
+          <div v-if="filteredStudents.length > pageSize" class="pagination-footer-row">
+            <div class="pagination-count-text">
+              Showing <strong>{{ (currentPage - 1) * pageSize + 1 }}</strong> - <strong>{{ Math.min(currentPage * pageSize, filteredStudents.length) }}</strong> of <strong>{{ filteredStudents.length }}</strong> students
             </div>
 
-            <div class="flex items-center gap-2">
+            <div class="pagination-controls">
               <label class="text-xs text-slate-500">Per page:</label>
-              <select v-model.number="pageSize" class="border border-slate-200 rounded px-2 py-1 bg-white text-xs">
+              <select v-model.number="pageSize" class="pagination-select">
                 <option :value="25">25</option>
                 <option :value="50">50</option>
                 <option :value="100">100</option>
                 <option :value="500">All</option>
               </select>
 
-              <div class="flex items-center gap-1 ml-3">
+              <div class="pagination-nav-btns">
                 <button
                   type="button"
-                  class="px-2 py-1 rounded border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 cursor-pointer"
+                  class="btn-page-nav"
                   :disabled="currentPage === 1"
                   @click="currentPage--"
                 >
                   <i class="mdi mdi-chevron-left"></i>
                 </button>
-                <span class="px-2 font-medium">Page {{ currentPage }} of {{ totalPages }}</span>
+                <span class="page-current-indicator">Page {{ currentPage }} of {{ totalPages }}</span>
                 <button
                   type="button"
-                  class="px-2 py-1 rounded border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 cursor-pointer"
+                  class="btn-page-nav"
                   :disabled="currentPage === totalPages"
                   @click="currentPage++"
                 >
@@ -455,28 +465,30 @@
       </div>
 
       <!-- ═══ 5. STICKY ACTION DOCK ═══ -->
-      <div class="batch-action-dock">
-        <div class="dock-left">
+      <div class="batch-sticky-dock">
+        <div class="dock-left-group">
           <NuxtLink to="/sub-center?tab=batches" class="btn-glass">
             <i class="mdi mdi-arrow-left"></i> Cancel &amp; Return
           </NuxtLink>
-          <div class="hidden sm:block text-xs text-slate-600">
-            Selected: <strong class="text-slate-900">{{ selectedStudentIds.length }}</strong> students
-            • Cost: <strong class="text-emerald">{{ selectedStudentIds.length }} Token(s)</strong>
-            • Wallet: <strong :class="isShortfall ? 'text-red' : 'text-slate-800'">{{ (wallet.totalRemaining ?? 0) - selectedStudentIds.length }} Remaining</strong>
+          <div class="dock-summary-text">
+            <span>Selected: <strong class="text-slate-900">{{ selectedStudentIds.length }}</strong> students</span>
+            <span class="dock-sep">•</span>
+            <span>Cost: <strong class="text-emerald">{{ selectedStudentIds.length }} Token(s)</strong></span>
+            <span class="dock-sep">•</span>
+            <span>Wallet: <strong :class="isShortfall ? 'text-red' : 'text-slate-800'">{{ (wallet.totalRemaining ?? 0) - selectedStudentIds.length }} Remaining</strong></span>
           </div>
         </div>
 
-        <div class="dock-right">
+        <div class="dock-right-group">
           <button
             type="button"
-            class="btn-red flex items-center gap-2"
+            class="btn-red"
             :disabled="savingBatch || selectedStudentIds.length === 0 || !batchForm.exam_id || isShortfall"
             @click="submitCreateBatch"
           >
-            <i :class="['mdi', savingBatch ? 'mdi-loading spin-icon' : 'mdi-check-decagram']"></i>
+            <i :class="['mdi', savingBatch ? 'mdi-loading spin-icon' : 'mdi-layers-plus']"></i>
             <span>
-              {{ savingBatch ? 'Creating Batch &amp; Enrolling...' : `Create Exam Batch (${selectedStudentIds.length} Students)` }}
+              {{ savingBatch ? 'Creating Batch & Enrolling...' : `Create Exam Batch (${selectedStudentIds.length} Students)` }}
             </span>
           </button>
         </div>
@@ -600,11 +612,9 @@ function selectAllFiltered() {
 
 function toggleSelectAllFiltered() {
   if (isAllFilteredSelected.value) {
-    // Deselect filtered
     const filteredSet = new Set(filteredStudents.value.map(s => s.id));
     selectedStudentIds.value = selectedStudentIds.value.filter(id => !filteredSet.has(id));
   } else {
-    // Select all filtered
     selectAllFiltered();
   }
 }
@@ -633,7 +643,7 @@ function clearSchedule() {
 }
 
 function formatDate(dateStr?: string) {
-  if (!dateStr) return 'N/A';
+  if (!dateStr) return '—';
   try {
     const d = new Date(dateStr);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -657,7 +667,6 @@ async function fetchExams() {
   try {
     const { data } = await api.get('/sub-center/exams');
     exams.value = Array.isArray(data) ? data : [];
-    // Auto-select if single authorized program
     if (exams.value.length === 1 && !batchForm.value.exam_id) {
       batchForm.value.exam_id = exams.value[0].id;
     }
@@ -726,16 +735,18 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Page Layout */
 .gsfin-admin-page {
   background-color: #FAFAFD;
   min-height: 100vh;
-  padding-bottom: 40px;
+  padding-bottom: 60px;
 }
 
 .admin-wrap {
   max-width: 1400px;
   margin: 0 auto;
   padding: 24px 32px;
+  box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
@@ -744,12 +755,21 @@ onMounted(async () => {
   }
 }
 
-/* ── Top Header & Breadcrumbs ── */
+/* Header & Breadcrumbs */
 .admin-header-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.header-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
   flex-wrap: wrap;
 }
 
@@ -786,6 +806,11 @@ onMounted(async () => {
 
 .bc-sep {
   color: #CBD5E1;
+  font-size: 0.8rem;
+}
+
+.bc-icon {
+  color: #CBD5E1;
   font-size: 0.85rem;
 }
 
@@ -807,6 +832,8 @@ onMounted(async () => {
   color: #64748B;
   margin: 4px 0 0 0;
   font-weight: 400;
+  max-width: 760px;
+  line-height: 1.5;
 }
 
 .header-actions {
@@ -836,18 +863,19 @@ onMounted(async () => {
 }
 
 .spin-icon {
-  animation: spin 1s linear infinite;
+  animation: spin 0.75s linear infinite;
 }
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
-/* ── KPI Metric Cards ── */
+/* Metrics Grid */
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
+  margin-bottom: 28px;
 }
 @media (max-width: 1024px) {
   .metrics-grid {
@@ -863,34 +891,34 @@ onMounted(async () => {
 .metric-card {
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 18px;
-  padding: 20px 24px;
+  border-radius: 20px;
+  padding: 22px 24px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.02);
+  gap: 18px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.02);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .metric-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
 }
 
 .metric-card-emerald {
-  background: linear-gradient(135deg, #FFFFFF 0%, #F0FDF4 60%, #DCFCE7 100%);
-  border: 1px solid rgba(16, 185, 129, 0.16);
+  background: linear-gradient(135deg, #FFFFFF 0%, #F0FDF4 55%, #DCFCE7 100%);
+  border: 1px solid rgba(16, 185, 129, 0.18);
 }
 .metric-card-blue {
-  background: linear-gradient(135deg, #FFFFFF 0%, #F0F7FF 60%, #E1EFFF 100%);
-  border: 1px solid rgba(37, 99, 235, 0.16);
+  background: linear-gradient(135deg, #FFFFFF 0%, #F0F7FF 55%, #E1EFFF 100%);
+  border: 1px solid rgba(37, 99, 235, 0.18);
 }
 .metric-card-indigo {
-  background: linear-gradient(135deg, #FFFFFF 0%, #EEF2FF 60%, #E0E7FF 100%);
-  border: 1px solid rgba(79, 70, 229, 0.16);
+  background: linear-gradient(135deg, #FFFFFF 0%, #EEF2FF 55%, #E0E7FF 100%);
+  border: 1px solid rgba(79, 70, 229, 0.18);
 }
 .metric-card-red {
-  background: linear-gradient(135deg, #FFFFFF 0%, #FEF2F2 60%, #FEE2E2 100%);
-  border: 1px solid rgba(227, 27, 35, 0.16);
+  background: linear-gradient(135deg, #FFFFFF 0%, #FEF2F2 55%, #FEE2E2 100%);
+  border: 1px solid rgba(227, 27, 35, 0.18);
 }
 .metric-card-slate {
   background: #FFFFFF;
@@ -898,13 +926,13 @@ onMounted(async () => {
 }
 
 .metric-icon-box {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.45rem;
+  font-size: 1.55rem;
   flex-shrink: 0;
 }
 
@@ -916,6 +944,7 @@ onMounted(async () => {
 .text-indigo { color: #4F46E5 !important; }
 .bg-red-light { background: rgba(227, 27, 35, 0.12) !important; }
 .text-red { color: #E31B23 !important; }
+.bg-slate-light { background: #F1F5F9 !important; }
 
 .metric-info {
   display: flex;
@@ -923,7 +952,7 @@ onMounted(async () => {
 }
 
 .metric-label {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -931,18 +960,66 @@ onMounted(async () => {
 }
 
 .metric-value {
-  font-size: 1.45rem;
+  font-size: 1.55rem;
   font-weight: 600;
-  line-height: 1.25;
-  margin-top: 2px;
+  line-height: 1.2;
+  margin-top: 3px;
 }
 
 .metric-sub {
   font-size: 0.72rem;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
-/* ── Panel Card ── */
+/* Shortfall Alert */
+.shortfall-alert-card {
+  padding: 16px 20px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 18px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.shortfall-alert-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.shortfall-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #FEE2E2;
+  color: #DC2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+.shortfall-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #991B1B;
+  margin: 0;
+}
+.shortfall-desc {
+  font-size: 0.78rem;
+  color: #B91C1C;
+  margin: 2px 0 0 0;
+}
+
+/* Panels */
+.panels-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 .panel-card {
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.08);
@@ -952,7 +1029,7 @@ onMounted(async () => {
 }
 
 .panel-card-header {
-  padding: 18px 24px;
+  padding: 18px 26px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
   display: flex;
   align-items: center;
@@ -968,8 +1045,13 @@ onMounted(async () => {
   gap: 12px;
 }
 
+.panel-icon {
+  font-size: 1.4rem;
+  color: #E31B23;
+}
+
 .panel-title-wrap h3 {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: #0F172A;
   margin: 0;
@@ -981,11 +1063,6 @@ onMounted(async () => {
   margin: 2px 0 0 0;
 }
 
-.panel-icon {
-  font-size: 1.35rem;
-  color: #E31B23;
-}
-
 .panel-filter-row {
   display: flex;
   align-items: center;
@@ -993,24 +1070,24 @@ onMounted(async () => {
   flex-wrap: wrap;
 }
 
-/* ── Badges & Chips ── */
-.badge-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 50px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
+.card-content-body {
+  padding: 24px 26px;
 }
 
-.chip-green { background: rgba(16, 185, 129, 0.1); color: #059669; }
-.chip-slate { background: rgba(100, 116, 139, 0.1); color: #64748B; }
+/* Section 1 Form Grid */
+.exam-schedule-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+@media (max-width: 960px) {
+  .exam-schedule-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
 
-/* ── Form Inputs ── */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -1018,9 +1095,34 @@ onMounted(async () => {
 }
 
 .form-label-xs {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 600;
   color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.required-star {
+  color: #E31B23;
+}
+.optional-tag {
+  color: #94A3B8;
+  font-weight: 400;
+  text-transform: none;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-prefix-icon {
+  position: absolute;
+  left: 14px;
+  color: #94A3B8;
+  font-size: 1.15rem;
+  pointer-events: none;
 }
 
 .modal-input-field {
@@ -1034,12 +1136,16 @@ onMounted(async () => {
   outline: none;
   font-family: inherit;
   box-sizing: border-box;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
 }
-
 .modal-input-field:focus {
   border-color: #E31B23;
   background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.08);
+}
+
+.modal-input-field.input-has-prefix {
+  padding-left: 42px;
 }
 
 .custom-select-wrapper {
@@ -1059,33 +1165,93 @@ onMounted(async () => {
   transform: translateY(-50%);
   color: #64748B;
   pointer-events: none;
+  font-size: 1.1rem;
 }
 
-.preset-pill {
-  padding: 4px 12px;
-  border-radius: 20px;
+.form-help-text {
+  font-size: 0.72rem;
+  color: #94A3B8;
+  margin-top: 2px;
+}
+.form-help-warn {
+  font-size: 0.75rem;
+  color: #D97706;
+  margin-top: 4px;
+}
+
+/* Schedule Presets Bar */
+.schedule-presets-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.preset-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748B;
+  margin-right: 2px;
+}
+
+.preset-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 50px;
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.12);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #475569;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
 }
-.preset-pill:hover {
-  background: #F1F5F9;
-  color: #0F172A;
-  border-color: rgba(15, 23, 42, 0.2);
+.preset-chip-btn:hover {
+  background: #FEF2F2;
+  border-color: rgba(227, 27, 35, 0.3);
+  color: #E31B23;
+}
+.preset-chip-clear {
+  color: #64748B;
 }
 
-/* ── Filter Toolbar ── */
+/* Section 2 Toolbar */
+.roster-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 26px;
+  background: #FAFAFD;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  flex-wrap: wrap;
+}
+
+.roster-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.roster-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .search-input-wrap {
   position: relative;
   display: flex;
   align-items: center;
+  width: 280px;
 }
 
 .search-icon {
@@ -1093,20 +1259,24 @@ onMounted(async () => {
   left: 14px;
   color: #94A3B8;
   font-size: 1.1rem;
+  pointer-events: none;
 }
 
 .table-search-input {
-  padding: 9px 36px 9px 40px;
+  width: 100%;
+  padding: 8px 36px 8px 40px;
   border-radius: 12px;
   border: 1px solid rgba(15, 23, 42, 0.12);
   background: #FFFFFF;
   font-size: 0.84rem;
   color: #0F172A;
   outline: none;
+  box-sizing: border-box;
   transition: border-color 0.2s;
 }
 .table-search-input:focus {
   border-color: #E31B23;
+  box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.08);
 }
 
 .search-clear-btn {
@@ -1122,24 +1292,25 @@ onMounted(async () => {
   color: #475569;
 }
 
+/* Filter Mode Pills */
 .filter-mode-pills {
   display: inline-flex;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid #E2E8F0;
   background: #FFFFFF;
   padding: 2px;
 }
 
 .filter-pill-btn {
-  padding: 6px 12px;
+  padding: 6px 14px;
   font-size: 0.74rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 10px;
   border: none;
   background: transparent;
   color: #64748B;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
 }
 .filter-pill-btn:hover {
   color: #0F172A;
@@ -1157,15 +1328,15 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 12px;
-  border-radius: 10px;
+  padding: 7px 14px;
+  border-radius: 12px;
   border: 1px solid #E2E8F0;
   background: #FFFFFF;
   color: #334155;
   font-size: 0.74rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
 }
 .btn-bulk-action:hover:not(:disabled) {
   background: #F8FAFC;
@@ -1177,7 +1348,76 @@ onMounted(async () => {
   cursor: not-allowed;
 }
 
-/* ── GSFIN Table Styling ── */
+/* Selected Summary Tray */
+.selected-summary-tray {
+  padding: 12px 26px;
+  background: #F0FDF4;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.tray-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.tray-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #065F46;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tray-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tray-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 50px;
+  background: #FFFFFF;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.tray-chip-remove {
+  background: transparent;
+  border: none;
+  color: #94A3B8;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+.tray-chip-remove:hover {
+  color: #E31B23;
+}
+.tray-more-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #059669;
+}
+.tray-deselect-btn {
+  background: transparent;
+  border: none;
+  color: #059669;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* GSFIN Table */
 .table-responsive {
   width: 100%;
   overflow-x: auto;
@@ -1190,7 +1430,7 @@ onMounted(async () => {
 }
 
 .gsfin-table th {
-  padding: 14px 20px;
+  padding: 14px 24px;
   font-size: 0.72rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -1202,35 +1442,52 @@ onMounted(async () => {
 }
 
 .gsfin-table td {
-  padding: 14px 20px;
+  padding: 16px 24px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.05);
-  font-size: 0.84rem;
+  font-size: 0.86rem;
   color: #334155;
   vertical-align: middle;
 }
 
-.gsfin-table tbody tr {
+.th-checkbox, .td-checkbox {
+  width: 48px;
+  text-align: center !important;
+  padding-left: 18px !important;
+  padding-right: 12px !important;
+}
+
+.table-row-selectable {
+  cursor: pointer;
   transition: background-color 0.15s ease;
 }
-
-.gsfin-table tbody tr:hover {
+.table-row-selectable:hover {
   background: #F8FAFC;
 }
-
-.gsfin-table tbody tr.row-selected {
-  background: rgba(16, 185, 129, 0.05);
+.table-row-selectable.row-selected {
+  background: #F0FDF4 !important;
+}
+.table-row-selectable.row-selected td {
+  border-bottom-color: rgba(16, 185, 129, 0.15);
 }
 
+.custom-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #E31B23;
+  cursor: pointer;
+}
+
+/* Candidate Cell */
 .candidate-cell {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 200px;
+  min-width: 220px;
 }
 
 .candidate-avatar-photo {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #10B981;
@@ -1239,8 +1496,8 @@ onMounted(async () => {
 }
 
 .candidate-avatar-circle {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: rgba(79, 70, 229, 0.08);
   color: #4F46E5;
@@ -1253,45 +1510,185 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 
-.custom-checkbox {
-  width: 16px;
-  height: 16px;
-  accent-color: #E31B23;
-  cursor: pointer;
+.candidate-info-col {
+  display: flex;
+  flex-direction: column;
 }
 
-/* ── Sticky Action Dock ── */
-.batch-action-dock {
-  position: sticky;
-  bottom: 16px;
-  z-index: 50;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  border-radius: 18px;
-  padding: 14px 24px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
+.candidate-name {
+  font-weight: 600;
+  font-size: 0.86rem;
+  color: #0F172A;
+  line-height: 1.3;
+}
+
+.candidate-email {
+  font-size: 0.75rem;
+  color: #64748B;
+  font-family: monospace;
+  margin-top: 2px;
+}
+
+/* Badges & Chips */
+.badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.chip-green { background: rgba(16, 185, 129, 0.1); color: #059669; }
+.chip-slate { background: rgba(100, 116, 139, 0.1); color: #64748B; }
+
+/* Empty State */
+.table-empty-box {
+  text-align: center;
+  padding: 48px 24px;
+}
+.empty-icon {
+  font-size: 2.8rem;
+  color: #CBD5E1;
+  display: block;
+  margin-bottom: 8px;
+}
+.empty-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0;
+}
+.empty-desc {
+  font-size: 0.78rem;
+  color: #94A3B8;
+  margin: 4px 0 0 0;
+}
+
+/* Pagination Bar */
+.pagination-footer-row {
+  padding: 16px 26px;
+  background: #FAFAFD;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-top: 24px;
+  flex-wrap: wrap;
 }
 
-.dock-left {
+.pagination-count-text {
+  font-size: 0.78rem;
+  color: #64748B;
+}
+
+.pagination-controls {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
 }
 
+.pagination-select {
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  font-size: 0.75rem;
+  color: #0F172A;
+  outline: none;
+}
+
+.pagination-nav-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+}
+
+.btn-page-nav {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-page-nav:hover:not(:disabled) {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+.btn-page-nav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.page-current-indicator {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #334155;
+  padding: 0 4px;
+}
+
+/* Sticky Action Dock */
+.batch-sticky-dock {
+  position: sticky;
+  bottom: 20px;
+  z-index: 50;
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 20px;
+  padding: 16px 28px;
+  box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(15, 23, 42, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.dock-left-group {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.dock-summary-text {
+  font-size: 0.8rem;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dock-sep {
+  color: #CBD5E1;
+}
+
+.dock-right-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Standard Buttons */
 .btn-glass {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   background: #FFFFFF;
   color: #334155;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  padding: 9px 16px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  padding: 10px 18px;
   border-radius: 12px;
   font-weight: 600;
   font-size: 0.84rem;
@@ -1303,7 +1700,7 @@ onMounted(async () => {
 .btn-glass:hover {
   background: #F1F5F9;
   color: #0F172A;
-  border-color: rgba(15, 23, 42, 0.2);
+  border-color: rgba(15, 23, 42, 0.22);
 }
 
 .btn-red {
@@ -1313,11 +1710,11 @@ onMounted(async () => {
   background: #E31B23;
   color: #FFFFFF;
   border: none;
-  padding: 10px 22px;
+  padding: 11px 24px;
   border-radius: 12px;
   font-weight: 600;
   font-size: 0.86rem;
-  box-shadow: 0 3px 10px rgba(227, 27, 35, 0.2);
+  box-shadow: 0 3px 12px rgba(227, 27, 35, 0.25);
   transition: all 0.2s ease;
   cursor: pointer;
   text-decoration: none;
@@ -1325,9 +1722,11 @@ onMounted(async () => {
 .btn-red:hover:not(:disabled) {
   background: #C4131B;
   transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(227, 27, 35, 0.3);
 }
 .btn-red:disabled {
-  opacity: 0.5;
+  background: #CBD5E1;
+  color: #94A3B8;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -1335,8 +1734,8 @@ onMounted(async () => {
 
 .spinner-sm-red {
   display: inline-block;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border: 2px solid rgba(227, 27, 35, 0.2);
   border-top-color: #E31B23;
   border-radius: 50%;
