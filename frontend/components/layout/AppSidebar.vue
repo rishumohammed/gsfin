@@ -99,6 +99,9 @@ const isItemActive = (item: any) => {
     if (targetRoute === '/sub-center?tab=students' && currentPath.startsWith('/sub-center/students')) {
       return true;
     }
+    if (targetRoute === '/sub-center?tab=batches' && currentPath.startsWith('/sub-center/batches')) {
+      return true;
+    }
     return false;
   }
 
