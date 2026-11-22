@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { pool } from '../db/connection.js';
 import { authenticateJWT, authorizeRoles } from '../middleware/auth.js';
 import emailService from '../services/email.service.js';
+import { getFrontendUrl } from '../utils/url-helper.js';
 
 const router = express.Router();
 
@@ -248,7 +249,7 @@ router.post('/:id/convert-partner', async (req, res) => {
 
         // Dispatch welcome credentials email
         try {
-          const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login`;
+          const loginUrl = `${getFrontendUrl(req)}/login`;
           await emailService.sendMail({
             to: email,
             subject: 'Congratulations! Your GSFIN Authorized Partner Center Account is Ready',

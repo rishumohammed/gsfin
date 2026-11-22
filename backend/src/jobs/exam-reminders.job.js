@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { pool } from '../db/connection.js';
 import EmailService from '../services/email.service.js';
 import { ConfigService } from '../services/config.service.js';
+import { getFrontendUrl, getBackendUrl } from '../utils/url-helper.js';
 
 export const initExamRemindersJob = () => {
   // Run every 5 minutes
@@ -26,12 +27,12 @@ export const initExamRemindersJob = () => {
 
         for (const candidate of candidates) {
           try {
-            const examLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/public-exams/${exam.slug}`;
+            const examLink = `${getFrontendUrl()}/public-exams/${exam.slug}`;
             const [tplRows] = await connection.query('SELECT subject, body FROM email_templates WHERE id = ?', ['exam_reminder_1day']);
             let subject = tplRows[0].subject.replace(/{{exam_name}}/g, exam.name);
             
             const logoConfig = await ConfigService.getByKey('app_logo');
-            const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+            const backendUrl = getBackendUrl();
             const logoUrl = logoConfig?.value ? (logoConfig.value.startsWith('http') ? logoConfig.value : `${backendUrl}${logoConfig.value}`) : '';
 
             let html = tplRows[0].body
@@ -70,12 +71,12 @@ export const initExamRemindersJob = () => {
 
         for (const candidate of candidates) {
           try {
-            const examLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/public-exams/${exam.slug}`;
+            const examLink = `${getFrontendUrl()}/public-exams/${exam.slug}`;
             const [tplRows] = await connection.query('SELECT subject, body FROM email_templates WHERE id = ?', ['exam_reminder_10min']);
             let subject = tplRows[0].subject.replace(/{{exam_name}}/g, exam.name);
             
             const logoConfig = await ConfigService.getByKey('app_logo');
-            const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+            const backendUrl = getBackendUrl();
             const logoUrl = logoConfig?.value ? (logoConfig.value.startsWith('http') ? logoConfig.value : `${backendUrl}${logoConfig.value}`) : '';
 
             let html = tplRows[0].body

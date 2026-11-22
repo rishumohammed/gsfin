@@ -5,6 +5,7 @@ import { pool } from '../db/connection.js';
 import { authenticateJWT, authorizeRoles } from '../middleware/auth.js';
 import emailService from '../services/email.service.js';
 import { WalletService } from '../services/wallet.service.js';
+import { getFrontendUrl } from '../utils/url-helper.js';
 
 const router = express.Router();
 
@@ -438,7 +439,7 @@ router.post('/organizations', async (req, res) => {
 
     // Send credentials email
     try {
-      const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login`;
+      const loginUrl = `${getFrontendUrl(req)}/login`;
       await emailService.sendMail({
         to: contact_email,
         subject: 'Welcome to GSFIN Partner Portal - Your Account Credentials',
@@ -523,7 +524,7 @@ router.post('/organizations/:id/reset-password', async (req, res) => {
 
     if (send_email) {
       try {
-        const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login`;
+        const loginUrl = `${getFrontendUrl(req)}/login`;
         await emailService.sendMail({
           to: targetEmail,
           subject: 'GSFIN Partner Center - Password Reset Credentials',

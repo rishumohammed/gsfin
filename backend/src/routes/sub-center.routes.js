@@ -8,6 +8,7 @@ import { BatchService } from '../services/batch.service.js';
 import { ExamSessionService } from '../services/exam-session.service.js';
 import { ExamCatalogService } from '../services/exam-catalog.service.js';
 import emailService from '../services/email.service.js';
+import { getFrontendUrl, getBackendUrl } from '../utils/url-helper.js';
 
 const router = express.Router();
 
@@ -797,7 +798,7 @@ router.get('/batches/:id', async (req, res) => {
 });
 
 // Helper to dispatch exam details & access links to students added to a batch
-async function dispatchBatchEnrollmentEmails({ orgId, examId, assignments, opensAt, closesAt }) {
+async function dispatchBatchEnrollmentEmails({ req, orgId, examId, assignments, opensAt, closesAt }) {
   if (!assignments || assignments.length === 0) return;
 
   try {
@@ -900,17 +901,17 @@ async function dispatchBatchEnrollmentEmails({ orgId, examId, assignments, opens
 
     // 6. Fetch Brand Logo
     let logoHtml = '';
+    const backendUrl = getBackendUrl(req);
     try {
       const [logoRows] = await pool.query("SELECT value FROM config WHERE `key` = 'app_logo'");
       if (logoRows.length > 0 && logoRows[0].value) {
         const logoVal = logoRows[0].value;
-        const backendUrl = process.env.BACKEND_URL || 'https://gsfin.uk';
         const logoUrl = logoVal.startsWith('http') ? logoVal : `${backendUrl}${logoVal}`;
         logoHtml = `<img src="${logoUrl}" alt="GSFIN" style="max-height: 48px; margin-bottom: 20px;" />`;
       }
     } catch (e) {}
 
-    const frontendUrl = process.env.FRONTEND_URL || 'https://gsfin.uk';
+    const frontendUrl = getFrontendUrl(req);
 
     // 7. Dispatch email to each enrolled student
     for (const assign of assignments) {
@@ -967,6 +968,7 @@ router.post('/batches', async (req, res) => {
 
     // Dispatches exam details & access links to enrolled candidates asynchronously
     dispatchBatchEnrollmentEmails({
+      req,
       orgId,
       examId: exam_id,
       assignments: result.assignments || [],
@@ -999,6 +1001,7 @@ router.put('/batches/:id', async (req, res) => {
 
     if (result.newAssignments && result.newAssignments.length > 0) {
       dispatchBatchEnrollmentEmails({
+        req,
         orgId,
         examId: result.examId,
         assignments: result.newAssignments,
@@ -1045,6 +1048,7 @@ router.post('/batches/:id/resend-email', async (req, res) => {
     const mappedAssignments = assignments.map(a => ({ assignmentId: a.id, studentId: a.student_id }));
 
     dispatchBatchEnrollmentEmails({
+      req,
       orgId,
       examId: batch.exam_id,
       assignments: mappedAssignments,

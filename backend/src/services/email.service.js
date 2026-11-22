@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { ConfigService } from './config.service.js';
 import axios from 'axios';
+import { getFrontendUrl } from '../utils/url-helper.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -101,7 +102,7 @@ class EmailService {
 
   async sendPasswordResetEmail(email, token) {
     try {
-      const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
+      const resetLink = `${getFrontendUrl()}/reset-password?token=${token}`;
       const html = `
         <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 12px;">
           <h2 style="color: #007AFF;">Reset Your Password</h2>
@@ -137,7 +138,7 @@ class EmailService {
         .replace(/{{EMAIL}}/g, student.email)
         .replace(/{{PASSWORD}}/g, credentials.password)
         .replace(/{{COURSE_NAME}}/g, courseName)
-        .replace(/{{LOGIN_URL}}/g, `${process.env.FRONTEND_URL}/login`);
+        .replace(/{{LOGIN_URL}}/g, `${getFrontendUrl()}/login`);
 
       await this.sendEmail({
         to: student.email,
@@ -161,7 +162,7 @@ class EmailService {
       
       if (certificateDetails && certificateDetails.pdfUrl) {
         certText = 'Your certificate of completion has been generated and is now available for download.';
-        const fullPdfUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}${certificateDetails.pdfUrl}`;
+        const fullPdfUrl = `${getFrontendUrl()}${certificateDetails.pdfUrl}`;
         certButton = `<a href="${fullPdfUrl}" target="_blank" class="btn">Download Certificate</a>`;
       }
 
@@ -172,7 +173,7 @@ class EmailService {
         initials = initials.toUpperCase();
         
         if (student.avatar_url) {
-          const fullAvatarUrl = student.avatar_url.startsWith('http') ? student.avatar_url : `${process.env.FRONTEND_URL || 'http://localhost:3000'}${student.avatar_url}`;
+          const fullAvatarUrl = student.avatar_url.startsWith('http') ? student.avatar_url : `${getFrontendUrl()}${student.avatar_url}`;
           profilePicHtml = `<img src="${fullAvatarUrl}" alt="Profile Picture" style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 20px; object-fit: cover;">`;
         } else {
           profilePicHtml = `<div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #4f46e5, #ec4899); color: #ffffff; font-size: 32px; font-weight: bold; line-height: 80px; text-align: center; border: 4px solid #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin: 0 auto 20px auto;">${initials}</div>`;
@@ -186,7 +187,7 @@ class EmailService {
         .replace(/{{COMPLETION_DATE}}/g, dateStr)
         .replace(/{{CERTIFICATE_TEXT}}/g, certText)
         .replace(/{{CERTIFICATE_BUTTON}}/g, certButton)
-        .replace(/{{FRONTEND_URL}}/g, process.env.FRONTEND_URL || 'http://localhost:3000');
+        .replace(/{{FRONTEND_URL}}/g, getFrontendUrl());
 
       await this.sendEmail({
         to: student.email,
@@ -207,7 +208,7 @@ class EmailService {
           <p>We are thrilled to inform you that you have been selected for the position of <strong>${jobTitle}</strong> at <strong>${companyName}</strong>.</p>
           <p>Your hard work and dedication have paid off. The employer will be reaching out to you shortly with the official offer details and your joining schedule.</p>
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard/placements" style="display: inline-block; padding: 14px 30px; background: #4f46e5; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">View Placement Details</a>
+            <a href="${getFrontendUrl()}/dashboard/placements" style="display: inline-block; padding: 14px 30px; background: #4f46e5; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">View Placement Details</a>
           </div>
           <p style="font-size: 14px; color: #666;">If you have any questions, feel free to contact your career counselor or the employer directly.</p>
           <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">

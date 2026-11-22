@@ -9,6 +9,7 @@ import EmailService from '../services/email.service.js';
 import bcrypt from 'bcryptjs';
 import { gradeQuestion } from '../services/exam-grading.service.js';
 import { CertificateService } from '../services/certificate.service.js';
+import { getFrontendUrl } from '../utils/url-helper.js';
 
 const router = express.Router();
 
@@ -1697,7 +1698,7 @@ router.post('/candidates/:id/generate-re-enroll-token', async (req, res) => {
 
     await pool.query('UPDATE public_exam_candidates SET metadata = ? WHERE id = ?', [JSON.stringify(metadata), candidateId]);
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = getFrontendUrl(req);
     const reEnrollUrl = `${frontendUrl}/public-exams/${candidate.exam_slug}/re-enroll-face?token=${token}`;
 
     res.json({
@@ -1737,7 +1738,7 @@ router.post('/candidates/:id/send-re-enroll-email', async (req, res) => {
     metadata.re_enroll_token_expires_at = expiresAt;
     await pool.query('UPDATE public_exam_candidates SET metadata = ? WHERE id = ?', [JSON.stringify(metadata), candidateId]);
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = getFrontendUrl(req);
     const reEnrollUrl = `${frontendUrl}/public-exams/${candidate.exam_slug}/re-enroll-face?token=${token}`;
 
     await EmailService.sendFaceReEnrollmentEmail(candidate, { name: candidate.exam_name }, reEnrollUrl);
@@ -1808,7 +1809,7 @@ router.post('/:id/send-re-enroll-email-all', async (req, res) => {
     setTimeout(async () => {
       let successCount = 0;
       let failCount = 0;
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const frontendUrl = getFrontendUrl(req);
 
       for (const c of targetCandidates) {
         try {

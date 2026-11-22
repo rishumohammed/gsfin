@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { pool } from '../db/connection.js';
 import emailService from '../services/email.service.js';
+import { getFrontendUrl } from '../utils/url-helper.js';
 
 export function initMultitenantNotificationsJob() {
   // Run every 5 minutes
@@ -31,7 +32,7 @@ async function sendImmediateAssignmentNotifications() {
     );
 
     const tasks = assignments.map(async (assign) => {
-      const examUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/exam/take-${assign.assignment_id}`;
+      const examUrl = `${getFrontendUrl()}/exam/take-${assign.assignment_id}`;
       const subject = `Exam Enrollment: ${assign.exam_name}`;
       const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
@@ -92,7 +93,7 @@ async function sendPreExamReminders() {
     );
 
     const reminderTasks = reminders.map(async (rem) => {
-      const examUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/exam/take-${rem.assignment_id}`;
+      const examUrl = `${getFrontendUrl()}/exam/take-${rem.assignment_id}`;
       const subject = `Reminder: Upcoming Certification Exam - ${rem.exam_name}`;
       const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">

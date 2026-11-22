@@ -13,6 +13,7 @@ import { ConfigService } from '../services/config.service.js';
 import EmailService from '../services/email.service.js';
 import { gradeQuestion, submitExamAttempt } from '../services/exam-grading.service.js';
 import { CertificateService } from '../services/certificate.service.js';
+import { getFrontendUrl, getBackendUrl } from '../utils/url-helper.js';
 
 const PUBLIC_EXAM_JWT_SECRET = process.env.PUBLIC_EXAM_JWT_SECRET || 'aems_public_exam_secret_key_2024';
 
@@ -346,7 +347,7 @@ router.post('/:slug/send-otp', async (req, res) => {
     let subject = tplRows[0].subject.replace(/{{exam_name}}/g, exams[0].name);
     
     const logoConfig = await ConfigService.getByKey('app_logo');
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = getBackendUrl(req);
     const logoUrl = logoConfig?.value ? (logoConfig.value.startsWith('http') ? logoConfig.value : `${backendUrl}${logoConfig.value}`) : '';
 
     let html = tplRows[0].body
@@ -446,14 +447,14 @@ router.post('/:slug/register', async (req, res) => {
 
     // Send Registration Success Email
     try {
-      const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/public-exams/${exam.slug}`;
+      const loginUrl = `${getFrontendUrl(req)}/public-exams/${exam.slug}`;
       const examDate = exam.exam_start_date ? new Date(exam.exam_start_date).toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' }) : 'TBD';
       
       const [tplRows] = await pool.query('SELECT subject, body FROM email_templates WHERE id = ?', ['exam_registration_success']);
       let subject = tplRows[0].subject.replace(/{{exam_name}}/g, exam.name);
       
       const logoConfig = await ConfigService.getByKey('app_logo');
-      const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+      const backendUrl = getBackendUrl(req);
       const logoUrl = logoConfig?.value ? (logoConfig.value.startsWith('http') ? logoConfig.value : `${backendUrl}${logoConfig.value}`) : '';
 
       let html = tplRows[0].body
