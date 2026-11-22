@@ -65,6 +65,17 @@
         </div>
       </div>
 
+      <!-- ═══ ERROR BANNER ═══ -->
+      <div v-if="errorMessage" class="error-banner mt-4">
+        <div class="flex items-center gap-2">
+          <i class="mdi mdi-alert-circle text-lg"></i>
+          <span>{{ errorMessage }}</span>
+        </div>
+        <button class="btn-retry" @click="fetchData">
+          <i class="mdi mdi-refresh"></i> Retry
+        </button>
+      </div>
+
       <!-- ═══ USERS TABLE PANEL ═══ -->
       <div class="panel-card mt-4">
         <div class="panel-card-header">
@@ -276,6 +287,7 @@ definePageMeta({
 const api = useApi();
 const authStore = useAuthStore();
 const loading = ref(false);
+const errorMessage = ref('');
 const users = ref<any[]>([]);
 const stats = ref<any>({});
 const search = ref('');
@@ -392,12 +404,14 @@ const formatDate = (dateStr: string) => {
 
 const fetchData = async () => {
   loading.value = true;
+  errorMessage.value = '';
   try {
     const { data } = await api.get('/admin/system-users');
     users.value = data.users || [];
     stats.value = data.stats || {};
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to fetch users:', err);
+    errorMessage.value = err.response?.data?.message || err.message || 'Failed to load system users from server.';
   } finally {
     loading.value = false;
   }
@@ -563,6 +577,39 @@ onMounted(fetchData);
 .modal-close-btn { background: #F1F5F9; border: none; width: 32px; height: 32px; border-radius: 50%; color: #64748B; cursor: pointer; }
 .modal-body { padding: 24px; max-height: 70vh; overflow-y: auto; }
 .modal-footer { padding: 16px 24px; background: #FAFAFD; border-top: 1px solid rgba(15, 23, 42, 0.06); display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+
+.error-banner {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #B91C1C;
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.btn-retry {
+  background: #FFFFFF;
+  border: 1px solid #FCA5A5;
+  color: #B91C1C;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.btn-retry:hover {
+  background: #FEE2E2;
+}
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.25s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }

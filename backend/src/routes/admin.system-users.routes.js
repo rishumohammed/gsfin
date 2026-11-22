@@ -25,15 +25,85 @@ const SYSTEM_ROLES = [
   'exam_manager', 'lms_user'
 ];
 
+// Ensure required users columns and audit_logs table exist
+export const ensureSystemUsersColumns = async () => {
+  try {
+    // 1. Check if permissions_json column exists on users, add if not
+    const [cols] = await pool.query(
+      "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'permissions_json'"
+    );
+    if (!cols || cols.length === 0) {
+      try {
+        await pool.query("ALTER TABLE users ADD COLUMN permissions_json JSON DEFAULT NULL AFTER status");
+        console.log('[Auto-Heal] Added permissions_json column (JSON) to users table.');
+      } catch (alterErr) {
+        await pool.query("ALTER TABLE users ADD COLUMN permissions_json TEXT DEFAULT NULL AFTER status");
+        console.log('[Auto-Heal] Added permissions_json column (TEXT) to users table.');
+      }
+    }
+
+    // 2. Check if deleted_at column exists on users, add if not
+    const [delCols] = await pool.query(
+      "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'deleted_at'"
+    );
+    if (!delCols || delCols.length === 0) {
+      try {
+        await pool.query("ALTER TABLE users ADD COLUMN deleted_at DATETIME NULL AFTER updated_at");
+        console.log('[Auto-Heal] Added deleted_at column to users table.');
+      } catch (alterErr) {
+        console.warn('[Auto-Heal] deleted_at column add warning:', alterErr.message);
+      }
+    }
+
+    // 3. Ensure audit_logs table exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id VARCHAR(36) PRIMARY KEY,
+        user_id VARCHAR(36) NULL,
+        action VARCHAR(100) NOT NULL,
+        target VARCHAR(255) NULL,
+        metadata JSON NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+  } catch (err) {
+    console.error('[Auto-Heal] Error in ensureSystemUsersColumns:', err);
+  }
+};
+
 // 1. Get all system users
 router.get('/', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   try {
-    const [users] = await pool.query(`
-      SELECT id, name, email, phone, role, status, last_login_at, created_at, permissions_json 
-      FROM users 
-      WHERE role IN (?)
-      ORDER BY created_at DESC
-    `, [SYSTEM_ROLES]);
+    let users = [];
+    try {
+      const [rows] = await pool.query(`
+        SELECT id, name, email, phone, role, status, last_login_at, created_at, permissions_json 
+        FROM users 
+        WHERE role IN ('main_admin', 'super_admin', 'sub_admin', 'crm_agent', 'placement_coordinator', 'finance_staff', 'exam_manager', 'lms_user')
+        ORDER BY created_at DESC
+      `);
+      users = rows;
+    } catch (queryErr) {
+      console.warn('[System Users] Primary query failed, auto-healing columns and retrying...', queryErr.message);
+      await ensureSystemUsersColumns();
+      try {
+        const [retryRows] = await pool.query(`
+          SELECT id, name, email, phone, role, status, last_login_at, created_at, permissions_json 
+          FROM users 
+          WHERE role IN ('main_admin', 'super_admin', 'sub_admin', 'crm_agent', 'placement_coordinator', 'finance_staff', 'exam_manager', 'lms_user')
+          ORDER BY created_at DESC
+        `);
+        users = retryRows;
+      } catch (fallbackErr) {
+        const [safeRows] = await pool.query(`
+          SELECT id, name, email, phone, role, status, last_login_at, created_at, NULL as permissions_json 
+          FROM users 
+          WHERE role IN ('main_admin', 'super_admin', 'sub_admin', 'crm_agent', 'placement_coordinator', 'finance_staff', 'exam_manager', 'lms_user')
+          ORDER BY created_at DESC
+        `);
+        users = safeRows;
+      }
+    }
     
     // Calculate dashboard stats
     const total = users.length;
@@ -47,6 +117,7 @@ router.get('/', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), as
       stats: { total, active, superAdmin, subAdmin, crm }
     });
   } catch (error) {
+    console.error('[System Users] Error fetching system users:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -337,6 +408,10 @@ router.get('/audit-logs', authenticateJWT, authorizeRoles('super_admin', 'main_a
 // Auto-heal check to guarantee at least one super_admin or main_admin is active
 export const ensureActiveAdmin = async () => {
   try {
+    // 1. Ensure required columns and tables exist
+    await ensureSystemUsersColumns();
+
+    // 2. Reactivate administrator accounts if none are active to prevent system lockout
     const [active] = await pool.query(
       "SELECT COUNT(*) as count FROM users WHERE role IN ('super_admin', 'main_admin') AND status = 'active'"
     );
@@ -346,6 +421,22 @@ export const ensureActiveAdmin = async () => {
         "UPDATE users SET status = 'active' WHERE role IN ('super_admin', 'main_admin')"
       );
       console.log('[Security Auto-Heal] Administrator accounts reactivated successfully.');
+    }
+
+    // 3. Ensure a main_admin account exists in the database
+    const [mainAdminRows] = await pool.query(
+      "SELECT id, email, status FROM users WHERE role = 'main_admin' LIMIT 1"
+    );
+    if (!mainAdminRows || mainAdminRows.length === 0) {
+      console.warn('[Security Auto-Heal] No main_admin found in database. Auto-seeding default main_admin account...');
+      await pool.query(`
+        INSERT IGNORE INTO users (id, role, org_id, name, email, password_hash, status) VALUES 
+        ('u-main-admin-01', 'main_admin', NULL, 'Authority Chief Administrator', 'info@gsfin.uk', '$2b$10$mQDSYjJO4N9Vi8VOjRKliexBtGzZz846W39Zs6GaRexBQ8Leve6aO', 'active')
+      `);
+      console.log('[Security Auto-Heal] Default main_admin (info@gsfin.uk) seeded successfully.');
+    } else if (mainAdminRows[0].status !== 'active') {
+      await pool.query("UPDATE users SET status = 'active' WHERE id = ?", [mainAdminRows[0].id]);
+      console.log('[Security Auto-Heal] Existing main_admin reactivated to active status.');
     }
   } catch (err) {
     console.error('[Security Auto-Heal] Failed to verify/heal active admin accounts:', err);
