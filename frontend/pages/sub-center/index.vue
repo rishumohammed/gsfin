@@ -72,7 +72,7 @@
                   <i class="mdi mdi-subtitles-outline panel-icon"></i>
                   <div>
                     <h3>Recent Exam Batches</h3>
-                    <p class="panel-subtitle-text">Latest active test batches and candidate assignments</p>
+                    <p class="panel-subtitle-text">Latest active test batches and student enrollments</p>
                   </div>
                 </div>
                 <button class="btn-text-red text-xs font-semibold hover:underline flex items-center gap-1" @click="switchTab('batches')">
@@ -96,7 +96,7 @@
                     <div class="min-w-0 flex-1">
                       <div class="font-semibold text-slate-900 text-sm truncate">{{ b.exam_name }}</div>
                       <div class="text-xs text-slate-500 mt-1 flex items-center gap-3">
-                        <span>Candidates: <strong class="text-slate-800">{{ b.student_count || 0 }}</strong></span>
+                        <span>Students: <strong class="text-slate-800">{{ b.student_count || 0 }}</strong></span>
                         <span>•</span>
                         <span>Status: <span class="badge-chip chip-green uppercase">{{ b.status }}</span></span>
                       </div>
@@ -138,8 +138,8 @@
                       <i class="mdi mdi-account-group"></i>
                     </div>
                     <div>
-                      <div class="font-semibold text-xs">Candidate Student Directory</div>
-                      <div class="text-[11px] text-slate-400">View registered student roster</div>
+                      <div class="font-semibold text-xs">Students</div>
+                      <div class="text-[11px] text-slate-400">View registered students</div>
                     </div>
                   </button>
 
@@ -156,8 +156,8 @@
               </div>
 
               <div class="card-content-footer flex items-center justify-between text-xs font-semibold text-slate-500 bg-slate-50/50">
-                <span>Candidate Roster: <strong class="text-slate-900">{{ students.length }}</strong></span>
-                <button class="text-red font-semibold hover:underline" @click="switchTab('students')">View Directory</button>
+                <span>Total Students: <strong class="text-slate-900">{{ students.length }}</strong></span>
+                <button class="text-red font-semibold hover:underline" @click="switchTab('students')">View Students</button>
               </div>
             </div>
           </div>
@@ -170,8 +170,8 @@
               <div class="panel-title-wrap">
                 <i class="mdi mdi-subtitles-outline panel-icon"></i>
                 <div>
-                  <h3>Exam Batches &amp; Candidate Enrollments</h3>
-                  <p class="panel-subtitle-text">Active test batches, candidate assignments, and dedicated retry link management</p>
+                  <h3>Exam Batches</h3>
+                  <p class="panel-subtitle-text">Active test batches, student enrollments, and dedicated retry links</p>
                 </div>
               </div>
 
@@ -191,7 +191,7 @@
                   <tr>
                     <th>Exam Certification</th>
                     <th>Status</th>
-                    <th>Enrolled Candidates</th>
+                    <th>Students</th>
                     <th>Opens At</th>
                     <th>Closes At</th>
                     <th class="text-right">Actions</th>
@@ -211,7 +211,7 @@
                         </div>
                         <h4 class="empty-state-title">No Exam Batches Created</h4>
                         <p class="empty-state-desc">
-                          Create your first student exam batch to spend tokens and enroll candidates for certification exams.
+                          Create your first exam batch to enroll students for certification exams.
                         </p>
                         <NuxtLink to="/sub-center/batches/create" class="btn-red btn-sm mt-3 inline-flex items-center gap-1.5 no-underline">
                           <i class="mdi mdi-plus"></i> Create Exam Batch
@@ -231,7 +231,7 @@
                     </td>
                     <td>
                       <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-800">
-                        {{ item.student_count || 0 }} Candidates
+                        {{ item.student_count || 0 }} Students
                       </span>
                     </td>
                     <td>
@@ -242,7 +242,7 @@
                     </td>
                     <td class="text-right" @click.stop>
                       <div class="action-btn-group justify-end">
-                        <NuxtLink :to="'/sub-center/batches/' + item.id" class="btn-table-action btn-view no-underline" title="View Batch &amp; Enrolled Candidates">
+                        <NuxtLink :to="'/sub-center/batches/' + item.id" class="btn-table-action btn-view no-underline" title="View Batch &amp; Enrolled Students">
                           <i class="mdi mdi-eye-outline"></i>
                         </NuxtLink>
                         <button v-if="item.status === 'open'" class="btn-table-action btn-danger" title="Cancel Batch" @click="cancelBatch(item)">
@@ -264,25 +264,25 @@
           </div>
         </div>
 
-        <!-- ═══ TAB 2: CANDIDATE DIRECTORY ═══ -->
+        <!-- ═══ TAB 2: STUDENTS ═══ -->
         <div v-else-if="activeTab === 'students'" class="tab-panel">
           <div class="panel-card">
             <div class="panel-card-header">
               <div class="panel-title-wrap">
                 <i class="mdi mdi-account-group panel-icon"></i>
                 <div>
-                  <h3>Candidate Student Directory</h3>
-                  <p class="panel-subtitle-text">Registered candidates available for exam batch enrollments</p>
+                  <h3>Students</h3>
+                  <p class="panel-subtitle-text">Manage registered students for training and exams</p>
                 </div>
               </div>
 
               <div class="panel-filter-row">
                 <div class="search-input-wrap">
                   <i class="mdi mdi-magnify search-icon"></i>
-                  <input v-model="studentSearchQuery" type="text" placeholder="Search candidate name or email..." class="table-search-input" />
+                  <input v-model="studentSearchQuery" type="text" placeholder="Search students..." class="table-search-input" />
                 </div>
                 <button class="btn-red text-xs py-2 px-4 inline-flex items-center gap-1.5" @click="openRegisterStudentModal">
-                  <i class="mdi mdi-account-plus"></i> Register Candidate
+                  <i class="mdi mdi-account-plus"></i> Add Student
                 </button>
               </div>
             </div>
@@ -291,18 +291,18 @@
               <table class="gsfin-table">
                 <thead>
                   <tr>
-                    <th>Candidate Student</th>
-                    <th>Face Biometrics</th>
+                    <th>Student</th>
+                    <th>Face Photo</th>
                     <th>Phone</th>
-                    <th>Education Level</th>
-                    <th>Registration Date</th>
+                    <th>Education</th>
+                    <th>Registered Date</th>
                     <th class="text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-if="loadingStudents">
                     <td colspan="6" class="text-center py-12 text-slate-500">
-                      <span class="spinner-sm-red"></span> Loading Candidate Directory...
+                      <span class="spinner-sm-red"></span> Loading Students...
                     </td>
                   </tr>
                   <tr v-else-if="filteredModalStudents.length === 0">
@@ -311,15 +311,15 @@
                         <div class="empty-icon-wrap">
                           <i class="mdi mdi-account-group-outline"></i>
                         </div>
-                        <h4 class="empty-state-title">No Candidates Found</h4>
+                        <h4 class="empty-state-title">No Students Found</h4>
                         <p v-if="studentSearchQuery" class="empty-state-desc">
-                          No candidate records match your search query &quot;{{ studentSearchQuery }}&quot;.
+                          No students match &quot;{{ studentSearchQuery }}&quot;.
                         </p>
                         <p v-else class="empty-state-desc">
-                          No candidate students registered yet in your test center directory.
+                          No students registered yet in your center.
                         </p>
                         <button v-if="!studentSearchQuery" class="btn-red btn-sm mt-3 inline-flex items-center gap-1.5" @click="openRegisterStudentModal">
-                          <i class="mdi mdi-account-plus"></i> Register First Candidate
+                          <i class="mdi mdi-account-plus"></i> Add First Student
                         </button>
                       </div>
                     </td>
@@ -332,7 +332,7 @@
                           {{ getInitials(item.name) }}
                         </div>
                         <div class="candidate-meta">
-                          <NuxtLink :to="'/sub-center/students/' + item.id" class="candidate-name-link" title="View Candidate Profile">
+                          <NuxtLink :to="'/sub-center/students/' + item.id" class="candidate-name-link" title="View Student Profile">
                             {{ item.name }}
                           </NuxtLink>
                           <span class="candidate-email-text">{{ item.email }}</span>
@@ -362,16 +362,16 @@
                     </td>
                     <td class="text-right">
                       <div class="action-btn-group justify-end">
-                        <button class="btn-table-action btn-email" title="Resend Credentials & OTP Email via Resend" @click="resendStudentCredentials(item)">
+                        <button class="btn-table-action btn-email" title="Resend Credentials Email" @click="resendStudentCredentials(item)">
                           <i class="mdi mdi-email-sync-outline"></i>
                         </button>
-                        <NuxtLink :to="'/sub-center/students/' + item.id" class="btn-table-action btn-view" title="View Dedicated Candidate Page">
+                        <NuxtLink :to="'/sub-center/students/' + item.id" class="btn-table-action btn-view" title="View Student Profile">
                           <i class="mdi mdi-eye-outline"></i>
                         </NuxtLink>
-                        <button class="btn-table-action btn-edit" title="Edit Candidate" @click="openEditStudentModal(item)">
+                        <button class="btn-table-action btn-edit" title="Edit Student" @click="openEditStudentModal(item)">
                           <i class="mdi mdi-pencil-outline"></i>
                         </button>
-                        <button class="btn-table-action btn-danger" title="Delete Candidate" @click="confirmDeleteStudent(item)">
+                        <button class="btn-table-action btn-danger" title="Delete Student" @click="confirmDeleteStudent(item)">
                           <i class="mdi mdi-trash-can-outline"></i>
                         </button>
                       </div>
@@ -531,7 +531,7 @@
                 <i class="mdi mdi-file-certificate-outline panel-icon"></i>
                 <div>
                   <h3>Center Certificates &amp; Verifications</h3>
-                  <p class="panel-subtitle-text">Official certificates issued to candidate students enrolled from {{ centerName }}</p>
+                  <p class="panel-subtitle-text">Official certificates issued to students from {{ centerName }}</p>
                 </div>
               </div>
 
@@ -556,7 +556,7 @@
                 <thead>
                   <tr>
                     <th>Certificate Number</th>
-                    <th>Candidate Student</th>
+                    <th>Student</th>
                     <th>Certification Exam</th>
                     <th>Issued Date</th>
                     <th class="text-right">Actions</th>
@@ -576,7 +576,7 @@
                         </div>
                         <h4 class="empty-state-title">No Certificates Issued Yet</h4>
                         <p class="empty-state-desc">
-                          Certificates will automatically appear here as enrolled candidates from {{ centerName }} complete and pass their batch exams.
+                          Certificates will automatically appear here as students from {{ centerName }} complete and pass their exams.
                         </p>
                       </div>
                     </td>
@@ -895,8 +895,8 @@
                   <i :class="['mdi', editingStudent ? 'mdi-account-edit' : 'mdi-account-plus']"></i>
                 </div>
                 <div class="modal-title-text">
-                  <h3>{{ editingStudent ? 'Edit Candidate Student' : 'Register Candidate Student' }}</h3>
-                  <p>{{ editingStudent ? 'Update candidate information and credentials' : 'Add candidate to sub-center directory for exam batch enrollment' }}</p>
+                  <h3>{{ editingStudent ? 'Edit Student' : 'Add New Student' }}</h3>
+                  <p>{{ editingStudent ? 'Update student details and credentials' : 'Add a student to your center directory' }}</p>
                 </div>
               </div>
               <button class="modal-close-btn" @click="showAddStudentModal = false" aria-label="Close modal"><i class="mdi mdi-close"></i></button>
@@ -925,8 +925,8 @@
                 <!-- Row 2: Email Address -->
                 <div class="form-group mb-4">
                   <div class="flex items-center justify-between mb-1">
-                    <label class="form-label-xs mb-0">Email Address (Exam Login Username) <span class="required-star">*</span></label>
-                    <span class="text-[11px] text-slate-400 font-medium">Used for exam sign-in &amp; OTP</span>
+                    <label class="form-label-xs mb-0">Email Address <span class="required-star">*</span></label>
+                    <span class="text-[11px] text-slate-400 font-medium">Used for login and exam notifications</span>
                   </div>
                   <div class="input-with-icon">
                     <i class="mdi mdi-email-outline input-prefix-icon"></i>
@@ -934,27 +934,27 @@
                   </div>
                 </div>
 
-                <!-- Row 2B: Candidate Face Capture & Biometric Enrollment Section -->
+                <!-- Row 2B: Student Face Photo Section -->
                 <div class="face-enrollment-card mb-4">
                   <div class="flex items-center justify-between mb-2">
                     <div>
-                      <label class="form-label-xs m-0">Candidate Face &amp; Biometric Profile</label>
-                      <span class="text-[11px] text-slate-500 block">Required for pre-exam biometric verification</span>
+                      <label class="form-label-xs m-0">Face Photo</label>
+                      <span class="text-[11px] text-slate-500 block">Live photo for pre-exam identity verification</span>
                     </div>
                     <span v-if="studentForm.face_photo" class="badge-emerald-sm">
-                      <i class="mdi mdi-check-circle"></i> Face Enrolled
+                      <i class="mdi mdi-check-circle"></i> Photo Enrolled
                     </span>
                     <span v-else class="badge-amber-sm">
-                      <i class="mdi mdi-camera-outline"></i> Not Enrolled
+                      <i class="mdi mdi-camera-outline"></i> Photo Required
                     </span>
                   </div>
 
                   <!-- If photo captured -->
                   <div v-if="studentForm.face_photo" class="captured-photo-display">
-                    <img :src="studentForm.face_photo" alt="Candidate Face" class="enrolled-face-thumb" />
+                    <img :src="studentForm.face_photo" alt="Student Face" class="enrolled-face-thumb" />
                     <div class="captured-photo-meta">
-                      <div class="text-xs font-semibold text-slate-900">Biometric Baseline Stored</div>
-                      <div class="text-[11px] text-slate-500">Live camera verification matches against this profile before exam login.</div>
+                      <div class="text-xs font-semibold text-slate-900">Face Photo Saved</div>
+                      <div class="text-[11px] text-slate-500">Camera verification matches against this photo during exam login.</div>
                       <div class="mt-2 flex gap-2">
                         <button type="button" class="btn-xs-retake" @click="retakeStudentPhoto">
                           <i class="mdi mdi-camera-retake-outline"></i> Retake Photo
@@ -977,7 +977,7 @@
                     </div>
                     <div class="webcam-controls-row">
                       <button type="button" class="btn-capture-photo" @click="captureStudentPhoto">
-                        <i class="mdi mdi-camera"></i> Capture Face Photo
+                        <i class="mdi mdi-camera"></i> Take Photo
                       </button>
                       <button 
                         type="button" 
@@ -997,8 +997,8 @@
                   <div v-else class="face-capture-actions">
                     <button type="button" class="btn-face-action" @click="startStudentCamera">
                       <i class="mdi mdi-camera-plus text-2xl text-red"></i>
-                      <span class="font-semibold text-slate-800 text-sm">Capture via Webcam</span>
-                      <span class="text-[11px] text-slate-500 font-normal">Real-time live photo required for biometric verification</span>
+                      <span class="font-semibold text-slate-800 text-sm">Take Photo</span>
+                      <span class="text-[11px] text-slate-500 font-normal">Live camera photo required for identity verification</span>
                     </button>
                   </div>
                 </div>
@@ -1090,7 +1090,7 @@
                 <button type="button" class="btn-glass" @click="showAddStudentModal = false">Cancel</button>
                 <button type="submit" class="btn-red" :disabled="savingStudent || !studentForm.name || !studentForm.email">
                   <i :class="['mdi', savingStudent ? 'mdi-loading spin-icon' : (editingStudent ? 'mdi-content-save-check' : 'mdi-account-check')]"></i>
-                  {{ savingStudent ? 'Saving...' : (editingStudent ? 'Update Candidate' : 'Register Candidate') }}
+                  {{ savingStudent ? 'Saving...' : (editingStudent ? 'Update Student' : 'Save Student') }}
                 </button>
               </div>
             </form>
@@ -1099,7 +1099,7 @@
       </Transition>
     </Teleport>
 
-    <!-- Candidate Enrolled Credentials & Security OTP Modal -->
+    <!-- Student Enrolled Credentials & Security OTP Modal -->
     <Teleport to="body">
       <Transition name="fade">
         <div v-if="showStudentCredentialsModal && newRegisteredCredentials" class="modal-overlay" @click.self="showStudentCredentialsModal = false">
@@ -1110,7 +1110,7 @@
                   <i class="mdi mdi-shield-account-outline"></i>
                 </div>
                 <div class="modal-title-text">
-                  <h3>Candidate Credentials &amp; OTP</h3>
+                  <h3>Student Credentials &amp; OTP</h3>
                   <p>Official exam login access for {{ newRegisteredCredentials.name }}</p>
                 </div>
               </div>
@@ -1144,7 +1144,7 @@
                   <div class="font-semibold text-slate-900 text-sm">{{ newRegisteredCredentials.name }}</div>
                   <div class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
                     <i class="mdi mdi-face-recognition"></i>
-                    {{ newRegisteredCredentials.has_face ? 'Biometric Face Profile Enrolled' : 'Face Enrollment Pending at Gate' }}
+                    {{ newRegisteredCredentials.has_face ? 'Face Photo Enrolled' : 'Face Photo Pending' }}
                   </div>
                 </div>
               </div>
@@ -1152,7 +1152,7 @@
               <!-- Credential Fields -->
               <div class="cred-field-box mb-3">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="cred-label">Login Username / Email</span>
+                  <span class="cred-label">Email / Login ID</span>
                   <button type="button" class="btn-copy-mini" @click="copyText(newRegisteredCredentials.email, 'Username')">
                     <i class="mdi mr-1" :class="copiedField === 'Username' ? 'mdi-check text-emerald-600' : 'mdi-content-copy'"></i>
                     {{ copiedField === 'Username' ? 'Copied!' : 'Copy' }}
@@ -1163,7 +1163,7 @@
 
               <div class="cred-field-box mb-3">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="cred-label">Exam Access Password</span>
+                  <span class="cred-label">Exam Password</span>
                   <div class="flex items-center gap-2">
                     <button type="button" class="btn-copy-mini" @click="showCredPassword = !showCredPassword">
                       <i :class="['mdi', showCredPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline']"></i>
@@ -1188,7 +1188,7 @@
                   </button>
                 </div>
                 <div class="cred-val-otp">{{ newRegisteredCredentials.otp_code }}</div>
-                <span class="text-[11px] text-red-600 block mt-1">Candidate enters this code during pre-exam authentication.</span>
+                <span class="text-[11px] text-red-600 block mt-1">Student enters this code during pre-exam verification.</span>
               </div>
 
               <!-- Copy All & Action Buttons -->
@@ -1818,9 +1818,9 @@ async function copyText(text: string, fieldKey: string) {
 function copyAllStudentCredentials() {
   if (!newRegisteredCredentials.value) return;
   const c = newRegisteredCredentials.value;
-  const text = `GSFIN Candidate Credentials:\nName: ${c.name}\nUsername/Email: ${c.email}\nPassword: ${c.initial_password}\nSecurity OTP: ${c.otp_code || 'N/A'}`;
+  const text = `GSFIN Student Credentials:\nName: ${c.name}\nEmail / Login ID: ${c.email}\nPassword: ${c.initial_password}\nSecurity OTP: ${c.otp_code || 'N/A'}`;
   navigator.clipboard.writeText(text);
-  alert('All candidate credentials copied to clipboard!');
+  alert('All student credentials copied to clipboard!');
 }
 
 async function resendStudentCredentials(target: any) {
@@ -1896,25 +1896,25 @@ function openViewStudentModal(item: any) {
 }
 
 async function confirmDeleteStudent(item: any) {
-  if (!confirm(`Are you sure you want to delete candidate "${item.name}" (${item.email})?\n\nThis will remove their profile from your center's directory.`)) {
+  if (!confirm(`Are you sure you want to delete student "${item.name}" (${item.email})?\n\nThis will remove their profile from your center's directory.`)) {
     return;
   }
   try {
     await api.delete(`/sub-center/students/${item.id}`);
-    alert(`Candidate "${item.name}" was successfully deleted.`);
+    alert(`Student "${item.name}" was successfully deleted.`);
     fetchStudents();
   } catch (err: any) {
-    alert(err.response?.data?.message || err.message || 'Failed to delete candidate student');
+    alert(err.response?.data?.message || err.message || 'Failed to delete student');
   }
 }
 
 async function registerStudent() {
   if (!studentForm.value.name || !studentForm.value.email) {
-    alert('Please enter candidate full name and email address.');
+    alert('Please enter student full name and email address.');
     return;
   }
   if (!editingStudent.value && !studentForm.value.face_photo) {
-    alert('Candidate real-time webcam photo is required. Please capture the face photo before proceeding.');
+    alert('Student live camera photo is required. Please capture the face photo before proceeding.');
     return;
   }
   if (studentForm.value.password && studentForm.value.password !== studentForm.value.confirm_password) {
@@ -1929,7 +1929,7 @@ async function registerStudent() {
       stopStudentCamera();
       resetStudentForm();
       fetchStudents();
-      alert('Candidate details updated successfully!');
+      alert('Student details updated successfully!');
     } else {
       const { data } = await api.post('/sub-center/students', studentForm.value);
       showAddStudentModal.value = false;
@@ -1940,7 +1940,7 @@ async function registerStudent() {
       fetchStudents();
     }
   } catch (err: any) {
-    alert(err.response?.data?.message || err.message || 'Failed to save candidate student');
+    alert(err.response?.data?.message || err.message || 'Failed to save student');
   } finally {
     savingStudent.value = false;
   }
@@ -3891,6 +3891,7 @@ input[type="datetime-local"].modal-input-field {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 220px;
 }
 
 .candidate-avatar-photo {
@@ -3930,6 +3931,7 @@ input[type="datetime-local"].modal-input-field {
   color: #0F172A;
   text-decoration: none;
   transition: color 0.15s ease;
+  white-space: nowrap;
 }
 
 .candidate-name-link:hover {
@@ -3940,7 +3942,7 @@ input[type="datetime-local"].modal-input-field {
   font-size: 0.75rem;
   color: #64748B;
   font-family: var(--font-mono, monospace);
-  word-break: break-all;
+  white-space: nowrap;
 }
 
 .badge-chip {

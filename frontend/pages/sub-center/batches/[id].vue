@@ -109,28 +109,28 @@
             </div>
           </div>
 
-          <!-- Passed Candidates -->
+          <!-- Passed Students -->
           <div class="kpi-card">
             <div class="kpi-icon-box bg-emerald-50 text-emerald-600">
               <i class="mdi mdi-check-decagram-outline"></i>
             </div>
             <div>
               <span class="kpi-label">Passed &amp; Certified</span>
-              <div class="kpi-val text-emerald-600">{{ passedCount }} Candidates</div>
+              <div class="kpi-val text-emerald-600">{{ passedCount }} Students</div>
               <span class="kpi-sub text-slate-400">
                 {{ assignments.length ? Math.round((passedCount / assignments.length) * 100) : 0 }}% pass rate
               </span>
             </div>
           </div>
 
-          <!-- Failed Candidates -->
+          <!-- Failed Students -->
           <div class="kpi-card">
             <div class="kpi-icon-box bg-red-50 text-red-600">
               <i class="mdi mdi-close-circle-outline"></i>
             </div>
             <div>
               <span class="kpi-label">Failed / Need Retake</span>
-              <div class="kpi-val text-red-600">{{ failedCount }} Candidates</div>
+              <div class="kpi-val text-red-600">{{ failedCount }} Students</div>
               <span class="kpi-sub text-slate-400">Eligible for retry</span>
             </div>
           </div>
@@ -142,19 +142,19 @@
             </div>
             <div>
               <span class="kpi-label">Pending / In Progress</span>
-              <div class="kpi-val text-slate-800">{{ pendingCount }} Candidates</div>
+              <div class="kpi-val text-slate-800">{{ pendingCount }} Students</div>
               <span class="kpi-sub text-slate-400">Awaiting exam sitting</span>
             </div>
           </div>
         </div>
 
-        <!-- ─── 3. CANDIDATE ASSIGNMENTS ROSTER (OPTIMIZED FOR 50-100 STUDENTS) ─── -->
+        <!-- ─── 3. STUDENT ASSIGNMENTS ROSTER ─── -->
         <div class="panel-section-card">
           <div class="section-card-header flex-wrap gap-3">
             <div>
-              <h3 class="text-sm font-semibold text-slate-900 m-0">Enrolled Candidate Students</h3>
+              <h3 class="text-sm font-semibold text-slate-900 m-0">Enrolled Students</h3>
               <p class="text-xs text-slate-500 m-0 mt-0.5">
-                Manage candidate exam links, monitor sitting status, grant retries, and access issued certificates.
+                Manage student exam links, monitor sitting status, grant retries, and access issued certificates.
               </p>
             </div>
 
@@ -192,7 +192,7 @@
               <input
                 v-model="searchQuery"
                 type="text"
-                placeholder="Search candidates by name or email..."
+                placeholder="Search students by name or email..."
                 class="search-input"
               />
               <button v-if="searchQuery" type="button" class="search-clear-btn" @click="searchQuery = ''">
@@ -246,15 +246,15 @@
           <div class="overflow-x-auto">
             <div v-if="filteredAssignments.length === 0" class="text-center py-16 text-slate-400">
               <i class="mdi mdi-account-search-outline text-4xl block mb-2 text-slate-300"></i>
-              <p class="text-sm font-semibold text-slate-700 m-0">No Candidates Found</p>
-              <p class="text-xs text-slate-400 mt-1 m-0">No candidate matches your search or status filter.</p>
+              <p class="text-sm font-semibold text-slate-700 m-0">No Students Found</p>
+              <p class="text-xs text-slate-400 mt-1 m-0">No students match your search or status filter.</p>
             </div>
 
             <table v-else class="candidates-table">
               <thead>
                 <tr>
                   <th class="w-10">#</th>
-                  <th>Candidate Student</th>
+                  <th>Student</th>
                   <th>Contact Email</th>
                   <th>Attempts Used</th>
                   <th>Sitting Status</th>

@@ -6,19 +6,19 @@
       <div class="top-nav-bar">
         <div class="nav-left">
           <NuxtLink to="/sub-center?tab=students" class="btn-back">
-            <i class="mdi mdi-arrow-left"></i> Back to Candidate Directory
+            <i class="mdi mdi-arrow-left"></i> Back to Students
           </NuxtLink>
           <div class="breadcrumb-trail">
             <NuxtLink to="/sub-center" class="bc-link">Partner Portal</NuxtLink>
             <i class="mdi mdi-chevron-right bc-sep"></i>
-            <NuxtLink to="/sub-center?tab=students" class="bc-link">Candidate Directory</NuxtLink>
+            <NuxtLink to="/sub-center?tab=students" class="bc-link">Students</NuxtLink>
             <i class="mdi mdi-chevron-right bc-sep"></i>
-            <span class="bc-current">{{ student?.name || 'Candidate Details' }}</span>
+            <span class="bc-current">{{ student?.name || 'Student Details' }}</span>
           </div>
         </div>
 
         <div class="nav-right">
-          <button class="btn-icon-refresh" title="Refresh Candidate Data" @click="fetchStudentDetails" :disabled="loading">
+          <button class="btn-icon-refresh" title="Refresh Student Data" @click="fetchStudentDetails" :disabled="loading">
             <i :class="['mdi', 'mdi-refresh', { 'spin-icon': loading }]"></i>
           </button>
         </div>
@@ -27,7 +27,7 @@
       <!-- Loading State -->
       <div v-if="loading" class="state-card text-center py-16">
         <span class="spinner-lg-red"></span>
-        <p class="mt-4 text-slate-600 font-semibold text-sm">Loading Candidate Profile &amp; Records...</p>
+        <p class="mt-4 text-slate-600 font-semibold text-sm">Loading Student Profile &amp; Records...</p>
       </div>
 
       <!-- Error State -->
@@ -35,14 +35,14 @@
         <div class="error-icon-box">
           <i class="mdi mdi-alert-circle-outline"></i>
         </div>
-        <h3 class="text-lg font-semibold text-slate-900 mb-2">Unable to Load Candidate</h3>
+        <h3 class="text-lg font-semibold text-slate-900 mb-2">Unable to Load Student</h3>
         <p class="text-slate-500 mb-6 max-w-md mx-auto text-xs">{{ error }}</p>
         <NuxtLink to="/sub-center?tab=students" class="btn-red-lg">
-          <i class="mdi mdi-arrow-left"></i> Return to Directory
+          <i class="mdi mdi-arrow-left"></i> Return to Students
         </NuxtLink>
       </div>
 
-      <!-- Candidate Main Content -->
+      <!-- Student Main Content -->
       <div v-else-if="student" class="space-y-6 fade-in">
 
         <!-- ═══ 1. HERO PROFILE CARD ═══ -->
@@ -56,7 +56,7 @@
                 <h1 class="student-name">{{ student.name }}</h1>
                 <span :class="['status-badge', passedCount > 0 ? 'badge-certified' : 'badge-active']">
                   <i :class="['mdi', passedCount > 0 ? 'mdi-shield-check' : 'mdi-account-check']"></i>
-                  {{ passedCount > 0 ? 'Certified Candidate' : 'Registered Candidate' }}
+                  {{ passedCount > 0 ? 'Certified Student' : 'Registered Student' }}
                 </span>
               </div>
               <div class="meta-tags-row">
@@ -171,7 +171,7 @@
               @click="activeTab = 'profile'"
             >
               <i class="mdi mdi-card-account-details-outline tab-icon"></i>
-              <span>Candidate Profile</span>
+              <span>Student Profile</span>
             </button>
           </div>
 
@@ -181,10 +181,10 @@
               <i class="mdi mdi-book-open-outline text-4xl text-slate-300 block mb-2"></i>
               <h4 class="text-sm font-semibold text-slate-900">No Exam Sessions Assigned</h4>
               <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-4">
-                This candidate is not currently enrolled in any exam batches under your sub-center.
+                This student is not currently enrolled in any exam batches under your sub-center.
               </p>
               <button class="btn-red text-xs py-2 px-4" @click="enrollInBatch">
-                <i class="mdi mdi-plus"></i> Enroll Candidate in Exam
+                <i class="mdi mdi-plus"></i> Enroll Student in Exam
               </button>
             </div>
 
@@ -421,11 +421,11 @@
             </div>
           </div>
 
-          <!-- TAB 4: CANDIDATE PROFILE INFO -->
+          <!-- TAB 4: STUDENT PROFILE INFO -->
           <div v-if="activeTab === 'profile'" class="tab-content">
             <div class="profile-details-grid">
               <div class="info-group">
-                <span class="info-group-label">Candidate Full Name</span>
+                <span class="info-group-label">Student Full Name</span>
                 <span class="info-group-value">{{ student.name }}</span>
               </div>
               <div class="info-group">
@@ -460,7 +460,7 @@
 
             <div class="mt-6 flex justify-end">
               <button class="btn-action btn-action-secondary" @click="openEditModal">
-                <i class="mdi mdi-pencil mr-1"></i> Edit Candidate Details
+                <i class="mdi mdi-pencil mr-1"></i> Edit Student Details
               </button>
             </div>
           </div>
@@ -470,7 +470,7 @@
 
     </div>
 
-    <!-- ═══ EDIT CANDIDATE MODAL ═══ -->
+    <!-- ═══ EDIT STUDENT MODAL ═══ -->
     <Teleport to="body">
       <Transition name="fade">
         <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
@@ -481,8 +481,8 @@
                   <i class="mdi mdi-account-edit"></i>
                 </div>
                 <div>
-                  <h3 class="modal-title">Edit Candidate Student</h3>
-                  <span class="text-xs text-slate-500 font-medium">Update candidate information and credentials</span>
+                  <h3 class="modal-title">Edit Student</h3>
+                  <span class="text-xs text-slate-500 font-medium">Update student details and credentials</span>
                 </div>
               </div>
               <button class="modal-close-btn" @click="showEditModal = false"><i class="mdi mdi-close"></i></button>
@@ -584,7 +584,7 @@
                 <button type="button" class="btn-glass" @click="showEditModal = false">Cancel</button>
                 <button type="submit" class="btn-red" :disabled="savingEdit || !editForm.name || !editForm.email">
                   <i :class="['mdi', savingEdit ? 'mdi-loading spin-icon' : 'mdi-content-save-check']"></i>
-                  {{ savingEdit ? 'Saving...' : 'Update Candidate' }}
+                  {{ savingEdit ? 'Saving...' : 'Update Student' }}
                 </button>
               </div>
             </form>
@@ -708,7 +708,7 @@ async function fetchStudentDetails() {
     certificates.value = Array.isArray(data.certificates) ? data.certificates : [];
   } catch (err: any) {
     console.error('Error loading student details:', err);
-    error.value = err.response?.data?.message || err.message || 'Candidate not found in your organization.';
+    error.value = err.response?.data?.message || err.message || 'Student not found in your organization.';
   } finally {
     loading.value = false;
   }
@@ -733,7 +733,7 @@ function openEditModal() {
 
 async function updateCandidate() {
   if (!editForm.value.name || !editForm.value.email) {
-    alert('Candidate name and email are required.');
+    alert('Student name and email are required.');
     return;
   }
   if (editForm.value.password && editForm.value.password !== editForm.value.confirm_password) {
@@ -744,10 +744,10 @@ async function updateCandidate() {
   try {
     await api.put(`/sub-center/students/${studentId.value}`, editForm.value);
     showEditModal.value = false;
-    alert('Candidate details updated successfully!');
+    alert('Student details updated successfully!');
     fetchStudentDetails();
   } catch (err: any) {
-    alert(err.response?.data?.message || err.message || 'Failed to update candidate');
+    alert(err.response?.data?.message || err.message || 'Failed to update student');
   } finally {
     savingEdit.value = false;
   }

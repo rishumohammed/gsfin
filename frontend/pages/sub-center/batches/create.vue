@@ -213,11 +213,11 @@
               <span class="step-badge">2</span>
               <div>
                 <h3 class="text-sm font-semibold text-slate-900 m-0">
-                  Select Candidate Students
+                  Select Students
                   <span class="text-red">*</span>
                 </h3>
                 <p class="text-xs text-slate-500 m-0 mt-0.5">
-                  Select individual or bulk candidates to enroll. Click any candidate to toggle selection.
+                  Select individual or multiple students to enroll. Click any student to toggle selection.
                 </p>
               </div>
             </div>
@@ -228,7 +228,7 @@
                 {{ selectedStudentIds.length }} Selected
               </span>
               <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                {{ filteredStudents.length }} of {{ students.length }} Candidates
+                {{ filteredStudents.length }} of {{ students.length }} Students
               </span>
             </div>
           </div>
@@ -241,7 +241,7 @@
               <input
                 v-model="searchQuery"
                 type="text"
-                placeholder="Search candidates by name, email, phone..."
+                placeholder="Search students by name, email, phone..."
                 class="search-input"
               />
               <button v-if="searchQuery" type="button" class="search-clear-btn" @click="searchQuery = ''">
@@ -320,21 +320,21 @@
             </button>
           </div>
 
-          <!-- ═══ CANDIDATES TABLE ═══ -->
+          <!-- ═══ STUDENTS TABLE ═══ -->
           <div class="overflow-x-auto">
             <div v-if="loadingStudents" class="text-center py-16 text-slate-500">
               <span class="spinner-sm-red mb-2"></span>
-              <p class="text-xs font-medium">Loading candidate students...</p>
+              <p class="text-xs font-medium">Loading students...</p>
             </div>
 
             <div v-else-if="filteredStudents.length === 0" class="text-center py-16 text-slate-400">
               <i class="mdi mdi-account-search-outline text-4xl block mb-2 text-slate-300"></i>
-              <p class="text-sm font-semibold text-slate-700 m-0">No Candidates Found</p>
+              <p class="text-sm font-semibold text-slate-700 m-0">No Students Found</p>
               <p class="text-xs text-slate-400 mt-1 m-0">
-                {{ searchQuery ? 'No candidates match your search filter.' : 'Your candidate directory is currently empty. Please register candidates first.' }}
+                {{ searchQuery ? 'No students match your search filter.' : 'Your student directory is currently empty. Please add students first.' }}
               </p>
               <NuxtLink v-if="students.length === 0" to="/sub-center?tab=students" class="btn-red text-xs py-1.5 px-3 mt-4 inline-flex items-center gap-1 no-underline">
-                <i class="mdi mdi-account-plus"></i> Register Candidates
+                <i class="mdi mdi-account-plus"></i> Add Students
               </NuxtLink>
             </div>
 
@@ -348,10 +348,10 @@
                       :checked="isAllFilteredSelected"
                       :indeterminate.prop="isIndeterminate"
                       @click="toggleSelectAllFiltered"
-                      title="Select or deselect all candidates on this view"
+                      title="Select or deselect all students on this view"
                     />
                   </th>
-                  <th>Candidate Name</th>
+                  <th>Student Name</th>
                   <th>Contact Info</th>
                   <th>Education / Program</th>
                   <th>Registered</th>
@@ -467,7 +467,7 @@
               Cancel &amp; Return
             </NuxtLink>
             <div class="hidden sm:block text-xs text-slate-600">
-              Selected: <strong class="text-slate-900">{{ selectedStudentIds.length }}</strong> candidates
+              Selected: <strong class="text-slate-900">{{ selectedStudentIds.length }}</strong> students
               • Cost: <strong class="text-emerald-700">{{ selectedStudentIds.length }} Token(s)</strong>
               • Wallet: <strong :class="isShortfall ? 'text-red' : 'text-slate-800'">{{ (wallet.totalRemaining ?? 0) - selectedStudentIds.length }} Remaining</strong>
             </div>
@@ -482,7 +482,7 @@
             >
               <i :class="['mdi', savingBatch ? 'mdi-loading spin-icon' : 'mdi-check-decagram']"></i>
               <span>
-                {{ savingBatch ? 'Creating Batch &amp; Enrolling...' : `Create Exam Batch (${selectedStudentIds.length} Candidates)` }}
+                {{ savingBatch ? 'Creating Batch &amp; Enrolling...' : `Create Exam Batch (${selectedStudentIds.length} Students)` }}
               </span>
             </button>
           </div>
@@ -694,7 +694,7 @@ async function submitCreateBatch() {
     return;
   }
   if (selectedStudentIds.value.length === 0) {
-    alert('Please select at least 1 candidate student for this batch.');
+    alert('Please select at least 1 student for this batch.');
     return;
   }
   if (isShortfall.value) {
@@ -712,7 +712,7 @@ async function submitCreateBatch() {
     };
 
     const { data } = await api.post('/sub-center/batches', payload);
-    alert(data?.message || `Successfully created batch with ${selectedStudentIds.value.length} enrolled candidates!`);
+    alert(data?.message || `Successfully created batch with ${selectedStudentIds.value.length} enrolled students!`);
     router.push('/sub-center?tab=batches');
   } catch (err: any) {
     alert(err?.response?.data?.message || err?.message || 'Failed to create exam batch.');
