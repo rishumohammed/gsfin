@@ -1,5 +1,5 @@
 <script setup lang="ts">
-navigateTo('/admin/multi-tenant?tab=batches', { replace: true });
+navigateTo('/admin/partners?tab=batches', { replace: true });
 </script>
 
 <template>

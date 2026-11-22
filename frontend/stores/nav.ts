@@ -22,8 +22,8 @@ export const useNavStore = defineStore('nav', {
       { label: 'Leads', icon: 'mdi-email-outline', route: '/dashboard/admin/inquiries', roles: ['super_admin', 'main_admin', 'sub_admin'] },
       
       // PARTNERS
-      { label: 'Partners', icon: 'mdi-office-building-outline', route: '/admin/multi-tenant', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'PARTNERS' },
-      { label: 'Batches', icon: 'mdi-layers-triple-outline', route: '/admin/multi-tenant?tab=batches', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'PARTNERS' },
+      { label: 'Partners', icon: 'mdi-office-building-outline', route: '/admin/partners', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'PARTNERS' },
+      { label: 'Batches', icon: 'mdi-layers-triple-outline', route: '/admin/partners?tab=batches', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'PARTNERS' },
 
       // EXAMS & CERTIFICATES
       { label: 'Exams', icon: 'mdi-clipboard-text-outline', route: '/dashboard/admin/public-exams', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAMS & CERTIFICATES' },
@@ -32,9 +32,9 @@ export const useNavStore = defineStore('nav', {
       { label: 'Certifications', icon: 'mdi-certificate-outline', route: '/dashboard/admin/qualifications', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'EXAMS & CERTIFICATES' },
 
       // TOKENS
-      { label: 'Requests', icon: 'mdi-ticket-percent-outline', route: '/admin/multi-tenant?tab=requests', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'TOKENS' },
-      { label: 'Packages', icon: 'mdi-package-variant-closed', route: '/admin/multi-tenant?tab=packages', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'TOKENS' },
-      { label: 'Transactions', icon: 'mdi-clock-outline', route: '/admin/multi-tenant?tab=audit', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'TOKENS' },
+      { label: 'Requests', icon: 'mdi-ticket-percent-outline', route: '/admin/partners?tab=requests', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'TOKENS' },
+      { label: 'Packages', icon: 'mdi-package-variant-closed', route: '/admin/partners?tab=packages', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'TOKENS' },
+      { label: 'Transactions', icon: 'mdi-clock-outline', route: '/admin/partners?tab=audit', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'TOKENS' },
 
       // REPORTS
       { label: 'Reports', icon: 'mdi-chart-bar', route: '/dashboard/admin/reports', roles: ['super_admin', 'main_admin', 'sub_admin'], section: 'REPORTS' },

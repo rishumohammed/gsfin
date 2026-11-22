@@ -1,5 +1,5 @@
 <script setup lang="ts">
-navigateTo('/admin/multi-tenant', { replace: true });
+navigateTo('/admin/partners', { replace: true });
 </script>
 
 <template>

@@ -1575,7 +1575,7 @@ const executeConvertToPartner = async () => {
 
 const goToPartnerDirectory = () => {
   convertSuccessModalOpen.value = false;
-  router.push('/admin/multi-tenant');
+  router.push('/admin/partners');
 };
 
 const confirmDelete = async (item: any) => {

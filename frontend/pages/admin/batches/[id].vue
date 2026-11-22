@@ -1,18 +1,11 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router';
-import { onMounted } from 'vue';
-
+import { useRoute } from 'vue-router';
 const route = useRoute();
-const router = useRouter();
-
-onMounted(() => {
-  router.replace(`/admin/multi-tenant/batches/${route.params.id}`);
-});
+navigateTo({ path: `/admin/partners/batches/${route.params.id}`, query: route.query }, { replace: true });
 </script>
 
 <template>
-  <div class="flex items-center justify-center min-h-screen">
+  <div class="flex items-center justify-center min-h-[400px]">
     <span class="spinner-sm-red"></span>
   </div>
 </template>
-

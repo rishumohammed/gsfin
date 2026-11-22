@@ -148,7 +148,7 @@
                 <div class="partner-identity-info">
                   <div class="partner-title-row">
                     <NuxtLink
-                      :to="'/admin/multi-tenant/' + partner.id + '?tab=batches'"
+                      :to="'/admin/partners/' + partner.id + '?tab=batches'"
                       class="partner-name-link"
                       title="View Partner Profile and Batches"
                     >
@@ -194,7 +194,7 @@
                 </div>
 
                 <NuxtLink
-                  :to="'/admin/multi-tenant/' + partner.id + '?tab=batches'"
+                  :to="'/admin/partners/' + partner.id + '?tab=batches'"
                   class="btn-view-batches"
                   title="View Exam Batches & Candidates in Partner Profile"
                 >

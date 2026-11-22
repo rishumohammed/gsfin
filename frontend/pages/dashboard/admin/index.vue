@@ -111,7 +111,7 @@
 
             <!-- Quick Action Shortcuts -->
             <div class="shortcuts-grid">
-              <NuxtLink to="/admin/multi-tenant" class="shortcut-card hover-red">
+              <NuxtLink to="/admin/partners" class="shortcut-card hover-red">
                 <div class="shortcut-icon icon-red">
                   <i class="mdi mdi-office-building-cog-outline"></i>
                 </div>
@@ -211,7 +211,7 @@
                 <span class="promo-tag">GSFIN Network</span>
                 <h3>Partner Center Management</h3>
                 <p>Monitor live sub-center exam batches, token purchases, and partner center accounts.</p>
-                <NuxtLink to="/admin/multi-tenant" class="btn-promo">
+                <NuxtLink to="/admin/partners" class="btn-promo">
                   Open Console <i class="mdi mdi-arrow-right"></i>
                 </NuxtLink>
               </div>
