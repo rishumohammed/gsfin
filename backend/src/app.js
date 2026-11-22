@@ -85,7 +85,7 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 import mainAdminRoutes, { ensureOrganizationsColumns } from './routes/main-admin.routes.js';
-import subCenterRoutes from './routes/sub-center.routes.js';
+import subCenterRoutes, { ensureStudentsColumns } from './routes/sub-center.routes.js';
 import assignmentSessionRoutes from './routes/assignment-session.routes.js';
 import { initBatchAutocloseJob } from './jobs/batch-autoclose.job.js';
 import { initMultitenantNotificationsJob } from './jobs/multitenant-notifications.job.js';
@@ -153,6 +153,11 @@ ExamCatalogService.ensureExamsCatalog().catch((err) => {
 // Auto-heal active administrator account to prevent accidental lockout
 ensureActiveAdmin().catch((err) => {
   console.error('[Startup] Failed to ensure active administrator account:', err);
+});
+
+// Auto-heal students columns if missing
+ensureStudentsColumns().catch((err) => {
+  console.error('[Startup] Failed to auto-initialize students columns:', err);
 });
 
 httpServer.listen(PORT, '0.0.0.0', () => {

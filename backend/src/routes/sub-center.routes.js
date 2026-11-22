@@ -11,6 +11,50 @@ import emailService from '../services/email.service.js';
 
 const router = express.Router();
 
+// Auto-healer for students table columns to ensure cross-MySQL compatibility without IF NOT EXISTS syntax errors
+export const ensureStudentsColumns = async () => {
+  try {
+    const requiredColumns = [
+      { name: 'password', type: 'VARCHAR(255) NULL' },
+      { name: 'initial_password', type: 'VARCHAR(255) NULL' },
+      { name: 'face_photo', type: 'LONGTEXT NULL' },
+      { name: 'face_descriptor', type: 'TEXT NULL' },
+      { name: 'otp_code', type: 'VARCHAR(10) NULL' },
+      { name: 'otp_expires_at', type: 'DATETIME NULL' },
+      { name: 'education_level', type: 'VARCHAR(100) NULL' },
+      { name: 'institution_name', type: 'VARCHAR(255) NULL' },
+      { name: 'gender', type: 'VARCHAR(50) NULL' },
+      { name: 'dob', type: 'DATE NULL' }
+    ];
+
+    let existingColNames = new Set();
+    try {
+      const [cols] = await pool.query('SHOW COLUMNS FROM students');
+      existingColNames = new Set((cols || []).map(c => (c.Field || c.COLUMN_NAME || '').toLowerCase()));
+    } catch (showErr) {
+      const [cols] = await pool.query(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'students'"
+      );
+      existingColNames = new Set((cols || []).map(c => c.COLUMN_NAME.toLowerCase()));
+    }
+
+    for (const col of requiredColumns) {
+      if (!existingColNames.has(col.name.toLowerCase())) {
+        try {
+          await pool.query(`ALTER TABLE students ADD COLUMN \`${col.name}\` ${col.type}`);
+          console.log(`[Auto-Heal] Added column '${col.name}' to students table.`);
+        } catch (colErr) {
+          if (colErr.errno !== 1060 && !colErr.message?.includes('Duplicate column')) {
+            console.warn(`[Auto-Heal] Column '${col.name}' add warning:`, colErr.message);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[Auto-Heal] Error in ensureStudentsColumns:', err);
+  }
+};
+
 // Authenticate and ensure user is sub_center_staff with valid org_id
 router.use(authenticateJWT, authorizeRoles('sub_center_staff', 'super_admin'), (req, res, next) => {
   if (req.user.role === 'sub_center_staff' && !req.user.org_id) {
@@ -76,23 +120,7 @@ router.post('/students', async (req, res) => {
 
   try {
     // Ensure table columns exist dynamically
-    try {
-      await pool.query(`
-        ALTER TABLE students
-          ADD COLUMN IF NOT EXISTS password VARCHAR(255) NULL AFTER email,
-          ADD COLUMN IF NOT EXISTS initial_password VARCHAR(255) NULL AFTER password,
-          ADD COLUMN IF NOT EXISTS face_photo LONGTEXT NULL,
-          ADD COLUMN IF NOT EXISTS face_descriptor TEXT NULL,
-          ADD COLUMN IF NOT EXISTS otp_code VARCHAR(10) NULL,
-          ADD COLUMN IF NOT EXISTS otp_expires_at DATETIME NULL,
-          ADD COLUMN IF NOT EXISTS education_level VARCHAR(100) NULL AFTER phone,
-          ADD COLUMN IF NOT EXISTS institution_name VARCHAR(255) NULL AFTER education_level,
-          ADD COLUMN IF NOT EXISTS gender VARCHAR(50) NULL AFTER institution_name,
-          ADD COLUMN IF NOT EXISTS dob DATE NULL AFTER gender
-      `);
-    } catch (e) {
-      // Ignore if columns exist or ALTER unsupported
-    }
+    await ensureStudentsColumns();
 
     // Generate clean initial password if not supplied
     const rawPassword = password && password.trim().length > 0
@@ -105,27 +133,65 @@ router.post('/students', async (req, res) => {
     const otpExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     const id = uuidv4();
-    await pool.query(
-      `INSERT INTO students (id, org_id, name, email, phone, password, initial_password, face_photo, face_descriptor, otp_code, otp_expires_at, education_level, institution_name, gender, dob) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        id, 
-        orgId, 
-        name, 
-        email, 
-        phone || null, 
-        hashedPassword, 
-        rawPassword,
-        face_photo || null,
-        face_descriptor ? (typeof face_descriptor === 'string' ? face_descriptor : JSON.stringify(face_descriptor)) : null,
-        otpCode,
-        otpExpiresAt,
-        education_level || null, 
-        institution_name || null, 
-        gender || null, 
-        dob || null
-      ]
-    );
+    const insertPayload = {
+      id,
+      org_id: orgId,
+      name,
+      email,
+      phone: phone || null,
+      password: hashedPassword,
+      initial_password: rawPassword,
+      face_photo: face_photo || null,
+      face_descriptor: face_descriptor ? (typeof face_descriptor === 'string' ? face_descriptor : JSON.stringify(face_descriptor)) : null,
+      otp_code: otpCode,
+      otp_expires_at: otpExpiresAt,
+      education_level: education_level || null,
+      institution_name: institution_name || null,
+      gender: gender || null,
+      dob: dob || null
+    };
+
+    try {
+      await pool.query(
+        `INSERT INTO students (id, org_id, name, email, phone, password, initial_password, face_photo, face_descriptor, otp_code, otp_expires_at, education_level, institution_name, gender, dob) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id, 
+          orgId, 
+          name, 
+          email, 
+          phone || null, 
+          hashedPassword, 
+          rawPassword,
+          face_photo || null,
+          insertPayload.face_descriptor,
+          otpCode,
+          otpExpiresAt,
+          education_level || null, 
+          institution_name || null, 
+          gender || null, 
+          dob || null
+        ]
+      );
+    } catch (insertErr) {
+      if (insertErr.code === 'ER_BAD_FIELD_ERROR' || insertErr.message?.includes('Unknown column')) {
+        console.warn('[Students Registration] Primary insert failed with unknown column, auto-healing columns and retrying...', insertErr.message);
+        await ensureStudentsColumns();
+
+        const [availableCols] = await pool.query('SHOW COLUMNS FROM students');
+        const colSet = new Set((availableCols || []).map(c => (c.Field || c.COLUMN_NAME || '').toLowerCase()));
+
+        const validKeys = Object.keys(insertPayload).filter(k => colSet.has(k.toLowerCase()));
+        const colList = validKeys.map(k => `\`${k}\``).join(', ');
+        const placeholders = validKeys.map(() => '?').join(', ');
+        const values = validKeys.map(k => insertPayload[k]);
+
+        await pool.query(`INSERT INTO students (${colList}) VALUES (${placeholders})`, values);
+        console.log('[Students Registration] Registered student successfully with adaptive schema.');
+      } else {
+        throw insertErr;
+      }
+    }
 
     // Fetch center name for email branding
     let centerName = 'GSFIN Authorized Test Center';
@@ -194,18 +260,33 @@ router.get('/students/:id', async (req, res) => {
   const orgId = getOrgId(req);
   const { id } = req.params;
   try {
-    const [students] = await pool.query(
-      `SELECT id, org_id, name, email, phone, initial_password, otp_code, face_photo, education_level, institution_name, gender, dob, created_at, updated_at
-       FROM students 
-       WHERE id = ? AND org_id = ?`,
-      [id, orgId]
-    );
-
-    if (students.length === 0) {
-      return res.status(404).json({ message: 'Candidate student not found in your organization.' });
+    let student;
+    try {
+      const [students] = await pool.query(
+        `SELECT id, org_id, name, email, phone, initial_password, otp_code, face_photo, education_level, institution_name, gender, dob, created_at, updated_at
+         FROM students 
+         WHERE id = ? AND org_id = ?`,
+        [id, orgId]
+      );
+      if (students.length === 0) {
+        return res.status(404).json({ message: 'Candidate student not found in your organization.' });
+      }
+      student = students[0];
+    } catch (queryErr) {
+      if (queryErr.code === 'ER_BAD_FIELD_ERROR' || queryErr.message?.includes('Unknown column')) {
+        await ensureStudentsColumns();
+        const [safeStudents] = await pool.query(
+          `SELECT * FROM students WHERE id = ? AND org_id = ?`,
+          [id, orgId]
+        );
+        if (safeStudents.length === 0) {
+          return res.status(404).json({ message: 'Candidate student not found in your organization.' });
+        }
+        student = safeStudents[0];
+      } else {
+        throw queryErr;
+      }
     }
-
-    const student = students[0];
 
     // Fetch student's exam assignments / history
     const [assignments] = await pool.query(
@@ -279,6 +360,7 @@ router.put('/students/:id', async (req, res) => {
   }
 
   try {
+    await ensureStudentsColumns();
     const [existing] = await pool.query(
       'SELECT id FROM students WHERE id = ? AND org_id = ?',
       [id, orgId]
@@ -332,6 +414,7 @@ router.post('/students/:id/resend-credentials', async (req, res) => {
   const { id } = req.params;
 
   try {
+    await ensureStudentsColumns();
     const [students] = await pool.query(
       `SELECT id, org_id, name, email, initial_password, otp_code 
        FROM students 
