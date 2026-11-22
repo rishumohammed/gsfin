@@ -51,14 +51,14 @@
               <div class="text-[11px] font-semibold text-red-600 uppercase tracking-wider">{{ authStore.userRole }}</div>
             </div>
             <v-list density="compact" class="pa-1.5 bg-white">
-              <v-list-item link :to="profileLink" class="rounded-lg py-2">
+              <v-list-item link :to="profileLink" :active="false" class="rounded-lg py-2 dropdown-item">
                 <template v-slot:prepend>
                   <v-icon icon="mdi-account-circle-outline" size="18" color="slate-600" class="mr-3"></v-icon>
                 </template>
                 <v-list-item-title class="text-xs font-semibold text-slate-800">My Profile</v-list-item-title>
               </v-list-item>
 
-              <v-list-item link :to="settingsLink" class="rounded-lg py-2">
+              <v-list-item v-if="settingsLink" link :to="settingsLink" :active="false" class="rounded-lg py-2 dropdown-item">
                 <template v-slot:prepend>
                   <v-icon icon="mdi-cog-outline" size="18" color="slate-600" class="mr-3"></v-icon>
                 </template>
@@ -67,7 +67,7 @@
 
               <v-divider class="my-1" opacity="0.12"></v-divider>
 
-              <v-list-item link @click="handleLogout" class="rounded-lg py-2">
+              <v-list-item link @click="handleLogout" :active="false" class="rounded-lg py-2 dropdown-item">
                 <template v-slot:prepend>
                   <v-icon icon="mdi-logout" size="18" color="red-600" class="mr-3"></v-icon>
                 </template>
@@ -122,12 +122,12 @@ const userInitials = computed(() => {
 const profileLink = computed(() => {
   const role = authStore.userRole;
   if (role === 'sub_center_staff') return '/sub-center?tab=profile';
-  return '/dashboard/admin';
+  return '/dashboard/profile';
 });
 
 const settingsLink = computed(() => {
   const role = authStore.userRole;
-  if (role === 'sub_center_staff') return '/sub-center?tab=profile';
+  if (role === 'sub_center_staff') return null;
   return '/dashboard/admin/settings';
 });
 
@@ -244,5 +244,17 @@ const handleSearch = () => {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif !important;
   font-size: 0.8125rem !important;
   letter-spacing: normal !important;
+}
+
+.user-dropdown-card :deep(.v-list-item--active),
+.user-dropdown-card :deep(.v-list-item--active .v-list-item__overlay) {
+  background: transparent !important;
+  opacity: 0 !important;
+}
+
+.user-dropdown-card :deep(.v-list-item:hover),
+.user-dropdown-card :deep(.v-list-item:hover .v-list-item__overlay) {
+  background: #F1F5F9 !important;
+  opacity: 1 !important;
 }
 </style>
