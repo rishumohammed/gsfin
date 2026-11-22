@@ -62,6 +62,7 @@ export class BatchService {
       let deductionIdx = 0;
       let walletRemainingForCurrentChunk = deductions[0].amount;
       const assignmentIds = [];
+      const assignments = [];
 
       for (const studentId of studentIds) {
         if (walletRemainingForCurrentChunk === 0 && deductionIdx < deductions.length - 1) {
@@ -80,10 +81,11 @@ export class BatchService {
           [assignmentId, studentId, examId, batchId, walletId, exam.max_attempts]
         );
         assignmentIds.push(assignmentId);
+        assignments.push({ assignmentId, studentId });
       }
 
       await connection.commit();
-      return { batchId, studentCount: studentIds.length, assignmentIds };
+      return { batchId, studentCount: studentIds.length, assignmentIds, assignments };
     } catch (error) {
       await connection.rollback();
       throw error;
@@ -147,6 +149,7 @@ export class BatchService {
       }
 
       // 3. Process additions
+      const newAssignments = [];
       if (addStudentIds.length > 0) {
         const deductions = await WalletService.deductTokensFIFO(connection, {
           orgId,
@@ -173,11 +176,12 @@ export class BatchService {
              VALUES (?, ?, ?, ?, ?, ?, 0, 'not_started')`,
             [assignmentId, studentId, batch.exam_id, batchId, walletId, batch.max_attempts]
           );
+          newAssignments.push({ assignmentId, studentId });
         }
       }
 
       await connection.commit();
-      return { success: true, added: addStudentIds.length, removed: removeStudentIds.length };
+      return { success: true, added: addStudentIds.length, removed: removeStudentIds.length, newAssignments, examId: batch.exam_id, opensAt: batch.opens_at, closesAt: batch.closes_at };
     } catch (error) {
       await connection.rollback();
       throw error;

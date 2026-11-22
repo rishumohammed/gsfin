@@ -20,7 +20,7 @@
           </div>
           <h1 class="admin-title">Create Examination Batch</h1>
           <p class="admin-subtitle">
-            Configure examination details, schedule sitting window, and enroll students in bulk. 1 student consumes 1 token.
+            Configure examination details, schedule exam window, and enroll students in bulk. 1 student consumes 1 token.
           </p>
         </div>
 
@@ -114,8 +114,8 @@
             <div class="panel-title-wrap">
               <i class="mdi mdi-calendar-clock panel-icon"></i>
               <div>
-                <h3>1. Certification Exam &amp; Schedule Window</h3>
-                <p class="panel-subtitle-text">Choose the approved qualification exam and optional sitting time limits</p>
+                <h3>1. Certification Exam &amp; Exam Window</h3>
+                <p class="panel-subtitle-text">Choose the approved qualification exam and optional exam window time limits</p>
               </div>
             </div>
             <span v-if="exams.length > 0" class="badge-chip chip-green">

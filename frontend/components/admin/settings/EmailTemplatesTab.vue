@@ -212,7 +212,7 @@ const currentPlaceholders = computed(() => {
     case 'exam_registration_otp':
       return ['brand_logo', 'name', 'exam_name', 'otp'];
     case 'exam_registration_success':
-      return ['brand_logo', 'name', 'exam_name', 'exam_date', 'exam_duration', 'email', 'password', 'exam_link'];
+      return ['brand_logo', 'name', 'exam_name', 'exam_window', 'exam_date', 'exam_duration', 'email', 'password', 'otp', 'exam_link', 'center_name'];
     case 'exam_reminder_1day':
     case 'exam_reminder_10min':
       return ['brand_logo', 'name', 'exam_name', 'exam_link'];
