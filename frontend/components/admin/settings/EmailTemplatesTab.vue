@@ -1,164 +1,177 @@
 <template>
   <div class="email-templates-tab">
-    <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-      <div>
-        <h2 class="text-base font-semibold text-slate-900 m-0">Email Templates</h2>
-        <p class="text-xs text-slate-500 mt-1 m-0">
-          Customize automated transactional email templates for student registrations, credentials, OTPs, and exams.
-        </p>
-      </div>
+    <!-- Intro Banner Matching EducationLevelsTab Style -->
+    <div class="intro-banner mb-6">
+      <div class="intro-banner-inner">
+        <div class="intro-left">
+          <div class="icon-avatar-lg bg-red-light text-red">
+            <i class="mdi mdi-email-edit-outline"></i>
+          </div>
+          <div>
+            <h3 class="intro-title">Transactional Email Templates</h3>
+            <p class="intro-desc">
+              Customize automated email notifications sent to students and candidates for registrations, credentials, OTP verification, and qualification exam updates.
+            </p>
+          </div>
+        </div>
 
-      <div class="flex items-center gap-2" v-if="templates.length > 0">
-        <button
-          type="button"
-          class="btn-glass text-xs py-1.5 px-3 inline-flex items-center gap-1.5"
-          :disabled="loading || resetting"
-          @click="resetToDefaults"
-          title="Restore standard default templates"
-        >
-          <i :class="['mdi', resetting ? 'mdi-loading spin-icon' : 'mdi-restore']"></i>
-          Restore Standard Defaults
-        </button>
+        <div class="intro-right">
+          <button
+            type="button"
+            class="btn-reset-defaults"
+            :disabled="loading || resetting"
+            @click="resetToDefaults"
+            title="Restore standard GSFIN templates"
+          >
+            <i :class="['mdi', resetting ? 'mdi-loading spin-icon' : 'mdi-restore']"></i>
+            <span>Restore Standard Defaults</span>
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-center py-16 text-slate-500 font-medium">
+    <div v-if="loading" class="empty-state-card">
       <span class="spinner-sm-red mb-2"></span>
-      <p class="text-xs">Loading email templates...</p>
+      <p class="empty-state-text">Loading email templates...</p>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="templates.length === 0" class="text-center py-16 border border-dashed border-slate-200 rounded-2xl bg-slate-50 my-2">
-      <div class="w-12 h-12 rounded-2xl bg-red-50 text-red flex items-center justify-center mx-auto mb-3 text-2xl border border-red-100">
+    <div v-else-if="templates.length === 0" class="empty-state-card">
+      <div class="icon-avatar-lg bg-red-light text-red mx-auto mb-3">
         <i class="mdi mdi-email-sync-outline"></i>
       </div>
-      <h3 class="text-sm font-semibold text-slate-800 m-0">No Email Templates Found</h3>
-      <p class="text-xs text-slate-500 mt-1 mb-4 max-w-md mx-auto">
+      <h4 class="empty-title">No Email Templates Found</h4>
+      <p class="empty-desc">
         Your email templates database is currently uninitialized. Click below to load all standard default templates.
       </p>
       <button
         type="button"
-        class="btn-red text-xs py-2 px-4 inline-flex items-center gap-1.5"
+        class="btn-red mt-4"
         :disabled="resetting"
         @click="resetToDefaults"
       >
         <i :class="['mdi', resetting ? 'mdi-loading spin-icon' : 'mdi-download-outline']"></i>
-        Initialize Default Templates
+        <span>Initialize Default Templates</span>
       </button>
     </div>
 
-    <!-- Templates Editor Grid -->
-    <div v-else class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
-      <!-- Left: Template List -->
-      <div class="md:col-span-4">
-        <div class="border border-slate-200 rounded-2xl bg-white p-2.5 shadow-xs">
-          <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 py-2 border-b border-slate-100 mb-1 flex items-center justify-between">
-            <span>Templates</span>
-            <span class="badge-chip chip-slate text-[10px]">{{ templates.length }}</span>
+    <!-- Master-Detail 2-Column Layout (Explicit Flex Grid) -->
+    <div v-else class="templates-workspace-layout">
+      <!-- Left Column: Template Selection List -->
+      <div class="templates-sidebar">
+        <div class="templates-list-card">
+          <div class="templates-list-header">
+            <span class="list-header-title">Templates Roster</span>
+            <span class="badge-chip chip-slate">{{ templates.length }}</span>
           </div>
 
-          <div class="space-y-1 max-h-[560px] overflow-y-auto">
+          <div class="templates-scroll-list">
             <button
               v-for="template in templates"
               :key="template.id"
               type="button"
-              :class="['template-item-btn', { active: selectedTemplate?.id === template.id }]"
+              :class="['template-item-card', { active: selectedTemplate?.id === template.id }]"
               @click="selectTemplate(template)"
             >
-              <div class="flex items-center gap-2">
-                <i :class="['mdi', selectedTemplate?.id === template.id ? 'mdi-email-open-outline text-red' : 'mdi-email-outline text-slate-400']"></i>
-                <div class="text-left min-w-0">
-                  <div class="text-xs font-semibold truncate text-slate-800">{{ template.name }}</div>
-                  <div class="text-[10px] text-slate-400 font-mono truncate">{{ template.id }}</div>
-                </div>
+              <div class="template-item-icon">
+                <i :class="['mdi', selectedTemplate?.id === template.id ? 'mdi-email-open-outline' : 'mdi-email-outline']"></i>
+              </div>
+              <div class="template-item-info">
+                <div class="template-item-title">{{ template.name }}</div>
+                <div class="template-item-id">{{ template.id }}</div>
               </div>
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Right: Template Editor -->
-      <div class="md:col-span-8">
-        <div v-if="selectedTemplate" class="border border-slate-200 rounded-2xl bg-white p-6 shadow-xs">
-          <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+      <!-- Right Column: Template Editor Workspace -->
+      <div class="template-editor-main">
+        <div v-if="selectedTemplate" class="editor-card">
+          <!-- Editor Header -->
+          <div class="editor-header-bar">
             <div>
-              <h3 class="text-sm font-semibold text-slate-900 m-0">Edit: {{ selectedTemplate.name }}</h3>
-              <span class="text-[10px] text-slate-400 font-mono">ID: {{ selectedTemplate.id }}</span>
+              <h3 class="editor-title">{{ selectedTemplate.name }}</h3>
+              <span class="editor-id-pill">ID: {{ selectedTemplate.id }}</span>
             </div>
-            <span class="badge-chip chip-green">
-              <i class="mdi mdi-check-circle"></i> Active
-            </span>
+            <div class="editor-status-wrap">
+              <span class="badge-chip chip-green">
+                <i class="mdi mdi-check-circle"></i> Active Template
+              </span>
+            </div>
           </div>
 
           <form @submit.prevent="saveTemplate">
             <!-- Email Subject -->
-            <div class="form-group mb-4">
+            <div class="form-group-block">
               <label class="form-label-xs">
-                Email Subject <span class="text-red">*</span>
+                Email Subject Line <span class="required-star">*</span>
               </label>
               <input
                 v-model="editForm.subject"
                 type="text"
-                class="modal-input-field"
-                placeholder="Enter email subject..."
+                class="editor-input"
+                placeholder="Enter email subject line..."
                 required
               />
             </div>
 
             <!-- HTML Body -->
-            <div class="form-group mb-4">
-              <div class="flex items-center justify-between mb-1">
-                <label class="form-label-xs mb-0">HTML Body</label>
-                <span class="text-[11px] text-slate-400">Raw HTML with placeholder tags</span>
+            <div class="form-group-block">
+              <div class="editor-label-row">
+                <label class="form-label-xs">HTML Email Template Body</label>
+                <span class="editor-label-hint">HTML markup with dynamic placeholders</span>
               </div>
               <textarea
                 v-model="editForm.body"
                 rows="14"
-                class="modal-input-field font-monospace text-xs leading-relaxed"
-                placeholder="Enter HTML template here..."
+                class="editor-textarea"
+                placeholder="Enter HTML body markup here..."
                 required
               ></textarea>
             </div>
 
             <!-- Placeholders Info Box -->
-            <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl mb-5">
-              <div class="text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <i class="mdi mdi-variable text-red"></i> Available Placeholders:
+            <div class="placeholders-box">
+              <div class="placeholders-header">
+                <i class="mdi mdi-code-braces text-red"></i> Available Dynamic Variables
               </div>
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <span
+              <div class="placeholders-list">
+                <button
                   v-for="ph in currentPlaceholders"
                   :key="ph"
-                  class="placeholder-tag cursor-pointer"
-                  title="Click to copy placeholder"
+                  type="button"
+                  class="placeholder-pill-btn"
+                  :title="`Click to copy {{${ph}}} to clipboard`"
                   @click="copyPlaceholder(ph)"
                 >
-                  <code v-pre>{{ {{ ph }} }}</code>
-                </span>
+                  <span>&#123;&#123;{{ ph }}&#125;&#125;</span>
+                  <i class="mdi mdi-content-copy text-xs"></i>
+                </button>
               </div>
-              <p class="text-[11px] text-slate-400 mt-2 mb-0">
-                Click any placeholder to copy it to clipboard. These will be dynamically replaced when sending emails.
+              <p class="placeholders-footnote">
+                Click any placeholder to copy it to clipboard. Placeholders are dynamically substituted when emails are generated.
               </p>
             </div>
 
-            <!-- Actions Row -->
-            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-              <button type="button" class="btn-glass text-xs py-2 px-4" @click="resetForm">
-                Discard Changes
+            <!-- Editor Action Buttons -->
+            <div class="editor-actions-row">
+              <button type="button" class="btn-glass" @click="resetForm">
+                <i class="mdi mdi-undo"></i> Discard Changes
               </button>
-              <button type="submit" class="btn-red text-xs py-2 px-4 inline-flex items-center gap-1.5" :disabled="saving">
-                <i :class="['mdi', saving ? 'mdi-loading spin-icon' : 'mdi-check']"></i>
-                {{ saving ? 'Saving Template...' : 'Save Template' }}
+              <button type="submit" class="btn-red" :disabled="saving">
+                <i :class="['mdi', saving ? 'mdi-loading spin-icon' : 'mdi-check-decagram']"></i>
+                <span>{{ saving ? 'Saving Template...' : 'Save Template Changes' }}</span>
               </button>
             </div>
           </form>
         </div>
 
-        <div v-else class="text-center py-20 border border-dashed border-slate-200 rounded-2xl bg-slate-50 text-slate-400">
-          <i class="mdi mdi-email-edit-outline text-4xl block mb-2 text-slate-300"></i>
-          <p class="text-xs font-semibold text-slate-600 m-0">Select a Template</p>
-          <p class="text-[11px] text-slate-400 mt-1 m-0">Choose an email template from the left list to edit its subject and body.</p>
+        <div v-else class="empty-state-card">
+          <i class="mdi mdi-email-edit-outline empty-icon"></i>
+          <h4 class="empty-title">Select a Template</h4>
+          <p class="empty-desc">Choose an email template from the roster on the left to edit its subject and body.</p>
         </div>
       </div>
     </div>
@@ -284,7 +297,7 @@ const saveTemplate = async () => {
 };
 
 const resetToDefaults = async () => {
-  if (!confirm('Are you sure you want to initialize/restore the default GSFIN email templates? Any custom edits will be reset.')) {
+  if (!confirm('Are you sure you want to restore all standard GSFIN email templates? Any custom edits will be replaced with defaults.')) {
     return;
   }
 
@@ -317,130 +330,493 @@ const copyPlaceholder = (ph: string) => {
 </script>
 
 <style scoped>
-.font-monospace {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
-}
-
-.template-item-btn {
-  width: 100%;
-  display: block;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.template-item-btn:hover {
+/* Intro Banner */
+.intro-banner {
   background: #F8FAFC;
-}
-.template-item-btn.active {
-  background: #FEF2F2;
-  border-color: rgba(227, 27, 35, 0.2);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  padding: 18px 24px;
+  margin-bottom: 24px;
 }
 
-.placeholder-tag {
-  display: inline-block;
-  padding: 2px 8px;
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 6px;
-  font-size: 0.72rem;
-  color: #0F172A;
-  transition: all 0.15s;
+.intro-banner-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 }
-.placeholder-tag:hover {
-  background: #F1F5F9;
-  border-color: #CBD5E1;
+
+.intro-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 800px;
+}
+
+.intro-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+}
+
+.intro-desc {
+  font-size: 0.8rem;
+  color: #64748B;
+  margin: 4px 0 0 0;
+  line-height: 1.5;
+}
+
+.icon-avatar-lg {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.bg-red-light {
+  background: rgba(227, 27, 35, 0.08);
+}
+.text-red {
   color: #E31B23;
 }
 
-.form-group {
+.btn-reset-defaults {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+.btn-reset-defaults:hover:not(:disabled) {
+  background: #FEF2F2;
+  border-color: rgba(227, 27, 35, 0.3);
+  color: #E31B23;
+}
+.btn-reset-defaults:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Master-Detail Workspace Layout */
+.templates-workspace-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+@media (max-width: 960px) {
+  .templates-workspace-layout {
+    flex-direction: column;
+  }
+}
+
+.templates-sidebar {
+  width: 320px;
+  flex-shrink: 0;
+}
+@media (max-width: 960px) {
+  .templates-sidebar {
+    width: 100%;
+  }
+}
+
+.template-editor-main {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+/* Templates List Card */
+.templates-list-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 18px;
+  padding: 12px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.02);
+}
+
+.templates-list-header {
+  padding: 10px 14px 12px 14px;
+  border-bottom: 1px solid #F1F5F9;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.list-header-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748B;
+}
+
+.templates-scroll-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.template-item-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: left;
+  box-sizing: border-box;
+}
+.template-item-card:hover {
+  background: #F8FAFC;
+}
+.template-item-card.active {
+  background: #FEF2F2;
+  border-color: rgba(227, 27, 35, 0.25);
+}
+.template-item-card.active .template-item-title {
+  color: #E31B23;
+}
+.template-item-card.active .template-item-icon {
+  background: #FEE2E2;
+  color: #E31B23;
+}
+
+.template-item-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #F1F5F9;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  transition: all 0.18s;
+}
+
+.template-item-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.template-item-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0F172A;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.template-item-id {
+  font-size: 0.7rem;
+  color: #94A3B8;
+  font-family: monospace;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Editor Card */
+.editor-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 18px;
+  padding: 24px 28px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.02);
+}
+
+.editor-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 18px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #F1F5F9;
+  flex-wrap: wrap;
+}
+
+.editor-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+}
+
+.editor-id-pill {
+  font-size: 0.72rem;
+  font-family: monospace;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.form-group-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
 }
 
 .form-label-xs {
   font-size: 0.78rem;
   font-weight: 600;
   color: #334155;
-}
-
-.modal-input-field {
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  background: #F8FAFC;
-  font-size: 0.86rem;
-  color: #0F172A;
-  outline: none;
-  box-sizing: border-box;
-  transition: all 0.15s;
-}
-.modal-input-field:focus {
-  border-color: #E31B23;
-  background: #FFFFFF;
-}
-
-.badge-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 50px;
-  font-size: 0.7rem;
-  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-.chip-green { background: rgba(16, 185, 129, 0.1); color: #059669; }
-.chip-slate { background: rgba(100, 116, 139, 0.1); color: #64748B; }
+
+.required-star {
+  color: #E31B23;
+}
+
+.editor-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.editor-label-hint {
+  font-size: 0.72rem;
+  color: #94A3B8;
+}
+
+.editor-input {
+  width: 100%;
+  padding: 11px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: #F8FAFC;
+  font-size: 0.88rem;
+  color: #0F172A;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: all 0.18s ease;
+}
+.editor-input:focus {
+  background: #FFFFFF;
+  border-color: #E31B23;
+  box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.1);
+}
+
+.editor-textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: #0B0F17;
+  color: #E2E8F0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.18s ease;
+  resize: vertical;
+  min-height: 280px;
+}
+.editor-textarea:focus {
+  border-color: #E31B23;
+  box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.15);
+}
+
+/* Placeholders Box */
+.placeholders-box {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+
+.placeholders-header {
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #475569;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.placeholders-list {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.placeholder-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  font-size: 0.75rem;
+  font-family: monospace;
+  color: #0F172A;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+.placeholder-pill-btn:hover {
+  background: #FEF2F2;
+  border-color: rgba(227, 27, 35, 0.3);
+  color: #E31B23;
+  transform: translateY(-1px);
+}
+
+.placeholders-footnote {
+  font-size: 0.72rem;
+  color: #94A3B8;
+  margin: 10px 0 0 0;
+  line-height: 1.4;
+}
+
+/* Editor Action Buttons */
+.editor-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid #F1F5F9;
+}
 
 .btn-glass {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: #FFFFFF;
   color: #334155;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  padding: 10px 18px;
+  border-radius: 12px;
   font-weight: 600;
+  font-size: 0.84rem;
   cursor: pointer;
-  transition: all 0.15s;
+  text-decoration: none;
+  transition: all 0.18s ease;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
-.btn-glass:hover:not(:disabled) {
-  background: #F8FAFC;
+.btn-glass:hover {
+  background: #F1F5F9;
   color: #0F172A;
+  border-color: rgba(15, 23, 42, 0.22);
 }
 
 .btn-red {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: #E31B23;
   color: #FFFFFF;
   border: none;
-  border-radius: 10px;
+  padding: 11px 24px;
+  border-radius: 12px;
   font-weight: 600;
-  box-shadow: 0 2px 6px rgba(227, 27, 35, 0.2);
+  font-size: 0.86rem;
+  box-shadow: 0 3px 12px rgba(227, 27, 35, 0.25);
+  transition: all 0.18s ease;
   cursor: pointer;
-  transition: all 0.15s;
+  text-decoration: none;
 }
 .btn-red:hover:not(:disabled) {
   background: #C4131B;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(227, 27, 35, 0.3);
 }
 .btn-red:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+}
+
+/* Badges */
+.badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.chip-green { background: rgba(16, 185, 129, 0.1); color: #059669; }
+.chip-slate { background: rgba(100, 116, 139, 0.1); color: #64748B; }
+
+/* Empty & Loading States */
+.empty-state-card {
+  text-align: center;
+  padding: 48px 24px;
+  background: #FFFFFF;
+  border: 1px dashed rgba(15, 23, 42, 0.14);
+  border-radius: 18px;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  color: #CBD5E1;
+  display: block;
+  margin-bottom: 8px;
+}
+.empty-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+}
+.empty-desc {
+  font-size: 0.8rem;
+  color: #64748B;
+  margin: 4px 0 0 0;
+}
+.empty-state-text {
+  font-size: 0.84rem;
+  color: #64748B;
+  font-weight: 500;
 }
 
 .spinner-sm-red {
   display: inline-block;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border: 2px solid rgba(227, 27, 35, 0.2);
   border-top-color: #E31B23;
   border-radius: 50%;
