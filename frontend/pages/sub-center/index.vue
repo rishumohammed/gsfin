@@ -186,68 +186,80 @@
             </div>
 
             <div class="table-responsive">
-              <v-data-table
-                :headers="batchHeaders"
-                :items="batches"
-                :loading="loadingBatches"
-                class="elevation-0 gsfin-table cursor-pointer"
-                @click:row="(_evt: any, row: any) => goToBatch(row.item?.id || row.item?.raw?.id)"
-              >
-                <template v-slot:no-data>
-                  <div class="text-center py-12 px-4">
-                    <i class="mdi mdi-clipboard-text-outline text-4xl block mb-2 text-slate-300"></i>
-                    <h3 class="text-base font-semibold text-slate-900">No Exam Batches Created</h3>
-                    <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-4">
-                      Create your first student exam batch to spend tokens and enroll candidates for certification exams.
-                    </p>
-                    <NuxtLink to="/sub-center/batches/create" class="btn-red no-underline inline-flex items-center gap-1">
-                      <i class="mdi mdi-plus"></i> Create Exam Batch
-                    </NuxtLink>
-                  </div>
-                </template>
-
-                <template v-slot:item.exam_name="{ item }: any">
-                  <div class="font-semibold text-slate-900 py-2">{{ item.exam_name }}</div>
-                </template>
-
-                <template v-slot:item.status="{ item }: any">
-                  <span
-                    :class="[
-                      'badge-chip',
-                      item.status === 'open' ? 'chip-green' :
-                      item.status === 'cancelled' ? 'chip-red' :
-                      'chip-slate'
-                    ]"
-                  >
-                    {{ item.status.toUpperCase() }}
-                  </span>
-                </template>
-
-                <template v-slot:item.student_count="{ item }: any">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-800">
-                    {{ item.student_count || 0 }} Candidates
-                  </span>
-                </template>
-
-                <template v-slot:item.opens_at="{ item }: any">
-                  <span class="text-xs text-slate-600 font-medium">{{ formatDate(item.opens_at) }}</span>
-                </template>
-
-                <template v-slot:item.closes_at="{ item }: any">
-                  <span class="text-xs text-slate-600 font-medium">{{ formatDate(item.closes_at) }}</span>
-                </template>
-
-                <template v-slot:item.actions="{ item }: any">
-                  <div class="action-btn-group">
-                    <NuxtLink :to="'/sub-center/batches/' + item.id" class="btn-table-action btn-view no-underline" title="View Batch &amp; Enrolled Candidates">
-                      <i class="mdi mdi-eye-outline"></i>
-                    </NuxtLink>
-                    <button v-if="item.status === 'open'" class="btn-table-action btn-danger" title="Cancel Batch" @click="cancelBatch(item)">
-                      <i class="mdi mdi-close-circle-outline"></i>
-                    </button>
-                  </div>
-                </template>
-              </v-data-table>
+              <table class="gsfin-table">
+                <thead>
+                  <tr>
+                    <th>Exam Certification</th>
+                    <th>Status</th>
+                    <th>Enrolled Candidates</th>
+                    <th>Opens At</th>
+                    <th>Closes At</th>
+                    <th class="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-if="loadingBatches">
+                    <td colspan="6" class="text-center py-12 text-slate-500">
+                      <span class="spinner-sm-red"></span> Loading Batches...
+                    </td>
+                  </tr>
+                  <tr v-else-if="batches.length === 0">
+                    <td colspan="6" class="text-center py-16">
+                      <div class="empty-state-box">
+                        <div class="empty-icon-wrap">
+                          <i class="mdi mdi-clipboard-text-outline"></i>
+                        </div>
+                        <h4 class="empty-state-title">No Exam Batches Created</h4>
+                        <p class="empty-state-desc">
+                          Create your first student exam batch to spend tokens and enroll candidates for certification exams.
+                        </p>
+                        <NuxtLink to="/sub-center/batches/create" class="btn-red btn-sm mt-3 inline-flex items-center gap-1.5 no-underline">
+                          <i class="mdi mdi-plus"></i> Create Exam Batch
+                        </NuxtLink>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr v-for="item in paginatedBatches" :key="item.id" class="cursor-pointer" @click="goToBatch(item.id)">
+                    <td>
+                      <div class="font-semibold text-slate-900">{{ item.exam_name }}</div>
+                      <div class="text-[11px] font-mono text-slate-400">Batch #{{ item.id?.slice(0, 8) }}</div>
+                    </td>
+                    <td>
+                      <span :class="['badge-chip', item.status === 'open' ? 'chip-green' : item.status === 'cancelled' ? 'chip-red' : 'chip-slate']">
+                        {{ item.status?.toUpperCase() }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-800">
+                        {{ item.student_count || 0 }} Candidates
+                      </span>
+                    </td>
+                    <td>
+                      <span class="text-xs text-slate-600 font-medium whitespace-nowrap">{{ formatDate(item.opens_at) }}</span>
+                    </td>
+                    <td>
+                      <span class="text-xs text-slate-600 font-medium whitespace-nowrap">{{ formatDate(item.closes_at) }}</span>
+                    </td>
+                    <td class="text-right" @click.stop>
+                      <div class="action-btn-group justify-end">
+                        <NuxtLink :to="'/sub-center/batches/' + item.id" class="btn-table-action btn-view no-underline" title="View Batch &amp; Enrolled Candidates">
+                          <i class="mdi mdi-eye-outline"></i>
+                        </NuxtLink>
+                        <button v-if="item.status === 'open'" class="btn-table-action btn-danger" title="Cancel Batch" @click="cancelBatch(item)">
+                          <i class="mdi mdi-close-circle-outline"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <AppPagination
+                v-if="batches.length > 0"
+                v-model="batchPage"
+                v-model:items-per-page="batchPerPage"
+                :total-items="batches.length"
+                :per-page-options="[10, 25, 50, 100]"
+              />
             </div>
           </div>
         </div>
@@ -269,73 +281,111 @@
                   <i class="mdi mdi-magnify search-icon"></i>
                   <input v-model="studentSearchQuery" type="text" placeholder="Search candidate name or email..." class="table-search-input" />
                 </div>
-                <button class="btn-red text-xs py-2 px-4" @click="openRegisterStudentModal">
+                <button class="btn-red text-xs py-2 px-4 inline-flex items-center gap-1.5" @click="openRegisterStudentModal">
                   <i class="mdi mdi-account-plus"></i> Register Candidate
                 </button>
               </div>
             </div>
 
             <div class="table-responsive">
-              <v-data-table
-                :headers="studentHeaders"
-                :items="filteredModalStudents"
-                :loading="loadingStudents"
-                class="elevation-0 gsfin-table"
-              >
-                <template v-slot:item.name="{ item }: any">
-                  <div class="flex items-center gap-2.5 py-1.5">
-                    <img v-if="item.face_photo" :src="item.face_photo" class="w-8 h-8 rounded-full object-cover border border-emerald-400 flex-shrink-0" />
-                    <div v-else class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs flex-shrink-0 font-semibold">
-                      {{ (item.name || 'ST').slice(0, 2).toUpperCase() }}
-                    </div>
-                    <div>
-                      <NuxtLink :to="'/sub-center/students/' + item.id" class="font-semibold text-slate-900 hover:text-red transition-colors block text-xs">
-                        {{ item.name }}
-                      </NuxtLink>
-                      <span class="text-[11px] text-slate-400 font-mono">{{ item.email }}</span>
-                    </div>
-                  </div>
-                </template>
-                <template v-slot:item.face_photo="{ item }: any">
-                  <span v-if="item.face_photo" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <i class="mdi mdi-check-circle text-xs"></i> Enrolled
-                  </span>
-                  <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                    <i class="mdi mdi-camera-outline text-xs"></i> Pending
-                  </span>
-                </template>
-                <template v-slot:item.email="{ item }: any">
-                  <span class="text-xs text-slate-600 font-mono">{{ item.email }}</span>
-                </template>
-                <template v-slot:item.phone="{ item }: any">
-                  <span class="text-xs text-slate-600 font-medium">{{ item.phone || '-' }}</span>
-                </template>
-                <template v-slot:item.education_level="{ item }: any">
-                  <span v-if="item.education_level" class="badge-pill bg-purple-50 text-purple-700 text-xs font-semibold px-2 py-0.5 rounded border border-purple-200">
-                    {{ item.education_level }}
-                  </span>
-                  <span v-else class="text-xs text-slate-400 italic">-</span>
-                </template>
-                <template v-slot:item.created_at="{ item }: any">
-                  <span class="text-xs text-slate-500 font-medium">{{ formatDate(item.created_at) }}</span>
-                </template>
-                <template v-slot:item.actions="{ item }: any">
-                  <div class="action-btn-group justify-end">
-                    <button class="btn-table-action btn-email" title="Resend Credentials & OTP Email via Resend" @click="resendStudentCredentials(item)">
-                      <i class="mdi mdi-email-sync-outline"></i>
-                    </button>
-                    <NuxtLink :to="'/sub-center/students/' + item.id" class="btn-table-action btn-view" title="View Dedicated Candidate Page">
-                      <i class="mdi mdi-eye-outline"></i>
-                    </NuxtLink>
-                    <button class="btn-table-action btn-edit" title="Edit Candidate" @click="openEditStudentModal(item)">
-                      <i class="mdi mdi-pencil-outline"></i>
-                    </button>
-                    <button class="btn-table-action btn-danger" title="Delete Candidate" @click="confirmDeleteStudent(item)">
-                      <i class="mdi mdi-trash-can-outline"></i>
-                    </button>
-                  </div>
-                </template>
-              </v-data-table>
+              <table class="gsfin-table">
+                <thead>
+                  <tr>
+                    <th>Candidate Student</th>
+                    <th>Face Biometrics</th>
+                    <th>Phone</th>
+                    <th>Education Level</th>
+                    <th>Registration Date</th>
+                    <th class="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-if="loadingStudents">
+                    <td colspan="6" class="text-center py-12 text-slate-500">
+                      <span class="spinner-sm-red"></span> Loading Candidate Directory...
+                    </td>
+                  </tr>
+                  <tr v-else-if="filteredModalStudents.length === 0">
+                    <td colspan="6" class="text-center py-16">
+                      <div class="empty-state-box">
+                        <div class="empty-icon-wrap">
+                          <i class="mdi mdi-account-group-outline"></i>
+                        </div>
+                        <h4 class="empty-state-title">No Candidates Found</h4>
+                        <p v-if="studentSearchQuery" class="empty-state-desc">
+                          No candidate records match your search query &quot;{{ studentSearchQuery }}&quot;.
+                        </p>
+                        <p v-else class="empty-state-desc">
+                          No candidate students registered yet in your test center directory.
+                        </p>
+                        <button v-if="!studentSearchQuery" class="btn-red btn-sm mt-3 inline-flex items-center gap-1.5" @click="openRegisterStudentModal">
+                          <i class="mdi mdi-account-plus"></i> Register First Candidate
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr v-for="item in paginatedStudents" :key="item.id">
+                    <td>
+                      <div class="candidate-cell">
+                        <img v-if="item.face_photo" :src="item.face_photo" class="candidate-avatar-photo" alt="" />
+                        <div v-else class="candidate-avatar-circle">
+                          {{ getInitials(item.name) }}
+                        </div>
+                        <div class="candidate-meta">
+                          <NuxtLink :to="'/sub-center/students/' + item.id" class="candidate-name-link" title="View Candidate Profile">
+                            {{ item.name }}
+                          </NuxtLink>
+                          <span class="candidate-email-text">{{ item.email }}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span v-if="item.face_photo" class="badge-chip chip-green">
+                        <i class="mdi mdi-face-recognition"></i> Enrolled
+                      </span>
+                      <span v-else class="badge-chip chip-amber">
+                        <i class="mdi mdi-camera-outline"></i> Pending
+                      </span>
+                    </td>
+                    <td>
+                      <span v-if="item.phone" class="font-mono text-xs text-slate-700 font-medium">{{ item.phone }}</span>
+                      <span v-else class="text-xs text-slate-400 italic">-</span>
+                    </td>
+                    <td>
+                      <span v-if="item.education_level" class="badge-chip chip-purple whitespace-nowrap">
+                        {{ item.education_level }}
+                      </span>
+                      <span v-else class="text-xs text-slate-400 italic">-</span>
+                    </td>
+                    <td>
+                      <span class="text-xs text-slate-500 font-medium whitespace-nowrap">{{ formatDate(item.created_at) }}</span>
+                    </td>
+                    <td class="text-right">
+                      <div class="action-btn-group justify-end">
+                        <button class="btn-table-action btn-email" title="Resend Credentials & OTP Email via Resend" @click="resendStudentCredentials(item)">
+                          <i class="mdi mdi-email-sync-outline"></i>
+                        </button>
+                        <NuxtLink :to="'/sub-center/students/' + item.id" class="btn-table-action btn-view" title="View Dedicated Candidate Page">
+                          <i class="mdi mdi-eye-outline"></i>
+                        </NuxtLink>
+                        <button class="btn-table-action btn-edit" title="Edit Candidate" @click="openEditStudentModal(item)">
+                          <i class="mdi mdi-pencil-outline"></i>
+                        </button>
+                        <button class="btn-table-action btn-danger" title="Delete Candidate" @click="confirmDeleteStudent(item)">
+                          <i class="mdi mdi-trash-can-outline"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <AppPagination
+                v-if="filteredModalStudents.length > 0"
+                v-model="studentPage"
+                v-model:items-per-page="studentPerPage"
+                :total-items="filteredModalStudents.length"
+                :per-page-options="[10, 25, 50, 100]"
+              />
             </div>
           </div>
         </div>
@@ -396,61 +446,78 @@
             </div>
 
             <div class="table-responsive">
-              <v-data-table
-                :headers="unifiedWalletHeaders"
-                :items="unifiedWalletEntries"
-                :loading="loadingTransactions || loadingTokenRequests"
-                class="elevation-0 gsfin-table"
-              >
-                <template v-slot:item.type="{ item }: any">
-                  <span
-                    :class="[
-                      'badge-chip',
-                      item.rawType === 'request' && item.status === 'pending' ? 'chip-amber' :
-                      item.rawType === 'request' && item.status === 'rejected' ? 'chip-red' :
-                      item.rawType === 'purchase' || item.rawType === 'redeem' || (item.rawType === 'request' && item.status === 'approved') ? 'chip-green' :
-                      item.rawType === 'consume' ? 'chip-red' :
-                      'chip-blue'
-                    ]"
-                  >
-                    <i :class="['mdi', item.icon]"></i>
-                    {{ item.typeLabel }}
-                  </span>
-                </template>
-
-                <template v-slot:item.token_count="{ item }: any">
-                  <span :class="item.tokenCountClass">
-                    {{ item.tokenCountDisplay }}
-                  </span>
-                </template>
-
-                <template v-slot:item.package_name="{ item }: any">
-                  <div class="font-semibold text-slate-800 text-xs">{{ item.package_name || 'System / Batch Allocation' }}</div>
-                  <div v-if="item.subDetails" class="text-[11px] text-slate-500 mt-0.5">{{ item.subDetails }}</div>
-                </template>
-
-                <template v-slot:item.reference="{ item }: any">
-                  <span v-if="item.reference" class="text-xs font-mono text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                    {{ item.reference }}
-                  </span>
-                  <span v-else class="text-xs text-slate-400 italic">-</span>
-                </template>
-
-                <template v-slot:item.status="{ item }: any">
-                  <span
-                    :class="[
-                      'badge-chip',
-                      item.statusClass
-                    ]"
-                  >
-                    {{ item.statusLabel }}
-                  </span>
-                </template>
-
-                <template v-slot:item.created_at="{ item }: any">
-                  <span class="text-xs text-slate-500 font-medium">{{ formatDate(item.created_at) }}</span>
-                </template>
-              </v-data-table>
+              <table class="gsfin-table">
+                <thead>
+                  <tr>
+                    <th>Activity Type</th>
+                    <th>Item / Package Description</th>
+                    <th>Tokens</th>
+                    <th>Reference / Invoice</th>
+                    <th>Status</th>
+                    <th class="text-right">Date &amp; Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-if="loadingTransactions || loadingTokenRequests">
+                    <td colspan="6" class="text-center py-12 text-slate-500">
+                      <span class="spinner-sm-red"></span> Loading Ledger Activity...
+                    </td>
+                  </tr>
+                  <tr v-else-if="unifiedWalletEntries.length === 0">
+                    <td colspan="6" class="text-center py-16 text-slate-500">
+                      <i class="mdi mdi-history text-3xl block mb-2 text-slate-300"></i>
+                      No activity records found in this category.
+                    </td>
+                  </tr>
+                  <tr v-for="(item, idx) in paginatedWalletEntries" :key="item.id || idx">
+                    <td>
+                      <span
+                        :class="[
+                          'badge-chip',
+                          item.rawType === 'request' && item.status === 'pending' ? 'chip-amber' :
+                          item.rawType === 'request' && item.status === 'rejected' ? 'chip-red' :
+                          item.rawType === 'purchase' || item.rawType === 'redeem' || (item.rawType === 'request' && item.status === 'approved') ? 'chip-green' :
+                          item.rawType === 'consume' ? 'chip-red' :
+                          'chip-blue'
+                        ]"
+                      >
+                        <i :class="['mdi', item.icon]"></i>
+                        {{ item.typeLabel }}
+                      </span>
+                    </td>
+                    <td>
+                      <div class="font-semibold text-slate-800 text-xs">{{ item.package_name || 'System / Batch Allocation' }}</div>
+                      <div v-if="item.subDetails" class="text-[11px] text-slate-500 mt-0.5">{{ item.subDetails }}</div>
+                    </td>
+                    <td>
+                      <span :class="item.tokenCountClass">
+                        {{ item.tokenCountDisplay }}
+                      </span>
+                    </td>
+                    <td>
+                      <span v-if="item.reference" class="text-xs font-mono text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                        {{ item.reference }}
+                      </span>
+                      <span v-else class="text-xs text-slate-400 italic">-</span>
+                    </td>
+                    <td>
+                      <span :class="['badge-chip', item.statusClass]">
+                        {{ item.statusLabel }}
+                      </span>
+                    </td>
+                    <td class="text-right">
+                      <span class="text-xs text-slate-500 font-medium whitespace-nowrap">{{ formatDate(item.created_at) }}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <AppPagination
+                v-if="unifiedWalletEntries.length > 0"
+                v-model="walletPage"
+                v-model:items-per-page="walletPerPage"
+                :total-items="unifiedWalletEntries.length"
+                :per-page-options="[10, 25, 50, 100]"
+              />
             </div>
           </div>
 
@@ -485,73 +552,90 @@
             </div>
 
             <div class="table-responsive">
-              <v-data-table
-                :headers="certificateHeaders"
-                :items="filteredCertificates"
-                :loading="loadingCertificates"
-                class="elevation-0 gsfin-table"
-              >
-                <template v-slot:no-data>
-                  <div class="text-center py-12 px-4">
-                    <i class="mdi mdi-file-certificate-outline text-4xl block mb-2 text-slate-300"></i>
-                    <h3 class="text-base font-semibold text-slate-900">No Certificates Issued Yet</h3>
-                    <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">
-                      Certificates will automatically appear here as enrolled candidates from {{ centerName }} complete and pass their batch exams.
-                    </p>
-                  </div>
-                </template>
-
-                <template v-slot:item.certificate_number="{ item }: any">
-                  <div class="flex items-center gap-2 py-2">
-                    <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 font-semibold flex items-center justify-center text-sm shrink-0 border border-emerald-100">
-                      <i class="mdi mdi-certificate"></i>
-                    </span>
-                    <div>
-                      <div class="font-mono font-semibold text-slate-900 text-xs">{{ item.certificate_number || item.id }}</div>
-                      <div class="text-[10px] text-slate-400 font-medium">Verified Certificate</div>
-                    </div>
-                  </div>
-                </template>
-
-                <template v-slot:item.student_name="{ item }: any">
-                  <div>
-                    <div class="font-semibold text-slate-900 text-xs">{{ item.student_name }}</div>
-                    <div class="text-[11px] text-slate-500 font-mono">{{ item.student_email }}</div>
-                  </div>
-                </template>
-
-                <template v-slot:item.exam_name="{ item }: any">
-                  <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
-                    {{ item.exam_name }}
-                  </span>
-                </template>
-
-                <template v-slot:item.issue_date="{ item }: any">
-                  <span class="text-xs text-slate-600 font-medium">{{ formatDate(item.issue_date) }}</span>
-                </template>
-
-                <template v-slot:item.actions="{ item }: any">
-                  <div class="action-btn-group">
-                    <a
-                      v-if="item.pdf_url"
-                      :href="item.pdf_url"
-                      target="_blank"
-                      class="btn-table-action btn-edit"
-                      title="Download PDF"
-                    >
-                      <i class="mdi mdi-download"></i>
-                    </a>
-                    <a
-                      :href="item.verification_url || ('/verify/' + (item.certificate_number || item.id))"
-                      target="_blank"
-                      class="btn-table-action btn-view"
-                      title="Verify Online"
-                    >
-                      <i class="mdi mdi-shield-check"></i>
-                    </a>
-                  </div>
-                </template>
-              </v-data-table>
+              <table class="gsfin-table">
+                <thead>
+                  <tr>
+                    <th>Certificate Number</th>
+                    <th>Candidate Student</th>
+                    <th>Certification Exam</th>
+                    <th>Issued Date</th>
+                    <th class="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-if="loadingCertificates">
+                    <td colspan="5" class="text-center py-12 text-slate-500">
+                      <span class="spinner-sm-red"></span> Loading Certificates...
+                    </td>
+                  </tr>
+                  <tr v-else-if="filteredCertificates.length === 0">
+                    <td colspan="5" class="text-center py-16">
+                      <div class="empty-state-box">
+                        <div class="empty-icon-wrap">
+                          <i class="mdi mdi-file-certificate-outline"></i>
+                        </div>
+                        <h4 class="empty-state-title">No Certificates Issued Yet</h4>
+                        <p class="empty-state-desc">
+                          Certificates will automatically appear here as enrolled candidates from {{ centerName }} complete and pass their batch exams.
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr v-for="item in paginatedCertificates" :key="item.id">
+                    <td>
+                      <div class="flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 font-semibold flex items-center justify-center text-sm shrink-0 border border-emerald-100">
+                          <i class="mdi mdi-certificate"></i>
+                        </span>
+                        <div>
+                          <div class="font-mono font-semibold text-slate-900 text-xs">{{ item.certificate_number || item.id }}</div>
+                          <div class="text-[10px] text-slate-400 font-medium">Verified Certificate</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="font-semibold text-slate-900 text-xs">{{ item.student_name }}</div>
+                      <div class="text-[11px] text-slate-500 font-mono">{{ item.student_email }}</div>
+                    </td>
+                    <td>
+                      <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+                        {{ item.exam_name }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="text-xs text-slate-600 font-medium whitespace-nowrap">{{ formatDate(item.issue_date) }}</span>
+                    </td>
+                    <td class="text-right">
+                      <div class="action-btn-group justify-end">
+                        <a
+                          v-if="item.pdf_url"
+                          :href="item.pdf_url"
+                          target="_blank"
+                          class="btn-table-action btn-edit"
+                          title="Download PDF"
+                        >
+                          <i class="mdi mdi-download"></i>
+                        </a>
+                        <a
+                          :href="item.verification_url || ('/verify/' + (item.certificate_number || item.id))"
+                          target="_blank"
+                          class="btn-table-action btn-view"
+                          title="Verify Online"
+                        >
+                          <i class="mdi mdi-shield-check"></i>
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <AppPagination
+                v-if="filteredCertificates.length > 0"
+                v-model="certPage"
+                v-model:items-per-page="certPerPage"
+                :total-items="filteredCertificates.length"
+                :per-page-options="[10, 25, 50, 100]"
+              />
             </div>
           </div>
         </div>
@@ -1533,6 +1617,54 @@ const certificateHeaders: any[] = [
   { title: 'Issue Date', key: 'issue_date' },
   { title: 'Actions', key: 'actions', sortable: false }
 ];
+
+// ─── Table Pagination & Helpers ───
+const batchPage = ref(1);
+const batchPerPage = ref(10);
+const paginatedBatches = computed(() => {
+  const start = (batchPage.value - 1) * batchPerPage.value;
+  return (batches.value || []).slice(start, start + batchPerPage.value);
+});
+
+const studentPage = ref(1);
+const studentPerPage = ref(10);
+const paginatedStudents = computed(() => {
+  const start = (studentPage.value - 1) * studentPerPage.value;
+  return (filteredModalStudents.value || []).slice(start, start + studentPerPage.value);
+});
+
+watch(studentSearchQuery, () => {
+  studentPage.value = 1;
+});
+
+const walletPage = ref(1);
+const walletPerPage = ref(10);
+const paginatedWalletEntries = computed(() => {
+  const start = (walletPage.value - 1) * walletPerPage.value;
+  return (unifiedWalletEntries.value || []).slice(start, start + walletPerPage.value);
+});
+
+watch(walletViewMode, () => {
+  walletPage.value = 1;
+});
+
+const certPage = ref(1);
+const certPerPage = ref(10);
+const paginatedCertificates = computed(() => {
+  const start = (certPage.value - 1) * certPerPage.value;
+  return (filteredCertificates.value || []).slice(start, start + certPerPage.value);
+});
+
+watch(certSearchQuery, () => {
+  certPage.value = 1;
+});
+
+const getInitials = (name?: string) => {
+  if (!name) return 'ST';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
 
 // Shortfall calculation
 const batchShortfall = computed(() => {
@@ -3673,5 +3805,233 @@ input[type="datetime-local"].modal-input-field {
 .btn-table-action.btn-email:hover {
   background: #EFF6FF;
   color: #1D4ED8;
+}
+
+/* ─── GSFIN TABLE DESIGN SYSTEM ─── */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.gsfin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.gsfin-table th {
+  padding: 14px 24px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748B;
+  background: #FAFAFD;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  white-space: nowrap;
+}
+
+.gsfin-table td {
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  font-size: 0.86rem;
+  font-weight: 400;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.gsfin-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.gsfin-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.candidate-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.candidate-avatar-photo {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #10B981;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.candidate-avatar-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(79, 70, 229, 0.08);
+  color: #4F46E5;
+  font-weight: 600;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(79, 70, 229, 0.15);
+}
+
+.candidate-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.candidate-name-link {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #0F172A;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.candidate-name-link:hover {
+  color: #E31B23;
+}
+
+.candidate-email-text {
+  font-size: 0.75rem;
+  color: #64748B;
+  font-family: var(--font-mono, monospace);
+  word-break: break-all;
+}
+
+.badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip-green {
+  background: #ECFDF5;
+  color: #047857;
+  border: 1px solid #A7F3D0;
+}
+
+.chip-amber {
+  background: #FFFBEB;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+
+.chip-red {
+  background: #FEF2F2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+}
+
+.chip-purple {
+  background: #F3E8FF;
+  color: #7E22CE;
+  border: 1px solid #E9D5FF;
+}
+
+.chip-blue {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+}
+
+.chip-slate {
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #E2E8F0;
+}
+
+.actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.action-btn-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-table-action {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #F1F5F9;
+  color: #64748B;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.btn-table-action:hover {
+  background: #FFFFFF;
+  color: #0F172A;
+  border-color: rgba(15, 23, 42, 0.12);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+.btn-table-action.btn-view:hover {
+  color: #2563EB;
+  background: #EFF6FF;
+}
+
+.btn-table-action.btn-edit:hover {
+  color: #4F46E5;
+  background: #EEF2FF;
+}
+
+.btn-table-action.btn-danger:hover {
+  color: #DC2626;
+  background: #FEF2F2;
+}
+
+.empty-state-box {
+  padding: 36px 20px;
+  text-align: center;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.empty-icon-wrap {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  background: #F1F5F9;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin: 0 auto 12px auto;
+}
+
+.empty-state-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0 0 4px 0;
+}
+
+.empty-state-desc {
+  font-size: 0.8rem;
+  color: #64748B;
+  margin: 0;
+  line-height: 1.45;
 }
 </style>
