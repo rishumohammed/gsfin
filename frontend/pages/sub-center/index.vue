@@ -1080,11 +1080,86 @@
               <div class="modal-footer flex items-center justify-between">
                 <button type="button" class="btn-glass" @click="showAddStudentModal = false">Cancel</button>
                 <button type="submit" class="btn-red" :disabled="savingStudent || !studentForm.name || !studentForm.email">
-                  <i :class="['mdi', savingStudent ? 'mdi-loading spin-icon' : (editingStudent ? 'mdi-content-save-check' : 'mdi-account-check')]"></i>
-                  {{ savingStudent ? 'Saving...' : (editingStudent ? 'Update Student' : 'Save Student') }}
+                  <i :class="['mdi', savingStudent ? 'mdi-loading spin-icon' : (editingStudent ? 'mdi-content-save-check' : 'mdi-email-fast')]"></i>
+                  {{ savingStudent ? 'Sending Verification...' : (editingStudent ? 'Update Student' : 'Verify Email & Save') }}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Student Email Verification OTP Modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showEmailOtpModal" class="modal-overlay" @click.self="showEmailOtpModal = false">
+          <div class="modal-card modal-card-sm text-center">
+            <div class="modal-header justify-between items-center pb-2">
+              <div class="modal-title-row">
+                <div class="modal-header-icon bg-red-50 text-red border border-red-100">
+                  <i class="mdi mdi-email-check-outline"></i>
+                </div>
+                <div class="modal-title-text text-left">
+                  <h3 style="font-weight: 600;">Verify Student Email</h3>
+                  <p>Confirm student email before finalizing registration</p>
+                </div>
+              </div>
+              <button class="modal-close-btn" @click="showEmailOtpModal = false" aria-label="Close modal">
+                <i class="mdi mdi-close"></i>
+              </button>
+            </div>
+
+            <div class="modal-body py-4">
+              <div class="email-otp-target-pill mb-4">
+                <i class="mdi mdi-email-fast-outline text-red text-base mr-1.5"></i>
+                <span>Code sent to: <strong>{{ studentForm.email }}</strong></span>
+              </div>
+
+              <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                Enter the 6-digit verification code dispatched to this student's email to confirm the address is valid and reachable.
+              </p>
+
+              <div class="otp-input-container mb-4">
+                <input
+                  v-model="emailOtpInput"
+                  type="text"
+                  maxlength="6"
+                  class="otp-digit-field text-center font-mono text-2xl tracking-[0.35em]"
+                  placeholder="000000"
+                  autocomplete="one-time-code"
+                  @keyup.enter="confirmEmailOtpAndRegister"
+                  autofocus
+                />
+              </div>
+
+              <div class="flex items-center justify-center gap-2 mb-2">
+                <button
+                  type="button"
+                  class="btn-text-resend text-xs font-semibold text-slate-600 hover:text-red disabled:text-slate-400 disabled:cursor-not-allowed"
+                  :disabled="otpCooldown > 0 || resendingOtp"
+                  @click="resendStudentEmailOtp"
+                >
+                  <i :class="['mdi', resendingOtp ? 'mdi-loading spin-icon' : 'mdi-refresh', 'mr-1']"></i>
+                  {{ otpCooldown > 0 ? `Resend Code (${otpCooldown}s)` : 'Resend Verification Code' }}
+                </button>
+              </div>
+            </div>
+
+            <div class="modal-footer flex items-center justify-between pt-3">
+              <button type="button" class="btn-glass text-xs" @click="showEmailOtpModal = false">
+                Change Email / Back
+              </button>
+              <button
+                type="button"
+                class="btn-red text-xs py-2 px-5 inline-flex items-center gap-1.5"
+                :disabled="verifyingAndRegistering || emailOtpInput.trim().length !== 6"
+                @click="confirmEmailOtpAndRegister"
+              >
+                <i :class="['mdi', verifyingAndRegistering ? 'mdi-loading spin-icon' : 'mdi-check-decagram']"></i>
+                {{ verifyingAndRegistering ? 'Verifying...' : 'Verify & Register' }}
+              </button>
+            </div>
           </div>
         </div>
       </Transition>
@@ -1446,6 +1521,27 @@ const isResendingEmail = ref(false);
 const showCredPassword = ref(false);
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
+
+// Student Email OTP Verification State
+const showEmailOtpModal = ref(false);
+const emailOtpInput = ref('');
+const sendingEmailOtp = ref(false);
+const resendingOtp = ref(false);
+const verifyingAndRegistering = ref(false);
+const otpCooldown = ref(0);
+let otpTimer: any = null;
+
+function startOtpCooldown(seconds = 60) {
+  otpCooldown.value = seconds;
+  if (otpTimer) clearInterval(otpTimer);
+  otpTimer = setInterval(() => {
+    if (otpCooldown.value > 0) {
+      otpCooldown.value--;
+    } else {
+      clearInterval(otpTimer);
+    }
+  }, 1000);
+}
 const educationLevels = ref<string[]>([
   'SSLC / 10th Standard',
   'Plus Two / 12th Standard',
@@ -1908,9 +2004,11 @@ async function registerStudent() {
     alert('Password and Confirm Password do not match.');
     return;
   }
-  savingStudent.value = true;
-  try {
-    if (editingStudent.value) {
+
+  // Editing existing student: update directly
+  if (editingStudent.value) {
+    savingStudent.value = true;
+    try {
       const studentId = editingStudent.value.id;
       const { data } = await api.put(`/sub-center/students/${studentId}`, studentForm.value);
       showAddStudentModal.value = false;
@@ -1926,19 +2024,72 @@ async function registerStudent() {
       resetStudentForm();
       await fetchStudents();
       alert('Student details updated successfully!');
-    } else {
-      const { data } = await api.post('/sub-center/students', studentForm.value);
-      showAddStudentModal.value = false;
-      stopStudentCamera();
-      newRegisteredCredentials.value = data;
-      showStudentCredentialsModal.value = true;
-      resetStudentForm();
-      await fetchStudents();
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || 'Failed to update student');
+    } finally {
+      savingStudent.value = false;
     }
+    return;
+  }
+
+  // Registering NEW student: send 6-digit email OTP to verify email correctness
+  savingStudent.value = true;
+  try {
+    const { data } = await api.post('/sub-center/students/send-email-otp', {
+      email: studentForm.value.email.trim(),
+      name: studentForm.value.name.trim()
+    });
+    emailOtpInput.value = '';
+    showEmailOtpModal.value = true;
+    startOtpCooldown(60);
   } catch (err: any) {
-    alert(err.response?.data?.message || err.message || 'Failed to save student');
+    alert(err.response?.data?.message || err.message || 'Failed to dispatch email verification code');
   } finally {
     savingStudent.value = false;
+  }
+}
+
+async function resendStudentEmailOtp() {
+  if (otpCooldown.value > 0 || resendingOtp.value) return;
+  resendingOtp.value = true;
+  try {
+    await api.post('/sub-center/students/send-email-otp', {
+      email: studentForm.value.email.trim(),
+      name: studentForm.value.name.trim()
+    });
+    emailOtpInput.value = '';
+    startOtpCooldown(60);
+    alert(`A fresh verification code was dispatched to ${studentForm.value.email}`);
+  } catch (err: any) {
+    alert(err.response?.data?.message || err.message || 'Failed to resend verification code');
+  } finally {
+    resendingOtp.value = false;
+  }
+}
+
+async function confirmEmailOtpAndRegister() {
+  if (!emailOtpInput.value || emailOtpInput.value.trim().length !== 6) {
+    alert('Please enter the 6-digit verification code sent to the student email.');
+    return;
+  }
+  verifyingAndRegistering.value = true;
+  try {
+    const payload = {
+      ...studentForm.value,
+      otp: emailOtpInput.value.trim()
+    };
+    const { data } = await api.post('/sub-center/students', payload);
+    showEmailOtpModal.value = false;
+    showAddStudentModal.value = false;
+    stopStudentCamera();
+    newRegisteredCredentials.value = data;
+    showStudentCredentialsModal.value = true;
+    resetStudentForm();
+    await fetchStudents();
+  } catch (err: any) {
+    alert(err.response?.data?.message || err.message || 'Failed to verify email or complete registration');
+  } finally {
+    verifyingAndRegistering.value = false;
   }
 }
 
@@ -4046,5 +4197,64 @@ input[type="datetime-local"].modal-input-field {
   color: #64748B;
   margin: 0;
   line-height: 1.45;
+}
+
+/* Student Email Verification OTP Modal Styles */
+.modal-card-sm {
+  max-width: 440px !important;
+  width: 92%;
+}
+
+.email-otp-target-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  color: #991B1B;
+  word-break: break-all;
+}
+
+.otp-input-container {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.otp-digit-field {
+  width: 100%;
+  max-width: 280px;
+  padding: 12px 16px;
+  border: 2px solid rgba(15, 23, 42, 0.15);
+  border-radius: 12px;
+  background: #FFFFFF;
+  color: #0F172A;
+  font-size: 1.5rem;
+  font-family: monospace;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.35em;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.otp-digit-field:focus {
+  border-color: #E31B23;
+  box-shadow: 0 0 0 4px rgba(227, 27, 35, 0.1);
+}
+
+.btn-text-resend {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-text-resend:hover:not(:disabled) {
+  background: #F1F5F9;
 }
 </style>

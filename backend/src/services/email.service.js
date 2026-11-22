@@ -375,6 +375,46 @@ class EmailService {
       return { success: false, error: error.message };
     }
   }
+
+  async sendStudentRegistrationOtp({ to, studentName, otpCode, centerName }) {
+    try {
+      const subject = `Your Verification Code: ${otpCode} - Student Registration`;
+      const html = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+          <div style="background: #0f172a; padding: 24px 32px; border-bottom: 3px solid #e31b23;">
+            <h2 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em;">GSFIN GLOBAL STANDARDS</h2>
+            <p style="color: #94a3b8; margin: 4px 0 0 0; font-size: 13px;">Official Candidate Registration Verification</p>
+          </div>
+          <div style="padding: 32px;">
+            <p style="font-size: 16px; color: #1e293b; margin-top: 0;">Hello <strong>${studentName || 'Student'}</strong>,</p>
+            <p style="font-size: 14px; color: #475569; line-height: 1.6;">
+              Please use the verification code below to verify your email address and confirm your student enrollment at <strong>${centerName || 'GSFIN Authorized Test Center'}</strong>.
+            </p>
+
+            <div style="background: #fef2f2; border: 1.5px dashed #f87171; border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;">
+              <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #b91c1c; letter-spacing: 0.05em; margin-bottom: 8px;">Email Verification Code (OTP)</div>
+              <div style="font-size: 36px; font-family: monospace; font-weight: 800; color: #e31b23; letter-spacing: 0.25em;">${otpCode}</div>
+              <p style="font-size: 12px; color: #7f1d1d; margin: 8px 0 0 0;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
+            </div>
+
+            <p style="font-size: 12px; color: #94a3b8; margin-top: 24px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+              This is an automated security verification from the GSFIN Examination &amp; Certification Network.
+            </p>
+          </div>
+        </div>
+      `;
+
+      const result = await this.sendEmail({
+        to,
+        subject,
+        html
+      });
+      return { success: true, result };
+    } catch (error) {
+      console.error('Failed to send student registration OTP email:', error);
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 export default new EmailService();

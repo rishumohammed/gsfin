@@ -1,7 +1,7 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
-import { pool } from '../db/connection.js';
+import { pool, redis } from '../db/connection.js';
 import { authenticateJWT, authorizeRoles } from '../middleware/auth.js';
 import { WalletService } from '../services/wallet.service.js';
 import { BatchService } from '../services/batch.service.js';
@@ -110,12 +110,126 @@ router.get('/students', async (req, res) => {
   }
 });
 
+// In-memory fallback OTP storage for student registration (with Redis integration)
+const studentRegOtpMap = new Map();
+
+const storeStudentOtp = async (orgId, email, otp) => {
+  const key = `student_reg_otp:${orgId}:${email.toLowerCase().trim()}`;
+  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+  studentRegOtpMap.set(key, { otp, expiresAt });
+  try {
+    if (redis && redis.status === 'ready') {
+      await redis.setex(key, 600, otp);
+    }
+  } catch (e) {}
+};
+
+const verifyStudentOtp = async (orgId, email, userOtp) => {
+  if (!userOtp) return false;
+  const key = `student_reg_otp:${orgId}:${email.toLowerCase().trim()}`;
+  let storedOtp = null;
+  try {
+    if (redis && redis.status === 'ready') {
+      storedOtp = await redis.get(key);
+    }
+  } catch (e) {}
+  if (!storedOtp) {
+    const mem = studentRegOtpMap.get(key);
+    if (mem && mem.expiresAt > Date.now()) {
+      storedOtp = mem.otp;
+    }
+  }
+  if (!storedOtp) return false;
+  return String(storedOtp).trim() === String(userOtp).trim();
+};
+
+const clearStudentOtp = async (orgId, email) => {
+  const key = `student_reg_otp:${orgId}:${email.toLowerCase().trim()}`;
+  studentRegOtpMap.delete(key);
+  try {
+    if (redis && redis.status === 'ready') {
+      await redis.del(key);
+    }
+  } catch (e) {}
+};
+
+router.post('/students/send-email-otp', async (req, res) => {
+  const orgId = getOrgId(req);
+  const { email, name } = req.body;
+
+  if (!email || !email.includes('@')) {
+    return res.status(400).json({ message: 'A valid email address is required.' });
+  }
+
+  try {
+    // Check if student with this email is already registered in this organization
+    const [existing] = await pool.query(
+      'SELECT id FROM students WHERE email = ? AND org_id = ?',
+      [email.toLowerCase().trim(), orgId]
+    );
+    if (existing.length > 0) {
+      return res.status(400).json({ message: 'A student with this email address is already registered in your center.' });
+    }
+
+    // Generate 6-digit verification code
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    await storeStudentOtp(orgId, email, otp);
+
+    // Fetch center name
+    let centerName = 'GSFIN Authorized Test Center';
+    try {
+      const [orgs] = await pool.query('SELECT name FROM organizations WHERE id = ?', [orgId]);
+      if (orgs.length > 0 && orgs[0].name) centerName = orgs[0].name;
+    } catch (e) {}
+
+    // Dispatch OTP email
+    const emailRes = await emailService.sendStudentRegistrationOtp({
+      to: email.trim(),
+      studentName: name || 'Student',
+      otpCode: otp,
+      centerName
+    });
+
+    if (emailRes?.result?.status === 'logged_to_console') {
+      return res.json({
+        success: true,
+        simulated: true,
+        message: `Verification code generated: ${otp} (Logged to server console in dev mode as Resend API key is not configured)`
+      });
+    }
+
+    if (emailRes && !emailRes.success) {
+      return res.status(500).json({
+        message: emailRes.error || 'Failed to dispatch email verification code. Please check email configuration.'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: `A 6-digit verification code has been dispatched to ${email}.`
+    });
+  } catch (error) {
+    console.error('Send student registration OTP error:', error);
+    res.status(500).json({ message: error.message || 'Failed to send verification code.' });
+  }
+});
+
 router.post('/students', async (req, res) => {
   const orgId = getOrgId(req);
-  const { name, email, phone, password, face_photo, face_descriptor, education_level, institution_name, gender, dob } = req.body;
+  const { name, email, phone, password, face_photo, face_descriptor, education_level, institution_name, gender, dob, otp } = req.body;
 
   if (!name || !email) {
     return res.status(400).json({ message: 'Student full name and email address are required.' });
+  }
+
+  // Verify Email OTP before registration
+  if (!otp || String(otp).trim().length !== 6) {
+    return res.status(400).json({ message: 'A valid 6-digit email verification OTP is required to register a student.' });
+  }
+
+  const isOtpValid = await verifyStudentOtp(orgId, email, otp);
+  if (!isOtpValid) {
+    return res.status(400).json({ message: 'Invalid or expired email verification code. Please check the code or request a new OTP.' });
   }
 
   try {
@@ -192,6 +306,9 @@ router.post('/students', async (req, res) => {
         throw insertErr;
       }
     }
+
+    // Clear verification OTP since registration succeeded
+    await clearStudentOtp(orgId, email);
 
     // Fetch center name for email branding
     let centerName = 'GSFIN Authorized Test Center';
