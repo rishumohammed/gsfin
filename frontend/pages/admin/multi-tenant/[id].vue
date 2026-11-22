@@ -632,12 +632,7 @@
               </div>
 
               <div class="form-group">
-                <div class="flex items-center justify-between mb-1">
-                  <label class="form-label mb-0">Approved Training Programs</label>
-                  <NuxtLink to="/dashboard/admin/settings?tab=partner_settings" class="text-[11px] text-red hover:underline font-medium">
-                    <i class="mdi mdi-cog-outline"></i> Manage in Settings
-                  </NuxtLink>
-                </div>
+                <label class="form-label">Approved Training Programs</label>
                 <div class="max-h-48 overflow-y-auto custom-scrollbar p-3 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <label v-for="prog in availablePrograms" :key="prog" class="flex items-center gap-2 text-xs text-slate-700 font-semibold cursor-pointer">
                     <input

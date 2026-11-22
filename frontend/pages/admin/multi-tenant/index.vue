@@ -774,12 +774,7 @@
 
               <div class="form-row-2 mb-3">
                 <div class="form-group">
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="form-label mb-0">Country *</label>
-                    <NuxtLink to="/dashboard/admin/settings?tab=partner_settings" class="text-[11px] text-red hover:underline font-medium">
-                      <i class="mdi mdi-cog-outline"></i> Manage in Settings
-                    </NuxtLink>
-                  </div>
+                  <label class="form-label">Country *</label>
                   <select v-model="orgForm.country" class="modal-select">
                     <option value="" disabled>Select Country</option>
                     <option v-for="c in configuredCountries" :key="c" :value="c">{{ c }}</option>
@@ -797,14 +792,9 @@
               <div class="form-group mb-3">
                 <div class="flex items-center justify-between mb-1">
                   <label class="form-label mb-0">Approved Training Programs</label>
-                  <div class="flex items-center gap-3">
-                    <button type="button" class="text-[11px] text-red hover:underline font-medium" @click="toggleSelectAllPrograms">
-                      {{ (orgForm.programs || []).length === availablePrograms.length ? 'Deselect All' : 'Select All' }}
-                    </button>
-                    <NuxtLink to="/dashboard/admin/settings?tab=partner_settings" class="text-[11px] text-red hover:underline font-medium">
-                      <i class="mdi mdi-cog-outline"></i> Manage in Settings
-                    </NuxtLink>
-                  </div>
+                  <button type="button" class="text-[11px] text-red hover:underline font-medium" @click="toggleSelectAllPrograms">
+                    {{ (orgForm.programs || []).length === availablePrograms.length ? 'Deselect All' : 'Select All' }}
+                  </button>
                 </div>
                 <div class="checkbox-grid max-h-56 overflow-y-auto custom-scrollbar">
                   <label v-for="prog in availablePrograms" :key="prog" class="checkbox-label">
