@@ -50,30 +50,24 @@
               <div class="text-sm font-semibold text-slate-900 leading-tight mb-0.5">{{ authStore.user?.name || 'User Account' }}</div>
               <div class="text-[11px] font-semibold text-red-600 uppercase tracking-wider">{{ authStore.userRole }}</div>
             </div>
-            <v-list density="compact" class="pa-1.5 bg-white">
-              <v-list-item link :to="profileLink" :active="false" class="rounded-lg py-2 dropdown-item">
-                <template v-slot:prepend>
-                  <v-icon icon="mdi-account-circle-outline" size="18" color="slate-600" class="mr-3"></v-icon>
-                </template>
-                <v-list-item-title class="text-xs font-semibold text-slate-800">My Profile</v-list-item-title>
-              </v-list-item>
+            <div class="user-dropdown-menu">
+              <NuxtLink :to="profileLink" class="user-dropdown-item">
+                <i class="mdi mdi-account-circle-outline user-dropdown-icon"></i>
+                <span class="user-dropdown-text">My Profile</span>
+              </NuxtLink>
 
-              <v-list-item v-if="settingsLink" link :to="settingsLink" :active="false" class="rounded-lg py-2 dropdown-item">
-                <template v-slot:prepend>
-                  <v-icon icon="mdi-cog-outline" size="18" color="slate-600" class="mr-3"></v-icon>
-                </template>
-                <v-list-item-title class="text-xs font-semibold text-slate-800">Settings</v-list-item-title>
-              </v-list-item>
+              <NuxtLink v-if="settingsLink" :to="settingsLink" class="user-dropdown-item">
+                <i class="mdi mdi-cog-outline user-dropdown-icon"></i>
+                <span class="user-dropdown-text">Settings</span>
+              </NuxtLink>
 
-              <v-divider class="my-1" opacity="0.12"></v-divider>
+              <div class="user-dropdown-divider"></div>
 
-              <v-list-item link @click="handleLogout" :active="false" class="rounded-lg py-2 dropdown-item">
-                <template v-slot:prepend>
-                  <v-icon icon="mdi-logout" size="18" color="red-600" class="mr-3"></v-icon>
-                </template>
-                <v-list-item-title class="text-xs font-semibold text-red-600">Logout</v-list-item-title>
-              </v-list-item>
-            </v-list>
+              <button type="button" class="user-dropdown-item user-dropdown-logout" @click="handleLogout">
+                <i class="mdi mdi-logout user-dropdown-logout-icon"></i>
+                <span class="user-dropdown-logout-text">Logout</span>
+              </button>
+            </div>
           </v-card>
         </v-menu>
       </div>
@@ -235,26 +229,85 @@ const handleSearch = () => {
 
 .user-dropdown-card {
   background: #ffffff !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12) !important;
+  font-family: inherit !important;
 }
 
-.user-dropdown-card :deep(.v-list-item-title) {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif !important;
-  font-size: 0.8125rem !important;
-  letter-spacing: normal !important;
+.user-dropdown-menu {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #ffffff;
 }
 
-.user-dropdown-card :deep(.v-list-item--active),
-.user-dropdown-card :deep(.v-list-item--active .v-list-item__overlay) {
-  background: transparent !important;
-  opacity: 0 !important;
+.user-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: #1E293B !important;
+  text-decoration: none !important;
+  background: transparent;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  text-align: left;
 }
 
-.user-dropdown-card :deep(.v-list-item:hover),
-.user-dropdown-card :deep(.v-list-item:hover .v-list-item__overlay) {
+.user-dropdown-icon {
+  font-size: 1.15rem;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-dropdown-text {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1E293B;
+  line-height: 1.2;
+}
+
+.user-dropdown-item:hover {
   background: #F1F5F9 !important;
-  opacity: 1 !important;
+}
+
+.user-dropdown-item:hover .user-dropdown-icon {
+  color: #0F172A;
+}
+
+.user-dropdown-item:hover .user-dropdown-text {
+  color: #0F172A !important;
+}
+
+.user-dropdown-divider {
+  height: 1px;
+  background: rgba(15, 23, 42, 0.08);
+  margin: 4px 6px;
+}
+
+.user-dropdown-logout-icon {
+  font-size: 1.15rem;
+  color: #DC2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-dropdown-logout-text {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #DC2626;
+  line-height: 1.2;
+}
+
+.user-dropdown-logout:hover {
+  background: #FEF2F2 !important;
 }
 </style>
