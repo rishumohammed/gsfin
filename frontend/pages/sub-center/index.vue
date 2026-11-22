@@ -1000,7 +1000,6 @@
                     <div class="flex items-center justify-between mb-1">
                       <label class="form-label-xs mb-0">
                         {{ editingStudent ? 'New Password (Optional)' : 'Password' }}
-                        <span v-if="!editingStudent" class="required-star">*</span>
                       </label>
                       <button
                         type="button"
@@ -1827,6 +1826,8 @@ function generateAndFillStudentPassword() {
   const p = generateRandomStudentPassword();
   studentForm.value.password = p;
   studentForm.value.confirm_password = p;
+  showPassword.value = true;
+  showConfirmPassword.value = true;
 }
 
 async function startStudentCamera() {
@@ -1949,7 +1950,6 @@ function resetStudentForm() {
 
 function openRegisterStudentModal() {
   resetStudentForm();
-  generateAndFillStudentPassword();
   showAddStudentModal.value = true;
 }
 
