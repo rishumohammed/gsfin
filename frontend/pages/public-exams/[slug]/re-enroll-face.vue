@@ -234,7 +234,7 @@
             webkit-playsinline
             muted
             class="w-100 h-100"
-            style="object-fit: cover; transform: scaleX(-1);"
+            style="object-fit: cover; transform: none;"
           ></video>
           
           <!-- Face Oval Guide (Glows Green when Ready) -->

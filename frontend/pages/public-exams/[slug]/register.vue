@@ -221,7 +221,7 @@
                   </v-alert>
 
                   <div class="position-relative mx-auto rounded-xl overflow-hidden border mb-4 bg-black" style="max-width: 380px; height: 260px;">
-                    <video ref="regVideoRef" autoplay playsinline muted class="w-100 h-100" style="object-fit: cover; transform: scaleX(-1);"></video>
+                    <video ref="regVideoRef" autoplay playsinline muted class="w-100 h-100" style="object-fit: cover; transform: none;"></video>
                     
                     <div class="face-oval-frame" :class="isFaceReady ? 'oval-ready' : 'oval-not-ready'"></div>
 
