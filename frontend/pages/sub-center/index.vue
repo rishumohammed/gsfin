@@ -955,12 +955,9 @@
                   </div>
                 </div>
 
-                <!-- Row 4: Education Level (Managed from Main Admin Panel!) -->
+                <!-- Row 4: Education Level -->
                 <div class="form-group mb-4">
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="form-label-xs mb-0">Education Level</label>
-                    <span class="text-[11px] text-slate-400 font-semibold">Managed from Main Admin</span>
-                  </div>
+                  <label class="form-label-xs">Education Level</label>
                   <div class="custom-select-wrapper">
                     <select v-model="studentForm.education_level" class="modal-input-field modal-select">
                       <option value="" disabled>Choose Education Level...</option>
