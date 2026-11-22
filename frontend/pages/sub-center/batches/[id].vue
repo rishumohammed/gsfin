@@ -24,6 +24,17 @@
         </div>
       </div>
 
+      <!-- ═══ FEEDBACK TOAST / BANNER ═══ -->
+      <Transition name="fade">
+        <div v-if="feedbackMessage" :class="['feedback-toast-banner', feedbackMessage.type === 'success' ? 'toast-success' : 'toast-error']">
+          <i :class="['mdi', feedbackMessage.type === 'success' ? 'mdi-check-circle-outline' : 'mdi-alert-circle-outline']"></i>
+          <span class="toast-message-text">{{ feedbackMessage.text }}</span>
+          <button type="button" class="toast-close-btn" @click="feedbackMessage = null">
+            <i class="mdi mdi-close"></i>
+          </button>
+        </div>
+      </Transition>
+
       <!-- ═══ LOADING STATE ═══ -->
       <div v-if="loading && !batch" class="loading-state-card">
         <span class="spinner-sm-red mb-2"></span>
@@ -96,7 +107,43 @@
             </div>
           </div>
 
+          <!-- Hero Action Controls -->
           <div class="hero-right">
+            <!-- Edit Batch Window -->
+            <button
+              type="button"
+              class="btn-hero-action"
+              @click="openEditBatchModal"
+              title="Edit Exam Window Schedule"
+            >
+              <i class="mdi mdi-calendar-edit"></i>
+              <span>Edit Batch Window</span>
+            </button>
+
+            <!-- Add Candidates -->
+            <button
+              type="button"
+              class="btn-hero-action btn-hero-primary"
+              @click="openAddStudentsModal"
+              title="Add Candidates to this Batch"
+            >
+              <i class="mdi mdi-account-plus-outline"></i>
+              <span>Add Candidates</span>
+            </button>
+
+            <!-- Resend Email to All -->
+            <button
+              type="button"
+              class="btn-hero-action"
+              :disabled="resendingEmailAll || assignments.length === 0"
+              @click="resendBatchEmailAll"
+              title="Resend Examination Details & Sitting Links to All Candidates"
+            >
+              <i :class="['mdi', resendingEmailAll ? 'mdi-loading spin-icon' : 'mdi-email-fast-outline']"></i>
+              <span>{{ resendingEmailAll ? 'Sending...' : 'Resend Email to All' }}</span>
+            </button>
+
+            <!-- Create New Batch -->
             <NuxtLink to="/sub-center/batches/create" class="btn-new-batch">
               <i class="mdi mdi-plus-circle-outline"></i>
               <span>Create New Batch</span>
@@ -169,6 +216,27 @@
 
             <!-- Header Action Tools -->
             <div class="roster-header-actions">
+              <button
+                type="button"
+                class="btn-roster-action btn-roster-primary"
+                @click="openAddStudentsModal"
+                title="Add More Candidates to this Batch"
+              >
+                <i class="mdi mdi-account-plus-outline"></i>
+                <span>Add Candidates</span>
+              </button>
+
+              <button
+                type="button"
+                class="btn-roster-action"
+                :disabled="resendingEmailAll || assignments.length === 0"
+                @click="resendBatchEmailAll"
+                title="Resend Examination Details & Sitting Links to All Candidates"
+              >
+                <i :class="['mdi', resendingEmailAll ? 'mdi-loading spin-icon' : 'mdi-email-fast-outline']"></i>
+                <span>{{ resendingEmailAll ? 'Sending...' : 'Resend Email to All' }}</span>
+              </button>
+
               <button
                 type="button"
                 class="btn-roster-action"
@@ -356,7 +424,30 @@
                         <i :class="['mdi', copiedItemId === item.id ? 'mdi-check text-green' : 'mdi-content-copy']"></i>
                       </button>
 
-                      <!-- 3. Grant Technical Retry -->
+                      <!-- 3. Resend Email with Details & Link -->
+                      <button
+                        type="button"
+                        class="btn-table-action btn-email"
+                        :title="resendSuccessStudentId === item.student_id ? 'Email Dispatched!' : 'Resend Exam Details & Sitting Link to Student'"
+                        :disabled="resendingEmailStudentId === item.student_id"
+                        @click="resendCandidateEmail(item)"
+                      >
+                        <i :class="['mdi', resendingEmailStudentId === item.student_id ? 'mdi-loading spin-icon' : resendSuccessStudentId === item.student_id ? 'mdi-check text-green' : 'mdi-email-sync-outline']"></i>
+                      </button>
+
+                      <!-- 4. Remove Candidate from Batch (Token Refund) -->
+                      <button
+                        v-if="item.status === 'not_started'"
+                        type="button"
+                        class="btn-table-action btn-danger"
+                        title="Remove Candidate from Batch (1 Token Refunded)"
+                        :disabled="removingStudentId === item.student_id"
+                        @click="removeStudentFromBatch(item)"
+                      >
+                        <i :class="['mdi', removingStudentId === item.student_id ? 'mdi-loading spin-icon' : 'mdi-account-remove-outline']"></i>
+                      </button>
+
+                      <!-- 5. Grant Technical Retry -->
                       <button
                         v-if="item.attempts_used < item.max_attempts && ['not_started', 'in_progress', 'failed'].includes(item.status)"
                         class="btn-table-action btn-retry"
@@ -366,7 +457,7 @@
                         <i class="mdi mdi-restart"></i>
                       </button>
 
-                      <!-- 4. Create Dedicated Retry Link (if failed) -->
+                      <!-- 6. Create Dedicated Retry Link (if failed) -->
                       <button
                         v-if="item.status === 'failed'"
                         class="btn-table-action btn-dedicated-link"
@@ -376,7 +467,7 @@
                         <i class="mdi mdi-link-plus"></i>
                       </button>
 
-                      <!-- 5. Download Certificate -->
+                      <!-- 7. Download Certificate -->
                       <a
                         v-if="item.status === 'passed' && item.certificate_url"
                         :href="item.certificate_url"
@@ -432,6 +523,245 @@
         </div>
 
       </div>
+
+      <!-- ═══ EDIT BATCH SCHEDULE MODAL ═══ -->
+      <Teleport to="body">
+        <Transition name="fade">
+          <div v-if="showEditBatchModal" class="modal-overlay" @click.self="showEditBatchModal = false">
+            <div class="modal-card">
+              <div class="modal-header">
+                <div class="modal-header-left">
+                  <div class="modal-icon-box bg-slate-light text-slate">
+                    <i class="mdi mdi-calendar-edit"></i>
+                  </div>
+                  <div>
+                    <h3 class="modal-title">Edit Exam Window Schedule</h3>
+                    <p class="modal-subtitle">{{ batch?.exam_name }}</p>
+                  </div>
+                </div>
+                <button class="modal-close-btn" @click="showEditBatchModal = false">
+                  <i class="mdi mdi-close"></i>
+                </button>
+              </div>
+
+              <div class="modal-body">
+                <div class="info-callout mb-4">
+                  Adjust the exam window schedule for this batch. Leaving fields blank maintains an open-ended sitting window with no expiration.
+                </div>
+
+                <!-- Opens At -->
+                <div class="form-group mb-3">
+                  <label class="form-label-xs">
+                    Exam Window Opens At <span class="optional-tag">(Optional)</span>
+                  </label>
+                  <input
+                    v-model="editBatchForm.opens_at"
+                    type="datetime-local"
+                    class="modal-input-field"
+                  />
+                  <span class="form-help-text">Leave blank to open immediately</span>
+                </div>
+
+                <!-- Closes At -->
+                <div class="form-group mb-4">
+                  <label class="form-label-xs">
+                    Exam Window Closes At <span class="optional-tag">(Optional)</span>
+                  </label>
+                  <input
+                    v-model="editBatchForm.closes_at"
+                    type="datetime-local"
+                    class="modal-input-field"
+                  />
+                  <span class="form-help-text">Leave blank for open-ended window</span>
+                </div>
+
+                <!-- Quick Presets -->
+                <div class="quick-presets-wrap">
+                  <span class="quick-presets-label">Quick Presets:</span>
+                  <div class="quick-presets-chips">
+                    <button type="button" class="preset-chip" @click="applyEditSchedulePreset(7)">
+                      <i class="mdi mdi-calendar-clock"></i> 7 Days
+                    </button>
+                    <button type="button" class="preset-chip" @click="applyEditSchedulePreset(14)">
+                      <i class="mdi mdi-calendar-clock"></i> 14 Days
+                    </button>
+                    <button type="button" class="preset-chip" @click="applyEditSchedulePreset(30)">
+                      <i class="mdi mdi-calendar-clock"></i> 30 Days
+                    </button>
+                    <button type="button" class="preset-chip preset-chip-clear" @click="clearEditSchedule">
+                      <i class="mdi mdi-close"></i> Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn-glass" @click="showEditBatchModal = false">Cancel</button>
+                <button type="button" class="btn-red" :disabled="savingEditBatch" @click="submitEditBatch">
+                  <i :class="['mdi', savingEditBatch ? 'mdi-loading spin-icon' : 'mdi-check']"></i>
+                  <span>{{ savingEditBatch ? 'Saving...' : 'Save Schedule' }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
+
+      <!-- ═══ ADD CANDIDATES TO BATCH MODAL ═══ -->
+      <Teleport to="body">
+        <Transition name="fade">
+          <div v-if="showAddStudentsModal" class="modal-overlay" @click.self="showAddStudentsModal = false">
+            <div class="modal-card modal-card-lg">
+              <div class="modal-header">
+                <div class="modal-header-left">
+                  <div class="modal-icon-box bg-red-light text-red">
+                    <i class="mdi mdi-account-plus-outline"></i>
+                  </div>
+                  <div>
+                    <h3 class="modal-title">Add Candidates to Batch</h3>
+                    <p class="modal-subtitle">{{ batch?.exam_name }} &bull; 1 Candidate consumes 1 Token</p>
+                  </div>
+                </div>
+                <button class="modal-close-btn" @click="showAddStudentsModal = false">
+                  <i class="mdi mdi-close"></i>
+                </button>
+              </div>
+
+              <div class="modal-body p-0">
+                <!-- Wallet & Selection Summary Ribbon -->
+                <div class="modal-token-ribbon">
+                  <div class="token-ribbon-item">
+                    <span class="ribbon-label">Available Tokens</span>
+                    <span class="ribbon-val text-blue">{{ wallet.totalRemaining || 0 }} Tokens</span>
+                  </div>
+                  <div class="token-ribbon-item">
+                    <span class="ribbon-label">Selected</span>
+                    <span class="ribbon-val text-slate">{{ selectedNewStudentIds.length }} Candidates</span>
+                  </div>
+                  <div class="token-ribbon-item">
+                    <span class="ribbon-label">Batch Cost</span>
+                    <span :class="['ribbon-val', isAddShortfall ? 'text-red' : 'text-emerald']">
+                      {{ selectedNewStudentIds.length }} Token(s)
+                    </span>
+                  </div>
+                  <div class="token-ribbon-item">
+                    <span class="ribbon-label">Balance After</span>
+                    <span :class="['ribbon-val', isAddShortfall ? 'text-red' : 'text-slate']">
+                      {{ (wallet.totalRemaining || 0) - selectedNewStudentIds.length }} Tokens
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Insufficient Token Alert -->
+                <div v-if="isAddShortfall" class="shortfall-warning-banner">
+                  <i class="mdi mdi-alert-circle"></i>
+                  <span>Insufficient token balance. Please reduce selected candidates or recharge your center wallet.</span>
+                </div>
+
+                <!-- Filter Toolbar -->
+                <div class="modal-filter-toolbar">
+                  <div class="search-box max-w-sm">
+                    <i class="mdi mdi-magnify search-icon"></i>
+                    <input
+                      v-model="addStudentsSearchQuery"
+                      type="text"
+                      placeholder="Search candidates by name, email, phone..."
+                      class="search-input"
+                    />
+                    <button v-if="addStudentsSearchQuery" type="button" class="search-clear-btn" @click="addStudentsSearchQuery = ''">
+                      <i class="mdi mdi-close-circle"></i>
+                    </button>
+                  </div>
+
+                  <div class="quick-select-btns">
+                    <button
+                      type="button"
+                      class="btn-select-pill"
+                      :disabled="filteredAvailableStudents.length === 0"
+                      @click="toggleSelectAllFilteredAvailable"
+                    >
+                      <i :class="['mdi', isAllFilteredAvailableSelected ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline']"></i>
+                      <span>{{ isAllFilteredAvailableSelected ? 'Deselect All' : 'Select All (' + filteredAvailableStudents.length + ')' }}</span>
+                    </button>
+                    <button
+                      v-if="selectedNewStudentIds.length > 0"
+                      type="button"
+                      class="btn-select-pill text-red"
+                      @click="clearAvailableSelections"
+                    >
+                      Clear ({{ selectedNewStudentIds.length }})
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Candidates List -->
+                <div class="modal-candidate-list-scroll">
+                  <div v-if="loadingAddStudentsData" class="modal-list-loading">
+                    <span class="spinner-sm-red mb-2"></span>
+                    <p class="text-xs text-slate-500">Loading center candidate directory...</p>
+                  </div>
+
+                  <div v-else-if="availableStudents.length === 0" class="modal-list-empty">
+                    <i class="mdi mdi-account-check-outline text-3xl text-slate-300 mb-2"></i>
+                    <p class="text-sm font-semibold text-slate-800">All Registered Candidates Enrolled</p>
+                    <p class="text-xs text-slate-500 max-w-xs mx-auto">
+                      All students in your center are already enrolled in this batch, or no students have been registered yet.
+                    </p>
+                    <NuxtLink to="/sub-center?tab=students" class="btn-roster-action mt-3 no-underline inline-flex">
+                      <i class="mdi mdi-account-plus"></i> Register New Student
+                    </NuxtLink>
+                  </div>
+
+                  <div v-else-if="filteredAvailableStudents.length === 0" class="modal-list-empty">
+                    <p class="text-sm text-slate-500">No candidates match your search query.</p>
+                  </div>
+
+                  <div v-else class="candidate-select-items">
+                    <div
+                      v-for="s in filteredAvailableStudents"
+                      :key="s.id"
+                      :class="['candidate-select-row', { selected: isAvailableSelected(s.id) }]"
+                      @click="toggleAvailableStudent(s.id)"
+                    >
+                      <div class="select-checkbox-col">
+                        <i :class="['mdi', isAvailableSelected(s.id) ? 'mdi-checkbox-marked text-red text-lg' : 'mdi-checkbox-blank-outline text-slate-400 text-lg']"></i>
+                      </div>
+
+                      <div class="candidate-avatar-small">
+                        {{ s.name ? s.name.charAt(0).toUpperCase() : 'S' }}
+                      </div>
+
+                      <div class="candidate-select-meta">
+                        <div class="candidate-meta-top">
+                          <span class="candidate-item-name">{{ s.name }}</span>
+                          <span v-if="s.education_level" class="badge-chip chip-slate text-[10px]">{{ s.education_level }}</span>
+                        </div>
+                        <div class="candidate-meta-sub">
+                          <span class="font-mono text-xs text-slate-500">{{ s.email }}</span>
+                          <span v-if="s.phone" class="font-mono text-xs text-slate-400">&bull; {{ s.phone }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn-glass" @click="showAddStudentsModal = false">Cancel</button>
+                <button
+                  type="button"
+                  class="btn-red"
+                  :disabled="selectedNewStudentIds.length === 0 || isAddShortfall || savingAddStudents"
+                  @click="submitAddStudents"
+                >
+                  <i :class="['mdi', savingAddStudents ? 'mdi-loading spin-icon' : 'mdi-check-decagram']"></i>
+                  <span>{{ savingAddStudents ? 'Enrolling...' : 'Confirm & Enroll (' + selectedNewStudentIds.length + ' Students)' }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
 
       <!-- ═══ RETRY LINK MODAL ═══ -->
       <Teleport to="body">
@@ -522,6 +852,40 @@ const copiedItemId = ref<string | null>(null);
 const copiedAllLinks = ref(false);
 const copiedBatchId = ref(false);
 
+// Toast Feedback
+const feedbackMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null);
+function showFeedback(type: 'success' | 'error', text: string) {
+  feedbackMessage.value = { type, text };
+  setTimeout(() => {
+    if (feedbackMessage.value?.text === text) feedbackMessage.value = null;
+  }, 5000);
+}
+
+// Edit Batch Schedule Modal
+const showEditBatchModal = ref(false);
+const savingEditBatch = ref(false);
+const editBatchForm = ref({
+  opens_at: '',
+  closes_at: ''
+});
+
+// Add Students Modal
+const showAddStudentsModal = ref(false);
+const loadingAddStudentsData = ref(false);
+const savingAddStudents = ref(false);
+const centerStudents = ref<any[]>([]);
+const wallet = ref<any>({ totalRemaining: 0, totalPurchased: 0, totalUsed: 0 });
+const selectedNewStudentIds = ref<string[]>([]);
+const addStudentsSearchQuery = ref('');
+
+// Remove Student Action State
+const removingStudentId = ref<string | null>(null);
+
+// Resend Email Action State
+const resendingEmailStudentId = ref<string | null>(null);
+const resendSuccessStudentId = ref<string | null>(null);
+const resendingEmailAll = ref(false);
+
 // Retry Link Modal
 const showRetryLinkModal = ref(false);
 const targetAssignment = ref<any>(null);
@@ -580,6 +944,18 @@ function formatDate(dateStr?: string) {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   } catch {
     return dateStr;
+  }
+}
+
+function toDatetimeLocal(val?: string) {
+  if (!val) return '';
+  try {
+    const d = new Date(val);
+    if (isNaN(d.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  } catch {
+    return '';
   }
 }
 
@@ -665,12 +1041,226 @@ function exportRosterCSV() {
   document.body.removeChild(link);
 }
 
+// ─── EDIT BATCH SCHEDULE ───
+function openEditBatchModal() {
+  if (!batch.value) return;
+  editBatchForm.value = {
+    opens_at: toDatetimeLocal(batch.value.opens_at),
+    closes_at: toDatetimeLocal(batch.value.closes_at)
+  };
+  showEditBatchModal.value = true;
+}
+
+function applyEditSchedulePreset(days: number) {
+  const now = new Date();
+  const end = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const formatIsoLocal = (d: Date) => {
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+  editBatchForm.value.opens_at = formatIsoLocal(now);
+  editBatchForm.value.closes_at = formatIsoLocal(end);
+}
+
+function clearEditSchedule() {
+  editBatchForm.value.opens_at = '';
+  editBatchForm.value.closes_at = '';
+}
+
+async function submitEditBatch() {
+  savingEditBatch.value = true;
+  try {
+    const payload = {
+      opens_at: editBatchForm.value.opens_at || null,
+      closes_at: editBatchForm.value.closes_at || null
+    };
+    await api.put(`/sub-center/batches/${batchId.value}`, payload);
+    showEditBatchModal.value = false;
+    await fetchBatchDetails();
+    showFeedback('success', 'Batch exam window schedule updated successfully.');
+  } catch (err: any) {
+    alert(err?.response?.data?.message || err?.message || 'Failed to update batch schedule.');
+  } finally {
+    savingEditBatch.value = false;
+  }
+}
+
+// ─── ADD STUDENTS TO BATCH ───
+async function openAddStudentsModal() {
+  showAddStudentsModal.value = true;
+  loadingAddStudentsData.value = true;
+  selectedNewStudentIds.value = [];
+  addStudentsSearchQuery.value = '';
+  try {
+    const [studentsRes, walletRes] = await Promise.allSettled([
+      api.get('/sub-center/students'),
+      api.get('/sub-center/wallet')
+    ]);
+    if (studentsRes.status === 'fulfilled') {
+      centerStudents.value = Array.isArray(studentsRes.value.data) ? studentsRes.value.data : [];
+    }
+    if (walletRes.status === 'fulfilled') {
+      wallet.value = walletRes.value.data || { totalRemaining: 0 };
+    }
+  } catch (e) {
+    console.error('Error fetching students or wallet:', e);
+  } finally {
+    loadingAddStudentsData.value = false;
+  }
+}
+
+const availableStudents = computed(() => {
+  const enrolledStudentIds = new Set(assignments.value.map(a => a.student_id));
+  return centerStudents.value.filter(s => !enrolledStudentIds.has(s.id));
+});
+
+const filteredAvailableStudents = computed(() => {
+  let list = availableStudents.value;
+  const q = addStudentsSearchQuery.value.trim().toLowerCase();
+  if (q) {
+    list = list.filter(s => {
+      const name = (s.name || '').toLowerCase();
+      const email = (s.email || '').toLowerCase();
+      const phone = (s.phone || '').toLowerCase();
+      const id = (s.id || '').toLowerCase();
+      return name.includes(q) || email.includes(q) || phone.includes(q) || id.includes(q);
+    });
+  }
+  return list;
+});
+
+const isAddShortfall = computed(() => {
+  return selectedNewStudentIds.value.length > (wallet.value.totalRemaining || 0);
+});
+
+const isAllFilteredAvailableSelected = computed(() => {
+  if (filteredAvailableStudents.value.length === 0) return false;
+  return filteredAvailableStudents.value.every(s => selectedNewStudentIds.value.includes(s.id));
+});
+
+function isAvailableSelected(id: string) {
+  return selectedNewStudentIds.value.includes(id);
+}
+
+function toggleAvailableStudent(id: string) {
+  const idx = selectedNewStudentIds.value.indexOf(id);
+  if (idx > -1) {
+    selectedNewStudentIds.value.splice(idx, 1);
+  } else {
+    selectedNewStudentIds.value.push(id);
+  }
+}
+
+function selectAllFilteredAvailable() {
+  const set = new Set(selectedNewStudentIds.value);
+  filteredAvailableStudents.value.forEach(s => set.add(s.id));
+  selectedNewStudentIds.value = Array.from(set);
+}
+
+function toggleSelectAllFilteredAvailable() {
+  if (isAllFilteredAvailableSelected.value) {
+    const filteredSet = new Set(filteredAvailableStudents.value.map(s => s.id));
+    selectedNewStudentIds.value = selectedNewStudentIds.value.filter(id => !filteredSet.has(id));
+  } else {
+    selectAllFilteredAvailable();
+  }
+}
+
+function clearAvailableSelections() {
+  selectedNewStudentIds.value = [];
+}
+
+async function submitAddStudents() {
+  if (selectedNewStudentIds.value.length === 0) return;
+  if (selectedNewStudentIds.value.length > (wallet.value.totalRemaining || 0)) {
+    alert(`Insufficient tokens. You selected ${selectedNewStudentIds.value.length} students but only have ${wallet.value.totalRemaining || 0} tokens available.`);
+    return;
+  }
+  savingAddStudents.value = true;
+  try {
+    await api.put(`/sub-center/batches/${batchId.value}`, {
+      add_student_ids: selectedNewStudentIds.value
+    });
+    showAddStudentsModal.value = false;
+    await fetchBatchDetails();
+    showFeedback('success', `${selectedNewStudentIds.value.length} candidate(s) successfully enrolled. Exam details and sitting links dispatched via email.`);
+  } catch (err: any) {
+    alert(err?.response?.data?.message || err?.message || 'Failed to add students to batch.');
+  } finally {
+    savingAddStudents.value = false;
+  }
+}
+
+// ─── REMOVE STUDENT FROM BATCH (TOKEN REFUND) ───
+async function removeStudentFromBatch(item: any) {
+  if (item.status !== 'not_started') {
+    alert('Only candidates with "Not Started" status can be removed from a batch.');
+    return;
+  }
+  const confirmed = confirm(
+    `Remove candidate "${item.student_name}" from this batch?\n\nTheir exam assignment will be cancelled and 1 Token will be refunded to your center wallet balance.`
+  );
+  if (!confirmed) return;
+
+  removingStudentId.value = item.student_id;
+  try {
+    await api.put(`/sub-center/batches/${batchId.value}`, {
+      remove_student_ids: [item.student_id]
+    });
+    await fetchBatchDetails();
+    showFeedback('success', `Candidate "${item.student_name}" removed from batch. 1 Token refunded to your wallet.`);
+  } catch (err: any) {
+    alert(err?.response?.data?.message || err?.message || 'Failed to remove candidate.');
+  } finally {
+    removingStudentId.value = null;
+  }
+}
+
+// ─── RESEND EMAIL ACTIONS ───
+async function resendCandidateEmail(item: any) {
+  resendingEmailStudentId.value = item.student_id;
+  try {
+    await api.post(`/sub-center/batches/${batchId.value}/resend-email`, {
+      student_id: item.student_id,
+      assignment_id: item.assignment_id || item.id
+    });
+    resendSuccessStudentId.value = item.student_id;
+    setTimeout(() => {
+      if (resendSuccessStudentId.value === item.student_id) resendSuccessStudentId.value = null;
+    }, 3000);
+    showFeedback('success', `Exam details and sitting link sent to ${item.student_email || item.student_name}.`);
+  } catch (err: any) {
+    alert(err?.response?.data?.message || err?.message || 'Failed to dispatch email.');
+  } finally {
+    resendingEmailStudentId.value = null;
+  }
+}
+
+async function resendBatchEmailAll() {
+  if (assignments.value.length === 0) return;
+  const confirmed = confirm(
+    `Resend examination details and access links to all ${assignments.value.length} candidate(s) in this batch?`
+  );
+  if (!confirmed) return;
+
+  resendingEmailAll.value = true;
+  try {
+    const { data } = await api.post(`/sub-center/batches/${batchId.value}/resend-email`, {});
+    showFeedback('success', data?.message || `Exam details successfully dispatched to all candidates.`);
+  } catch (err: any) {
+    alert(err?.response?.data?.message || err?.message || 'Failed to dispatch emails to all candidates.');
+  } finally {
+    resendingEmailAll.value = false;
+  }
+}
+
+// ─── RETRY LINK ACTIONS ───
 async function grantTechnicalRetry(item: any) {
   if (!confirm(`Grant technical retry sitting for "${item.student_name}"?`)) return;
   try {
     await api.post(`/sub-center/assignments/${item.id}/grant-retry`);
     await fetchBatchDetails();
-    alert('Technical retry granted successfully!');
+    showFeedback('success', 'Technical retry granted successfully!');
   } catch (err: any) {
     alert(err?.response?.data?.message || err?.message || 'Failed to grant technical retry.');
   }
@@ -691,7 +1281,7 @@ async function submitDedicatedRetryLink() {
     });
     showRetryLinkModal.value = false;
     await fetchBatchDetails();
-    alert('Dedicated retry link created and 1 token deducted from wallet.');
+    showFeedback('success', 'Dedicated retry link created and 1 token deducted from wallet.');
   } catch (err: any) {
     alert(err?.response?.data?.message || err?.message || 'Failed to create dedicated retry link.');
   } finally {
@@ -701,6 +1291,9 @@ async function submitDedicatedRetryLink() {
 
 onMounted(async () => {
   await fetchBatchDetails();
+  if (route.query.action === 'edit') {
+    openEditBatchModal();
+  }
 });
 </script>
 
@@ -794,6 +1387,42 @@ onMounted(async () => {
 .btn-icon-refresh:hover {
   background: #F1F5F9;
   color: #0F172A;
+}
+
+/* ── Feedback Banner / Toast ── */
+.feedback-toast-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 0.84rem;
+  font-weight: 500;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+}
+.toast-success {
+  background: #F0FDF4;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #166534;
+}
+.toast-error {
+  background: #FEF2F2;
+  border: 1px solid rgba(227, 27, 35, 0.25);
+  color: #991B1B;
+}
+.toast-message-text {
+  flex: 1;
+}
+.toast-close-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
 }
 
 .batch-content-stack {
@@ -911,18 +1540,56 @@ onMounted(async () => {
 .hero-right {
   display: flex;
   align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-hero-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  color: #0F172A;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+.btn-hero-action:hover:not(:disabled) {
+  background: #F1F5F9;
+  border-color: rgba(15, 23, 42, 0.22);
+}
+.btn-hero-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-hero-primary {
+  background: #E31B23;
+  color: #FFFFFF;
+  border-color: #E31B23;
+  box-shadow: 0 2px 8px rgba(227, 27, 35, 0.25);
+}
+.btn-hero-primary:hover:not(:disabled) {
+  background: #C4131B;
+  border-color: #C4131B;
+  color: #FFFFFF;
 }
 
 .btn-new-batch {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 18px;
+  padding: 8px 16px;
   border-radius: 10px;
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.14);
   color: #0F172A;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   text-decoration: none;
   transition: all 0.18s ease;
@@ -1078,6 +1745,17 @@ onMounted(async () => {
 .btn-roster-action:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.btn-roster-primary {
+  background: rgba(227, 27, 35, 0.08);
+  color: #E31B23;
+  border-color: rgba(227, 27, 35, 0.25);
+}
+.btn-roster-primary:hover:not(:disabled) {
+  background: #E31B23;
+  color: #FFFFFF;
+  border-color: #E31B23;
 }
 
 /* ── Toolbar ── */
@@ -1335,6 +2013,34 @@ onMounted(async () => {
   color: #0F172A;
 }
 
+.btn-email {
+  background: #EEF2FF;
+  color: #4F46E5;
+  border-color: rgba(79, 70, 229, 0.2);
+}
+.btn-email:hover:not(:disabled) {
+  background: #4F46E5;
+  color: #FFFFFF;
+}
+.btn-email:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-danger {
+  background: #FEF2F2;
+  color: #E31B23;
+  border-color: rgba(227, 27, 35, 0.2);
+}
+.btn-danger:hover:not(:disabled) {
+  background: #E31B23;
+  color: #FFFFFF;
+}
+.btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .btn-retry {
   background: #F8FAFC;
   color: #64748B;
@@ -1571,6 +2277,10 @@ onMounted(async () => {
   overflow: hidden;
 }
 
+.modal-card-lg {
+  max-width: 660px;
+}
+
 .modal-header {
   padding: 18px 22px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
@@ -1633,6 +2343,10 @@ onMounted(async () => {
   padding: 22px;
 }
 
+.modal-body.p-0 {
+  padding: 0;
+}
+
 .info-callout {
   background: #F8FAFC;
   border: 1px solid rgba(15, 23, 42, 0.08);
@@ -1685,6 +2399,194 @@ onMounted(async () => {
   font-size: 0.72rem;
   color: #94A3B8;
   margin-top: 3px;
+}
+
+/* Quick Presets */
+.quick-presets-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.quick-presets-label {
+  font-size: 0.74rem;
+  color: #64748B;
+  font-weight: 600;
+}
+.quick-presets-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.preset-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 7px;
+  background: #F1F5F9;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.preset-chip:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+.preset-chip-clear {
+  background: #FEF2F2;
+  color: #E31B23;
+  border-color: rgba(227, 27, 35, 0.15);
+}
+.preset-chip-clear:hover {
+  background: #FEE2E2;
+}
+
+/* Modal Ribbon */
+.modal-token-ribbon {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 14px 20px;
+  background: #F8FAFC;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+.token-ribbon-item {
+  display: flex;
+  flex-direction: column;
+}
+.ribbon-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.ribbon-val {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.shortfall-warning-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FEF2F2;
+  border: 1px solid rgba(227, 27, 35, 0.2);
+  color: #E31B23;
+  padding: 10px 16px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.modal-filter-toolbar {
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  flex-wrap: wrap;
+}
+.quick-select-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-select-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 7px;
+  background: #F1F5F9;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-select-pill:hover:not(:disabled) {
+  background: #E2E8F0;
+}
+.btn-select-pill:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Modal Candidates Scroll List */
+.modal-candidate-list-scroll {
+  max-height: 360px;
+  overflow-y: auto;
+}
+.modal-list-loading,
+.modal-list-empty {
+  padding: 40px 20px;
+  text-align: center;
+}
+.candidate-select-items {
+  display: flex;
+  flex-direction: column;
+}
+.candidate-select-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 20px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+.candidate-select-row:hover {
+  background-color: #F8FAFC;
+}
+.candidate-select-row.selected {
+  background-color: #FEF2F2;
+}
+.select-checkbox-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  flex-shrink: 0;
+}
+.candidate-avatar-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #E2E8F0;
+  color: #334155;
+  font-weight: 600;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.candidate-select-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.candidate-meta-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.candidate-item-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0F172A;
+}
+.candidate-meta-sub {
+  margin-top: 1px;
 }
 
 .modal-footer {

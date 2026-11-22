@@ -245,6 +245,9 @@
                         <NuxtLink :to="'/sub-center/batches/' + item.id" class="btn-table-action btn-view no-underline" title="View Batch &amp; Enrolled Students">
                           <i class="mdi mdi-eye-outline"></i>
                         </NuxtLink>
+                        <NuxtLink :to="'/sub-center/batches/' + item.id + '?action=edit'" class="btn-table-action btn-edit no-underline" title="Edit Batch &amp; Schedule Window">
+                          <i class="mdi mdi-pencil-outline"></i>
+                        </NuxtLink>
                         <button v-if="item.status === 'open'" class="btn-table-action btn-danger" title="Cancel Batch" @click="cancelBatch(item)">
                           <i class="mdi mdi-close-circle-outline"></i>
                         </button>

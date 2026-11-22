@@ -985,14 +985,16 @@ router.post('/batches', async (req, res) => {
 
 router.put('/batches/:id', async (req, res) => {
   const orgId = getOrgId(req);
-  const { add_student_ids, remove_student_ids } = req.body;
+  const { add_student_ids, remove_student_ids, opens_at, closes_at } = req.body;
 
   try {
     const result = await BatchService.editBatch({
       orgId,
       batchId: req.params.id,
       addStudentIds: add_student_ids || [],
-      removeStudentIds: remove_student_ids || []
+      removeStudentIds: remove_student_ids || [],
+      opensAt: opens_at !== undefined ? opens_at : undefined,
+      closesAt: closes_at !== undefined ? closes_at : undefined
     });
 
     if (result.newAssignments && result.newAssignments.length > 0) {
@@ -1008,6 +1010,55 @@ router.put('/batches/:id', async (req, res) => {
     res.json({ message: 'Batch updated successfully.', ...result });
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+});
+
+router.post('/batches/:id/resend-email', async (req, res) => {
+  const orgId = getOrgId(req);
+  const { student_id, assignment_id } = req.body;
+
+  try {
+    const [batches] = await pool.query(
+      `SELECT b.*, e.name as exam_name FROM batches b JOIN exams e ON b.exam_id = e.id WHERE b.id = ? AND b.org_id = ?`,
+      [req.params.id, orgId]
+    );
+    if (batches.length === 0) {
+      return res.status(404).json({ message: 'Exam batch not found.' });
+    }
+    const batch = batches[0];
+
+    let assignmentQuery = `SELECT id, student_id FROM exam_assignments WHERE batch_id = ?`;
+    const queryParams = [batch.id];
+    if (assignment_id) {
+      assignmentQuery += ` AND id = ?`;
+      queryParams.push(assignment_id);
+    } else if (student_id) {
+      assignmentQuery += ` AND student_id = ?`;
+      queryParams.push(student_id);
+    }
+
+    const [assignments] = await pool.query(assignmentQuery, queryParams);
+    if (assignments.length === 0) {
+      return res.status(404).json({ message: 'No candidate assignments found for this request.' });
+    }
+
+    const mappedAssignments = assignments.map(a => ({ assignmentId: a.id, studentId: a.student_id }));
+
+    dispatchBatchEnrollmentEmails({
+      orgId,
+      examId: batch.exam_id,
+      assignments: mappedAssignments,
+      opensAt: batch.opens_at,
+      closesAt: batch.closes_at
+    }).catch(err => console.error('[Resend Batch Email Error]:', err));
+
+    res.json({
+      success: true,
+      count: mappedAssignments.length,
+      message: `Exam details email successfully sent to ${mappedAssignments.length} candidate(s).`
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

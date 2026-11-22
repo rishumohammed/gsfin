@@ -97,14 +97,14 @@ export class BatchService {
   /**
    * Edit open batch (add or remove students before any exam has started)
    */
-  static async editBatch({ orgId, batchId, addStudentIds = [], removeStudentIds = [] }) {
+  static async editBatch({ orgId, batchId, addStudentIds = [], removeStudentIds = [], opensAt = undefined, closesAt = undefined }) {
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
 
       // 1. Fetch batch and verify ownership & status
       const [batches] = await connection.query(
-        `SELECT b.*, e.max_attempts 
+        `SELECT b.*, e.max_attempts, e.name as exam_name
          FROM batches b 
          JOIN exams e ON b.exam_id = e.id
          WHERE b.id = ? AND b.org_id = ? FOR UPDATE`,
@@ -117,13 +117,31 @@ export class BatchService {
         throw new Error('Batch can only be edited while status is open.');
       }
 
-      // Check if any assignment in batch has started
-      const [started] = await connection.query(
-        `SELECT COUNT(*) as cnt FROM exam_assignments WHERE batch_id = ? AND status != 'not_started'`,
-        [batchId]
-      );
-      if (started[0].cnt > 0) {
-        throw new Error('Cannot edit batch once a student has started an exam sitting.');
+      // Check if any student requested for removal has already started
+      if (removeStudentIds.length > 0) {
+        const [startedRemovals] = await connection.query(
+          `SELECT s.name 
+           FROM exam_assignments ea 
+           JOIN students s ON ea.student_id = s.id
+           WHERE ea.batch_id = ? AND ea.student_id IN (?) AND ea.status != 'not_started'`,
+          [batchId, removeStudentIds]
+        );
+        if (startedRemovals.length > 0) {
+          const names = startedRemovals.map(r => r.name).join(', ');
+          throw new Error(`Cannot remove student(s) who have already started an exam sitting: ${names}`);
+        }
+      }
+
+      // Update schedule window if provided
+      let updatedOpensAt = batch.opens_at;
+      let updatedClosesAt = batch.closes_at;
+      if (opensAt !== undefined || closesAt !== undefined) {
+        updatedOpensAt = opensAt !== undefined ? opensAt : batch.opens_at;
+        updatedClosesAt = closesAt !== undefined ? closesAt : batch.closes_at;
+        await connection.query(
+          `UPDATE batches SET opens_at = ?, closes_at = ? WHERE id = ? AND org_id = ?`,
+          [updatedOpensAt, updatedClosesAt, batchId, orgId]
+        );
       }
 
       // 2. Process removals
@@ -181,7 +199,15 @@ export class BatchService {
       }
 
       await connection.commit();
-      return { success: true, added: addStudentIds.length, removed: removeStudentIds.length, newAssignments, examId: batch.exam_id, opensAt: batch.opens_at, closesAt: batch.closes_at };
+      return {
+        success: true,
+        added: addStudentIds.length,
+        removed: removeStudentIds.length,
+        newAssignments,
+        examId: batch.exam_id,
+        opensAt: updatedOpensAt,
+        closesAt: updatedClosesAt
+      };
     } catch (error) {
       await connection.rollback();
       throw error;
