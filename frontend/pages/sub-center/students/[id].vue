@@ -74,6 +74,10 @@
 
           <!-- Action Buttons -->
           <div class="hero-actions">
+            <button class="btn-action btn-action-secondary" :disabled="resendingEmail" @click="resendCredentials" title="Resend examination credentials and OTP via Resend">
+              <i class="mdi" :class="resendingEmail ? 'mdi-loading mdi-spin mr-1' : 'mdi-email-sync-outline mr-1'"></i>
+              {{ resendingEmail ? 'Sending...' : 'Resend Credentials' }}
+            </button>
             <button class="btn-action btn-action-secondary" @click="openEditModal">
               <i class="mdi mdi-pencil-outline"></i> Edit Profile
             </button>
@@ -618,6 +622,7 @@ const activeTab = ref<'exams' | 'results' | 'certificates' | 'profile'>('exams')
 
 const showEditModal = ref(false);
 const savingEdit = ref(false);
+const resendingEmail = ref(false);
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 const editForm = ref({
@@ -745,6 +750,24 @@ async function updateCandidate() {
     alert(err.response?.data?.message || err.message || 'Failed to update candidate');
   } finally {
     savingEdit.value = false;
+  }
+}
+
+async function resendCredentials() {
+  if (!student.value?.id) return;
+  resendingEmail.value = true;
+  try {
+    const res = await api.post(`/sub-center/students/${student.value.id}/resend-credentials`);
+    if (res.data?.success) {
+      alert(res.data.message || 'Credentials and OTP successfully sent via Resend!');
+    } else {
+      alert(`Email dispatch notice: ${res.data?.message || 'Could not send email'}`);
+    }
+  } catch (err: any) {
+    const msg = err.response?.data?.message || err.message || 'Failed to dispatch email';
+    alert(`Failed to resend credentials: ${msg}`);
+  } finally {
+    resendingEmail.value = false;
   }
 }
 

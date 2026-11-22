@@ -137,8 +137,9 @@ router.post('/students', async (req, res) => {
     }
 
     // Dispatch credentials & security OTP email
+    let emailStatus = { success: false, message: 'Email dispatch pending' };
     try {
-      await emailService.sendCandidateCredentialsAndOtp({
+      const emailRes = await emailService.sendCandidateCredentialsAndOtp({
         to: email,
         studentName: name,
         email,
@@ -146,8 +147,29 @@ router.post('/students', async (req, res) => {
         otpCode,
         centerName
       });
+
+      if (emailRes?.success) {
+        if (emailRes.result?.status === 'logged_to_console') {
+          emailStatus = {
+            success: false,
+            simulated: true,
+            message: 'Resend API key is not configured in Admin Settings. Email was logged to server terminal in dev mode.'
+          };
+        } else {
+          emailStatus = {
+            success: true,
+            message: `Dispatched to ${email} via Resend.`
+          };
+        }
+      } else {
+        emailStatus = {
+          success: false,
+          message: emailRes?.error || 'Email dispatch failed'
+        };
+      }
     } catch (emailErr) {
       console.error('Candidate credentials email notice (non-fatal):', emailErr.message);
+      emailStatus = { success: false, message: emailErr.message };
     }
 
     res.status(201).json({
@@ -158,7 +180,10 @@ router.post('/students', async (req, res) => {
       otp_code: otpCode,
       has_face: !!face_photo,
       face_photo: face_photo || null,
-      message: 'Candidate student registered successfully! Access credentials and security OTP dispatched via email.'
+      email_status: emailStatus,
+      message: emailStatus.success
+        ? 'Candidate student registered successfully! Access credentials and security OTP dispatched via email.'
+        : `Candidate student registered successfully! Note: ${emailStatus.message}`
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -170,7 +195,7 @@ router.get('/students/:id', async (req, res) => {
   const { id } = req.params;
   try {
     const [students] = await pool.query(
-      `SELECT id, org_id, name, email, phone, education_level, institution_name, gender, dob, created_at, updated_at
+      `SELECT id, org_id, name, email, phone, initial_password, otp_code, face_photo, education_level, institution_name, gender, dob, created_at, updated_at
        FROM students 
        WHERE id = ? AND org_id = ?`,
       [id, orgId]
@@ -299,6 +324,78 @@ router.put('/students/:id', async (req, res) => {
     res.json({ message: 'Candidate details updated successfully.' });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+router.post('/students/:id/resend-credentials', async (req, res) => {
+  const orgId = getOrgId(req);
+  const { id } = req.params;
+
+  try {
+    const [students] = await pool.query(
+      `SELECT id, org_id, name, email, initial_password, otp_code 
+       FROM students 
+       WHERE id = ? AND org_id = ?`,
+      [id, orgId]
+    );
+
+    if (students.length === 0) {
+      return res.status(404).json({ message: 'Candidate student not found in your organization.' });
+    }
+
+    const student = students[0];
+
+    // Ensure student has a valid OTP code
+    let otpCode = student.otp_code;
+    if (!otpCode) {
+      otpCode = String(Math.floor(100000 + Math.random() * 900000));
+      const otpExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await pool.query(
+        'UPDATE students SET otp_code = ?, otp_expires_at = ? WHERE id = ?',
+        [otpCode, otpExpiresAt, student.id]
+      );
+    }
+
+    const passwordToSend = student.initial_password || '(Configured on candidate profile)';
+
+    // Fetch center name
+    let centerName = 'GSFIN Authorized Test Center';
+    try {
+      const [orgs] = await pool.query('SELECT name FROM organizations WHERE id = ?', [orgId]);
+      if (orgs.length > 0 && orgs[0].name) centerName = orgs[0].name;
+    } catch (orgErr) {
+      // Non-fatal
+    }
+
+    const emailRes = await emailService.sendCandidateCredentialsAndOtp({
+      to: student.email,
+      studentName: student.name,
+      email: student.email,
+      password: passwordToSend,
+      otpCode,
+      centerName
+    });
+
+    if (emailRes?.success) {
+      if (emailRes.result?.status === 'logged_to_console') {
+        return res.json({
+          success: false,
+          simulated: true,
+          message: 'Resend API key is not configured in Admin Settings. Email was logged to server terminal in dev mode.'
+        });
+      }
+      return res.json({
+        success: true,
+        message: `Credentials & OTP successfully dispatched to ${student.email} via Resend.`
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: emailRes?.error || 'Failed to dispatch email via Resend.'
+      });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 

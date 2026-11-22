@@ -364,13 +364,15 @@ class EmailService {
         </div>
       `;
 
-      await this.sendEmail({
+      const result = await this.sendEmail({
         to,
         subject,
         html
       });
+      return { success: true, result };
     } catch (error) {
       console.error('Failed to send candidate credentials email:', error);
+      return { success: false, error: error.message };
     }
   }
 }

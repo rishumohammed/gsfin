@@ -17,3 +17,4 @@ CREATE TABLE IF NOT EXISTS token_purchase_requests (
     INDEX idx_tpr_status (status),
     INDEX idx_tpr_package (package_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

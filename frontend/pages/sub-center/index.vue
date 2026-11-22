@@ -321,6 +321,9 @@
                 </template>
                 <template v-slot:item.actions="{ item }: any">
                   <div class="action-btn-group justify-end">
+                    <button class="btn-table-action btn-email" title="Resend Credentials & OTP Email via Resend" @click="resendStudentCredentials(item)">
+                      <i class="mdi mdi-email-sync-outline"></i>
+                    </button>
                     <NuxtLink :to="'/sub-center/students/' + item.id" class="btn-table-action btn-view" title="View Dedicated Candidate Page">
                       <i class="mdi mdi-eye-outline"></i>
                     </NuxtLink>
@@ -1017,10 +1020,20 @@
             </div>
 
             <div class="modal-body modal-creds-body">
-              <!-- Dispatched Notice -->
-              <div class="dispatched-banner mb-4">
-                <i class="mdi mdi-email-check text-emerald-600 text-lg mr-2"></i>
-                <span>Credentials &amp; security OTP dispatched to <strong>{{ newRegisteredCredentials.email }}</strong></span>
+              <!-- Dispatched Notice / Status Banner -->
+              <div v-if="newRegisteredCredentials.email_status?.success" class="dispatched-banner dispatched-banner-success mb-4">
+                <i class="mdi mdi-email-check text-emerald-600 text-lg mr-2 shrink-0"></i>
+                <div class="text-xs text-emerald-800">
+                  <span>Credentials &amp; security OTP dispatched to <strong>{{ newRegisteredCredentials.email }}</strong> via Resend.</span>
+                </div>
+              </div>
+
+              <div v-else class="dispatched-banner dispatched-banner-warning mb-4">
+                <i class="mdi mdi-alert-circle text-amber-600 text-lg mr-2 shrink-0"></i>
+                <div class="text-xs text-amber-900 leading-snug">
+                  <div class="font-semibold text-amber-800">Email Delivery Notice</div>
+                  <div class="mt-0.5 text-slate-700">{{ newRegisteredCredentials.email_status?.message || 'Email delivery not confirmed. Please copy credentials below or configure Resend in Admin Settings.' }}</div>
+                </div>
               </div>
 
               <!-- Face Thumbnail & Name Hero -->
@@ -1080,11 +1093,23 @@
                 <span class="text-[11px] text-red-600 block mt-1">Candidate enters this code during pre-exam authentication.</span>
               </div>
 
-              <!-- Copy All Button -->
+              <!-- Copy All & Action Buttons -->
               <div class="flex items-center justify-between gap-3 pt-2">
-                <button type="button" class="btn-copy-all" @click="copyAllStudentCredentials">
-                  <i class="mdi mdi-content-copy mr-1.5"></i> Copy All Credentials
-                </button>
+                <div class="flex items-center gap-2">
+                  <button type="button" class="btn-copy-all" @click="copyAllStudentCredentials">
+                    <i class="mdi mdi-content-copy mr-1.5"></i> Copy All
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-resend-inline"
+                    :disabled="isResendingEmail"
+                    @click="resendStudentCredentials(newRegisteredCredentials)"
+                    title="Resend email via Resend"
+                  >
+                    <i :class="['mdi', isResendingEmail ? 'mdi-loading mdi-spin mr-1' : 'mdi-email-sync-outline mr-1']"></i>
+                    {{ isResendingEmail ? 'Sending...' : 'Resend Email' }}
+                  </button>
+                </div>
                 <button type="button" class="btn-red py-2 px-6" @click="showStudentCredentialsModal = false">
                   Done
                 </button>
@@ -1328,6 +1353,7 @@ const subCenterWebcamVideo = ref<HTMLVideoElement | null>(null);
 let subCenterStream: MediaStream | null = null;
 const showStudentCredentialsModal = ref(false);
 const newRegisteredCredentials = ref<any>(null);
+const isResendingEmail = ref(false);
 const showCredPassword = ref(false);
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
@@ -1644,6 +1670,28 @@ function copyAllStudentCredentials() {
   const text = `GSFIN Candidate Credentials:\nName: ${c.name}\nUsername/Email: ${c.email}\nPassword: ${c.initial_password}\nSecurity OTP: ${c.otp_code || 'N/A'}`;
   navigator.clipboard.writeText(text);
   alert('All candidate credentials copied to clipboard!');
+}
+
+async function resendStudentCredentials(target: any) {
+  const studentId = typeof target === 'string' ? target : (target?.id || target);
+  if (!studentId) return;
+  isResendingEmail.value = true;
+  try {
+    const res = await api.post(`/sub-center/students/${studentId}/resend-credentials`);
+    if (res.data?.success) {
+      alert(res.data.message || 'Credentials and OTP successfully sent via Resend!');
+      if (newRegisteredCredentials.value && newRegisteredCredentials.value.id === studentId) {
+        newRegisteredCredentials.value.email_status = { success: true, message: res.data.message };
+      }
+    } else {
+      alert(`Email dispatch notice: ${res.data?.message || 'Could not send email'}`);
+    }
+  } catch (err: any) {
+    const msg = err.response?.data?.message || err.message || 'Failed to dispatch email';
+    alert(`Failed to resend credentials: ${msg}`);
+  } finally {
+    isResendingEmail.value = false;
+  }
 }
 
 function resetStudentForm() {
@@ -3496,6 +3544,18 @@ input[type="datetime-local"].modal-input-field {
   color: #065F46;
 }
 
+.dispatched-banner-warning {
+  background: #FFFBEB;
+  border-color: #FDE68A;
+  color: #92400E;
+}
+
+.dispatched-banner-success {
+  background: #ECFDF5;
+  border-color: #A7F3D0;
+  color: #065F46;
+}
+
 .candidate-cred-hero {
   display: flex;
   align-items: center;
@@ -3582,5 +3642,36 @@ input[type="datetime-local"].modal-input-field {
   border: 1px solid #CBD5E1;
   color: #334155;
   cursor: pointer;
+}
+
+.btn-resend-inline {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #1D4ED8;
+  cursor: pointer;
+}
+
+.btn-resend-inline:hover:not(:disabled) {
+  background: #DBEAFE;
+}
+
+.btn-resend-inline:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-table-action.btn-email {
+  color: #2563EB;
+}
+
+.btn-table-action.btn-email:hover {
+  background: #EFF6FF;
+  color: #1D4ED8;
 }
 </style>
