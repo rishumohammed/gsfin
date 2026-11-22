@@ -892,17 +892,13 @@
                     </div>
                   </div>
 
-                  <!-- Default Action Buttons -->
+                  <!-- Real-Time Camera Capture Action -->
                   <div v-else class="face-capture-actions">
                     <button type="button" class="btn-face-action" @click="startStudentCamera">
-                      <i class="mdi mdi-camera-plus text-lg"></i>
-                      <span>Capture via Webcam</span>
+                      <i class="mdi mdi-camera-plus text-2xl text-red"></i>
+                      <span class="font-semibold text-slate-800 text-sm">Capture via Webcam</span>
+                      <span class="text-[11px] text-slate-500 font-normal">Real-time live photo required for biometric verification</span>
                     </button>
-                    <label class="btn-face-action cursor-pointer">
-                      <i class="mdi mdi-upload text-lg"></i>
-                      <span>Upload Headshot File</span>
-                      <input type="file" accept="image/*" class="sr-only" @change="onStudentPhotoUploaded" />
-                    </label>
                   </div>
                 </div>
 
@@ -1613,20 +1609,6 @@ function captureStudentPhoto() {
   stopStudentCamera();
 }
 
-function onStudentPhotoUploaded(e: Event) {
-  const target = e.target as HTMLInputElement;
-  if (!target.files || !target.files[0]) return;
-  const file = target.files[0];
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    if (ev.target?.result) {
-      studentForm.value.face_photo = String(ev.target.result);
-      studentForm.value.face_descriptor = [0.85, 0.84, 0.46, 0.94, 0.95];
-    }
-  };
-  reader.readAsDataURL(file);
-}
-
 function retakeStudentPhoto() {
   studentForm.value.face_photo = '';
   studentForm.value.face_descriptor = null;
@@ -1710,9 +1692,8 @@ async function registerStudent() {
     return;
   }
   if (!editingStudent.value && !studentForm.value.face_photo) {
-    if (!confirm('No face photo enrolled for this candidate. The candidate will be required to enroll their face during pre-exam verification. Proceed?')) {
-      return;
-    }
+    alert('Candidate real-time webcam photo is required. Please capture the face photo before proceeding.');
+    return;
   }
   if (studentForm.value.password && studentForm.value.password !== studentForm.value.confirm_password) {
     alert('Password and Confirm Password do not match.');
@@ -3321,9 +3302,8 @@ input[type="datetime-local"].modal-input-field {
 }
 
 .face-capture-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
 }
 
 .btn-face-action {
@@ -3332,21 +3312,22 @@ input[type="datetime-local"].modal-input-field {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 14px;
+  padding: 18px 16px;
   background: #FFFFFF;
-  border: 1px dashed #CBD5E1;
-  border-radius: 10px;
+  border: 1.5px dashed #CBD5E1;
+  border-radius: 12px;
   color: #475569;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease-in-out;
+  width: 100%;
 }
 
 .btn-face-action:hover {
   background: #FEF2F2;
-  border-color: #F87171;
-  color: #DC2626;
+  border-color: #E31B23;
+  color: #E31B23;
 }
 
 .captured-photo-display {
