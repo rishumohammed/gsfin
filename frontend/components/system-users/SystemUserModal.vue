@@ -138,7 +138,7 @@ const props = defineProps({
   user: Object
 });
 
-const emit = defineEmits(['update:modelValue', 'success']);
+const emit = defineEmits(['update:modelValue', 'success', 'saved']);
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -241,7 +241,8 @@ const submit = async () => {
       await api.post('/admin/system-users', payload);
     }
     
-    emit('success');
+    emit('saved', payload);
+    emit('success', payload);
     close();
   } catch (error) {
     console.error('Failed to save system user:', error);

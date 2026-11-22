@@ -771,7 +771,7 @@ async function runBulkImport() {
       importing.value = true;
       await api.post(`/admin/public-exams/${selectedExamId.value}/questions/bulk`, { questions: parsed });
       importOpen.value = false;
-      fetchQuestions();
+      await fetchQuestions();
       showToast('Questions imported successfully!');
     } catch (err: any) {
       console.error('JSON import error:', err);
@@ -788,7 +788,7 @@ async function runBulkImport() {
     try {
       await api.post(`/admin/public-exams/${selectedExamId.value}/questions/bulk`, { questions: parsedCsvData.value });
       importOpen.value = false;
-      fetchQuestions();
+      await fetchQuestions();
       showToast(`Successfully imported ${parsedCsvData.value.length} questions from CSV!`);
     } catch (err: any) {
       console.error('CSV import error:', err);
@@ -883,7 +883,7 @@ async function saveQuestion() {
       await api.post(`/admin/public-exams/${selectedExamId.value}/questions`, payload);
     }
     questionDialog.value = false;
-    fetchQuestions();
+    await fetchQuestions();
     showToast(isEdit ? 'Question updated successfully!' : 'Question added successfully!');
   } catch (err: any) {
     console.error('Save question error:', err);
@@ -913,7 +913,7 @@ async function duplicateQuestion(q: any) {
     };
     
     await api.post(`/admin/public-exams/${selectedExamId.value}/questions`, payload);
-    fetchQuestions();
+    await fetchQuestions();
     showToast('Question duplicated successfully!');
   } catch (err: any) {
     console.error('Duplicate question error:', err);
@@ -933,7 +933,7 @@ async function deleteQuestion() {
     await api.delete(`/admin/public-exams/${selectedExamId.value}/questions/${targetQuestion.value.id}`);
     deleteConfirmDialog.value = false;
     targetQuestion.value = null;
-    fetchQuestions();
+    await fetchQuestions();
     showToast('Question deleted successfully!');
   } catch (err: any) {
     console.error('Delete question error:', err);

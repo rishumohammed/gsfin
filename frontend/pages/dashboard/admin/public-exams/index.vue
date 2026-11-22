@@ -494,7 +494,7 @@ async function duplicateExam(id: string) {
     snackbarText.value = 'Exam duplicated successfully as a Draft!';
     snackbarColor.value = 'success';
     snackbar.value = true;
-    loadData();
+    await loadData();
   } catch (err: any) {
     console.error('Duplication failed:', err);
     snackbarText.value = err.response?.data?.message || 'Duplication failed';
@@ -523,7 +523,7 @@ async function changeStatus(id: string, newStatus: string) {
       : `Exam "${exam?.name || ''}" reverted to Draft mode.`;
     snackbarColor.value = 'success';
     snackbar.value = true;
-    loadData();
+    await loadData();
   } catch (err: any) {
     console.error('Failed to toggle status:', err);
     snackbarText.value = err.response?.data?.message || 'Failed to toggle status';
@@ -544,7 +544,7 @@ async function deleteExam() {
     await api.delete(`/admin/public-exams/${targetExam.value.id}`);
     deleteDialog.value = false;
     targetExam.value = null;
-    loadData();
+    await loadData();
   } catch (err) {
     console.error('Failed to delete exam:', err);
   } finally {

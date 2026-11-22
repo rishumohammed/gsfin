@@ -531,6 +531,7 @@ const save = async () => {
   saving.value = true;
   try {
     await api.put('/admin/config', form.value);
+    await fetchData();
     snackbarMessage.value = 'Settings saved successfully!';
     snackbarColor.value = 'success';
     snackbar.value = true;

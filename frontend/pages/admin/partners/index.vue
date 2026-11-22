@@ -2168,11 +2168,11 @@ async function saveOrganization() {
       await api.put(`/main-admin/organizations/${editingOrg.value.id}`, orgForm.value);
       showAddOrgModal.value = false;
       editingOrg.value = null;
-      fetchOrganizations();
+      await fetchOrganizations();
     } else {
       const { data } = await api.post('/main-admin/organizations', orgForm.value);
       showAddOrgModal.value = false;
-      fetchOrganizations();
+      await fetchOrganizations();
       if (data?.tempPassword) {
         selectedResetOrg.value = { name: orgForm.value.name, contact_email: orgForm.value.contact_email };
         resetSuccessResult.value = {
@@ -2293,7 +2293,7 @@ async function deleteOrg(org: any) {
   if (!confirm(`Are you sure you want to delete "${org.name}"? This action cannot be undone.`)) return;
   try {
     await api.delete(`/main-admin/organizations/${org.id}`);
-    fetchOrganizations();
+    await fetchOrganizations();
   } catch (err: any) {
     alert(err.response?.data?.message || err.message || 'Failed to delete partner center');
   }
@@ -2303,7 +2303,7 @@ async function toggleOrgStatus(item: any) {
   const newStatus = item.status === 'active' ? 'suspended' : 'active';
   try {
     await api.patch(`/main-admin/organizations/${item.id}/status`, { status: newStatus });
-    fetchOrganizations();
+    await fetchOrganizations();
   } catch (err: any) {
     alert(err.response?.data?.message || err.message || 'Failed to update status');
   }
@@ -2376,7 +2376,7 @@ async function saveExam() {
     showAddExamModal.value = false;
     editingExam.value = null;
     examForm.value = { name: '', description: '', duration_minutes: 60, max_attempts: 1, status: 'active' };
-    fetchExams();
+    await fetchExams();
   } catch (err: any) {
     alert(err.response?.data?.message || err.message || 'Failed to save exam');
   } finally {
@@ -2425,7 +2425,7 @@ async function savePackage() {
     showPkgModal.value = false;
     editingPkgId.value = null;
     pkgForm.value = { name: '', token_count: 50, price: 500 };
-    fetchPackages();
+    await fetchPackages();
   } catch (err: any) {
     alert(err.response?.data?.message || err.message || 'Failed to save token package');
   } finally {
@@ -2445,7 +2445,7 @@ async function deletePackage() {
     await api.delete(`/main-admin/token-packages/${pkgToDelete.value.id}`);
     showDeletePkgModal.value = false;
     pkgToDelete.value = null;
-    fetchPackages();
+    await fetchPackages();
   } catch (err: any) {
     alert(err.response?.data?.message || err.message || 'Failed to delete token package');
   } finally {
@@ -2457,7 +2457,7 @@ async function togglePkgStatus(item: any) {
   const newStatus = item.status === 'active' ? 'retired' : 'active';
   try {
     await api.patch(`/main-admin/token-packages/${item.id}/status`, { status: newStatus });
-    fetchPackages();
+    await fetchPackages();
   } catch (err: any) {
     alert(err.response?.data?.message || err.message || 'Failed to update package status');
   }

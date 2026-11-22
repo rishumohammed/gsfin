@@ -1901,8 +1901,9 @@ async function confirmDeleteStudent(item: any) {
   }
   try {
     await api.delete(`/sub-center/students/${item.id}`);
+    students.value = (students.value || []).filter((s: any) => s.id !== item.id);
+    await fetchStudents();
     alert(`Student "${item.name}" was successfully deleted.`);
-    fetchStudents();
   } catch (err: any) {
     alert(err.response?.data?.message || err.message || 'Failed to delete student');
   }
@@ -1924,11 +1925,20 @@ async function registerStudent() {
   savingStudent.value = true;
   try {
     if (editingStudent.value) {
-      await api.put(`/sub-center/students/${editingStudent.value.id}`, studentForm.value);
+      const studentId = editingStudent.value.id;
+      const { data } = await api.put(`/sub-center/students/${studentId}`, studentForm.value);
       showAddStudentModal.value = false;
       stopStudentCamera();
+      const idx = students.value.findIndex((s: any) => s.id === studentId);
+      if (idx !== -1) {
+        students.value[idx] = {
+          ...students.value[idx],
+          ...studentForm.value,
+          ...(data || {})
+        };
+      }
       resetStudentForm();
-      fetchStudents();
+      await fetchStudents();
       alert('Student details updated successfully!');
     } else {
       const { data } = await api.post('/sub-center/students', studentForm.value);
@@ -1937,7 +1947,7 @@ async function registerStudent() {
       newRegisteredCredentials.value = data;
       showStudentCredentialsModal.value = true;
       resetStudentForm();
-      fetchStudents();
+      await fetchStudents();
     }
   } catch (err: any) {
     alert(err.response?.data?.message || err.message || 'Failed to save student');
@@ -2054,9 +2064,7 @@ async function submitCreateBatch() {
   try {
     await api.post('/sub-center/batches', batchForm.value);
     showCreateBatchModal.value = false;
-    fetchBatches();
-    fetchWallet();
-    fetchTransactions();
+    await Promise.allSettled([fetchBatches(), fetchWallet(), fetchTransactions()]);
   } catch (err: any) {
     alert(err.response?.data?.message || err.message || 'Failed to create batch');
   } finally {
@@ -2068,9 +2076,7 @@ async function cancelBatch(batch: any) {
   if (!confirm('Are you sure you want to cancel this batch? Unstarted tokens will be instantly refunded.')) return;
   try {
     await api.post(`/sub-center/batches/${batch.id}/cancel`);
-    fetchBatches();
-    fetchWallet();
-    fetchTransactions();
+    await Promise.allSettled([fetchBatches(), fetchWallet(), fetchTransactions()]);
   } catch (err: any) {
     alert(err.response?.data?.message || err.message || 'Failed to cancel batch');
   }
@@ -2113,8 +2119,7 @@ async function submitDedicatedRetryLink() {
       expires_at: retryLinkExpiresAt.value || null
     });
     showRetryLinkModal.value = false;
-    fetchWallet();
-    fetchTransactions();
+    await Promise.allSettled([fetchWallet(), fetchTransactions()]);
     if (selectedBatch.value) viewBatchDetails(selectedBatch.value);
     alert('Single-student retry link created successfully!');
   } catch (err: any) {

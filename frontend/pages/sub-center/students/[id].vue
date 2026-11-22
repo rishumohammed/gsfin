@@ -742,10 +742,17 @@ async function updateCandidate() {
   }
   savingEdit.value = true;
   try {
-    await api.put(`/sub-center/students/${studentId.value}`, editForm.value);
+    const { data } = await api.put(`/sub-center/students/${studentId.value}`, editForm.value);
+    if (student.value) {
+      student.value = {
+        ...student.value,
+        ...editForm.value,
+        ...(data || {})
+      };
+    }
+    await fetchStudentDetails();
     showEditModal.value = false;
     alert('Student details updated successfully!');
-    fetchStudentDetails();
   } catch (err: any) {
     alert(err.response?.data?.message || err.message || 'Failed to update student');
   } finally {

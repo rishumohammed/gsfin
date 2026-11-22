@@ -341,7 +341,7 @@ async function saveCategory() {
       await api.post('/admin/public-exams/categories', modal.data);
     }
     modal.show = false;
-    fetchCategories();
+    await fetchCategories();
   } catch (err: any) {
     console.error('Save category error:', err);
     alert(err.response?.data?.message || 'Error occurred while saving category.');
@@ -372,7 +372,7 @@ async function deleteCategory() {
     await api.delete(`/admin/public-exams/categories/${targetCategory.value.id}`);
     deleteDialog.value = false;
     targetCategory.value = null;
-    fetchCategories();
+    await fetchCategories();
   } catch (err: any) {
     console.error('Failed to delete category:', err);
     alert(err.response?.data?.message || 'Failed to delete category. Make sure it is not linked to any exam.');

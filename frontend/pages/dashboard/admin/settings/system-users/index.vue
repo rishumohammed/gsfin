@@ -190,7 +190,7 @@
     <SystemUserModal
       v-model="showUserModal"
       :user="selectedUser"
-      @saved="fetchData"
+      @saved="handleUserSaved"
     />
 
     <!-- Audit Logs Modal -->
@@ -443,6 +443,25 @@ const openEditModal = (user: any) => {
   showUserModal.value = true;
 };
 
+const handleUserSaved = async (savedData?: any) => {
+  if (selectedUser.value && savedData) {
+    if (isCurrentUser(selectedUser.value)) {
+      if (savedData.name && authStore.user) authStore.user.name = savedData.name;
+      if (savedData.email && authStore.user) authStore.user.email = savedData.email;
+    }
+    const idx = users.value.findIndex((u: any) => u.id === selectedUser.value.id);
+    if (idx !== -1) {
+      users.value[idx] = {
+        ...users.value[idx],
+        ...(savedData.name ? { name: savedData.name } : {}),
+        ...(savedData.email ? { email: savedData.email } : {}),
+        ...(savedData.role ? { role: savedData.role } : {})
+      };
+    }
+  }
+  await fetchData();
+};
+
 const toggleStatus = async (user: any) => {
   if (!canToggleStatus(user)) {
     alert(getSuspendTooltip(user));
@@ -453,7 +472,7 @@ const toggleStatus = async (user: any) => {
 
   try {
     await api.put(`/admin/system-users/${user.id}/status`, { status: newStatus });
-    fetchData();
+    await fetchData();
   } catch (err: any) {
     alert(err.response?.data?.message || 'Failed to update status');
   }
@@ -467,7 +486,7 @@ const resetPassword = async (user: any) => {
     tempPassword.value = data.tempPassword;
     copied.value = false;
     showPasswordDialog.value = true;
-    fetchData();
+    await fetchData();
   } catch (err: any) {
     alert(err.response?.data?.message || 'Failed to reset password');
   }
@@ -488,7 +507,7 @@ const confirmDelete = async (user: any) => {
 
   try {
     await api.delete(`/admin/system-users/${user.id}`);
-    fetchData();
+    await fetchData();
   } catch (err: any) {
     alert(err.response?.data?.message || 'Failed to delete user');
   }
