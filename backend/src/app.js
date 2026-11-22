@@ -22,7 +22,7 @@ import { ExamCatalogService } from './services/exam-catalog.service.js';
 import proctoringRoutes from './routes/proctoring.routes.js';
 import { authenticateJWT, authorizeRoles } from './middleware/auth.js';
 import { initSocket } from './socket/index.js';
-import adminSystemUsersRoutes from './routes/admin.system-users.routes.js';
+import adminSystemUsersRoutes, { ensureActiveAdmin } from './routes/admin.system-users.routes.js';
 import adminEmailTemplatesRoutes from './routes/admin.email-templates.routes.js';
 import adminInquiriesRoutes, { ensureInquiriesColumns } from './routes/admin.inquiries.routes.js';
 import notificationRoutes from './routes/notifications.routes.js';
@@ -148,6 +148,11 @@ ensureInquiriesColumns().catch((err) => {
 // Auto-heal and sync exams catalog with qualifications and partner programs
 ExamCatalogService.ensureExamsCatalog().catch((err) => {
   console.error('[Startup] Failed to auto-initialize exams catalog:', err);
+});
+
+// Auto-heal active administrator account to prevent accidental lockout
+ensureActiveAdmin().catch((err) => {
+  console.error('[Startup] Failed to ensure active administrator account:', err);
 });
 
 httpServer.listen(PORT, '0.0.0.0', () => {

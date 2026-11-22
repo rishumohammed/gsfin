@@ -124,8 +124,21 @@ router.put('/:id', authenticateJWT, authorizeRoles('super_admin', 'main_admin'),
   try {
     await connection.beginTransaction();
 
-    const [existing] = await connection.query('SELECT email FROM users WHERE id = ? AND role IN (?)', [targetId, SYSTEM_ROLES]);
+    const [existing] = await connection.query('SELECT email, role FROM users WHERE id = ? AND role IN (?)', [targetId, SYSTEM_ROLES]);
     if (existing.length === 0) return res.status(404).json({ message: 'System user not found' });
+
+    // Security check: cannot demote the last active administrator
+    if (role && role !== existing[0].role && ['super_admin', 'main_admin'].includes(existing[0].role)) {
+      const [remainingAdmins] = await connection.query(
+        "SELECT COUNT(*) as count FROM users WHERE role IN ('super_admin', 'main_admin') AND status = 'active' AND id != ?",
+        [targetId]
+      );
+      if (remainingAdmins[0].count === 0) {
+        return res.status(400).json({ 
+          message: 'Security policy violation: Cannot demote the last active administrator account.' 
+        });
+      }
+    }
 
     if (email && email !== existing[0].email) {
       const [emailConflict] = await connection.query('SELECT id FROM users WHERE email = ? AND id != ?', [email, targetId]);
@@ -171,12 +184,31 @@ router.put('/:id/status', authenticateJWT, authorizeRoles('super_admin', 'main_a
     return res.status(400).json({ message: 'Invalid status' });
   }
 
+  // Security check: cannot suspend oneself
+  if (status === 'suspended' && targetId === req.user.id) {
+    return res.status(400).json({ 
+      message: 'Security policy violation: You cannot suspend your own active administrator account.' 
+    });
+  }
+
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
-    const [existing] = await connection.query('SELECT email FROM users WHERE id = ? AND role IN (?)', [targetId, SYSTEM_ROLES]);
+    const [existing] = await connection.query('SELECT id, email, role, status FROM users WHERE id = ? AND role IN (?)', [targetId, SYSTEM_ROLES]);
     if (existing.length === 0) return res.status(404).json({ message: 'System user not found' });
+
+    // Security check: at least one super_admin or main_admin must remain active
+    if (status === 'suspended' && ['super_admin', 'main_admin'].includes(existing[0].role)) {
+      const [activeAdmins] = await connection.query(
+        "SELECT COUNT(*) as count FROM users WHERE role IN ('super_admin', 'main_admin') AND status = 'active' AND deleted_at IS NULL"
+      );
+      if (activeAdmins[0]?.count <= 1) {
+        return res.status(400).json({
+          message: 'Security policy violation: At least one Administrator (Super Admin / Main Admin) must remain active at all times.'
+        });
+      }
+    }
 
     await connection.query('UPDATE users SET status = ? WHERE id = ?', [status, targetId]);
 
@@ -243,15 +275,28 @@ router.post('/:id/reset-password', authenticateJWT, authorizeRoles('super_admin'
 router.delete('/:id', authenticateJWT, authorizeRoles('super_admin', 'main_admin'), async (req, res) => {
   const targetId = req.params.id;
   if (targetId === req.user.id) {
-    return res.status(400).json({ message: 'Cannot delete yourself' });
+    return res.status(400).json({ message: 'Security policy violation: You cannot delete your own account' });
   }
 
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
-    const [existing] = await connection.query('SELECT email FROM users WHERE id = ? AND role IN (?)', [targetId, SYSTEM_ROLES]);
+    const [existing] = await connection.query('SELECT id, email, role FROM users WHERE id = ? AND role IN (?)', [targetId, SYSTEM_ROLES]);
     if (existing.length === 0) return res.status(404).json({ message: 'System user not found' });
+
+    // Security check: cannot delete the last active administrator
+    if (['super_admin', 'main_admin'].includes(existing[0].role)) {
+      const [remainingAdmins] = await connection.query(
+        "SELECT COUNT(*) as count FROM users WHERE role IN ('super_admin', 'main_admin') AND status = 'active' AND deleted_at IS NULL AND id != ?",
+        [targetId]
+      );
+      if (remainingAdmins[0]?.count === 0) {
+        return res.status(400).json({ 
+          message: 'Security policy violation: Cannot delete the last active administrator account.' 
+        });
+      }
+    }
 
     const emailSuffix = `.deleted.${Date.now()}`;
     const newEmail = `${existing[0].email}${emailSuffix}`;
@@ -288,5 +333,23 @@ router.get('/audit-logs', authenticateJWT, authorizeRoles('super_admin', 'main_a
     res.status(500).json({ message: error.message });
   }
 });
+
+// Auto-heal check to guarantee at least one super_admin or main_admin is active
+export const ensureActiveAdmin = async () => {
+  try {
+    const [active] = await pool.query(
+      "SELECT COUNT(*) as count FROM users WHERE role IN ('super_admin', 'main_admin') AND status = 'active'"
+    );
+    if (!active[0] || active[0].count === 0) {
+      console.warn('[Security Auto-Heal] No active super_admin or main_admin found. Reactivating administrator accounts to prevent system lockout...');
+      await pool.query(
+        "UPDATE users SET status = 'active' WHERE role IN ('super_admin', 'main_admin')"
+      );
+      console.log('[Security Auto-Heal] Administrator accounts reactivated successfully.');
+    }
+  } catch (err) {
+    console.error('[Security Auto-Heal] Failed to verify/heal active admin accounts:', err);
+  }
+};
 
 export default router;

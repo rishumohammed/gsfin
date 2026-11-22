@@ -144,15 +144,16 @@
                     <button
                       class="btn-table-action"
                       :class="user.status === 'active' ? 'btn-warn' : 'btn-success'"
-                      :title="user.status === 'active' ? 'Suspend Account' : 'Activate Account'"
+                      :title="getSuspendTooltip(user)"
+                      :disabled="!canToggleStatus(user)"
                       @click="toggleStatus(user)"
                     >
                       <i :class="['mdi', user.status === 'active' ? 'mdi-account-minus' : 'mdi-account-check']"></i>
                     </button>
                     <button
                       class="btn-table-action btn-danger"
-                      :title="isCurrentUser(user) ? 'Cannot delete your own account' : 'Delete Account'"
-                      :disabled="isCurrentUser(user)"
+                      :title="getDeleteTooltip(user)"
+                      :disabled="!canDeleteUser(user)"
                       @click="confirmDelete(user)"
                     >
                       <i class="mdi mdi-trash-can-outline"></i>
@@ -284,6 +285,45 @@ const isCurrentUser = (u: any) => {
   return authStore.user.id === u.id || authStore.user.email === u.email;
 };
 
+// Count active administrators to ensure at least one remains active
+const activeAdminCount = computed(() => {
+  return users.value.filter(u => ['super_admin', 'main_admin'].includes(u.role) && u.status === 'active').length;
+});
+
+const canToggleStatus = (u: any) => {
+  if (!u) return false;
+  if (u.status !== 'active') return true; // Inactive or suspended accounts can always be reactivated
+  if (isCurrentUser(u)) return false; // An admin cannot suspend their own logged-in account
+  if (['super_admin', 'main_admin'].includes(u.role) && activeAdminCount.value <= 1) return false; // At least one active admin must remain
+  return true;
+};
+
+const getSuspendTooltip = (u: any) => {
+  if (!u) return '';
+  if (u.status !== 'active') return 'Activate Account';
+  if (isCurrentUser(u)) return 'Cannot suspend your own active administrator account';
+  if (['super_admin', 'main_admin'].includes(u.role) && activeAdminCount.value <= 1) {
+    return 'Security rule: At least one Administrator must remain active at all times';
+  }
+  return 'Suspend Account';
+};
+
+const canDeleteUser = (u: any) => {
+  if (!u) return false;
+  if (isCurrentUser(u)) return false;
+  if (['super_admin', 'main_admin'].includes(u.role) && activeAdminCount.value <= 1) return false;
+  return true;
+};
+
+const getDeleteTooltip = (u: any) => {
+  if (!u) return '';
+  if (isCurrentUser(u)) return 'Cannot delete your own account';
+  if (['super_admin', 'main_admin'].includes(u.role) && activeAdminCount.value <= 1) {
+    return 'Security rule: Cannot delete the last active administrator';
+  }
+  return 'Delete Account';
+};
+
 const showUserModal = ref(false);
 const selectedUser = ref<any>(null);
 
@@ -390,6 +430,10 @@ const openEditModal = (user: any) => {
 };
 
 const toggleStatus = async (user: any) => {
+  if (!canToggleStatus(user)) {
+    alert(getSuspendTooltip(user));
+    return;
+  }
   const newStatus = user.status === 'active' ? 'suspended' : 'active';
   if (!confirm(`Are you sure you want to ${newStatus} this user?`)) return;
 
@@ -422,6 +466,10 @@ const copyPassword = () => {
 };
 
 const confirmDelete = async (user: any) => {
+  if (!canDeleteUser(user)) {
+    alert(getDeleteTooltip(user));
+    return;
+  }
   if (!confirm(`WARNING: Are you sure you want to delete ${user.name}?`)) return;
 
   try {
