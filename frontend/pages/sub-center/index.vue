@@ -803,16 +803,16 @@
         <div v-if="showAddStudentModal" class="modal-overlay" @click.self="showAddStudentModal = false">
           <div class="modal-card modal-card-student-form">
             <div class="modal-header">
-              <div class="flex items-center gap-3">
-                <div class="icon-box-lg bg-red-light text-red">
+              <div class="modal-title-row">
+                <div class="modal-header-icon bg-red-50 text-red border border-red-100">
                   <i :class="['mdi', editingStudent ? 'mdi-account-edit' : 'mdi-account-plus']"></i>
                 </div>
-                <div>
-                  <h3 class="modal-title">{{ editingStudent ? 'Edit Candidate Student' : 'Register Candidate Student' }}</h3>
-                  <span class="text-xs text-slate-500 font-medium">{{ editingStudent ? 'Update candidate information and credentials' : 'Add candidate to sub-center directory for exam batch enrollment' }}</span>
+                <div class="modal-title-text">
+                  <h3>{{ editingStudent ? 'Edit Candidate Student' : 'Register Candidate Student' }}</h3>
+                  <p>{{ editingStudent ? 'Update candidate information and credentials' : 'Add candidate to sub-center directory for exam batch enrollment' }}</p>
                 </div>
               </div>
-              <button class="modal-close-btn" @click="showAddStudentModal = false"><i class="mdi mdi-close"></i></button>
+              <button class="modal-close-btn" @click="showAddStudentModal = false" aria-label="Close modal"><i class="mdi mdi-close"></i></button>
             </div>
 
             <form @submit.prevent="registerStudent">
@@ -1004,16 +1004,16 @@
         <div v-if="showStudentCredentialsModal && newRegisteredCredentials" class="modal-overlay" @click.self="showStudentCredentialsModal = false">
           <div class="modal-card modal-card-creds">
             <div class="modal-header">
-              <div class="flex items-center gap-3">
-                <div class="icon-box-lg bg-emerald-50 text-emerald-600">
+              <div class="modal-title-row">
+                <div class="modal-header-icon bg-emerald-50 text-emerald-600 border border-emerald-100">
                   <i class="mdi mdi-shield-account-outline"></i>
                 </div>
-                <div>
-                  <h3 class="modal-title">Candidate Credentials &amp; OTP</h3>
-                  <span class="text-xs text-slate-500 font-medium">Official exam login access for {{ newRegisteredCredentials.name }}</span>
+                <div class="modal-title-text">
+                  <h3>Candidate Credentials &amp; OTP</h3>
+                  <p>Official exam login access for {{ newRegisteredCredentials.name }}</p>
                 </div>
               </div>
-              <button class="modal-close-btn" @click="showStudentCredentialsModal = false"><i class="mdi mdi-close"></i></button>
+              <button class="modal-close-btn" @click="showStudentCredentialsModal = false" aria-label="Close modal"><i class="mdi mdi-close"></i></button>
             </div>
 
             <div class="modal-body modal-creds-body">
@@ -1098,16 +1098,16 @@
         <div v-if="showRetryLinkModal" class="modal-overlay" @click.self="showRetryLinkModal = false">
           <div class="modal-card max-w-md">
             <div class="modal-header">
-              <div class="flex items-center gap-3">
-                <div class="icon-box-lg bg-indigo-light text-indigo">
+              <div class="modal-title-row">
+                <div class="modal-header-icon bg-indigo-50 text-indigo border border-indigo-100">
                   <i class="mdi mdi-link-plus"></i>
                 </div>
-                <div>
-                  <h3 class="modal-title">Create Single-Student Retry Link</h3>
-                  <span class="text-xs text-slate-500 font-medium">Generates a dedicated retry link (Spends 1 token)</span>
+                <div class="modal-title-text">
+                  <h3>Create Single-Student Retry Link</h3>
+                  <p>Generates a dedicated retry link (Spends 1 token)</p>
                 </div>
               </div>
-              <button class="modal-close-btn" @click="showRetryLinkModal = false"><i class="mdi mdi-close"></i></button>
+              <button class="modal-close-btn" @click="showRetryLinkModal = false" aria-label="Close modal"><i class="mdi mdi-close"></i></button>
             </div>
 
             <div class="modal-body">
@@ -1138,16 +1138,16 @@
         <div v-if="showEditProfileModal" class="modal-overlay" @click.self="showEditProfileModal = false">
           <div class="modal-card max-w-lg">
             <div class="modal-header">
-              <div class="flex items-center gap-3.5">
-                <div class="icon-box-lg bg-red-light text-red">
+              <div class="modal-title-row">
+                <div class="modal-header-icon bg-red-50 text-red border border-red-100">
                   <i class="mdi mdi-account-edit"></i>
                 </div>
-                <div>
-                  <h3 class="modal-title">Edit Profile &amp; Center Details</h3>
-                  <span class="text-xs text-slate-500 font-medium">Update staff credentials and sub-center organization information</span>
+                <div class="modal-title-text">
+                  <h3>Edit Profile &amp; Center Details</h3>
+                  <p>Update staff credentials and sub-center organization information</p>
                 </div>
               </div>
-              <button class="modal-close-btn" @click="showEditProfileModal = false"><i class="mdi mdi-close"></i></button>
+              <button class="modal-close-btn" @click="showEditProfileModal = false" aria-label="Close modal"><i class="mdi mdi-close"></i></button>
             </div>
 
             <form @submit.prevent="submitUpdateProfile">
@@ -2386,6 +2386,43 @@ definePageMeta({
   justify-content: space-between;
   flex-shrink: 0;
   background: #FAFAFD;
+}
+
+.modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.modal-header-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.modal-title-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-title-text h3 {
+  font-size: 1.12rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.28;
+}
+
+.modal-title-text p {
+  font-size: 0.78rem;
+  color: #64748B;
+  margin: 3px 0 0 0;
+  line-height: 1.3;
 }
 
 .icon-box-lg {
