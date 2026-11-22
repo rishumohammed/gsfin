@@ -971,21 +971,12 @@
                         autoplay 
                         playsinline 
                         class="webcam-video-el"
-                        :style="{ transform: isCameraMirrored ? 'scaleX(-1)' : 'none' }"
                       ></video>
                       <div class="webcam-oval-overlay"></div>
                     </div>
                     <div class="webcam-controls-row">
                       <button type="button" class="btn-capture-photo" @click="captureStudentPhoto">
                         <i class="mdi mdi-camera"></i> Take Photo
-                      </button>
-                      <button 
-                        type="button" 
-                        class="btn-flip-camera" 
-                        @click="isCameraMirrored = !isCameraMirrored"
-                        :title="isCameraMirrored ? 'Switch to unmirrored' : 'Switch to mirrored'"
-                      >
-                        <i class="mdi mdi-flip-horizontal mr-1"></i> {{ isCameraMirrored ? 'Mirrored' : 'Unmirrored' }}
                       </button>
                       <button type="button" class="btn-cancel-camera" @click="stopStudentCamera">
                         Cancel
@@ -1447,7 +1438,6 @@ const studentForm = ref({
   face_descriptor: null as any
 });
 const isStudentCameraActive = ref(false);
-const isCameraMirrored = ref(false);
 const subCenterWebcamVideo = ref<HTMLVideoElement | null>(null);
 let subCenterStream: MediaStream | null = null;
 const showStudentCredentialsModal = ref(false);
@@ -1777,10 +1767,6 @@ function captureStudentPhoto() {
   canvas.height = video.videoHeight || 480;
   const ctx = canvas.getContext('2d');
   if (ctx) {
-    if (isCameraMirrored.value) {
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-    }
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
     studentForm.value.face_photo = dataUrl;
@@ -3649,25 +3635,6 @@ input[type="datetime-local"].modal-input-field {
   height: 100%;
   object-fit: cover;
   transform: none;
-}
-
-.btn-flip-camera {
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.78rem;
-  font-weight: 500;
-  background: #F1F5F9;
-  color: #334155;
-  border: 1px solid #CBD5E1;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  transition: all 0.15s ease;
-}
-
-.btn-flip-camera:hover {
-  background: #E2E8F0;
-  color: #0F172A;
 }
 
 .webcam-oval-overlay {
