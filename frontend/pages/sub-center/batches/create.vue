@@ -204,42 +204,63 @@
               </button>
             </div>
 
-            <!-- Certificate Issuance Policy -->
-            <div class="mt-4 pt-3 border-t border-slate-100">
-              <label class="d-flex align-center gap-3 cursor-pointer py-2 px-3 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors">
-                <input 
-                  type="checkbox" 
-                  v-model="batchForm.enable_certificate" 
-                  style="accent-color: #E31B23; width: 18px; height: 18px; cursor: pointer;"
-                />
-                <div>
-                  <div class="text-sm font-semibold text-slate-900">
-                    Issue Verified Digital Certificates on Passing
+            <!-- Batch Execution & Assessment Policies -->
+            <div class="batch-policy-grid mt-5 pt-4 border-t border-slate-100">
+              <!-- Policy 1: Certificate Issuance -->
+              <div 
+                class="policy-toggle-card"
+                :class="{ 'is-active': batchForm.enable_certificate }"
+                @click="batchForm.enable_certificate = !batchForm.enable_certificate"
+              >
+                <div class="policy-card-left">
+                  <div class="policy-icon-wrap" :class="batchForm.enable_certificate ? 'icon-wrap-active' : 'icon-wrap-inactive'">
+                    <i class="mdi mdi-certificate-outline"></i>
                   </div>
-                  <div class="text-xs text-slate-500">
-                    When enabled, candidates who achieve passing criteria automatically receive an official GSFIN certificate and certificate email.
+                  <div class="policy-info">
+                    <div class="policy-title-row">
+                      <span class="policy-title">Digital Certificate Issuance</span>
+                      <span v-if="batchForm.enable_certificate" class="policy-pill-green">
+                        <i class="mdi mdi-check"></i> Enabled
+                      </span>
+                      <span v-else class="policy-pill-gray">Disabled</span>
+                    </div>
+                    <div class="policy-sub">
+                      Generate official GSFIN certificates and email notifications upon passing.
+                    </div>
                   </div>
                 </div>
-              </label>
-            </div>
+                <div class="card-switch" :class="{ 'switch-on': batchForm.enable_certificate }">
+                  <span class="switch-dot"></span>
+                </div>
+              </div>
 
-            <!-- Proctoring Policy -->
-            <div class="mt-3">
-              <label class="d-flex align-center gap-3 cursor-pointer py-2 px-3 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors">
-                <input 
-                  type="checkbox" 
-                  v-model="batchForm.enable_proctoring" 
-                  style="accent-color: #E31B23; width: 18px; height: 18px; cursor: pointer;"
-                />
-                <div>
-                  <div class="text-sm font-semibold text-slate-900">
-                    Enable AI Proctoring Suite &amp; Identity Verification
+              <!-- Policy 2: AI Proctoring -->
+              <div 
+                class="policy-toggle-card"
+                :class="{ 'is-active': batchForm.enable_proctoring }"
+                @click="batchForm.enable_proctoring = !batchForm.enable_proctoring"
+              >
+                <div class="policy-card-left">
+                  <div class="policy-icon-wrap" :class="batchForm.enable_proctoring ? 'icon-wrap-active' : 'icon-wrap-inactive'">
+                    <i class="mdi mdi-shield-account-outline"></i>
                   </div>
-                  <div class="text-xs text-slate-500">
-                    When enabled, candidates must verify facial identity before the exam, and fullscreen/tab-switch violations will be monitored.
+                  <div class="policy-info">
+                    <div class="policy-title-row">
+                      <span class="policy-title">AI Proctoring Suite</span>
+                      <span v-if="batchForm.enable_proctoring" class="policy-pill-green">
+                        <i class="mdi mdi-shield-check"></i> Active
+                      </span>
+                      <span v-else class="policy-pill-gray">Inactive</span>
+                    </div>
+                    <div class="policy-sub">
+                      Enforce candidate identity verification, tab-switch monitoring, and fullscreen security.
+                    </div>
                   </div>
                 </div>
-              </label>
+                <div class="card-switch" :class="{ 'switch-on': batchForm.enable_proctoring }">
+                  <span class="switch-dot"></span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1269,6 +1290,151 @@ onMounted(async () => {
 }
 .preset-chip-clear {
   color: #64748B;
+}
+
+/* Batch Policies Grid & Modern Toggle Cards */
+.batch-policy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 14px;
+}
+
+.policy-toggle-card {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
+}
+
+.policy-toggle-card:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.04);
+}
+
+.policy-toggle-card.is-active {
+  border-color: #FCA5A5;
+  background: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(227, 27, 35, 0.06);
+}
+
+.policy-card-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.policy-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 20px;
+  transition: all 0.2s ease;
+}
+
+.icon-wrap-active {
+  background-color: #FEF2F2;
+  color: #E31B23;
+}
+
+.icon-wrap-inactive {
+  background-color: #F1F5F9;
+  color: #64748B;
+}
+
+.policy-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.policy-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.policy-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.policy-sub {
+  font-size: 0.74rem;
+  color: #64748B;
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.policy-pill-green {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #059669;
+  background-color: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  line-height: 1.2;
+}
+
+.policy-pill-gray {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #64748B;
+  background-color: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  line-height: 1.2;
+}
+
+.card-switch {
+  width: 36px;
+  height: 20px;
+  border-radius: 9999px;
+  background-color: #CBD5E1;
+  position: relative;
+  transition: background-color 0.25s ease;
+  flex-shrink: 0;
+}
+
+.card-switch.switch-on {
+  background-color: #E31B23;
+}
+
+.switch-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #FFFFFF;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.card-switch.switch-on .switch-dot {
+  transform: translateX(16px);
 }
 
 /* Section 2 Toolbar */
