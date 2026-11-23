@@ -835,8 +835,8 @@ onMounted(() => {
 .th-verdict { min-width: 120px; }
 .th-violations { min-width: 150px; }
 .th-attempt-time { min-width: 140px; }
-.th-audit-act { min-width: 150px; width: 150px; }
-.td-audit-act { min-width: 150px; width: 150px; white-space: nowrap; }
+.th-audit-act { min-width: 170px; width: 170px; }
+.td-audit-act { min-width: 170px; width: 170px; white-space: nowrap; }
 
 .gsfin-admin-page {
   padding: 24px 32px;

@@ -183,7 +183,7 @@ class ProctoringService {
                 COALESCE(e.name, pe.name, 'Certification Exam') as exam_title
          FROM exam_attempts ea
          LEFT JOIN exam_assignments a ON ea.assignment_id = a.id
-         LEFT JOIN students s ON (a.student_id = s.id OR ea.student_id = s.id)
+         LEFT JOIN students s ON a.student_id = s.id
          LEFT JOIN batches b ON a.batch_id = b.id
          LEFT JOIN organizations o ON b.org_id = o.id
          LEFT JOIN exams e ON (a.exam_id = e.id OR b.exam_id = e.id)

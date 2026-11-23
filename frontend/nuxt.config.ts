@@ -47,7 +47,9 @@ export default defineNuxtConfig({
     families: {
       'Plus Jakarta Sans': [400, 500, 600, 700, 800],
       Inter: [400, 500, 600, 700],
-      'JetBrains Mono': [400, 500, 600]
+      'JetBrains Mono': [400, 500, 600],
+      'Playfair Display': [500, 700],
+      'Hanken Grotesk': [400, 500, 600]
     },
     display: 'swap'
   },

@@ -132,6 +132,28 @@
 
                 </div>
 
+                <!-- Live Official Digital Certificate Document Preview -->
+                <div class="mt-8 pt-6 border-t border-slate-100">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                      <i class="mdi mdi-certificate text-red text-xl"></i>
+                      <h4 class="text-base font-semibold text-slate-900 m-0">Official Digital Certificate Document</h4>
+                    </div>
+                    <span class="text-xs text-slate-500 font-medium">A4 International Landscape Format</span>
+                  </div>
+                  
+                  <div class="cert-preview-box">
+                    <CertificatePreview
+                      :candidate-name="result.student_name"
+                      :exam-title="result.qualification_title"
+                      :certificate-number="result.cert_number"
+                      :issue-date="result.issued_at"
+                      :center-name="result.center_name"
+                      :verify-url="`verify.gsfin.org/c/${(result.cert_number || '').replace(/[^a-zA-Z0-9]/g, '').slice(-4)}`"
+                    />
+                  </div>
+                </div>
+
               </div>
             </div>
 
@@ -172,6 +194,7 @@ import { ref, onMounted } from 'vue';
 import { useHead, useRoute } from '#imports';
 import { useApi } from '@/composables/useApi';
 import { usePublicConfig } from '@/composables/usePublicConfig';
+import CertificatePreview from '@/components/CertificatePreview.vue';
 
 useHead({
   title: 'Certificate Verification | GSFIN Official Credential Verification',
@@ -445,7 +468,20 @@ onMounted(() => {
 }
 
 /* ── Result Card Display ─────────────────────────────────────── */
-.result-container { max-width: 680px; margin: 32px auto 0 auto; text-align: left; }
+.result-container { max-width: 920px; margin: 32px auto 0 auto; text-align: left; }
+
+.cert-preview-box {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #F8FAFC;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
 
 .result-card {
   background: #FFFFFF;
