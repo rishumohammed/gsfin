@@ -166,20 +166,20 @@
           <!-- Biometric Baseline Card -->
           <div class="panel-section-card">
             <div class="section-card-header">
-              <div class="flex items-center gap-2.5">
-                <div class="section-icon-box bg-red-50 text-red">
+              <div class="section-header-title-wrap">
+                <div class="section-icon-box biometric-header-icon">
                   <i class="mdi mdi-card-account-details-outline"></i>
                 </div>
                 <div>
-                  <h3 class="text-sm font-semibold text-slate-900 m-0">Candidate Biometric Baseline</h3>
-                  <p class="text-xs text-slate-400 m-0">Identity verification &amp; webcam telemetry</p>
+                  <h3 class="section-heading">Candidate Biometric Baseline</h3>
+                  <p class="section-subheading">Identity verification &amp; webcam telemetry</p>
                 </div>
               </div>
             </div>
 
-            <div class="p-5">
+            <div class="baseline-card-body">
               <!-- Registered Selfie Photo Frame -->
-              <div class="selfie-frame-wrap mb-5">
+              <div class="selfie-frame-wrap">
                 <div v-if="details?.reference_selfie_url" class="selfie-preview-box cursor-pointer" @click="openPreview(details.reference_selfie_url)">
                   <img
                     :src="backendUrl(details.reference_selfie_url)"
@@ -200,139 +200,144 @@
                     {{ getInitials(details?.candidate_name) }}
                   </div>
                   <div class="placeholder-text">
-                    <span class="text-xs font-semibold text-slate-700">No Biometric Photo Stored</span>
-                    <span class="text-xs text-slate-400">Baseline was captured via anonymous or direct session</span>
+                    <span class="placeholder-title">No Biometric Photo Stored</span>
+                    <span class="placeholder-desc">Baseline was captured via anonymous or direct session</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Candidate Metadata Key-Values -->
-              <div class="meta-list">
-                <div class="meta-item">
-                  <div class="meta-label">
+              <!-- Candidate Metadata Key-Values Container -->
+              <div class="meta-list-card">
+                <div class="meta-row">
+                  <span class="meta-label">
                     <i class="mdi mdi-account-outline"></i> Candidate Name
-                  </div>
-                  <div class="meta-val font-semibold text-slate-900">
+                  </span>
+                  <span class="meta-val font-semibold">
                     {{ details?.candidate_name || 'Candidate' }}
-                  </div>
+                  </span>
                 </div>
 
-                <div class="meta-item">
-                  <div class="meta-label">
+                <div class="meta-row">
+                  <span class="meta-label">
                     <i class="mdi mdi-email-outline"></i> Candidate Email
-                  </div>
-                  <div class="meta-val text-slate-700">
+                  </span>
+                  <span class="meta-val text-muted">
                     {{ details?.candidate_email || 'No email recorded' }}
-                  </div>
+                  </span>
                 </div>
 
-                <div v-if="details?.candidate_phone" class="meta-item">
-                  <div class="meta-label">
+                <div v-if="details?.candidate_phone" class="meta-row">
+                  <span class="meta-label">
                     <i class="mdi mdi-phone-outline"></i> Contact Phone
-                  </div>
-                  <div class="meta-val text-slate-700 font-mono text-xs">
+                  </span>
+                  <span class="meta-val font-mono">
                     {{ details.candidate_phone }}
-                  </div>
+                  </span>
                 </div>
 
-                <div class="meta-item">
-                  <div class="meta-label">
+                <div class="meta-row">
+                  <span class="meta-label">
                     <i class="mdi mdi-file-certificate-outline"></i> Examination
-                  </div>
-                  <div class="meta-val font-semibold text-slate-900">
+                  </span>
+                  <span class="meta-val font-semibold">
                     {{ details?.exam_title || 'Certification Exam' }}
-                  </div>
+                  </span>
                 </div>
 
-                <div v-if="details?.is_subcenter" class="meta-item">
-                  <div class="meta-label">
+                <div v-if="details?.is_subcenter" class="meta-row">
+                  <span class="meta-label">
                     <i class="mdi mdi-domain"></i> Testing Center
-                  </div>
-                  <div class="meta-val font-medium text-slate-800">
+                  </span>
+                  <span class="meta-val">
                     {{ details?.org_name || 'Authorized Testing Center' }}
-                  </div>
+                  </span>
                 </div>
 
-                <div v-if="details?.batch_code" class="meta-item">
-                  <div class="meta-label">
+                <div v-if="details?.batch_code" class="meta-row">
+                  <span class="meta-label">
                     <i class="mdi mdi-tag-outline"></i> Batch Code
-                  </div>
-                  <div class="meta-val font-mono text-xs font-semibold text-slate-800">
+                  </span>
+                  <span class="meta-val font-mono">
                     {{ details.batch_code }}
-                  </div>
+                  </span>
                 </div>
 
-                <div v-if="details?.result" class="meta-item">
-                  <div class="meta-label">
+                <div v-if="details?.result" class="meta-row">
+                  <span class="meta-label">
                     <i class="mdi mdi-trophy-outline"></i> Exam Result
-                  </div>
-                  <div class="meta-val">
+                  </span>
+                  <span class="meta-val">
                     <span :class="['result-pill', details.result === 'pass' ? 'result-pass' : 'result-fail']">
                       <i :class="['mdi', details.result === 'pass' ? 'mdi-check-circle' : 'mdi-close-circle']"></i>
                       <span>{{ details.result === 'pass' ? 'PASSED' : 'FAILED' }}</span>
                     </span>
-                  </div>
+                  </span>
                 </div>
 
-                <div class="meta-item">
-                  <div class="meta-label">
+                <div class="meta-row">
+                  <span class="meta-label">
                     <i class="mdi mdi-shield-check-outline"></i> Audit Status
-                  </div>
-                  <div class="meta-val">
+                  </span>
+                  <span class="meta-val">
                     <span :class="['status-pill', getStatusPillClass(details?.proctoring_status)]">
                       {{ formatStatus(details?.proctoring_status || 'pending_review') }}
                     </span>
-                  </div>
+                  </span>
                 </div>
 
-                <div v-if="details?.started_at" class="meta-item">
-                  <div class="meta-label">
+                <div v-if="details?.started_at" class="meta-row">
+                  <span class="meta-label">
                     <i class="mdi mdi-clock-outline"></i> Started At
-                  </div>
-                  <div class="meta-val text-slate-600 text-xs">
+                  </span>
+                  <span class="meta-val text-muted font-tabular">
                     {{ formatDate(details.started_at) }}
-                  </div>
+                  </span>
                 </div>
 
-                <div v-if="details?.submitted_at" class="meta-item">
-                  <div class="meta-label">
+                <div v-if="details?.submitted_at" class="meta-row">
+                  <span class="meta-label">
                     <i class="mdi mdi-clock-check-outline"></i> Submitted At
-                  </div>
-                  <div class="meta-val text-slate-600 text-xs">
+                  </span>
+                  <span class="meta-val text-muted font-tabular">
                     {{ formatDate(details.submitted_at) }}
-                  </div>
+                  </span>
                 </div>
               </div>
 
               <!-- Integrity & Severity Mini KPI Cards -->
-              <div class="grid grid-cols-2 gap-3 mt-5 pt-4 border-t border-slate-100">
-                <div class="metric-mini-tile">
-                  <div class="metric-mini-num text-slate-900">{{ events.length }}</div>
-                  <div class="metric-mini-label">
-                    <i class="mdi mdi-shield-alert-outline text-indigo-500"></i> Logged Events
+              <div class="mini-kpi-grid">
+                <div class="mini-kpi-card">
+                  <div class="mini-kpi-num">{{ events.length }}</div>
+                  <div class="mini-kpi-label">
+                    <i class="mdi mdi-shield-search-outline"></i> Logged Events
                   </div>
                 </div>
 
-                <div class="metric-mini-tile" :class="{ 'tile-warning': highSeverityCount > 0 }">
-                  <div class="metric-mini-num" :class="highSeverityCount > 0 ? 'text-red' : 'text-slate-900'">
-                    {{ highSeverityCount }}
-                  </div>
-                  <div class="metric-mini-label">
-                    <i class="mdi mdi-alert-octagon-outline text-red"></i> High Severity
+                <div class="mini-kpi-card" :class="{ 'is-danger': highSeverityCount > 0 }">
+                  <div class="mini-kpi-num">{{ highSeverityCount }}</div>
+                  <div class="mini-kpi-label">
+                    <i class="mdi mdi-alert-octagon-outline"></i> High Severity
                   </div>
                 </div>
               </div>
 
-              <!-- Trust / Integrity Score Badge -->
-              <div class="mt-4 p-3 rounded-xl border flex items-center justify-between" :class="integrityClass">
-                <div class="flex items-center gap-2">
-                  <i :class="['mdi text-lg', integrityIcon]"></i>
-                  <div>
-                    <div class="text-xs font-semibold">{{ integrityTitle }}</div>
-                    <div class="text-xs text-slate-500">{{ integritySubtitle }}</div>
+              <!-- Trust / Integrity Score Card with Progress Bar -->
+              <div class="integrity-card" :class="integrityToneClass">
+                <div class="integrity-card-top">
+                  <div class="integrity-icon-wrap">
+                    <i :class="['mdi', integrityIconName]"></i>
+                  </div>
+                  <div class="integrity-info">
+                    <div class="integrity-title">{{ integrityTitle }}</div>
+                    <div class="integrity-subtitle">{{ integritySubtitle }}</div>
+                  </div>
+                  <div class="integrity-score-pill">
+                    {{ integrityPercent }}
                   </div>
                 </div>
-                <div class="text-sm font-semibold font-mono">{{ integrityPercent }}</div>
+                <div class="integrity-progress-track">
+                  <div class="integrity-progress-fill" :style="{ width: integrityPercent }"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -346,14 +351,14 @@
 
           <div class="panel-section-card">
             <!-- Section Header with Segmented View Switcher -->
-            <div class="section-card-header flex-wrap gap-3">
-              <div class="flex items-center gap-2.5">
-                <div class="section-icon-box bg-slate-100 text-slate-700">
+            <div class="section-card-header">
+              <div class="section-header-title-wrap">
+                <div class="section-icon-box evidence-header-icon">
                   <i class="mdi mdi-shield-search-outline"></i>
                 </div>
                 <div>
-                  <h3 class="text-sm font-semibold text-slate-900 m-0">Violation Events &amp; Snapshot Evidence</h3>
-                  <p class="text-xs text-slate-400 m-0">Proctoring telemetry recorded during candidate's sitting</p>
+                  <h3 class="section-heading">Violation Events &amp; Snapshot Evidence</h3>
+                  <p class="section-subheading">Proctoring telemetry recorded during candidate's sitting</p>
                 </div>
               </div>
 
@@ -361,25 +366,29 @@
               <div class="view-mode-toggle">
                 <button
                   type="button"
-                  :class="['toggle-btn', { active: viewMode === 'timeline' }]"
+                  class="toggle-btn"
+                  :class="{ 'is-active': viewMode === 'timeline' }"
                   @click="viewMode = 'timeline'"
                 >
                   <i class="mdi mdi-timeline-clock-outline"></i>
-                  <span>Timeline View ({{ events.length }})</span>
+                  <span>Timeline View</span>
+                  <span class="toggle-count" :class="{ 'count-active': viewMode === 'timeline' }">{{ events.length }}</span>
                 </button>
                 <button
                   type="button"
-                  :class="['toggle-btn', { active: viewMode === 'grid' }]"
+                  class="toggle-btn"
+                  :class="{ 'is-active': viewMode === 'grid' }"
                   @click="viewMode = 'grid'"
                 >
                   <i class="mdi mdi-grid"></i>
-                  <span>Snapshot Gallery ({{ eventsWithScreenshots.length }})</span>
+                  <span>Snapshot Gallery</span>
+                  <span class="toggle-count" :class="{ 'count-active': viewMode === 'grid' }">{{ eventsWithScreenshots.length }}</span>
                 </button>
               </div>
             </div>
 
             <!-- Body Area -->
-            <div class="p-6">
+            <div class="evidence-body-wrap">
 
               <!-- ═══ CASE 1: ZERO VIOLATIONS (CLEAN SESSION SHOWCASE) ═══ -->
               <div v-if="events.length === 0" class="clean-session-showcase">
@@ -392,44 +401,44 @@
                 </p>
 
                 <!-- 4 Security Checkpoints -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto text-left">
+                <div class="checkpoints-grid">
                   <div class="checkpoint-card">
-                    <div class="checkpoint-icon bg-emerald-50 text-emerald-600">
+                    <div class="checkpoint-icon">
                       <i class="mdi mdi-face-recognition"></i>
                     </div>
                     <div>
-                      <div class="text-xs font-semibold text-slate-900">Biometric Continuity</div>
-                      <div class="text-xs text-slate-500">Continuous single-face visual tracking; no proxy deviation.</div>
+                      <div class="checkpoint-title">Biometric Continuity</div>
+                      <div class="checkpoint-desc">Continuous single-face visual tracking; no proxy deviation.</div>
                     </div>
                   </div>
 
                   <div class="checkpoint-card">
-                    <div class="checkpoint-icon bg-emerald-50 text-emerald-600">
+                    <div class="checkpoint-icon">
                       <i class="mdi mdi-fullscreen"></i>
                     </div>
                     <div>
-                      <div class="text-xs font-semibold text-slate-900">Fullscreen Focus</div>
-                      <div class="text-xs text-slate-500">Zero tab switches, background minimizations, or window blurs.</div>
+                      <div class="checkpoint-title">Fullscreen Focus</div>
+                      <div class="checkpoint-desc">Zero tab switches, background minimizations, or window blurs.</div>
                     </div>
                   </div>
 
                   <div class="checkpoint-card">
-                    <div class="checkpoint-icon bg-emerald-50 text-emerald-600">
+                    <div class="checkpoint-icon">
                       <i class="mdi mdi-camera-lock-outline"></i>
                     </div>
                     <div>
-                      <div class="text-xs font-semibold text-slate-900">Video Telemetry</div>
-                      <div class="text-xs text-slate-500">Active webcam stream verified throughout entire examination.</div>
+                      <div class="checkpoint-title">Video Telemetry</div>
+                      <div class="checkpoint-desc">Active webcam stream verified throughout entire examination.</div>
                     </div>
                   </div>
 
                   <div class="checkpoint-card">
-                    <div class="checkpoint-icon bg-emerald-50 text-emerald-600">
+                    <div class="checkpoint-icon">
                       <i class="mdi mdi-code-tags-check"></i>
                     </div>
                     <div>
-                      <div class="text-xs font-semibold text-slate-900">Browser Security</div>
-                      <div class="text-xs text-slate-500">No developer tools or DOM inspection events triggered.</div>
+                      <div class="checkpoint-title">Browser Security</div>
+                      <div class="checkpoint-desc">No developer tools or DOM inspection events triggered.</div>
                     </div>
                   </div>
                 </div>
@@ -838,6 +847,18 @@ const integrityClass = computed(() => {
   return 'bg-amber-50 border-amber-200 text-amber-800';
 });
 
+const integrityToneClass = computed(() => {
+  if (events.value.length === 0) return 'tone-success';
+  if (highSeverityCount.value > 0) return 'tone-danger';
+  return 'tone-warning';
+});
+
+const integrityIconName = computed(() => {
+  if (events.value.length === 0) return 'mdi-shield-check';
+  if (highSeverityCount.value > 0) return 'mdi-shield-alert';
+  return 'mdi-shield-outline';
+});
+
 const integrityIcon = computed(() => {
   if (events.value.length === 0) return 'mdi-shield-check text-emerald-600';
   if (highSeverityCount.value > 0) return 'mdi-shield-alert text-red';
@@ -1238,12 +1259,12 @@ const executeDelete = async () => {
 /* ═══ AUDIT DEDICATED TWO-COLUMN GRID ═══ */
 .audit-layout-grid {
   display: grid;
-  grid-template-columns: 360px 1fr;
+  grid-template-columns: 390px 1fr;
   gap: 24px;
   align-items: start;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1100px) {
   .audit-layout-grid {
     grid-template-columns: 1fr;
   }
@@ -1379,76 +1400,133 @@ const executeDelete = async () => {
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 16px;
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.02);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.02);
   overflow: hidden;
 }
 
 .section-card-header {
-  padding: 16px 20px;
+  padding: 18px 24px;
   background: #FFFFFF;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .section-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.section-header-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .section-icon-box {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   flex-shrink: 0;
 }
 
-/* ═══ SELFIE FRAME ═══ */
+.evidence-header-icon {
+  background: #FEF2F2 !important;
+  color: #E31B23 !important;
+  border: 1px solid rgba(227, 27, 35, 0.2);
+}
+
+.biometric-header-icon {
+  background: #FEF2F2 !important;
+  color: #E31B23 !important;
+  border: 1px solid rgba(227, 27, 35, 0.2);
+}
+
+.section-heading {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.section-subheading {
+  font-size: 0.74rem;
+  color: #64748B;
+  margin: 2px 0 0 0;
+  line-height: 1.35;
+}
+
+.baseline-card-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.evidence-body-wrap {
+  padding: 24px;
+}
+
+/* ═══ SELFIE FRAME (GSFIN RED ACCENTS) ═══ */
 .selfie-frame-wrap {
   background: #F8FAFC;
-  border: 1px solid rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 14px;
-  padding: 12px;
+  padding: 16px;
   text-align: center;
 }
+
 .selfie-preview-box {
   position: relative;
   display: inline-block;
   cursor: pointer;
-  max-width: 240px;
+  max-width: 250px;
   width: 100%;
 }
+
 .selfie-img {
   width: 100%;
-  max-width: 240px;
+  max-width: 250px;
   height: 190px;
   object-fit: cover;
   border-radius: 12px;
   border: 1px solid rgba(15, 23, 42, 0.1);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
   transition: transform 0.2s ease;
   display: block;
   margin: 0 auto;
 }
+
 .selfie-img:hover {
   transform: scale(1.02);
 }
+
 .selfie-zoom-hint {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(4px);
   color: #FFFFFF;
   font-size: 0.65rem;
   font-weight: 500;
-  padding: 2px 7px;
+  padding: 3px 8px;
   border-radius: 6px;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   pointer-events: none;
 }
+
 .selfie-tag-pill {
   position: absolute;
   bottom: 8px;
@@ -1466,91 +1544,164 @@ const executeDelete = async () => {
   align-items: center;
   gap: 4px;
   white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .selfie-placeholder-box {
-  padding: 24px 16px;
+  padding: 12px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
+
 .placeholder-avatar {
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  background: rgba(201, 37, 44, 0.08);
-  color: #C9252C;
+  background: #FEF2F2;
+  color: #E31B23;
+  border: 2px solid rgba(227, 27, 35, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 600;
+  box-shadow: 0 2px 8px rgba(227, 27, 35, 0.08);
 }
+
 .placeholder-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 3px;
 }
 
-/* ═══ METADATA LIST ═══ */
-.meta-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.placeholder-title {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #0F172A;
 }
-.meta-item {
+
+.placeholder-desc {
+  font-size: 0.72rem;
+  color: #64748B;
+  line-height: 1.35;
+  max-width: 240px;
+}
+
+/* ═══ METADATA STRUCTURED LIST CARD ═══ */
+.meta-list-card {
+  background: #F8FAFC;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.meta-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  font-size: 0.78rem;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+  padding: 9px 13px;
+  font-size: 0.76rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
 }
-.meta-item:last-child {
+
+.meta-row:last-child {
   border-bottom: none;
-  padding-bottom: 0;
 }
+
 .meta-label {
   color: #64748B;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   font-weight: 500;
+  font-size: 0.75rem;
+  flex-shrink: 0;
 }
+
+.meta-label i {
+  font-size: 0.95rem;
+  color: #94A3B8;
+}
+
 .meta-val {
   text-align: right;
-  max-width: 60%;
+  color: #0F172A;
+  font-weight: 600;
+  max-width: 62%;
   word-break: break-word;
 }
 
-/* ═══ MINI METRICS TILES ═══ */
-.metric-mini-tile {
+.meta-val.text-muted {
+  color: #64748B;
+  font-weight: 500;
+}
+
+.meta-val.font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+}
+
+.meta-val.font-tabular {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.72rem;
+}
+
+/* ═══ MINI METRICS KPI TILES ═══ */
+.mini-kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.mini-kpi-card {
   background: #F8FAFC;
-  border: 1px solid rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 12px;
-  padding: 10px 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.15s ease;
 }
-.metric-mini-tile.tile-warning {
+
+.mini-kpi-card.is-danger {
   background: #FEF2F2;
-  border-color: #FECACA;
+  border-color: rgba(227, 27, 35, 0.25);
 }
-.metric-mini-num {
-  font-size: 1.4rem;
+
+.mini-kpi-num {
+  font-size: 1.35rem;
   font-weight: 600;
+  color: #0F172A;
   line-height: 1.1;
-  font-family: monospace;
+  font-variant-numeric: tabular-nums;
 }
-.metric-mini-label {
-  font-size: 0.7rem;
+
+.mini-kpi-card.is-danger .mini-kpi-num {
+  color: #E31B23;
+}
+
+.mini-kpi-label {
+  font-size: 0.72rem;
   font-weight: 600;
   color: #64748B;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 4px;
-  margin-top: 4px;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.mini-kpi-label i {
+  font-size: 0.9rem;
+  color: #64748B;
+}
+
+.mini-kpi-card.is-danger .mini-kpi-label,
+.mini-kpi-card.is-danger .mini-kpi-label i {
+  color: #E31B23;
 }
 
 /* ═══ STATUS PILLS ═══ */
@@ -1558,64 +1709,226 @@ const executeDelete = async () => {
   font-size: 0.68rem;
   font-weight: 600;
   text-transform: uppercase;
-  padding: 3px 8px;
+  padding: 3px 9px;
   border-radius: 50px;
   letter-spacing: 0.04em;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
+
 .pill-green {
-  background: rgba(16, 185, 129, 0.1);
+  background: #ECFDF5;
   color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
+
 .pill-red {
   background: #FEF2F2;
   color: #DC2626;
+  border: 1px solid rgba(220, 38, 38, 0.2);
 }
+
 .pill-amber {
   background: #FFFBEB;
   color: #D97706;
+  border: 1px solid rgba(217, 119, 6, 0.2);
 }
+
 .pill-muted {
   background: #F1F5F9;
   color: #64748B;
+  border: 1px solid rgba(100, 116, 139, 0.15);
 }
 
-/* ═══ VIEW MODE TOGGLE ═══ */
+/* ═══ TRUST / INTEGRITY SCORE CARD ═══ */
+.integrity-card {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.integrity-card.tone-success {
+  background: #F0FDF4;
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.integrity-card.tone-warning {
+  background: #FFFBEB;
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+.integrity-card.tone-danger {
+  background: #FEF2F2;
+  border-color: rgba(227, 27, 35, 0.25);
+}
+
+.integrity-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.integrity-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.tone-success .integrity-icon-wrap {
+  background: #DCFCE7;
+  color: #059669;
+}
+
+.tone-warning .integrity-icon-wrap {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.tone-danger .integrity-icon-wrap {
+  background: #FEE2E2;
+  color: #E31B23;
+}
+
+.integrity-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.integrity-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #0F172A;
+  line-height: 1.25;
+}
+
+.integrity-subtitle {
+  font-size: 0.69rem;
+  color: #64748B;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+.integrity-score-pill {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tone-success .integrity-score-pill {
+  background: #DCFCE7;
+  color: #059669;
+}
+
+.tone-warning .integrity-score-pill {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.tone-danger .integrity-score-pill {
+  background: #FEE2E2;
+  color: #E31B23;
+}
+
+.integrity-progress-track {
+  height: 5px;
+  background: rgba(15, 23, 42, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.tone-success .integrity-progress-fill {
+  height: 100%;
+  background: #059669;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.tone-warning .integrity-progress-fill {
+  height: 100%;
+  background: #D97706;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.tone-danger .integrity-progress-fill {
+  height: 100%;
+  background: #E31B23;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+/* ═══ VIEW MODE TOGGLE (GSFIN SEGMENTED CONTROL) ═══ */
 .view-mode-toggle {
   display: inline-flex;
-  background: #F1F5F9;
+  align-items: center;
+  background: #F8FAFC;
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 10px;
   padding: 3px;
-  gap: 2px;
+  gap: 3px;
 }
+
 .toggle-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  font-size: 0.74rem;
+  font-size: 0.76rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 7px;
   border: none;
   background: transparent;
   color: #64748B;
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
+
 .toggle-btn:hover {
   color: #0F172A;
 }
-.toggle-btn.active {
+
+.toggle-btn.is-active {
   background: #FFFFFF;
   color: #0F172A;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+.toggle-count {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: #E2E8F0;
+  color: #475569;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.toggle-count.count-active {
+  background: #FEF2F2;
+  color: #E31B23;
 }
 
 /* ═══ CLEAN SESSION SHOWCASE ═══ */
 .clean-session-showcase {
-  padding: 40px 20px;
+  padding: 36px 20px;
   text-align: center;
 }
+
 .clean-shield-ring {
   width: 64px;
   height: 64px;
@@ -1630,25 +1943,59 @@ const executeDelete = async () => {
   margin: 0 auto 16px auto;
   box-shadow: 0 6px 18px rgba(5, 150, 105, 0.12);
 }
+
+/* ═══ CHECKPOINTS GRID (IN CLEAN SESSION SHOWCASE) ═══ */
+.checkpoints-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  max-width: 620px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+@media (max-width: 640px) {
+  .checkpoints-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .checkpoint-card {
   background: #FFFFFF;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 14px 16px;
   display: flex;
   align-items: flex-start;
   gap: 12px;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
 }
+
 .checkpoint-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: #ECFDF5;
+  color: #059669;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 1.15rem;
   flex-shrink: 0;
+}
+
+.checkpoint-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0F172A;
+  line-height: 1.25;
+}
+
+.checkpoint-desc {
+  font-size: 0.72rem;
+  color: #64748B;
+  margin-top: 2px;
+  line-height: 1.35;
 }
 
 /* ═══ TIMELINE VIEW ═══ */

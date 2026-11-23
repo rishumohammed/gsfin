@@ -205,7 +205,7 @@
             </div>
 
             <!-- Batch Execution & Assessment Policies -->
-            <div class="batch-policy-grid mt-5 pt-4 border-t border-slate-100">
+            <div class="batch-policy-grid">
               <!-- Policy 1: Certificate Issuance -->
               <div 
                 class="policy-toggle-card"
@@ -1297,6 +1297,9 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
   gap: 14px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .policy-toggle-card {
