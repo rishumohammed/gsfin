@@ -173,17 +173,17 @@ class ProctoringService {
                 a.batch_id,
                 a.status as assignment_status,
                 s.id as student_id,
-                COALESCE(s.name, 'Student Candidate') as candidate_name,
+                COALESCE(s.name, 'Candidate') as candidate_name,
                 COALESCE(s.email, 'No email recorded') as candidate_email,
                 s.phone as candidate_phone,
                 s.face_photo as student_face_photo,
                 b.id as batch_id,
-                COALESCE(b.batch_code, CONCAT('BATCH-', UPPER(LEFT(b.id, 8)))) as batch_code,
+                CONCAT('BATCH-', UPPER(LEFT(b.id, 8))) as batch_code,
                 COALESCE(o.name, 'Authorized Testing Center') as org_name,
-                COALESCE(e.name, pe.name, 'Certification Standard Exam') as exam_title
+                COALESCE(e.name, pe.name, 'Certification Exam') as exam_title
          FROM exam_attempts ea
          LEFT JOIN exam_assignments a ON ea.assignment_id = a.id
-         LEFT JOIN students s ON a.student_id = s.id
+         LEFT JOIN students s ON (a.student_id = s.id OR ea.student_id = s.id)
          LEFT JOIN batches b ON a.batch_id = b.id
          LEFT JOIN organizations o ON b.org_id = o.id
          LEFT JOIN exams e ON (a.exam_id = e.id OR b.exam_id = e.id)
@@ -215,14 +215,14 @@ class ProctoringService {
                 a.batch_id,
                 a.status as assignment_status,
                 s.id as student_id,
-                COALESCE(s.name, 'Student Candidate') as candidate_name,
+                COALESCE(s.name, 'Candidate') as candidate_name,
                 COALESCE(s.email, 'No email recorded') as candidate_email,
                 s.phone as candidate_phone,
                 s.face_photo as student_face_photo,
                 b.id as batch_id,
-                COALESCE(b.batch_code, CONCAT('BATCH-', UPPER(LEFT(b.id, 8)))) as batch_code,
+                CONCAT('BATCH-', UPPER(LEFT(b.id, 8))) as batch_code,
                 COALESCE(o.name, 'Authorized Testing Center') as org_name,
-                COALESCE(e.name, pe.name, 'Certification Standard Exam') as exam_title
+                COALESCE(e.name, pe.name, 'Certification Exam') as exam_title
          FROM exam_assignments a
          LEFT JOIN students s ON a.student_id = s.id
          LEFT JOIN batches b ON a.batch_id = b.id
@@ -1101,7 +1101,7 @@ class ProctoringService {
           SELECT b.*, 
                  COALESCE(o.name, 'Authorized Testing Center') as branch_name, 
                  COALESCE(e.name, pe.name, 'Certification Standard Exam') as exam_name,
-                 COALESCE(b.batch_code, CONCAT('BATCH-', UPPER(LEFT(b.id, 8)))) as batch_code
+                 CONCAT('BATCH-', UPPER(LEFT(b.id, 8))) as batch_code
           FROM batches b
           LEFT JOIN organizations o ON b.org_id = o.id
           LEFT JOIN exams e ON b.exam_id = e.id

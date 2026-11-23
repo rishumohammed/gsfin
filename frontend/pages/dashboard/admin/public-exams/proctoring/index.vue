@@ -511,14 +511,15 @@
                 </td>
 
                 <!-- Audit Action Button -->
-                <td class="text-center">
+                <td class="text-center td-audit-act">
                   <div class="actions-cell">
                     <NuxtLink
                       :to="`/dashboard/admin/public-exams/proctoring/${cand.attempt_id}`"
                       class="btn-table-action btn-view"
                       title="Inspect Video &amp; Biometric Evidence"
                     >
-                      <i class="mdi mdi-eye-outline"></i> Audit
+                      <i class="mdi mdi-eye-outline"></i>
+                      <span>Audit</span>
                     </NuxtLink>
                     <button
                       v-if="cand.proctoring_status !== 'approved'"
@@ -829,12 +830,13 @@ onMounted(() => {
 .th-candidates { min-width: 120px; }
 .th-proc-status { min-width: 150px; }
 .th-batch-act { min-width: 150px; }
-.th-candidate { min-width: 250px; }
-.th-result { min-width: 140px; }
-.th-verdict { min-width: 140px; }
-.th-violations { min-width: 200px; }
-.th-attempt-time { min-width: 150px; }
-.th-audit-act { min-width: 190px; width: 190px; }
+.th-candidate { min-width: 210px; }
+.th-result { min-width: 100px; }
+.th-verdict { min-width: 120px; }
+.th-violations { min-width: 150px; }
+.th-attempt-time { min-width: 140px; }
+.th-audit-act { min-width: 150px; width: 150px; }
+.td-audit-act { min-width: 150px; width: 150px; white-space: nowrap; }
 
 .gsfin-admin-page {
   padding: 24px 32px;
@@ -1363,7 +1365,7 @@ onMounted(() => {
 
 .gsfin-table th {
   background: #F8FAFC;
-  padding: 14px 20px;
+  padding: 12px 14px;
   font-size: 0.72rem;
   font-weight: 600;
   color: #64748B;
@@ -1373,8 +1375,8 @@ onMounted(() => {
 }
 
 .gsfin-table td {
-  padding: 16px 20px;
-  font-size: 0.88rem;
+  padding: 12px 14px;
+  font-size: 0.86rem;
   color: #334155;
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
   vertical-align: middle;
