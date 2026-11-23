@@ -95,6 +95,10 @@
                   <i class="mdi mdi-clock-outline"></i>
                   <span>Duration: {{ batch.duration_minutes || 60 }} mins</span>
                 </span>
+                <span class="meta-chip">
+                  <i :class="['mdi', batch.enable_certificate !== false && batch.enable_certificate !== 0 ? 'mdi-certificate text-emerald-600' : 'mdi-certificate-off text-slate-400']"></i>
+                  <span>{{ batch.enable_certificate !== false && batch.enable_certificate !== 0 ? 'Certificates Enabled' : 'No Certificate' }}</span>
+                </span>
                 <span v-if="batch.opens_at" class="meta-chip">
                   <i class="mdi mdi-calendar-start"></i>
                   <span>Opens: {{ formatDate(batch.opens_at) }}</span>
@@ -593,6 +597,25 @@
                     </button>
                   </div>
                 </div>
+
+                <!-- Certificate Issuance Policy -->
+                <div class="mt-4 pt-3 border-t border-slate-100">
+                  <label class="d-flex align-center gap-3 cursor-pointer py-2 px-3 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors">
+                    <input 
+                      type="checkbox" 
+                      v-model="editBatchForm.enable_certificate" 
+                      style="accent-color: #E31B23; width: 18px; height: 18px; cursor: pointer;"
+                    />
+                    <div>
+                      <div class="text-sm font-semibold text-slate-900">
+                        Issue Verified Digital Certificates on Passing
+                      </div>
+                      <div class="text-xs text-slate-500">
+                        When enabled, candidates who pass will receive an official GSFIN certificate and certificate email.
+                      </div>
+                    </div>
+                  </label>
+                </div>
               </div>
 
               <div class="modal-footer">
@@ -743,6 +766,25 @@
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <!-- Certificate Issuance Policy -->
+                <div class="mt-4 pt-3 border-t border-slate-100">
+                  <label class="d-flex align-center gap-3 cursor-pointer py-2 px-3 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors">
+                    <input 
+                      type="checkbox" 
+                      v-model="editBatchForm.enable_certificate" 
+                      style="accent-color: #E31B23; width: 18px; height: 18px; cursor: pointer;"
+                    />
+                    <div>
+                      <div class="text-sm font-semibold text-slate-900">
+                        Issue Verified Digital Certificates on Passing
+                      </div>
+                      <div class="text-xs text-slate-500">
+                        When enabled, candidates who pass will receive an official GSFIN certificate and certificate email.
+                      </div>
+                    </div>
+                  </label>
                 </div>
               </div>
 
@@ -1054,7 +1096,8 @@ function openEditBatchModal() {
   if (!batch.value) return;
   editBatchForm.value = {
     opens_at: toDatetimeLocal(batch.value.opens_at),
-    closes_at: toDatetimeLocal(batch.value.closes_at)
+    closes_at: toDatetimeLocal(batch.value.closes_at),
+    enable_certificate: batch.value.enable_certificate !== false && batch.value.enable_certificate !== 0
   };
   showEditBatchModal.value = true;
 }
@@ -1080,7 +1123,8 @@ async function submitEditBatch() {
   try {
     const payload = {
       opens_at: editBatchForm.value.opens_at || null,
-      closes_at: editBatchForm.value.closes_at || null
+      closes_at: editBatchForm.value.closes_at || null,
+      enable_certificate: editBatchForm.value.enable_certificate
     };
     await api.put(`/sub-center/batches/${batchId.value}`, payload);
     showEditBatchModal.value = false;

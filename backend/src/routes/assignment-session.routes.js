@@ -17,6 +17,7 @@ router.get('/:assignmentId/details', async (req, res) => {
               COALESCE(e.name, pe.name, 'Certification Exam') as exam_name, 
               COALESCE(e.description, pe.description, 'GSFIN Standard Certification Examination') as exam_description, 
               COALESCE(e.duration_minutes, 60) as duration_minutes, 
+              COALESCE(b.enable_certificate, e.enable_certificate, pe.enable_certificate, 1) as enable_certificate,
               s.id as student_id, s.name as student_name, s.email as student_email,
               s.face_photo, s.face_descriptor,
               b.opens_at, b.closes_at, o.name as org_name, c.pdf_url as certificate_url,
@@ -56,6 +57,7 @@ router.get('/:assignmentId/details', async (req, res) => {
       closesAt: assign.closes_at,
       isRetryLink: !!assign.is_retry_link,
       retryLinkExpiresAt: assign.retry_link_expires_at,
+      enableCertificate: assign.enable_certificate !== false && assign.enable_certificate !== 0 && assign.enable_certificate !== '0',
       certificateUrl: assign.certificate_url,
       hasFaceEnrolled: !!assign.face_photo,
       facePhoto: assign.face_photo || null,
@@ -562,13 +564,14 @@ router.post('/:assignmentId/submit', async (req, res) => {
     });
 
     res.json({
-      message: isPassed ? 'Exam passed! Certificate issued.' : 'Exam completed.',
+      message: isPassed ? (result.certificate_url ? 'Exam passed! Certificate issued and sent to your email.' : 'Exam passed!') : 'Exam completed.',
       score: finalScore,
       percentage: finalPercentage,
       passed: isPassed,
       totalQuestions: totalQuestionsCount || 10,
       answeredCount: answeredQuestionsCount,
       correctCount,
+      enableCertificate: result.enable_certificate,
       ...result
     });
   } catch (error) {

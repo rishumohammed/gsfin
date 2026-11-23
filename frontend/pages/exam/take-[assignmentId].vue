@@ -588,7 +588,7 @@
             </div>
             <div class="result-kpi-tile">
               <span class="result-kpi-label">Status</span>
-              <div class="result-kpi-value text-slate-900">Certified</div>
+              <div class="result-kpi-value text-slate-900">{{ (details.enableCertificate !== false && result?.enableCertificate !== false) ? 'Certified' : 'Passed' }}</div>
             </div>
             <div class="result-kpi-tile">
               <span class="result-kpi-label">Passing Standard</span>
@@ -596,8 +596,18 @@
             </div>
           </div>
 
-          <!-- Download Certificate Button -->
-          <div class="d-flex flex-column align-center gap-3">
+          <!-- Non-Certified Exam Notice -->
+          <div v-if="details.enableCertificate === false || result?.enableCertificate === false" class="py-4 px-5 rounded-xl bg-slate-50 border border-slate-200 text-center max-w-md mx-auto mb-6">
+            <i class="mdi mdi-information-outline text-slate-500 text-xl d-block mb-1"></i>
+            <span class="text-sm font-medium text-slate-700 d-block">Assessment Completed</span>
+            <span class="text-xs text-slate-500">This examination is designated for skill evaluation and does not issue a verified digital certificate.</span>
+            <div class="mt-4">
+              <v-btn to="/" class="btn-secondary-action">Return to Homepage</v-btn>
+            </div>
+          </div>
+
+          <!-- Download Certificate Button (when certificates are enabled) -->
+          <div v-else class="d-flex flex-column align-center gap-3">
             <a
               v-if="details.certificateUrl || result?.certificateUrl"
               :href="details.certificateUrl || result?.certificateUrl"
@@ -611,6 +621,7 @@
               <v-progress-circular indeterminate size="18" width="2" color="#059669" class="mr-2" />
               <span>Compiling official tamper-evident credential PDF...</span>
             </div>
+            <p class="text-xs text-slate-500 mt-1 mb-0">An official certificate copy has also been dispatched to your email address.</p>
 
             <v-btn to="/" class="btn-secondary-action mt-4">Return to Homepage</v-btn>
           </div>
@@ -1120,8 +1131,9 @@ async function startSitting() {
     // Setup active proctoring integrity listeners
     setupProctoringListeners();
 
-    // Start 1.25x duration countdown timer
-    secondsRemaining.value = Math.floor(res.maxCutoffMinutes * 60);
+    // Start duration countdown timer (official exam duration)
+    const examDurationMinutes = res.durationMinutes || details.value?.durationMinutes || 60;
+    secondsRemaining.value = Math.floor(examDurationMinutes * 60);
     timerInterval = setInterval(() => {
       if (secondsRemaining.value > 0) {
         secondsRemaining.value--;
@@ -1154,6 +1166,7 @@ async function submitExam() {
       totalQuestions: res.totalQuestions || activeQuestions.value.length,
       answeredCount: res.answeredCount || answeredCount.value,
       correctCount: res.correctCount || 0,
+      enableCertificate: res.enableCertificate !== false && res.enable_certificate !== false,
       certificateUrl: res.certificate_url || res.pdf_url || null,
       message: res.message
     };

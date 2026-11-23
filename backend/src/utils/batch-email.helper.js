@@ -158,3 +158,4 @@ export async function dispatchBatchEnrollmentEmails({ req, orgId, examId, assign
     console.error('[Batch Email] Error dispatching batch enrollment emails:', err.message);
   }
 }
+

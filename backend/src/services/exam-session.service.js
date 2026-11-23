@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { pool } from '../db/connection.js';
 import { CertificateService } from './certificate.service.js';
+import emailService from './email.service.js';
 
 export class ExamSessionService {
   /**
@@ -108,7 +109,8 @@ export class ExamSessionService {
       const [attempts] = await connection.query(
         `SELECT att.*, ea.id as assignment_id, ea.attempts_used, ea.max_attempts, ea.student_id, ea.exam_id,
                 ea.batch_id, ea.wallet_id, b.org_id,
-                s.name as student_name,
+                COALESCE(b.enable_certificate, e.enable_certificate, pe.enable_certificate, 1) as enable_certificate,
+                s.name as student_name, s.email as student_email,
                 COALESCE(e.name, pe.name, 'Certification Exam') as exam_name
          FROM exam_attempts att
          JOIN exam_assignments ea ON att.assignment_id = ea.id
@@ -159,6 +161,7 @@ export class ExamSessionService {
       }
 
       let certDetails = null;
+      const isCertEnabled = att.enable_certificate !== false && att.enable_certificate !== 0 && att.enable_certificate !== '0';
 
       // 2. Handle status & automatic retry logic
       if (endReason === 'technical_void') {
@@ -189,39 +192,53 @@ export class ExamSessionService {
             [assignmentId]
           );
 
-          // Generate Certificate (uniform template)
-          try {
-            const { pdfUrl, certificateNumber } = await CertificateService.generateParticipationCertificate(
-              att.student_name,
-              att.exam_name,
-              endedAt
-            );
-            certDetails = { pdfUrl, certificateNumber };
-
-            const certId = uuidv4();
-            const certNo = certificateNumber || `GSFIN-${Date.now().toString(36).toUpperCase()}`;
-
+          // Generate Certificate only if certificates are enabled for this exam / batch
+          if (isCertEnabled) {
             try {
-              await connection.query(
-                `INSERT INTO certificates (id, assignment_id, cert_number, status, issued_at, pdf_url)
-                 VALUES (?, ?, ?, 'active', NOW(), ?)
-                 ON DUPLICATE KEY UPDATE 
-                   pdf_url = VALUES(pdf_url),
-                   cert_number = COALESCE(cert_number, VALUES(cert_number)),
-                   status = 'active'`,
-                [certId, assignmentId, certNo, pdfUrl]
+              const { buffer, pdfUrl, certificateNumber } = await CertificateService.generateParticipationCertificate(
+                att.student_name,
+                att.exam_name,
+                endedAt
               );
-            } catch (certInsertErr) {
-              // Fallback for schema without cert_number / status
-              await connection.query(
-                `INSERT INTO certificates (id, assignment_id, issued_at, pdf_url)
-                 VALUES (?, ?, NOW(), ?)
-                 ON DUPLICATE KEY UPDATE pdf_url = VALUES(pdf_url)`,
-                [certId, assignmentId, pdfUrl]
-              );
+              certDetails = { pdfUrl, certificateNumber };
+
+              const certId = uuidv4();
+              const certNo = certificateNumber || `GSFIN-${Date.now().toString(36).toUpperCase()}`;
+
+              try {
+                await connection.query(
+                  `INSERT INTO certificates (id, assignment_id, cert_number, status, issued_at, pdf_url)
+                   VALUES (?, ?, ?, 'active', NOW(), ?)
+                   ON DUPLICATE KEY UPDATE 
+                     pdf_url = VALUES(pdf_url),
+                     cert_number = COALESCE(cert_number, VALUES(cert_number)),
+                     status = 'active'`,
+                  [certId, assignmentId, certNo, pdfUrl]
+                );
+              } catch (certInsertErr) {
+                // Fallback for schema without cert_number / status
+                await connection.query(
+                  `INSERT INTO certificates (id, assignment_id, issued_at, pdf_url)
+                   VALUES (?, ?, NOW(), ?)
+                   ON DUPLICATE KEY UPDATE pdf_url = VALUES(pdf_url)`,
+                  [certId, assignmentId, pdfUrl]
+                );
+              }
+
+              // Dispatch Certificate by Email directly to candidate!
+              if (att.student_email) {
+                emailService.sendExamCertificateEmail(
+                  { name: att.student_name, email: att.student_email },
+                  { name: att.exam_name },
+                  buffer,
+                  { pdfUrl, certificateNumber: certNo }
+                ).catch(emailErr => {
+                  console.error('[Exam Certificate Email Error]:', emailErr.message);
+                });
+              }
+            } catch (certErr) {
+              console.error('Certificate generation error (non-fatal):', certErr);
             }
-          } catch (certErr) {
-            console.error('Certificate generation error (non-fatal):', certErr);
           }
         } else {
           await connection.query(
@@ -254,6 +271,7 @@ export class ExamSessionService {
         assignmentId, 
         endReason, 
         result,
+        enable_certificate: isCertEnabled,
         certificate_url: certDetails?.pdfUrl || null,
         certificate_number: certDetails?.certificateNumber || null
       };

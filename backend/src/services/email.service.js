@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { pool } from '../db/connection.js';
 import { ConfigService } from './config.service.js';
 import axios from 'axios';
 import { getFrontendUrl } from '../utils/url-helper.js';
@@ -226,31 +227,81 @@ class EmailService {
     }
   }
 
-  async sendExamCertificateEmail(candidate, exam, pdfBuffer) {
+  async sendExamCertificateEmail(candidate, exam, pdfBuffer = null, certData = null) {
     try {
-      const html = `
-        <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 12px;">
-          <h2 style="color: #dc2626;">Congratulations! 🎉</h2>
-          <p>Dear ${candidate.name},</p>
-          <p>Thank you for participating in <strong>${exam.name}</strong>.</p>
-          <p>We have attached your Verified GSFIN Personnel Competency Certificate to this email.</p>
-          <p style="font-size: 14px; color: #666;">If you have any questions, feel free to contact us.</p>
-          <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="font-size: 12px; color: #999;">GSFIN Certifying Authority Team</p>
-        </div>
-      `;
+      const frontendUrl = getFrontendUrl();
+      const certNo = certData?.certificateNumber || 'GSFIN Certified';
+      const pdfUrl = certData?.pdfUrl ? (certData.pdfUrl.startsWith('http') ? certData.pdfUrl : `${frontendUrl}${certData.pdfUrl}`) : null;
+      const verifyUrl = `${frontendUrl}/verify-certificate?number=${encodeURIComponent(certNo)}`;
+
+      let subject = `Your GSFIN Certificate for ${exam.name} is Ready 🎉`;
+      let html = '';
+
+      try {
+        const [tplRows] = await pool.query("SELECT subject, body FROM email_templates WHERE id = 'exam_certificate'");
+        if (tplRows && tplRows.length > 0 && tplRows[0].body) {
+          subject = tplRows[0].subject || subject;
+          html = tplRows[0].body;
+        }
+      } catch (_) {}
+
+      if (html) {
+        subject = subject
+          .replace(/{{exam_name}}/g, exam.name)
+          .replace(/{{name}}/g, candidate.name || 'Candidate');
+
+        html = html
+          .replace(/{{name}}/g, candidate.name || 'Candidate')
+          .replace(/{{exam_name}}/g, exam.name)
+          .replace(/{{certificate_number}}/g, certNo)
+          .replace(/{{verify_url}}/g, verifyUrl)
+          .replace(/{{download_url}}/g, pdfUrl || verifyUrl)
+          .replace(/{{pdf_url}}/g, pdfUrl || verifyUrl);
+      } else {
+        html = `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 24px; color: #1e293b; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 16px; background: #ffffff;">
+            <div style="background: #0f172a; padding: 20px 24px; border-radius: 12px; margin-bottom: 24px; border-bottom: 3px solid #e31b23;">
+              <h2 style="color: #ffffff; margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em;">GSFIN CERTIFICATION REGISTRY</h2>
+              <p style="color: #94a3b8; margin: 4px 0 0 0; font-size: 13px;">Official Personnel Credential Award</p>
+            </div>
+            <p style="font-size: 15px; line-height: 1.6; margin-top: 0;">Dear <strong>${candidate.name || 'Candidate'}</strong>,</p>
+            <p style="font-size: 14px; line-height: 1.6; color: #475569;">
+              Congratulations on successfully passing the <strong>${exam.name}</strong> qualification examination!
+            </p>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #0f172a; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Official Certificate Record</h3>
+              <p style="margin: 8px 0; font-size: 13px; color: #334155;"><strong>Examination:</strong> ${exam.name}</p>
+              <p style="margin: 8px 0; font-size: 13px; color: #334155;"><strong>Certificate Number:</strong> <span style="font-family: monospace; font-weight: 600; color: #0f172a;">${certNo}</span></p>
+              <p style="margin: 8px 0; font-size: 13px; color: #334155;"><strong>Status:</strong> <span style="color: #059669; font-weight: 600;">ACTIVE &amp; VERIFIED</span></p>
+            </div>
+            <div style="text-align: center; margin: 28px 0;">
+              ${pdfUrl ? `<a href="${pdfUrl}" style="background: #e31b23; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 4px 12px rgba(227, 27, 35, 0.25); margin: 6px;">Download Certificate PDF →</a>` : ''}
+              <a href="${verifyUrl}" style="background: #0f172a; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px; display: inline-block; margin: 6px;">Verify in Registry →</a>
+            </div>
+            <p style="font-size: 12px; color: #64748b; line-height: 1.5;">
+              A PDF copy of your certificate has also been attached to this email for your records.
+            </p>
+            <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 24px 0 16px 0;">
+            <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">GSFIN Global Standards &bull; Verified Personnel Certification Network</p>
+          </div>
+        `;
+      }
+
+      const attachments = [];
+      if (pdfBuffer) {
+        attachments.push({
+          filename: `GSFIN_Certificate_${exam.name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
+          content: pdfBuffer.toString('base64'),
+        });
+      }
 
       await this.sendEmail({
         to: candidate.email,
-        subject: `Your GSFIN Certificate for ${exam.name}`,
+        subject,
         html,
-        attachments: [
-          {
-            filename: `GSFIN_Certificate_${exam.name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
-            content: pdfBuffer.toString('base64'),
-          }
-        ]
+        attachments
       });
+      console.log(`[EmailService] Certificate email sent successfully to ${candidate.email}`);
     } catch (error) {
       console.error('Failed to send exam certificate email:', error);
     }

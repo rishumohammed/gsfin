@@ -866,6 +866,13 @@
                   <input v-model.number="examForm.max_attempts" type="number" class="modal-input" />
                 </div>
               </div>
+              <div class="form-group mb-3">
+                <label class="d-flex align-center gap-2 cursor-pointer py-1">
+                  <input type="checkbox" v-model="examForm.enable_certificate" style="accent-color: #E31B23; width: 16px; height: 16px;" />
+                  <span class="text-sm font-medium text-slate-800">Issue Verified Certificate on Passing</span>
+                </label>
+                <p class="text-xs text-slate-500 m-0">When enabled, students who pass will receive an automated GSFIN certificate and email notification.</p>
+              </div>
               <div v-if="editingExam" class="form-group mb-3">
                 <label class="form-label">Status</label>
                 <select v-model="examForm.status" class="modal-select">
@@ -1766,7 +1773,7 @@ const loadingExams = ref(false);
 const showAddExamModal = ref(false);
 const savingExam = ref(false);
 const editingExam = ref<any>(null);
-const examForm = ref({ name: '', description: '', duration_minutes: 60, max_attempts: 1, status: 'active' });
+const examForm = ref({ name: '', description: '', duration_minutes: 60, max_attempts: 1, status: 'active', enable_certificate: true });
 
 // Packages state
 const packages = ref<any[]>([]);
@@ -2348,7 +2355,7 @@ async function fetchExams() {
 
 function openAddExamModal() {
   editingExam.value = null;
-  examForm.value = { name: '', description: '', duration_minutes: 60, max_attempts: 1, status: 'active' };
+  examForm.value = { name: '', description: '', duration_minutes: 60, max_attempts: 1, status: 'active', enable_certificate: true };
   showAddExamModal.value = true;
 }
 
@@ -2359,7 +2366,8 @@ function editExam(exam: any) {
     description: exam.description || '',
     duration_minutes: exam.duration_minutes || 60,
     max_attempts: exam.max_attempts || 1,
-    status: exam.status || 'active'
+    status: exam.status || 'active',
+    enable_certificate: exam.enable_certificate !== false && exam.enable_certificate !== 0
   };
   showAddExamModal.value = true;
 }

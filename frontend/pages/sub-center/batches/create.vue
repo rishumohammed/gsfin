@@ -203,6 +203,25 @@
                 <i class="mdi mdi-close"></i> Open-Ended (No Expiration)
               </button>
             </div>
+
+            <!-- Certificate Issuance Policy -->
+            <div class="mt-4 pt-3 border-t border-slate-100">
+              <label class="d-flex align-center gap-3 cursor-pointer py-2 px-3 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors">
+                <input 
+                  type="checkbox" 
+                  v-model="batchForm.enable_certificate" 
+                  style="accent-color: #E31B23; width: 18px; height: 18px; cursor: pointer;"
+                />
+                <div>
+                  <div class="text-sm font-semibold text-slate-900">
+                    Issue Verified Digital Certificates on Passing
+                  </div>
+                  <div class="text-xs text-slate-500">
+                    When enabled, candidates who achieve passing criteria automatically receive an official GSFIN certificate and certificate email.
+                  </div>
+                </div>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -526,7 +545,15 @@ const selectedStudentIds = ref<string[]>([]);
 const batchForm = ref({
   exam_id: '',
   opens_at: '',
-  closes_at: ''
+  closes_at: '',
+  enable_certificate: true
+});
+
+watch(() => batchForm.value.exam_id, (newId) => {
+  const chosen = exams.value.find(e => e.id === newId);
+  if (chosen) {
+    batchForm.value.enable_certificate = chosen.enable_certificate !== false && chosen.enable_certificate !== 0;
+  }
 });
 
 // Search & Filter
@@ -716,7 +743,8 @@ async function submitCreateBatch() {
       exam_id: batchForm.value.exam_id,
       student_ids: selectedStudentIds.value,
       opens_at: batchForm.value.opens_at || null,
-      closes_at: batchForm.value.closes_at || null
+      closes_at: batchForm.value.closes_at || null,
+      enable_certificate: batchForm.value.enable_certificate
     };
 
     const { data } = await api.post('/sub-center/batches', payload);

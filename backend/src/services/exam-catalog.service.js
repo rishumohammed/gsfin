@@ -103,6 +103,29 @@ export class ExamCatalogService {
    */
   static async ensureExamsCatalog(client = pool) {
     try {
+      // 0. Auto-heal enable_certificate column on exams and batches tables
+      try {
+        const [examCols] = await client.query('SHOW COLUMNS FROM exams');
+        const examColSet = new Set(examCols.map(c => c.Field.toLowerCase()));
+        if (!examColSet.has('enable_certificate')) {
+          await client.query('ALTER TABLE exams ADD COLUMN enable_certificate TINYINT(1) DEFAULT 1');
+          console.log('[Auto-Heal] Added enable_certificate column to exams table.');
+        }
+      } catch (e) {
+        console.warn('[Auto-Heal] Error checking exams table columns:', e.message);
+      }
+
+      try {
+        const [batchCols] = await client.query('SHOW COLUMNS FROM batches');
+        const batchColSet = new Set(batchCols.map(c => c.Field.toLowerCase()));
+        if (!batchColSet.has('enable_certificate')) {
+          await client.query('ALTER TABLE batches ADD COLUMN enable_certificate TINYINT(1) DEFAULT 1');
+          console.log('[Auto-Heal] Added enable_certificate column to batches table.');
+        }
+      } catch (e) {
+        console.warn('[Auto-Heal] Error checking batches table columns:', e.message);
+      }
+
       // 1. Retire old hardcoded mock entries from legacy scaffolding
       await client.query(`
         UPDATE exams 
@@ -171,7 +194,8 @@ export class ExamCatalogService {
 
     // Fetch active exams excluding retired
     const [allExams] = await pool.query(`
-      SELECT id, name, description, duration_minutes, max_attempts, status 
+      SELECT id, name, description, duration_minutes, max_attempts, status,
+             COALESCE(enable_certificate, 1) as enable_certificate 
       FROM exams 
       WHERE status = 'active' 
       ORDER BY name ASC
