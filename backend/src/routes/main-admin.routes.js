@@ -667,8 +667,8 @@ router.post('/exams', async (req, res) => {
     const enableProc = enable_proctoring !== false && enable_proctoring !== 0 ? 1 : 0;
     try {
       await pool.query(
-        `INSERT INTO exams (id, name, description, duration_minutes, max_attempts, enable_certificate, enable_proctoring, proctoring_enabled, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
-        [id, name, description, duration_minutes || 60, max_attempts || 1, enableCert, enableProc, enableProc]
+        `INSERT INTO exams (id, name, description, duration_minutes, max_attempts, enable_certificate, enable_proctoring, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'active')`,
+        [id, name, description, duration_minutes || 60, max_attempts || 1, enableCert, enableProc]
       );
     } catch (_) {
       try {
@@ -696,8 +696,8 @@ router.put('/exams/:id', async (req, res) => {
   try {
     try {
       await pool.query(
-        `UPDATE exams SET name = ?, description = ?, duration_minutes = ?, max_attempts = ?, status = ?, enable_certificate = ?, enable_proctoring = ?, proctoring_enabled = ? WHERE id = ?`,
-        [name, description, duration_minutes, max_attempts, status, enableCert, enableProc, enableProc, req.params.id]
+        `UPDATE exams SET name = ?, description = ?, duration_minutes = ?, max_attempts = ?, status = ?, enable_certificate = ?, enable_proctoring = ? WHERE id = ?`,
+        [name, description, duration_minutes, max_attempts, status, enableCert, enableProc, req.params.id]
       );
     } catch (_) {
       try {

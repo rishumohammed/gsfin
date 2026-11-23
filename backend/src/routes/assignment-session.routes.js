@@ -12,27 +12,53 @@ const router = express.Router();
 router.get('/:assignmentId/details', async (req, res) => {
   const { assignmentId } = req.params;
   try {
-    const [assignments] = await pool.query(
-      `SELECT ea.*, 
-              COALESCE(e.name, pe.name, 'Certification Exam') as exam_name, 
-              COALESCE(e.description, pe.description, 'GSFIN Standard Certification Examination') as exam_description, 
-              COALESCE(e.duration_minutes, 60) as duration_minutes, 
-              COALESCE(b.enable_certificate, e.enable_certificate, pe.enable_certificate, 1) as enable_certificate,
-              COALESCE(b.enable_proctoring, e.enable_proctoring, e.proctoring_enabled, pe.enable_proctoring, 0) as enable_proctoring,
-              s.id as student_id, s.name as student_name, s.email as student_email,
-              s.face_photo, s.face_descriptor,
-              b.opens_at, b.closes_at, o.name as org_name, c.pdf_url as certificate_url,
-              COALESCE(c.cert_number, CONCAT('GSFIN-', UPPER(SUBSTRING(c.id, 1, 8)))) as certificate_number
-       FROM exam_assignments ea
-       JOIN students s ON ea.student_id = s.id
-       JOIN batches b ON ea.batch_id = b.id
-       JOIN organizations o ON s.org_id = o.id
-       LEFT JOIN exams e ON ea.exam_id = e.id
-       LEFT JOIN public_exams pe ON ea.exam_id = pe.id
-       LEFT JOIN certificates c ON ea.id = c.assignment_id
-       WHERE ea.id = ?`,
-      [assignmentId]
-    );
+    let assignments = [];
+    try {
+      [assignments] = await pool.query(
+        `SELECT ea.*, 
+                COALESCE(e.name, pe.name, 'Certification Exam') as exam_name, 
+                COALESCE(e.description, pe.description, 'GSFIN Standard Certification Examination') as exam_description, 
+                COALESCE(e.duration_minutes, 60) as duration_minutes, 
+                COALESCE(b.enable_certificate, e.enable_certificate, pe.enable_certificate, 1) as enable_certificate,
+                COALESCE(b.enable_proctoring, e.enable_proctoring, pe.enable_proctoring, 0) as enable_proctoring,
+                s.id as student_id, s.name as student_name, s.email as student_email,
+                s.face_photo, s.face_descriptor,
+                b.opens_at, b.closes_at, o.name as org_name, c.pdf_url as certificate_url,
+                COALESCE(c.cert_number, CONCAT('GSFIN-', UPPER(SUBSTRING(c.id, 1, 8)))) as certificate_number
+         FROM exam_assignments ea
+         JOIN students s ON ea.student_id = s.id
+         JOIN batches b ON ea.batch_id = b.id
+         JOIN organizations o ON s.org_id = o.id
+         LEFT JOIN exams e ON ea.exam_id = e.id
+         LEFT JOIN public_exams pe ON ea.exam_id = pe.id
+         LEFT JOIN certificates c ON ea.id = c.assignment_id
+         WHERE ea.id = ?`,
+        [assignmentId]
+      );
+    } catch (_) {
+      // Fallback if enable_proctoring column is not yet present on batches or exams
+      [assignments] = await pool.query(
+        `SELECT ea.*, 
+                COALESCE(e.name, pe.name, 'Certification Exam') as exam_name, 
+                COALESCE(e.description, pe.description, 'GSFIN Standard Certification Examination') as exam_description, 
+                COALESCE(e.duration_minutes, 60) as duration_minutes, 
+                COALESCE(b.enable_certificate, e.enable_certificate, pe.enable_certificate, 1) as enable_certificate,
+                COALESCE(pe.enable_proctoring, 0) as enable_proctoring,
+                s.id as student_id, s.name as student_name, s.email as student_email,
+                s.face_photo, s.face_descriptor,
+                b.opens_at, b.closes_at, o.name as org_name, c.pdf_url as certificate_url,
+                COALESCE(c.cert_number, CONCAT('GSFIN-', UPPER(SUBSTRING(c.id, 1, 8)))) as certificate_number
+         FROM exam_assignments ea
+         JOIN students s ON ea.student_id = s.id
+         JOIN batches b ON ea.batch_id = b.id
+         JOIN organizations o ON s.org_id = o.id
+         LEFT JOIN exams e ON ea.exam_id = e.id
+         LEFT JOIN public_exams pe ON ea.exam_id = pe.id
+         LEFT JOIN certificates c ON ea.id = c.assignment_id
+         WHERE ea.id = ?`,
+        [assignmentId]
+      );
+    }
 
     if (assignments.length === 0) {
       return res.status(404).json({ message: 'Exam assignment link not found or invalid.' });

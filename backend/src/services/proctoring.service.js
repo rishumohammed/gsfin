@@ -148,28 +148,54 @@ class ProctoringService {
     }
 
     // Otherwise try exam_attempts (linked to exam_assignments, students, and batches)
-    const [standardAttempts] = await pool.query(
-      `SELECT ea.*, 
-              COALESCE(e.name, pe.name, 'Certification Standard Exam') as exam_title,
-              COALESCE(b.enable_proctoring, e.enable_proctoring, e.proctoring_enabled, pe.enable_proctoring, 0) as enable_proctoring, 3 as max_proctoring_warnings,
-              s.name as candidate_name, 
-              s.email as candidate_email,
-              s.phone as candidate_phone,
-              COALESCE(ea.reference_selfie_url, s.face_photo) as reference_selfie_url,
-              a.status as assignment_status,
-              a.batch_id,
-              b.org_id,
-              o.name as org_name
-       FROM exam_attempts ea
-       JOIN exam_assignments a ON ea.assignment_id = a.id
-       JOIN students s ON a.student_id = s.id
-       JOIN batches b ON a.batch_id = b.id
-       JOIN organizations o ON b.org_id = o.id
-       LEFT JOIN exams e ON a.exam_id = e.id
-       LEFT JOIN public_exams pe ON a.exam_id = pe.id
-       WHERE ea.id = ?`,
-      [attemptId]
-    );
+    let standardAttempts = [];
+    try {
+      [standardAttempts] = await pool.query(
+        `SELECT ea.*, 
+                COALESCE(e.name, pe.name, 'Certification Standard Exam') as exam_title,
+                COALESCE(b.enable_proctoring, e.enable_proctoring, pe.enable_proctoring, 0) as enable_proctoring, 3 as max_proctoring_warnings,
+                s.name as candidate_name, 
+                s.email as candidate_email,
+                s.phone as candidate_phone,
+                COALESCE(ea.reference_selfie_url, s.face_photo) as reference_selfie_url,
+                a.status as assignment_status,
+                a.batch_id,
+                b.org_id,
+                o.name as org_name
+         FROM exam_attempts ea
+         JOIN exam_assignments a ON ea.assignment_id = a.id
+         JOIN students s ON a.student_id = s.id
+         JOIN batches b ON a.batch_id = b.id
+         JOIN organizations o ON b.org_id = o.id
+         LEFT JOIN exams e ON a.exam_id = e.id
+         LEFT JOIN public_exams pe ON a.exam_id = pe.id
+         WHERE ea.id = ?`,
+        [attemptId]
+      );
+    } catch (_) {
+      [standardAttempts] = await pool.query(
+        `SELECT ea.*, 
+                COALESCE(e.name, pe.name, 'Certification Standard Exam') as exam_title,
+                0 as enable_proctoring, 3 as max_proctoring_warnings,
+                s.name as candidate_name, 
+                s.email as candidate_email,
+                s.phone as candidate_phone,
+                COALESCE(ea.reference_selfie_url, s.face_photo) as reference_selfie_url,
+                a.status as assignment_status,
+                a.batch_id,
+                b.org_id,
+                o.name as org_name
+         FROM exam_attempts ea
+         JOIN exam_assignments a ON ea.assignment_id = a.id
+         JOIN students s ON a.student_id = s.id
+         JOIN batches b ON a.batch_id = b.id
+         JOIN organizations o ON b.org_id = o.id
+         LEFT JOIN exams e ON a.exam_id = e.id
+         LEFT JOIN public_exams pe ON a.exam_id = pe.id
+         WHERE ea.id = ?`,
+        [attemptId]
+      );
+    }
 
     if (standardAttempts.length > 0) {
       return { type: 'standard', ...standardAttempts[0] };
@@ -311,8 +337,12 @@ class ProctoringService {
       GROUP BY ea.id, ea.student_id, ea.exam_id, ea.status, ea.submitted_at, ea.proctoring_status, ea.reference_selfie_url, u.name, u.email, e.title
       ORDER BY ea.submitted_at DESC
     `;
-    const [attempts] = await pool.query(query, params);
-    return attempts;
+    try {
+      const [attempts] = await pool.query(query, params);
+      return attempts;
+    } catch (_) {
+      return [];
+    }
   }
 
   async getViolationsGroupedByExam(userId, role) {
@@ -329,7 +359,7 @@ class ProctoringService {
       JOIN users u ON ea.student_id = u.id
       JOIN exams e ON ea.exam_id = e.id
       JOIN courses c ON e.course_id = c.id
-      WHERE e.proctoring_enabled = TRUE
+      WHERE 1=1
     `;
     const params = [];
     if (role === 'tutor') {
@@ -337,7 +367,16 @@ class ProctoringService {
       params.push(userId);
     }
     query += ` ORDER BY c.title ASC, u.name ASC, ea.started_at DESC, pe.created_at DESC`;
-    const [rows] = await pool.query(query, params);
+    let rows = [];
+    try {
+      const [resultRows] = await pool.query(query, params);
+      rows = resultRows;
+    } catch (_) {
+      return {
+        courses: [],
+        summary: { totalViolations: 0, highSeverityViolations: 0, studentsFlagged: 0 }
+      };
+    }
 
     const coursesMap = new Map();
     let totalViolations = 0;

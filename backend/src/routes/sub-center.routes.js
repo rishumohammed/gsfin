@@ -806,22 +806,43 @@ router.get('/exams', async (req, res) => {
 router.get('/batches', async (req, res) => {
   const orgId = getOrgId(req);
   try {
-    const [batches] = await pool.query(
-      `SELECT b.*, e.name as exam_name, e.duration_minutes, e.max_attempts,
-              COALESCE(b.enable_certificate, e.enable_certificate, 1) as enable_certificate,
-              COALESCE(b.enable_proctoring, e.enable_proctoring, e.proctoring_enabled, 1) as enable_proctoring,
-              COUNT(ea.id) as student_count,
-              SUM(CASE WHEN ea.status = 'passed' THEN 1 ELSE 0 END) as passed_count,
-              SUM(CASE WHEN ea.status = 'failed' THEN 1 ELSE 0 END) as failed_count,
-              SUM(CASE WHEN ea.status = 'in_progress' THEN 1 ELSE 0 END) as in_progress_count
-       FROM batches b
-       JOIN exams e ON b.exam_id = e.id
-       LEFT JOIN exam_assignments ea ON b.id = ea.batch_id
-       WHERE b.org_id = ?
-       GROUP BY b.id
-       ORDER BY b.created_at DESC`,
-      [orgId]
-    );
+    let batches = [];
+    try {
+      [batches] = await pool.query(
+        `SELECT b.*, e.name as exam_name, e.duration_minutes, e.max_attempts,
+                COALESCE(b.enable_certificate, e.enable_certificate, 1) as enable_certificate,
+                COALESCE(b.enable_proctoring, e.enable_proctoring, 1) as enable_proctoring,
+                COUNT(ea.id) as student_count,
+                SUM(CASE WHEN ea.status = 'passed' THEN 1 ELSE 0 END) as passed_count,
+                SUM(CASE WHEN ea.status = 'failed' THEN 1 ELSE 0 END) as failed_count,
+                SUM(CASE WHEN ea.status = 'in_progress' THEN 1 ELSE 0 END) as in_progress_count
+         FROM batches b
+         JOIN exams e ON b.exam_id = e.id
+         LEFT JOIN exam_assignments ea ON b.id = ea.batch_id
+         WHERE b.org_id = ?
+         GROUP BY b.id
+         ORDER BY b.created_at DESC`,
+        [orgId]
+      );
+    } catch (_) {
+      // Fallback if enable_proctoring is not yet present on batches or exams
+      [batches] = await pool.query(
+        `SELECT b.*, e.name as exam_name, e.duration_minutes, e.max_attempts,
+                COALESCE(b.enable_certificate, e.enable_certificate, 1) as enable_certificate,
+                1 as enable_proctoring,
+                COUNT(ea.id) as student_count,
+                SUM(CASE WHEN ea.status = 'passed' THEN 1 ELSE 0 END) as passed_count,
+                SUM(CASE WHEN ea.status = 'failed' THEN 1 ELSE 0 END) as failed_count,
+                SUM(CASE WHEN ea.status = 'in_progress' THEN 1 ELSE 0 END) as in_progress_count
+         FROM batches b
+         JOIN exams e ON b.exam_id = e.id
+         LEFT JOIN exam_assignments ea ON b.id = ea.batch_id
+         WHERE b.org_id = ?
+         GROUP BY b.id
+         ORDER BY b.created_at DESC`,
+        [orgId]
+      );
+    }
     res.json(batches);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -831,15 +852,28 @@ router.get('/batches', async (req, res) => {
 router.get('/batches/:id', async (req, res) => {
   const orgId = getOrgId(req);
   try {
-    const [batches] = await pool.query(
-      `SELECT b.*, e.name as exam_name, e.duration_minutes,
-              COALESCE(b.enable_certificate, e.enable_certificate, 1) as enable_certificate,
-              COALESCE(b.enable_proctoring, e.enable_proctoring, e.proctoring_enabled, 1) as enable_proctoring
-       FROM batches b
-       JOIN exams e ON b.exam_id = e.id
-       WHERE b.id = ? AND b.org_id = ?`,
-      [req.params.id, orgId]
-    );
+    let batches = [];
+    try {
+      [batches] = await pool.query(
+        `SELECT b.*, e.name as exam_name, e.duration_minutes,
+                COALESCE(b.enable_certificate, e.enable_certificate, 1) as enable_certificate,
+                COALESCE(b.enable_proctoring, e.enable_proctoring, 1) as enable_proctoring
+         FROM batches b
+         JOIN exams e ON b.exam_id = e.id
+         WHERE b.id = ? AND b.org_id = ?`,
+        [req.params.id, orgId]
+      );
+    } catch (_) {
+      [batches] = await pool.query(
+        `SELECT b.*, e.name as exam_name, e.duration_minutes,
+                COALESCE(b.enable_certificate, e.enable_certificate, 1) as enable_certificate,
+                1 as enable_proctoring
+         FROM batches b
+         JOIN exams e ON b.exam_id = e.id
+         WHERE b.id = ? AND b.org_id = ?`,
+        [req.params.id, orgId]
+      );
+    }
     if (batches.length === 0) return res.status(404).json({ message: 'Batch not found.' });
 
     const [assignments] = await pool.query(

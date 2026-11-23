@@ -106,22 +106,42 @@ export class ExamSessionService {
     try {
       await connection.beginTransaction();
 
-      const [attempts] = await connection.query(
-        `SELECT att.*, ea.id as assignment_id, ea.attempts_used, ea.max_attempts, ea.student_id, ea.exam_id,
-                ea.batch_id, ea.wallet_id, b.org_id,
-                COALESCE(b.enable_certificate, e.enable_certificate, pe.enable_certificate, 1) as enable_certificate,
-                COALESCE(b.enable_proctoring, e.enable_proctoring, e.proctoring_enabled, 0) as enable_proctoring,
-                s.name as student_name, s.email as student_email,
-                COALESCE(e.name, pe.name, 'Certification Exam') as exam_name
-         FROM exam_attempts att
-         JOIN exam_assignments ea ON att.assignment_id = ea.id
-         JOIN batches b ON ea.batch_id = b.id
-         JOIN students s ON ea.student_id = s.id
-         LEFT JOIN exams e ON ea.exam_id = e.id
-         LEFT JOIN public_exams pe ON ea.exam_id = pe.id
-         WHERE att.id = ? FOR UPDATE`,
-        [attemptId]
-      );
+      let attempts = [];
+      try {
+        [attempts] = await connection.query(
+          `SELECT att.*, ea.id as assignment_id, ea.attempts_used, ea.max_attempts, ea.student_id, ea.exam_id,
+                  ea.batch_id, ea.wallet_id, b.org_id,
+                  COALESCE(b.enable_certificate, e.enable_certificate, pe.enable_certificate, 1) as enable_certificate,
+                  COALESCE(b.enable_proctoring, e.enable_proctoring, 0) as enable_proctoring,
+                  s.name as student_name, s.email as student_email,
+                  COALESCE(e.name, pe.name, 'Certification Exam') as exam_name
+           FROM exam_attempts att
+           JOIN exam_assignments ea ON att.assignment_id = ea.id
+           JOIN batches b ON ea.batch_id = b.id
+           JOIN students s ON ea.student_id = s.id
+           LEFT JOIN exams e ON ea.exam_id = e.id
+           LEFT JOIN public_exams pe ON ea.exam_id = pe.id
+           WHERE att.id = ? FOR UPDATE`,
+          [attemptId]
+        );
+      } catch (_) {
+        [attempts] = await connection.query(
+          `SELECT att.*, ea.id as assignment_id, ea.attempts_used, ea.max_attempts, ea.student_id, ea.exam_id,
+                  ea.batch_id, ea.wallet_id, b.org_id,
+                  COALESCE(b.enable_certificate, e.enable_certificate, pe.enable_certificate, 1) as enable_certificate,
+                  0 as enable_proctoring,
+                  s.name as student_name, s.email as student_email,
+                  COALESCE(e.name, pe.name, 'Certification Exam') as exam_name
+           FROM exam_attempts att
+           JOIN exam_assignments ea ON att.assignment_id = ea.id
+           JOIN batches b ON ea.batch_id = b.id
+           JOIN students s ON ea.student_id = s.id
+           LEFT JOIN exams e ON ea.exam_id = e.id
+           LEFT JOIN public_exams pe ON ea.exam_id = pe.id
+           WHERE att.id = ? FOR UPDATE`,
+          [attemptId]
+        );
+      }
 
       if (attempts.length === 0) throw new Error('Sitting attempt not found.');
       const att = attempts[0];

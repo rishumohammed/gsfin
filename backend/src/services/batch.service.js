@@ -18,10 +18,7 @@ export class BatchService {
 
       // 1. Fetch Exam & snapshot max_attempts, certificate policy & proctoring policy
       const [exams] = await connection.query(
-        `SELECT id, name, max_attempts, status, 
-                COALESCE(enable_certificate, 1) as enable_certificate,
-                COALESCE(enable_proctoring, proctoring_enabled, 1) as enable_proctoring
-         FROM exams WHERE id = ?`,
+        `SELECT * FROM exams WHERE id = ?`,
         [examId]
       );
       if (exams.length === 0 || exams[0].status !== 'active') {
@@ -29,13 +26,17 @@ export class BatchService {
       }
       const exam = exams[0];
 
+      const examCertVal = exam.enable_certificate !== undefined ? exam.enable_certificate : 1;
       const certEnabledVal = enableCertificate !== null && enableCertificate !== undefined
         ? (enableCertificate ? 1 : 0)
-        : (exam.enable_certificate !== false && exam.enable_certificate !== 0 ? 1 : 0);
+        : (examCertVal !== false && examCertVal !== 0 && examCertVal !== '0' ? 1 : 0);
 
+      const examProctorVal = exam.enable_proctoring !== undefined 
+        ? exam.enable_proctoring 
+        : (exam.proctoring_enabled !== undefined ? exam.proctoring_enabled : 1);
       const proctorEnabledVal = enableProctoring !== null && enableProctoring !== undefined
         ? (enableProctoring ? 1 : 0)
-        : (exam.enable_proctoring !== false && exam.enable_proctoring !== 0 ? 1 : 0);
+        : (examProctorVal !== false && examProctorVal !== 0 && examProctorVal !== '0' ? 1 : 0);
 
       // Validate partner center authorization for this certification program
       const isAuthorized = await ExamCatalogService.isOrgAuthorizedForExam(connection, orgId, exam.name);
