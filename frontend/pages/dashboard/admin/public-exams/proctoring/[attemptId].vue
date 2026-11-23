@@ -12,7 +12,12 @@
           <div class="breadcrumb-trail">
             <NuxtLink to="/dashboard/admin/public-exams/proctoring" class="bc-link">Proctoring Governance</NuxtLink>
             <i class="mdi mdi-chevron-right bc-sep"></i>
-            <span class="bc-link text-slate-600">{{ details?.exam_title || 'Public Exam' }}</span>
+            <span v-if="details?.is_subcenter" class="bc-link text-slate-600">{{ details?.org_name || 'Sub-Center' }}</span>
+            <span v-else class="bc-link text-slate-600">{{ details?.exam_title || 'Public Exam' }}</span>
+            <template v-if="details?.batch_code">
+              <i class="mdi mdi-chevron-right bc-sep"></i>
+              <span class="bc-link text-slate-600 font-mono">{{ details.batch_code }}</span>
+            </template>
             <i class="mdi mdi-chevron-right bc-sep"></i>
             <span class="bc-current">Audit Review</span>
           </div>
@@ -34,11 +39,37 @@
       <!-- ═══ HEADER ROW & ACTIONS BAR ═══ -->
       <div class="admin-header-row mb-6">
         <div>
-          <h1 class="admin-title">Public Exam Proctoring Audit Review</h1>
-          <div class="flex items-center gap-2.5 mt-1.5 flex-wrap">
+          <!-- Dynamic Sitting Type & Batch Context Strip -->
+          <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+            <span v-if="details?.is_subcenter" class="sitting-type-pill pill-subcenter">
+              <i class="mdi mdi-domain"></i>
+              <span>Sub-Center Batch Sitting</span>
+              <span class="pill-divider">&bull;</span>
+              <strong>{{ details?.org_name || 'Partner Center' }}</strong>
+            </span>
+            <span v-else class="sitting-type-pill pill-public">
+              <i class="mdi mdi-earth"></i>
+              <span>Direct Public Portal Sitting</span>
+            </span>
+
+            <span v-if="details?.batch_code" class="batch-code-chip font-mono">
+              <i class="mdi mdi-tag-outline mr-0.5"></i> {{ details.batch_code }}
+            </span>
+
+            <span v-if="details?.result" :class="['result-pill', details.result === 'pass' ? 'result-pass' : 'result-fail']">
+              <i :class="['mdi', details.result === 'pass' ? 'mdi-check-circle' : 'mdi-close-circle']"></i>
+              <span>Result: {{ details.result.toUpperCase() }}</span>
+            </span>
+          </div>
+
+          <h1 class="admin-title">
+            {{ details?.exam_title || 'Public Exam' }} &bull; Proctoring Audit Review
+          </h1>
+
+          <div class="flex items-center gap-2.5 mt-2 flex-wrap">
             <span class="attempt-id-chip">
               <span class="text-slate-400 font-sans">Attempt ID:</span>
-              <code class="font-mono">{{ attemptId }}</code>
+              <code class="font-mono font-semibold">{{ attemptId }}</code>
               <button
                 type="button"
                 class="copy-btn"
@@ -48,7 +79,9 @@
                 <i :class="['mdi', copiedAttemptId ? 'mdi-check text-emerald-600' : 'mdi-content-copy']"></i>
               </button>
             </span>
+
             <span :class="['status-pill', getStatusPillClass(details?.proctoring_status)]">
+              <i :class="['mdi mr-1', details?.proctoring_status === 'approved' ? 'mdi-check-decagram' : (details?.proctoring_status === 'flagged' ? 'mdi-flag' : 'mdi-clock-outline')]"></i>
               {{ formatStatus(details?.proctoring_status || 'pending_review') }}
             </span>
           </div>
@@ -147,16 +180,18 @@
             <div class="p-5">
               <!-- Registered Selfie Photo Frame -->
               <div class="selfie-frame-wrap mb-5">
-                <div v-if="details?.reference_selfie_url" class="selfie-preview-box">
+                <div v-if="details?.reference_selfie_url" class="selfie-preview-box cursor-pointer" @click="openPreview(details.reference_selfie_url)">
                   <img
                     :src="backendUrl(details.reference_selfie_url)"
                     alt="Registered Selfie Baseline"
                     class="selfie-img"
-                    @click="openPreview(details.reference_selfie_url)"
                   />
                   <div class="selfie-tag-pill">
-                    <i class="mdi mdi-check-decagram text-emerald-600"></i>
+                    <i class="mdi mdi-face-recognition text-emerald-600"></i>
                     <span>Registered Baseline Selfie</span>
+                  </div>
+                  <div class="selfie-zoom-hint">
+                    <i class="mdi mdi-magnify-plus-outline"></i> Click to zoom
                   </div>
                 </div>
 
@@ -205,7 +240,37 @@
                     <i class="mdi mdi-file-certificate-outline"></i> Examination
                   </div>
                   <div class="meta-val font-semibold text-slate-900">
-                    {{ details?.exam_title || 'Public Exam Sitting' }}
+                    {{ details?.exam_title || 'Certification Exam' }}
+                  </div>
+                </div>
+
+                <div v-if="details?.is_subcenter" class="meta-item">
+                  <div class="meta-label">
+                    <i class="mdi mdi-domain"></i> Testing Center
+                  </div>
+                  <div class="meta-val font-medium text-slate-800">
+                    {{ details?.org_name || 'Authorized Testing Center' }}
+                  </div>
+                </div>
+
+                <div v-if="details?.batch_code" class="meta-item">
+                  <div class="meta-label">
+                    <i class="mdi mdi-tag-outline"></i> Batch Code
+                  </div>
+                  <div class="meta-val font-mono text-xs font-semibold text-slate-800">
+                    {{ details.batch_code }}
+                  </div>
+                </div>
+
+                <div v-if="details?.result" class="meta-item">
+                  <div class="meta-label">
+                    <i class="mdi mdi-trophy-outline"></i> Exam Result
+                  </div>
+                  <div class="meta-val">
+                    <span :class="['result-pill', details.result === 'pass' ? 'result-pass' : 'result-fail']">
+                      <i :class="['mdi', details.result === 'pass' ? 'mdi-check-circle' : 'mdi-close-circle']"></i>
+                      <span>{{ details.result === 'pass' ? 'PASSED' : 'FAILED' }}</span>
+                    </span>
                   </div>
                 </div>
 
@@ -226,6 +291,15 @@
                   </div>
                   <div class="meta-val text-slate-600 text-xs">
                     {{ formatDate(details.started_at) }}
+                  </div>
+                </div>
+
+                <div v-if="details?.submitted_at" class="meta-item">
+                  <div class="meta-label">
+                    <i class="mdi mdi-clock-check-outline"></i> Submitted At
+                  </div>
+                  <div class="meta-val text-slate-600 text-xs">
+                    {{ formatDate(details.submitted_at) }}
                   </div>
                 </div>
               </div>
@@ -1049,13 +1123,69 @@ const executeDelete = async () => {
   flex-wrap: wrap;
 }
 
+.sitting-type-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+.pill-subcenter {
+  background: rgba(37, 99, 235, 0.08);
+  color: #2563EB;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+.pill-public {
+  background: rgba(147, 51, 234, 0.08);
+  color: #7C3AED;
+  border: 1px solid rgba(147, 51, 234, 0.2);
+}
+.pill-divider {
+  opacity: 0.5;
+}
+
+.batch-code-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.result-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.result-pass {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+.result-fail {
+  background: rgba(227, 27, 35, 0.1);
+  color: #E31B23;
+  border: 1px solid rgba(227, 27, 35, 0.25);
+}
+
 .eyebrow-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 3px 10px;
-  background: rgba(201, 37, 44, 0.08);
-  color: #C9252C;
+  background: rgba(227, 27, 35, 0.08);
+  color: #E31B23;
   font-size: 0.68rem;
   font-weight: 600;
   border-radius: 6px;
@@ -1285,19 +1415,39 @@ const executeDelete = async () => {
   position: relative;
   display: inline-block;
   cursor: pointer;
+  max-width: 240px;
+  width: 100%;
 }
 .selfie-img {
   width: 100%;
-  max-width: 220px;
-  height: 180px;
+  max-width: 240px;
+  height: 190px;
   object-fit: cover;
   border-radius: 12px;
   border: 1px solid rgba(15, 23, 42, 0.1);
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
   transition: transform 0.2s ease;
+  display: block;
+  margin: 0 auto;
 }
 .selfie-img:hover {
   transform: scale(1.02);
+}
+.selfie-zoom-hint {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  color: #FFFFFF;
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  pointer-events: none;
 }
 .selfie-tag-pill {
   position: absolute;

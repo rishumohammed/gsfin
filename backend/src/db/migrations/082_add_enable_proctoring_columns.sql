@@ -6,3 +6,4 @@ ALTER TABLE exams
 
 ALTER TABLE batches 
   ADD COLUMN enable_proctoring TINYINT(1) DEFAULT NULL;
+

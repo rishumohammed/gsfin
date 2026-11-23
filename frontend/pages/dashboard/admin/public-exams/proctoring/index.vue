@@ -719,9 +719,11 @@ async function fetchHierarchy() {
         }
       }
     }
-  } catch (err) {
-    console.error('Failed to load proctoring hierarchy', err);
-    showToast('Failed to load proctoring hierarchy', 'error');
+  } catch (err: any) {
+    console.warn('Failed to load proctoring hierarchy', err?.message);
+    if (branches.value.length === 0) {
+      showToast('Could not load proctoring data from server', 'error');
+    }
   } finally {
     loading.value = false;
   }
@@ -740,9 +742,9 @@ async function fetchBatchCandidates(batchId: string) {
     } else {
       batchCandidates.value = [];
     }
-  } catch (err) {
-    console.error('Failed to load batch candidates', err);
-    showToast('Failed to load candidate proctoring data', 'error');
+  } catch (err: any) {
+    console.warn('Failed to load batch candidates', err?.message);
+    batchCandidates.value = [];
   } finally {
     loadingCandidates.value = false;
   }
@@ -832,7 +834,7 @@ onMounted(() => {
 .th-verdict { min-width: 140px; }
 .th-violations { min-width: 200px; }
 .th-attempt-time { min-width: 150px; }
-.th-audit-act { min-width: 130px; }
+.th-audit-act { min-width: 190px; width: 190px; }
 
 .gsfin-admin-page {
   padding: 24px 32px;
@@ -1566,50 +1568,54 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
+  white-space: nowrap;
+  flex-wrap: nowrap;
 }
 
 .btn-table-action {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 10px;
+  gap: 6px;
+  padding: 6px 14px;
   border-radius: 8px;
-  font-size: 0.76rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 500;
   border: 1px solid transparent;
   cursor: pointer;
   text-decoration: none;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 .btn-table-action.icon-only {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   justify-content: center;
 }
 .btn-table-action.btn-view {
-  background: #F1F5F9;
-  color: #0F172A;
-  border-color: rgba(15, 23, 42, 0.08);
-}
-.btn-table-action.btn-view:hover {
   background: #0F172A;
   color: #FFFFFF;
+  border-color: #0F172A;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+}
+.btn-table-action.btn-view:hover {
+  background: #1E293B;
+  border-color: #1E293B;
 }
 .btn-table-action.btn-success {
   background: rgba(16, 185, 129, 0.1);
   color: #059669;
-  border-color: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.25);
 }
 .btn-table-action.btn-success:hover {
   background: #059669;
   color: #FFFFFF;
 }
 .btn-table-action.btn-danger {
-  background: rgba(227, 27, 35, 0.1);
+  background: rgba(227, 27, 35, 0.08);
   color: #E31B23;
-  border-color: rgba(227, 27, 35, 0.2);
+  border-color: rgba(227, 27, 35, 0.25);
 }
 .btn-table-action.btn-danger:hover {
   background: #E31B23;

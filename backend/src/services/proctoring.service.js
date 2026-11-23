@@ -111,94 +111,142 @@ class ProctoringService {
   }
 
   async getAttemptDetails(attemptId) {
-    // Try fetching from public_exam_attempts first
-    const [publicAttempts] = await pool.query(
-      `SELECT ea.*, e.name as exam_title, e.enable_proctoring, e.max_proctoring_warnings,
-              COALESCE(c.name, u.name, s.name, ea.guest_name, 'Candidate') as candidate_name, 
-              COALESCE(c.email, u.email, s.email, ea.guest_email, 'No email recorded') as candidate_email,
-              COALESCE(c.phone, u.phone, s.phone, ea.guest_phone) as candidate_phone,
-              COALESCE(s.face_photo, c.selfie_url) as candidate_face_photo,
-              c.metadata as candidate_metadata
-       FROM public_exam_attempts ea
-       JOIN public_exams e ON ea.exam_id = e.id
-       LEFT JOIN public_exam_candidates c ON ea.candidate_id = c.id
-       LEFT JOIN users u ON ea.candidate_id = u.id
-       LEFT JOIN students s ON ea.candidate_id = s.id
-       WHERE ea.id = ?`,
-      [attemptId]
-    );
+    let cleanId = String(attemptId || '').trim();
+    if (cleanId.startsWith('assignment-')) {
+      cleanId = cleanId.replace('assignment-', '');
+    }
 
-    if (publicAttempts.length > 0) {
-      const att = publicAttempts[0];
-      if (!att.reference_selfie_url) {
-        if (att.candidate_face_photo) {
-          att.reference_selfie_url = att.candidate_face_photo;
-        } else if (att.candidate_metadata) {
+    // 1. Try public_exam_attempts first
+    try {
+      const [publicAttempts] = await pool.query(
+        `SELECT ea.*, 
+                COALESCE(e.name, 'Public Exam Certification') as exam_title,
+                COALESCE(e.enable_proctoring, 1) as enable_proctoring,
+                3 as max_proctoring_warnings,
+                COALESCE(c.name, u.name, s.name, ea.guest_name, 'Candidate') as candidate_name, 
+                COALESCE(c.email, u.email, s.email, ea.guest_email, 'No email recorded') as candidate_email,
+                COALESCE(c.phone, u.phone, s.phone, ea.guest_phone) as candidate_phone,
+                COALESCE(ea.reference_selfie_url, s.face_photo, c.selfie_url) as candidate_face_photo,
+                c.metadata as candidate_metadata
+         FROM public_exam_attempts ea
+         LEFT JOIN public_exams e ON ea.exam_id = e.id
+         LEFT JOIN public_exam_candidates c ON ea.candidate_id = c.id
+         LEFT JOIN users u ON ea.candidate_id = u.id
+         LEFT JOIN students s ON ea.candidate_id = s.id
+         WHERE ea.id = ? OR ea.candidate_id = ?`,
+        [cleanId, cleanId]
+      );
+
+      if (publicAttempts && publicAttempts.length > 0) {
+        const att = publicAttempts[0];
+        let refSelfie = att.reference_selfie_url || att.candidate_face_photo;
+        if (!refSelfie && att.candidate_metadata) {
           try {
             const m = typeof att.candidate_metadata === 'string' ? JSON.parse(att.candidate_metadata) : att.candidate_metadata;
-            if (m && m.reference_photo_url) {
-              att.reference_selfie_url = m.reference_photo_url;
-            } else if (m && m.face_photo) {
-              att.reference_selfie_url = m.face_photo;
+            if (m && (m.reference_photo_url || m.face_photo || m.selfie_url)) {
+              refSelfie = m.reference_photo_url || m.face_photo || m.selfie_url;
             }
           } catch (_) {}
         }
+        return {
+          type: 'public',
+          is_subcenter: false,
+          ...att,
+          reference_selfie_url: refSelfie
+        };
       }
-      return { type: 'public', ...att };
+    } catch (pubErr) {
+      console.warn('Proctoring getAttemptDetails public check warning:', pubErr.message);
     }
 
-    // Otherwise try exam_attempts (linked to exam_assignments, students, and batches)
-    let standardAttempts = [];
+    // 2. Try standard sub-center batch exam_attempts
     try {
-      [standardAttempts] = await pool.query(
-        `SELECT ea.*, 
-                COALESCE(e.name, pe.name, 'Certification Standard Exam') as exam_title,
-                COALESCE(b.enable_proctoring, e.enable_proctoring, pe.enable_proctoring, 0) as enable_proctoring, 3 as max_proctoring_warnings,
-                s.name as candidate_name, 
-                s.email as candidate_email,
-                s.phone as candidate_phone,
-                COALESCE(ea.reference_selfie_url, s.face_photo) as reference_selfie_url,
-                a.status as assignment_status,
+      const [stdRows] = await pool.query(
+        `SELECT ea.id as attempt_id,
+                ea.assignment_id,
+                ea.started_at,
+                ea.ended_at as submitted_at,
+                ea.result,
+                COALESCE(ea.proctoring_status, CASE WHEN a.status = 'passed' THEN 'approved' ELSE 'pending_review' END) as proctoring_status,
+                ea.reference_selfie_url,
+                a.id as real_assignment_id,
                 a.batch_id,
-                b.org_id,
-                o.name as org_name
-         FROM exam_attempts ea
-         JOIN exam_assignments a ON ea.assignment_id = a.id
-         JOIN students s ON a.student_id = s.id
-         JOIN batches b ON a.batch_id = b.id
-         JOIN organizations o ON b.org_id = o.id
-         LEFT JOIN exams e ON a.exam_id = e.id
-         LEFT JOIN public_exams pe ON a.exam_id = pe.id
-         WHERE ea.id = ?`,
-        [attemptId]
-      );
-    } catch (_) {
-      [standardAttempts] = await pool.query(
-        `SELECT ea.*, 
-                COALESCE(e.name, pe.name, 'Certification Standard Exam') as exam_title,
-                0 as enable_proctoring, 3 as max_proctoring_warnings,
-                s.name as candidate_name, 
-                s.email as candidate_email,
-                s.phone as candidate_phone,
-                COALESCE(ea.reference_selfie_url, s.face_photo) as reference_selfie_url,
                 a.status as assignment_status,
-                a.batch_id,
-                b.org_id,
-                o.name as org_name
+                s.id as student_id,
+                COALESCE(s.name, 'Student Candidate') as candidate_name,
+                COALESCE(s.email, 'No email recorded') as candidate_email,
+                s.phone as candidate_phone,
+                s.face_photo as student_face_photo,
+                b.id as batch_id,
+                COALESCE(b.batch_code, CONCAT('BATCH-', UPPER(LEFT(b.id, 8)))) as batch_code,
+                COALESCE(o.name, 'Authorized Testing Center') as org_name,
+                COALESCE(e.name, pe.name, 'Certification Standard Exam') as exam_title
          FROM exam_attempts ea
-         JOIN exam_assignments a ON ea.assignment_id = a.id
-         JOIN students s ON a.student_id = s.id
-         JOIN batches b ON a.batch_id = b.id
-         JOIN organizations o ON b.org_id = o.id
-         LEFT JOIN exams e ON a.exam_id = e.id
-         LEFT JOIN public_exams pe ON a.exam_id = pe.id
-         WHERE ea.id = ?`,
-        [attemptId]
+         LEFT JOIN exam_assignments a ON ea.assignment_id = a.id
+         LEFT JOIN students s ON a.student_id = s.id
+         LEFT JOIN batches b ON a.batch_id = b.id
+         LEFT JOIN organizations o ON b.org_id = o.id
+         LEFT JOIN exams e ON (a.exam_id = e.id OR b.exam_id = e.id)
+         LEFT JOIN public_exams pe ON (a.exam_id = pe.id OR b.exam_id = pe.id)
+         WHERE ea.id = ? OR ea.assignment_id = ? OR a.id = ?
+         ORDER BY ea.started_at DESC
+         LIMIT 1`,
+        [cleanId, cleanId, cleanId]
       );
+
+      if (stdRows && stdRows.length > 0) {
+        const att = stdRows[0];
+        return {
+          type: 'standard',
+          is_subcenter: true,
+          ...att,
+          id: att.attempt_id || cleanId,
+          reference_selfie_url: att.reference_selfie_url || att.student_face_photo || null
+        };
+      }
+    } catch (stdErr) {
+      console.warn('Proctoring getAttemptDetails standard check warning:', stdErr.message);
     }
 
-    if (standardAttempts.length > 0) {
-      return { type: 'standard', ...standardAttempts[0] };
+    // 3. Fallback: check if cleanId is an assignment directly without an attempt row yet
+    try {
+      const [assignRows] = await pool.query(
+        `SELECT a.id as assignment_id,
+                a.batch_id,
+                a.status as assignment_status,
+                s.id as student_id,
+                COALESCE(s.name, 'Student Candidate') as candidate_name,
+                COALESCE(s.email, 'No email recorded') as candidate_email,
+                s.phone as candidate_phone,
+                s.face_photo as student_face_photo,
+                b.id as batch_id,
+                COALESCE(b.batch_code, CONCAT('BATCH-', UPPER(LEFT(b.id, 8)))) as batch_code,
+                COALESCE(o.name, 'Authorized Testing Center') as org_name,
+                COALESCE(e.name, pe.name, 'Certification Standard Exam') as exam_title
+         FROM exam_assignments a
+         LEFT JOIN students s ON a.student_id = s.id
+         LEFT JOIN batches b ON a.batch_id = b.id
+         LEFT JOIN organizations o ON b.org_id = o.id
+         LEFT JOIN exams e ON (a.exam_id = e.id OR b.exam_id = e.id)
+         LEFT JOIN public_exams pe ON (a.exam_id = pe.id OR b.exam_id = pe.id)
+         WHERE a.id = ?
+         LIMIT 1`,
+        [cleanId]
+      );
+
+      if (assignRows && assignRows.length > 0) {
+        const att = assignRows[0];
+        return {
+          type: 'standard',
+          is_subcenter: true,
+          ...att,
+          id: `assignment-${att.assignment_id}`,
+          reference_selfie_url: att.student_face_photo || null,
+          proctoring_status: att.assignment_status === 'passed' ? 'approved' : 'clean'
+        };
+      }
+    } catch (assignErr) {
+      console.warn('Proctoring getAttemptDetails assignment fallback warning:', assignErr.message);
     }
 
     return null;
@@ -325,7 +373,7 @@ class ProctoringService {
       JOIN exams e ON ea.exam_id = e.id
       JOIN courses c ON e.course_id = c.id
       LEFT JOIN proctoring_events pe ON ea.id = pe.attempt_id
-      WHERE e.proctoring_enabled = TRUE
+      WHERE (e.enable_proctoring = 1 OR e.enable_proctoring IS NULL)
     `;
     const params = [];
     if (role === 'tutor') {
@@ -669,7 +717,30 @@ class ProctoringService {
         }
       } catch (_) {}
 
-      // 3. Backfill any existing attempts that have null or not_applicable proctoring_status
+      // 3. Ensure batches and exams tables have enable_proctoring & enable_certificate columns
+      try {
+        const [batchCols] = await pool.query('SHOW COLUMNS FROM batches');
+        const batchColNames = new Set(batchCols.map(c => c.Field.toLowerCase()));
+        if (!batchColNames.has('enable_proctoring')) {
+          try { await pool.query('ALTER TABLE batches ADD COLUMN enable_proctoring TINYINT(1) DEFAULT 1'); } catch (_) {}
+        }
+        if (!batchColNames.has('enable_certificate')) {
+          try { await pool.query('ALTER TABLE batches ADD COLUMN enable_certificate TINYINT(1) DEFAULT 1'); } catch (_) {}
+        }
+      } catch (_) {}
+
+      try {
+        const [examCols] = await pool.query('SHOW COLUMNS FROM exams');
+        const examColNames = new Set(examCols.map(c => c.Field.toLowerCase()));
+        if (!examColNames.has('enable_proctoring')) {
+          try { await pool.query('ALTER TABLE exams ADD COLUMN enable_proctoring TINYINT(1) DEFAULT 1'); } catch (_) {}
+        }
+        if (!examColNames.has('enable_certificate')) {
+          try { await pool.query('ALTER TABLE exams ADD COLUMN enable_certificate TINYINT(1) DEFAULT 1'); } catch (_) {}
+        }
+      } catch (_) {}
+
+      // 4. Backfill any existing attempts that have null or not_applicable proctoring_status
       try {
         await pool.query(`
           UPDATE exam_attempts 
@@ -1024,64 +1095,92 @@ class ProctoringService {
       };
     } else {
       // Sub-center batch
-      const [batchRows] = await pool.query(`
-        SELECT b.*, o.name as branch_name, COALESCE(e.name, pe.name, 'Certification Exam') as exam_name
-        FROM batches b
-        JOIN organizations o ON b.org_id = o.id
-        LEFT JOIN exams e ON b.exam_id = e.id
-        LEFT JOIN public_exams pe ON b.exam_id = pe.id
-        WHERE b.id = ?
-      `, [batchId]);
+      let batch = null;
+      try {
+        const [batchRows] = await pool.query(`
+          SELECT b.*, 
+                 COALESCE(o.name, 'Authorized Testing Center') as branch_name, 
+                 COALESCE(e.name, pe.name, 'Certification Standard Exam') as exam_name,
+                 COALESCE(b.batch_code, CONCAT('BATCH-', UPPER(LEFT(b.id, 8)))) as batch_code
+          FROM batches b
+          LEFT JOIN organizations o ON b.org_id = o.id
+          LEFT JOIN exams e ON b.exam_id = e.id
+          LEFT JOIN public_exams pe ON b.exam_id = pe.id
+          WHERE b.id = ?
+        `, [batchId]);
 
-      if (batchRows.length === 0) {
-        throw new Error('Batch not found');
+        if (batchRows.length > 0) {
+          batch = batchRows[0];
+        }
+      } catch (bErr) {
+        console.warn('Proctoring getBatchProctoringCandidates batch fetch warning:', bErr.message);
       }
-      const batch = batchRows[0];
 
-      const [attempts] = await pool.query(`
-        SELECT 
-          COALESCE(ea.id, CONCAT('assignment-', a.id)) as attempt_id,
-          a.id as assignment_id,
-          s.id as student_id,
-          s.name as candidate_name,
-          s.email as candidate_email,
-          ea.started_at,
-          ea.ended_at as submitted_at,
-          COALESCE(ea.result, CASE WHEN a.status = 'passed' THEN 'pass' WHEN a.status = 'failed' THEN 'fail' ELSE NULL END) as result,
-          COALESCE(ea.proctoring_status, CASE WHEN a.status = 'passed' THEN 'approved' ELSE 'clean' END) as proctoring_status,
-          COALESCE(ea.reference_selfie_url, s.face_photo) as reference_selfie_url,
-          COALESCE((SELECT COUNT(*) FROM proctoring_events pe WHERE pe.attempt_id = ea.id), 0) as violation_count,
-          COALESCE((SELECT COUNT(*) FROM proctoring_events pe WHERE pe.attempt_id = ea.id AND pe.type IN ('proxy_mismatch', 'multiple_faces', 'face_absent', 'devtools_open', 'mobile_phone_detected', 'phone_detected', 'suspicious_object', 'camera_disabled', 'microphone_disabled')), 0) as high_severity_count
-        FROM exam_assignments a
-        JOIN students s ON a.student_id = s.id
-        LEFT JOIN (
-          SELECT ea1.*
-          FROM exam_attempts ea1
-          INNER JOIN (
-            SELECT assignment_id, MAX(started_at) as max_started
-            FROM exam_attempts
-            GROUP BY assignment_id
-          ) ea2 ON ea1.assignment_id = ea2.assignment_id AND (ea1.started_at = ea2.max_started OR ea1.started_at IS NULL)
-        ) ea ON a.id = ea.assignment_id
-        WHERE a.batch_id = ?
-        ORDER BY a.created_at DESC
-      `, [batchId]);
+      if (!batch) {
+        batch = {
+          id: batchId,
+          branch_name: 'Authorized Testing Center',
+          exam_name: 'Certification Exam',
+          batch_code: 'BATCH-' + String(batchId).slice(0, 8).toUpperCase(),
+          status: 'open'
+        };
+      }
+
+      let attempts = [];
+      try {
+        const [rows] = await pool.query(`
+          SELECT 
+            COALESCE(ea.id, CONCAT('assignment-', a.id)) as attempt_id,
+            a.id as assignment_id,
+            s.id as student_id,
+            COALESCE(s.name, 'Student Candidate') as candidate_name,
+            COALESCE(s.email, 'No email recorded') as candidate_email,
+            s.phone as candidate_phone,
+            ea.started_at,
+            ea.ended_at as submitted_at,
+            COALESCE(ea.result, CASE WHEN a.status = 'passed' THEN 'pass' WHEN a.status = 'failed' THEN 'fail' ELSE NULL END) as result,
+            COALESCE(ea.proctoring_status, CASE WHEN a.status = 'passed' THEN 'approved' ELSE 'pending_review' END) as proctoring_status,
+            COALESCE(ea.reference_selfie_url, s.face_photo) as reference_selfie_url,
+            COALESCE((SELECT COUNT(*) FROM proctoring_events pe WHERE pe.attempt_id = ea.id), 0) as violation_count,
+            COALESCE((SELECT COUNT(*) FROM proctoring_events pe WHERE pe.attempt_id = ea.id AND pe.type IN ('proxy_mismatch', 'multiple_faces', 'face_absent', 'devtools_open', 'mobile_phone_detected', 'phone_detected', 'suspicious_object', 'camera_disabled', 'microphone_disabled')), 0) as high_severity_count
+          FROM exam_assignments a
+          LEFT JOIN students s ON a.student_id = s.id
+          LEFT JOIN (
+            SELECT ea1.*
+            FROM exam_attempts ea1
+            INNER JOIN (
+              SELECT assignment_id, MAX(started_at) as max_started
+              FROM exam_attempts
+              GROUP BY assignment_id
+            ) ea2 ON ea1.assignment_id = ea2.assignment_id AND (ea1.started_at = ea2.max_started OR ea1.started_at IS NULL)
+          ) ea ON a.id = ea.assignment_id
+          WHERE a.batch_id = ?
+          ORDER BY a.created_at DESC
+        `, [batchId]);
+        attempts = rows || [];
+      } catch (attErr) {
+        console.warn('Proctoring getBatchProctoringCandidates attempts fetch warning:', attErr.message);
+      }
 
       // Fetch violation events for all real attempts in this batch
-      const realAttemptIds = attempts.map(a => a.attempt_id).filter(id => !id.startsWith('assignment-'));
+      const realAttemptIds = attempts.map(a => a.attempt_id).filter(id => id && !String(id).startsWith('assignment-'));
       let eventsMap = new Map();
       if (realAttemptIds.length > 0) {
-        const [events] = await pool.query(
-          `SELECT id, attempt_id, type, metadata_json, created_at 
-           FROM proctoring_events 
-           WHERE attempt_id IN (?) 
-           ORDER BY created_at DESC`,
-          [realAttemptIds]
-        );
-        events.forEach(ev => {
-          if (!eventsMap.has(ev.attempt_id)) eventsMap.set(ev.attempt_id, []);
-          eventsMap.get(ev.attempt_id).push(ev);
-        });
+        try {
+          const [events] = await pool.query(
+            `SELECT id, attempt_id, type, metadata_json, created_at 
+             FROM proctoring_events 
+             WHERE attempt_id IN (?) 
+             ORDER BY created_at DESC`,
+            [realAttemptIds]
+          );
+          (events || []).forEach(ev => {
+            if (!eventsMap.has(ev.attempt_id)) eventsMap.set(ev.attempt_id, []);
+            eventsMap.get(ev.attempt_id).push(ev);
+          });
+        } catch (evErr) {
+          console.warn('Proctoring getBatchProctoringCandidates events fetch warning:', evErr.message);
+        }
       }
 
       const candidates = attempts.map(att => {
@@ -1104,8 +1203,8 @@ class ProctoringService {
           id: batch.id,
           branch_name: batch.branch_name,
           exam_name: batch.exam_name,
-          batch_code: 'BATCH-' + batch.id.slice(0, 8).toUpperCase(),
-          status: batch.status
+          batch_code: batch.batch_code || ('BATCH-' + String(batch.id).slice(0, 8).toUpperCase()),
+          status: batch.status || 'open'
         },
         candidates
       };
