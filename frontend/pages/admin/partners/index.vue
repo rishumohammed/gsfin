@@ -2383,7 +2383,7 @@ async function saveExam() {
     }
     showAddExamModal.value = false;
     editingExam.value = null;
-    examForm.value = { name: '', description: '', duration_minutes: 60, max_attempts: 1, status: 'active' };
+    examForm.value = { name: '', description: '', duration_minutes: 60, max_attempts: 1, status: 'active', enable_certificate: true };
     await fetchExams();
   } catch (err: any) {
     alert(err.response?.data?.message || err.message || 'Failed to save exam');

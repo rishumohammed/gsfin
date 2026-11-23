@@ -908,7 +908,8 @@ const showEditBatchModal = ref(false);
 const savingEditBatch = ref(false);
 const editBatchForm = ref({
   opens_at: '',
-  closes_at: ''
+  closes_at: '',
+  enable_certificate: true
 });
 
 // Add Students Modal
