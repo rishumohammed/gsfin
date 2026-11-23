@@ -74,13 +74,15 @@
               <span>Credentials &amp; OTP</span>
             </div>
             <div class="stepper-divider"></div>
-            <div class="stepper-step" :class="{ 'step-active': verificationStep === 'face', 'step-done': isFaceVerified }">
-              <span class="step-num">2</span>
-              <span>Face Biometrics</span>
-            </div>
-            <div class="stepper-divider"></div>
+            <template v-if="details.enableProctoring">
+              <div class="stepper-step" :class="{ 'step-active': verificationStep === 'face', 'step-done': isFaceVerified }">
+                <span class="step-num">2</span>
+                <span>Face Biometrics</span>
+              </div>
+              <div class="stepper-divider"></div>
+            </template>
             <div class="stepper-step" :class="{ 'step-active': (verificationStep as string) === 'authorized' }">
-              <span class="step-num">3</span>
+              <span class="step-num">{{ details.enableProctoring ? 3 : 2 }}</span>
               <span>Exam Sitting</span>
             </div>
           </div>
@@ -271,7 +273,7 @@
                 <span class="verified-pill">
                   <i class="mdi mdi-check-circle text-xs"></i> Credentials Verified
                 </span>
-                <span class="verified-pill">
+                <span v-if="details.enableProctoring" class="verified-pill">
                   <i class="mdi mdi-face-recognition text-xs"></i> Face Verified
                 </span>
               </div>
@@ -355,9 +357,13 @@
               <span class="compliance-notice-title">Candidate Examination &amp; Technical Compliance Notice</span>
             </div>
             <div class="compliance-notice-items">
-              <div class="compliance-item">
+              <div v-if="details.enableProctoring" class="compliance-item">
                 <i class="mdi mdi-monitor-eye text-slate-600"></i>
                 <span><strong>Window &amp; Focus Integrity:</strong> Keep this examination window active. Exiting full view or switching tabs may register an integrity flag.</span>
+              </div>
+              <div v-else class="compliance-item">
+                <i class="mdi mdi-clipboard-text-outline text-slate-600"></i>
+                <span><strong>Examination Guidelines:</strong> Please complete all questions attentively within the allotted time. Answers auto-save as you progress.</span>
               </div>
               <div class="compliance-item">
                 <i class="mdi mdi-refresh-auto text-slate-600"></i>
@@ -382,7 +388,7 @@
           <div class="voucher-action-footer">
             <div class="system-status-indicator">
               <span class="status-pulse-emerald"></span>
-              <span>Proctoring Gateway Ready</span>
+              <span>{{ details.enableProctoring ? 'Proctoring Gateway Ready' : 'Examination Gateway Ready' }}</span>
             </div>
 
             <button
@@ -421,7 +427,7 @@
           </div>
 
           <div class="sitting-top-right">
-            <div class="sitting-proctor-live-badge mr-2">
+            <div v-if="details.enableProctoring" class="sitting-proctor-live-badge mr-2">
               <span class="status-pulse-emerald"></span>
               <span>AI Proctoring Active</span>
             </div>
@@ -814,7 +820,7 @@ function toggleFlag(qId: string) {
 }
 
 function triggerViolation(reason: string) {
-  if (!activeAttempt.value || result.value || submitting.value || isAutoSubmitting.value) return;
+  if (!details.value?.enableProctoring || !activeAttempt.value || result.value || submitting.value || isAutoSubmitting.value) return;
 
   proctoringWarning.value.count++;
   proctoringWarning.value.message = `${reason} (Integrity Violation Strike ${proctoringWarning.value.count} of ${proctoringWarning.value.max})`;
@@ -861,6 +867,7 @@ function dismissProctoringWarning() {
 }
 
 function handleFullscreenChange() {
+  if (!details.value?.enableProctoring) return;
   if (activeAttempt.value && !result.value && !submitting.value && !isAutoSubmitting.value) {
     if (!document.fullscreenElement) {
       triggerViolation('Exiting full-screen view is an integrity violation.');
@@ -869,6 +876,7 @@ function handleFullscreenChange() {
 }
 
 function handleVisibilityChange() {
+  if (!details.value?.enableProctoring) return;
   if (activeAttempt.value && !result.value && !submitting.value && !isAutoSubmitting.value) {
     if (document.hidden) {
       triggerViolation('Tab switch detected. You must keep the examination in full view.');
@@ -877,6 +885,7 @@ function handleVisibilityChange() {
 }
 
 function handleWindowBlur() {
+  if (!details.value?.enableProctoring) return;
   if (activeAttempt.value && !result.value && !submitting.value && !isAutoSubmitting.value) {
     triggerViolation('Window blur detected. Focus was lost from the examination window.');
   }
@@ -887,6 +896,7 @@ function preventDefaultAction(e: Event) {
 }
 
 function setupProctoringListeners() {
+  if (!details.value?.enableProctoring) return;
   document.addEventListener('fullscreenchange', handleFullscreenChange);
   document.addEventListener('visibilitychange', handleVisibilityChange);
   window.addEventListener('blur', handleWindowBlur);
@@ -915,9 +925,6 @@ onMounted(() => {
   if (sessionStorage.getItem('exam_face_' + assignmentId.value) === 'true') {
     isFaceVerified.value = true;
   }
-  if (isCandidateAuthenticated.value && isFaceVerified.value) {
-    verificationStep.value = 'authorized';
-  }
   window.addEventListener('beforeunload', handleWindowUnload);
 });
 
@@ -936,6 +943,9 @@ async function fetchDetails() {
   try {
     const { data } = await api.get(`/assignment-session/${assignmentId.value}/details`);
     details.value = data;
+    if (isCandidateAuthenticated.value && (!data.enableProctoring || isFaceVerified.value)) {
+      verificationStep.value = 'authorized';
+    }
   } catch (err: any) {
     error.value = err.response?.data?.message || err.data?.message || err.message || 'Invalid or expired examination assignment link.';
   } finally {
@@ -971,8 +981,13 @@ async function verifyLogin() {
     });
     isCandidateAuthenticated.value = true;
     sessionStorage.setItem('exam_auth_' + assignmentId.value, 'true');
-    verificationStep.value = 'face';
-    await startExamCamera();
+    if (details.value.enableProctoring) {
+      verificationStep.value = 'face';
+      await startExamCamera();
+    } else {
+      isFaceVerified.value = true;
+      verificationStep.value = 'authorized';
+    }
   } catch (err: any) {
     loginError.value = err.response?.data?.message || err.data?.message || err.message || 'Invalid credentials or verification OTP code.';
   } finally {
@@ -1116,20 +1131,20 @@ async function startSitting() {
 
     currentQuestionIndex.value = 0;
 
-    // Ensure camera is active for AI Proctoring during the sitting
-    if (!examStream.value) {
+    // Ensure camera is active for AI Proctoring during the sitting only if proctoring is enabled
+    if (details.value.enableProctoring && !examStream.value) {
       await startExamCamera();
     }
 
-    // Enter fullscreen mode
-    try {
-      if (document.documentElement.requestFullscreen) {
-        await document.documentElement.requestFullscreen();
-      }
-    } catch (_) {}
-
-    // Setup active proctoring integrity listeners
-    setupProctoringListeners();
+    // Only enter fullscreen mode and attach proctoring listeners if proctoring is enabled
+    if (details.value.enableProctoring) {
+      try {
+        if (document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        }
+      } catch (_) {}
+      setupProctoringListeners();
+    }
 
     // Start duration countdown timer (official exam duration)
     const examDurationMinutes = res.durationMinutes || details.value?.durationMinutes || 60;

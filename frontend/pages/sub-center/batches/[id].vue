@@ -99,6 +99,10 @@
                   <i :class="['mdi', batch.enable_certificate !== false && batch.enable_certificate !== 0 ? 'mdi-certificate text-emerald-600' : 'mdi-certificate-off text-slate-400']"></i>
                   <span>{{ batch.enable_certificate !== false && batch.enable_certificate !== 0 ? 'Certificates Enabled' : 'No Certificate' }}</span>
                 </span>
+                <span class="meta-chip">
+                  <i :class="['mdi', batch.enable_proctoring !== false && batch.enable_proctoring !== 0 ? 'mdi-shield-check text-emerald-600' : 'mdi-shield-off text-slate-400']"></i>
+                  <span>{{ batch.enable_proctoring !== false && batch.enable_proctoring !== 0 ? 'AI Proctoring Active' : 'Proctoring Inactive' }}</span>
+                </span>
                 <span v-if="batch.opens_at" class="meta-chip">
                   <i class="mdi mdi-calendar-start"></i>
                   <span>Opens: {{ formatDate(batch.opens_at) }}</span>
@@ -616,6 +620,25 @@
                     </div>
                   </label>
                 </div>
+
+                <!-- Proctoring Policy -->
+                <div class="mt-3">
+                  <label class="d-flex align-center gap-3 cursor-pointer py-2 px-3 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors">
+                    <input 
+                      type="checkbox" 
+                      v-model="editBatchForm.enable_proctoring" 
+                      style="accent-color: #E31B23; width: 18px; height: 18px; cursor: pointer;"
+                    />
+                    <div>
+                      <div class="text-sm font-semibold text-slate-900">
+                        Enable AI Proctoring Suite &amp; Live Verification
+                      </div>
+                      <div class="text-xs text-slate-500">
+                        When enabled, candidates must verify facial identity before the exam, and fullscreen/tab-switch violations will be monitored.
+                      </div>
+                    </div>
+                  </label>
+                </div>
               </div>
 
               <div class="modal-footer">
@@ -786,6 +809,25 @@
                     </div>
                   </label>
                 </div>
+
+                <!-- Proctoring Policy -->
+                <div class="mt-3">
+                  <label class="d-flex align-center gap-3 cursor-pointer py-2 px-3 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors">
+                    <input 
+                      type="checkbox" 
+                      v-model="editBatchForm.enable_proctoring" 
+                      style="accent-color: #E31B23; width: 18px; height: 18px; cursor: pointer;"
+                    />
+                    <div>
+                      <div class="text-sm font-semibold text-slate-900">
+                        Enable AI Proctoring Suite &amp; Live Verification
+                      </div>
+                      <div class="text-xs text-slate-500">
+                        When enabled, candidates must verify facial identity before the exam, and fullscreen/tab-switch violations will be monitored.
+                      </div>
+                    </div>
+                  </label>
+                </div>
               </div>
 
               <div class="modal-footer">
@@ -909,7 +951,8 @@ const savingEditBatch = ref(false);
 const editBatchForm = ref({
   opens_at: '',
   closes_at: '',
-  enable_certificate: true
+  enable_certificate: true,
+  enable_proctoring: true
 });
 
 // Add Students Modal
@@ -1098,7 +1141,8 @@ function openEditBatchModal() {
   editBatchForm.value = {
     opens_at: toDatetimeLocal(batch.value.opens_at),
     closes_at: toDatetimeLocal(batch.value.closes_at),
-    enable_certificate: batch.value.enable_certificate !== false && batch.value.enable_certificate !== 0
+    enable_certificate: batch.value.enable_certificate !== false && batch.value.enable_certificate !== 0,
+    enable_proctoring: batch.value.enable_proctoring !== false && batch.value.enable_proctoring !== 0
   };
   showEditBatchModal.value = true;
 }
@@ -1125,7 +1169,8 @@ async function submitEditBatch() {
     const payload = {
       opens_at: editBatchForm.value.opens_at || null,
       closes_at: editBatchForm.value.closes_at || null,
-      enable_certificate: editBatchForm.value.enable_certificate
+      enable_certificate: editBatchForm.value.enable_certificate,
+      enable_proctoring: editBatchForm.value.enable_proctoring
     };
     await api.put(`/sub-center/batches/${batchId.value}`, payload);
     showEditBatchModal.value = false;

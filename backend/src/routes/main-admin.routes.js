@@ -658,22 +658,30 @@ router.get('/exams', async (req, res) => {
 });
 
 router.post('/exams', async (req, res) => {
-  const { name, description, duration_minutes, max_attempts, enable_certificate } = req.body;
+  const { name, description, duration_minutes, max_attempts, enable_certificate, enable_proctoring } = req.body;
   if (!name) return res.status(400).json({ message: 'Exam name is required.' });
 
   try {
     const id = uuidv4();
     const enableCert = enable_certificate !== false && enable_certificate !== 0 ? 1 : 0;
+    const enableProc = enable_proctoring !== false && enable_proctoring !== 0 ? 1 : 0;
     try {
       await pool.query(
-        `INSERT INTO exams (id, name, description, duration_minutes, max_attempts, enable_certificate, status) VALUES (?, ?, ?, ?, ?, ?, 'active')`,
-        [id, name, description, duration_minutes || 60, max_attempts || 1, enableCert]
+        `INSERT INTO exams (id, name, description, duration_minutes, max_attempts, enable_certificate, enable_proctoring, proctoring_enabled, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
+        [id, name, description, duration_minutes || 60, max_attempts || 1, enableCert, enableProc, enableProc]
       );
     } catch (_) {
-      await pool.query(
-        `INSERT INTO exams (id, name, description, duration_minutes, max_attempts, status) VALUES (?, ?, ?, ?, ?, 'active')`,
-        [id, name, description, duration_minutes || 60, max_attempts || 1]
-      );
+      try {
+        await pool.query(
+          `INSERT INTO exams (id, name, description, duration_minutes, max_attempts, enable_certificate, status) VALUES (?, ?, ?, ?, ?, ?, 'active')`,
+          [id, name, description, duration_minutes || 60, max_attempts || 1, enableCert]
+        );
+      } catch (__) {
+        await pool.query(
+          `INSERT INTO exams (id, name, description, duration_minutes, max_attempts, status) VALUES (?, ?, ?, ?, ?, 'active')`,
+          [id, name, description, duration_minutes || 60, max_attempts || 1]
+        );
+      }
     }
     res.status(201).json({ id, message: 'Exam catalog item created.' });
   } catch (error) {
@@ -682,19 +690,27 @@ router.post('/exams', async (req, res) => {
 });
 
 router.put('/exams/:id', async (req, res) => {
-  const { name, description, duration_minutes, max_attempts, status, enable_certificate } = req.body;
+  const { name, description, duration_minutes, max_attempts, status, enable_certificate, enable_proctoring } = req.body;
   const enableCert = enable_certificate !== false && enable_certificate !== 0 ? 1 : 0;
+  const enableProc = enable_proctoring !== false && enable_proctoring !== 0 ? 1 : 0;
   try {
     try {
       await pool.query(
-        `UPDATE exams SET name = ?, description = ?, duration_minutes = ?, max_attempts = ?, status = ?, enable_certificate = ? WHERE id = ?`,
-        [name, description, duration_minutes, max_attempts, status, enableCert, req.params.id]
+        `UPDATE exams SET name = ?, description = ?, duration_minutes = ?, max_attempts = ?, status = ?, enable_certificate = ?, enable_proctoring = ?, proctoring_enabled = ? WHERE id = ?`,
+        [name, description, duration_minutes, max_attempts, status, enableCert, enableProc, enableProc, req.params.id]
       );
     } catch (_) {
-      await pool.query(
-        `UPDATE exams SET name = ?, description = ?, duration_minutes = ?, max_attempts = ?, status = ? WHERE id = ?`,
-        [name, description, duration_minutes, max_attempts, status, req.params.id]
-      );
+      try {
+        await pool.query(
+          `UPDATE exams SET name = ?, description = ?, duration_minutes = ?, max_attempts = ?, status = ?, enable_certificate = ? WHERE id = ?`,
+          [name, description, duration_minutes, max_attempts, status, enableCert, req.params.id]
+        );
+      } catch (__) {
+        await pool.query(
+          `UPDATE exams SET name = ?, description = ?, duration_minutes = ?, max_attempts = ?, status = ? WHERE id = ?`,
+          [name, description, duration_minutes, max_attempts, status, req.params.id]
+        );
+      }
     }
     res.json({ message: 'Exam updated successfully.' });
   } catch (error) {

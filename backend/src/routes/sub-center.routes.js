@@ -809,6 +809,7 @@ router.get('/batches', async (req, res) => {
     const [batches] = await pool.query(
       `SELECT b.*, e.name as exam_name, e.duration_minutes, e.max_attempts,
               COALESCE(b.enable_certificate, e.enable_certificate, 1) as enable_certificate,
+              COALESCE(b.enable_proctoring, e.enable_proctoring, e.proctoring_enabled, 1) as enable_proctoring,
               COUNT(ea.id) as student_count,
               SUM(CASE WHEN ea.status = 'passed' THEN 1 ELSE 0 END) as passed_count,
               SUM(CASE WHEN ea.status = 'failed' THEN 1 ELSE 0 END) as failed_count,
@@ -832,7 +833,8 @@ router.get('/batches/:id', async (req, res) => {
   try {
     const [batches] = await pool.query(
       `SELECT b.*, e.name as exam_name, e.duration_minutes,
-              COALESCE(b.enable_certificate, e.enable_certificate, 1) as enable_certificate
+              COALESCE(b.enable_certificate, e.enable_certificate, 1) as enable_certificate,
+              COALESCE(b.enable_proctoring, e.enable_proctoring, e.proctoring_enabled, 1) as enable_proctoring
        FROM batches b
        JOIN exams e ON b.exam_id = e.id
        WHERE b.id = ? AND b.org_id = ?`,
@@ -858,7 +860,7 @@ router.get('/batches/:id', async (req, res) => {
 
 router.post('/batches', async (req, res) => {
   const orgId = getOrgId(req);
-  const { exam_id, student_ids, opens_at, closes_at, enable_certificate } = req.body;
+  const { exam_id, student_ids, opens_at, closes_at, enable_certificate, enable_proctoring } = req.body;
 
   try {
     const result = await BatchService.createBatch({
@@ -868,7 +870,8 @@ router.post('/batches', async (req, res) => {
       studentIds: student_ids,
       opensAt: opens_at || null,
       closesAt: closes_at || null,
-      enableCertificate: enable_certificate !== undefined ? enable_certificate : null
+      enableCertificate: enable_certificate !== undefined ? enable_certificate : null,
+      enableProctoring: enable_proctoring !== undefined ? enable_proctoring : null
     });
 
     // Dispatches exam details & access links to enrolled candidates asynchronously
@@ -892,7 +895,7 @@ router.post('/batches', async (req, res) => {
 
 router.put('/batches/:id', async (req, res) => {
   const orgId = getOrgId(req);
-  const { add_student_ids, remove_student_ids, opens_at, closes_at, enable_certificate } = req.body;
+  const { add_student_ids, remove_student_ids, opens_at, closes_at, enable_certificate, enable_proctoring } = req.body;
 
   try {
     const result = await BatchService.editBatch({
@@ -902,7 +905,8 @@ router.put('/batches/:id', async (req, res) => {
       removeStudentIds: remove_student_ids || [],
       opensAt: opens_at !== undefined ? opens_at : undefined,
       closesAt: closes_at !== undefined ? closes_at : undefined,
-      enableCertificate: enable_certificate !== undefined ? enable_certificate : undefined
+      enableCertificate: enable_certificate !== undefined ? enable_certificate : undefined,
+      enableProctoring: enable_proctoring !== undefined ? enable_proctoring : undefined
     });
 
     if (result.newAssignments && result.newAssignments.length > 0) {

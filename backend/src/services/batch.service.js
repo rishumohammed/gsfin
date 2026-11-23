@@ -7,7 +7,7 @@ export class BatchService {
   /**
    * Create a new batch with student assignments and FIFO token deduction
    */
-  static async createBatch({ orgId, examId, createdBy, studentIds, opensAt = null, closesAt = null, enableCertificate = null }) {
+  static async createBatch({ orgId, examId, createdBy, studentIds, opensAt = null, closesAt = null, enableCertificate = null, enableProctoring = null }) {
     if (!studentIds || studentIds.length === 0) {
       throw new Error('At least one student is required to create a batch.');
     }
@@ -16,9 +16,12 @@ export class BatchService {
     try {
       await connection.beginTransaction();
 
-      // 1. Fetch Exam & snapshot max_attempts & certificate policy
+      // 1. Fetch Exam & snapshot max_attempts, certificate policy & proctoring policy
       const [exams] = await connection.query(
-        `SELECT id, name, max_attempts, status, COALESCE(enable_certificate, 1) as enable_certificate FROM exams WHERE id = ?`,
+        `SELECT id, name, max_attempts, status, 
+                COALESCE(enable_certificate, 1) as enable_certificate,
+                COALESCE(enable_proctoring, proctoring_enabled, 1) as enable_proctoring
+         FROM exams WHERE id = ?`,
         [examId]
       );
       if (exams.length === 0 || exams[0].status !== 'active') {
@@ -29,6 +32,10 @@ export class BatchService {
       const certEnabledVal = enableCertificate !== null && enableCertificate !== undefined
         ? (enableCertificate ? 1 : 0)
         : (exam.enable_certificate !== false && exam.enable_certificate !== 0 ? 1 : 0);
+
+      const proctorEnabledVal = enableProctoring !== null && enableProctoring !== undefined
+        ? (enableProctoring ? 1 : 0)
+        : (exam.enable_proctoring !== false && exam.enable_proctoring !== 0 ? 1 : 0);
 
       // Validate partner center authorization for this certification program
       const isAuthorized = await ExamCatalogService.isOrgAuthorizedForExam(connection, orgId, exam.name);
@@ -58,17 +65,24 @@ export class BatchService {
       // 4. Create Batch record
       try {
         await connection.query(
-          `INSERT INTO batches (id, org_id, exam_id, created_by, status, opens_at, closes_at, enable_certificate)
-           VALUES (?, ?, ?, ?, 'open', ?, ?, ?)`,
-          [batchId, orgId, examId, createdBy, opensAt, closesAt, certEnabledVal]
+          `INSERT INTO batches (id, org_id, exam_id, created_by, status, opens_at, closes_at, enable_certificate, enable_proctoring)
+           VALUES (?, ?, ?, ?, 'open', ?, ?, ?, ?)`,
+          [batchId, orgId, examId, createdBy, opensAt, closesAt, certEnabledVal, proctorEnabledVal]
         );
       } catch (insertErr) {
-        // Fallback if enable_certificate column is not yet present
-        await connection.query(
-          `INSERT INTO batches (id, org_id, exam_id, created_by, status, opens_at, closes_at)
-           VALUES (?, ?, ?, ?, 'open', ?, ?)`,
-          [batchId, orgId, examId, createdBy, opensAt, closesAt]
-        );
+        try {
+          await connection.query(
+            `INSERT INTO batches (id, org_id, exam_id, created_by, status, opens_at, closes_at, enable_certificate)
+             VALUES (?, ?, ?, ?, 'open', ?, ?, ?)`,
+            [batchId, orgId, examId, createdBy, opensAt, closesAt, certEnabledVal]
+          );
+        } catch (_) {
+          await connection.query(
+            `INSERT INTO batches (id, org_id, exam_id, created_by, status, opens_at, closes_at)
+             VALUES (?, ?, ?, ?, 'open', ?, ?)`,
+            [batchId, orgId, examId, createdBy, opensAt, closesAt]
+          );
+        }
       }
 
       // 5. Create Exam Assignments mapping wallet_ids from deductions
@@ -110,7 +124,7 @@ export class BatchService {
   /**
    * Edit open batch (add or remove students before any exam has started)
    */
-  static async editBatch({ orgId, batchId, addStudentIds = [], removeStudentIds = [], opensAt = undefined, closesAt = undefined, enableCertificate = undefined }) {
+  static async editBatch({ orgId, batchId, addStudentIds = [], removeStudentIds = [], opensAt = undefined, closesAt = undefined, enableCertificate = undefined, enableProctoring = undefined }) {
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
@@ -148,20 +162,28 @@ export class BatchService {
       // Update schedule window or certificate policy if provided
       let updatedOpensAt = batch.opens_at;
       let updatedClosesAt = batch.closes_at;
-      if (opensAt !== undefined || closesAt !== undefined || enableCertificate !== undefined) {
+      if (opensAt !== undefined || closesAt !== undefined || enableCertificate !== undefined || enableProctoring !== undefined) {
         updatedOpensAt = opensAt !== undefined ? opensAt : batch.opens_at;
         updatedClosesAt = closesAt !== undefined ? closesAt : batch.closes_at;
         const certVal = enableCertificate !== undefined ? (enableCertificate ? 1 : 0) : batch.enable_certificate;
+        const proctorVal = enableProctoring !== undefined ? (enableProctoring ? 1 : 0) : batch.enable_proctoring;
         try {
           await connection.query(
-            `UPDATE batches SET opens_at = ?, closes_at = ?, enable_certificate = ? WHERE id = ? AND org_id = ?`,
-            [updatedOpensAt, updatedClosesAt, certVal, batchId, orgId]
+            `UPDATE batches SET opens_at = ?, closes_at = ?, enable_certificate = ?, enable_proctoring = ? WHERE id = ? AND org_id = ?`,
+            [updatedOpensAt, updatedClosesAt, certVal, proctorVal, batchId, orgId]
           );
         } catch (_) {
-          await connection.query(
-            `UPDATE batches SET opens_at = ?, closes_at = ? WHERE id = ? AND org_id = ?`,
-            [updatedOpensAt, updatedClosesAt, batchId, orgId]
-          );
+          try {
+            await connection.query(
+              `UPDATE batches SET opens_at = ?, closes_at = ?, enable_certificate = ? WHERE id = ? AND org_id = ?`,
+              [updatedOpensAt, updatedClosesAt, certVal, batchId, orgId]
+            );
+          } catch (__) {
+            await connection.query(
+              `UPDATE batches SET opens_at = ?, closes_at = ? WHERE id = ? AND org_id = ?`,
+              [updatedOpensAt, updatedClosesAt, batchId, orgId]
+            );
+          }
         }
       }
 

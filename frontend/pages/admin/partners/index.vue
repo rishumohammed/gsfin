@@ -873,6 +873,13 @@
                 </label>
                 <p class="text-xs text-slate-500 m-0">When enabled, students who pass will receive an automated GSFIN certificate and email notification.</p>
               </div>
+              <div class="form-group mb-3">
+                <label class="d-flex align-center gap-2 cursor-pointer py-1">
+                  <input type="checkbox" v-model="examForm.enable_proctoring" style="accent-color: #E31B23; width: 16px; height: 16px;" />
+                  <span class="text-sm font-medium text-slate-800">Enable AI Proctoring &amp; Live Verification</span>
+                </label>
+                <p class="text-xs text-slate-500 m-0">When enabled, candidates must verify identity via webcam, and fullscreen/tab-switch violations will be monitored.</p>
+              </div>
               <div v-if="editingExam" class="form-group mb-3">
                 <label class="form-label">Status</label>
                 <select v-model="examForm.status" class="modal-select">
@@ -1773,7 +1780,7 @@ const loadingExams = ref(false);
 const showAddExamModal = ref(false);
 const savingExam = ref(false);
 const editingExam = ref<any>(null);
-const examForm = ref({ name: '', description: '', duration_minutes: 60, max_attempts: 1, status: 'active', enable_certificate: true });
+const examForm = ref({ name: '', description: '', duration_minutes: 60, max_attempts: 1, status: 'active', enable_certificate: true, enable_proctoring: true });
 
 // Packages state
 const packages = ref<any[]>([]);
@@ -2355,7 +2362,7 @@ async function fetchExams() {
 
 function openAddExamModal() {
   editingExam.value = null;
-  examForm.value = { name: '', description: '', duration_minutes: 60, max_attempts: 1, status: 'active', enable_certificate: true };
+  examForm.value = { name: '', description: '', duration_minutes: 60, max_attempts: 1, status: 'active', enable_certificate: true, enable_proctoring: true };
   showAddExamModal.value = true;
 }
 
@@ -2367,7 +2374,8 @@ function editExam(exam: any) {
     duration_minutes: exam.duration_minutes || 60,
     max_attempts: exam.max_attempts || 1,
     status: exam.status || 'active',
-    enable_certificate: exam.enable_certificate !== false && exam.enable_certificate !== 0
+    enable_certificate: exam.enable_certificate !== false && exam.enable_certificate !== 0,
+    enable_proctoring: exam.enable_proctoring !== false && exam.enable_proctoring !== 0 && exam.proctoring_enabled !== false && exam.proctoring_enabled !== 0
   };
   showAddExamModal.value = true;
 }
@@ -2383,7 +2391,7 @@ async function saveExam() {
     }
     showAddExamModal.value = false;
     editingExam.value = null;
-    examForm.value = { name: '', description: '', duration_minutes: 60, max_attempts: 1, status: 'active', enable_certificate: true };
+    examForm.value = { name: '', description: '', duration_minutes: 60, max_attempts: 1, status: 'active', enable_certificate: true, enable_proctoring: true };
     await fetchExams();
   } catch (err: any) {
     alert(err.response?.data?.message || err.message || 'Failed to save exam');

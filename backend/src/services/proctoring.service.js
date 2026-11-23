@@ -151,7 +151,7 @@ class ProctoringService {
     const [standardAttempts] = await pool.query(
       `SELECT ea.*, 
               COALESCE(e.name, pe.name, 'Certification Standard Exam') as exam_title,
-              1 as enable_proctoring, 3 as max_proctoring_warnings,
+              COALESCE(b.enable_proctoring, e.enable_proctoring, e.proctoring_enabled, pe.enable_proctoring, 0) as enable_proctoring, 3 as max_proctoring_warnings,
               s.name as candidate_name, 
               s.email as candidate_email,
               s.phone as candidate_phone,

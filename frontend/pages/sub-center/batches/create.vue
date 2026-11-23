@@ -222,6 +222,25 @@
                 </div>
               </label>
             </div>
+
+            <!-- Proctoring Policy -->
+            <div class="mt-3">
+              <label class="d-flex align-center gap-3 cursor-pointer py-2 px-3 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors">
+                <input 
+                  type="checkbox" 
+                  v-model="batchForm.enable_proctoring" 
+                  style="accent-color: #E31B23; width: 18px; height: 18px; cursor: pointer;"
+                />
+                <div>
+                  <div class="text-sm font-semibold text-slate-900">
+                    Enable AI Proctoring Suite &amp; Identity Verification
+                  </div>
+                  <div class="text-xs text-slate-500">
+                    When enabled, candidates must verify facial identity before the exam, and fullscreen/tab-switch violations will be monitored.
+                  </div>
+                </div>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -546,13 +565,15 @@ const batchForm = ref({
   exam_id: '',
   opens_at: '',
   closes_at: '',
-  enable_certificate: true
+  enable_certificate: true,
+  enable_proctoring: true
 });
 
 watch(() => batchForm.value.exam_id, (newId) => {
   const chosen = exams.value.find(e => e.id === newId);
   if (chosen) {
     batchForm.value.enable_certificate = chosen.enable_certificate !== false && chosen.enable_certificate !== 0;
+    batchForm.value.enable_proctoring = chosen.enable_proctoring !== false && chosen.enable_proctoring !== 0 && chosen.proctoring_enabled !== false && chosen.proctoring_enabled !== 0;
   }
 });
 
@@ -744,7 +765,8 @@ async function submitCreateBatch() {
       student_ids: selectedStudentIds.value,
       opens_at: batchForm.value.opens_at || null,
       closes_at: batchForm.value.closes_at || null,
-      enable_certificate: batchForm.value.enable_certificate
+      enable_certificate: batchForm.value.enable_certificate,
+      enable_proctoring: batchForm.value.enable_proctoring
     };
 
     const { data } = await api.post('/sub-center/batches', payload);

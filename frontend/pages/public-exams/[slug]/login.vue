@@ -328,15 +328,16 @@ async function handleCredentialLogin() {
       return;
     }
 
-    // Check if candidate has registered facial descriptor or reference photo
+    // Check if exam requires proctoring AND candidate has registered facial descriptor or reference photo
+    const isProctoringEnabled = exam.value?.enable_proctoring !== false && exam.value?.enable_proctoring !== 0 && !!exam.value?.enable_proctoring;
     const hasFaceData = !!(data.candidate?.facial_descriptor || data.candidate?.facial_descriptors || data.candidate?.reference_photo_url);
-    if (hasFaceData) {
+    if (isProctoringEnabled && hasFaceData) {
       loginStep.value = 'face_verification';
       setTimeout(() => {
         startFaceVerificationStep();
       }, 300);
     } else {
-      // No face descriptor registered, proceed directly to attempt
+      // If proctoring is disabled or candidate has no registered face data, proceed directly to attempt
       await finalizeLoginAndAttempt(data);
     }
   } catch (err: any) {

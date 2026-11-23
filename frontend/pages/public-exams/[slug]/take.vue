@@ -377,10 +377,10 @@
     </v-overlay>
 
     <!-- Draggable Webcam Feed with Realtime AI Proctoring Pipeline -->
-    <WebcamThumbnail :stream="recorder.stream.value" @video-ready="onVideoReady" />
+    <WebcamThumbnail v-if="examConfig?.enable_proctoring" :stream="recorder.stream.value" @video-ready="onVideoReady" />
 
     <!-- Proctoring Live Debug Telemetry HUD -->
-    <ProctoringDebugHUD />
+    <ProctoringDebugHUD v-if="examConfig?.enable_proctoring" />
   </v-app>
 </template>
 

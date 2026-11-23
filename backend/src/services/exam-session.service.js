@@ -110,6 +110,7 @@ export class ExamSessionService {
         `SELECT att.*, ea.id as assignment_id, ea.attempts_used, ea.max_attempts, ea.student_id, ea.exam_id,
                 ea.batch_id, ea.wallet_id, b.org_id,
                 COALESCE(b.enable_certificate, e.enable_certificate, pe.enable_certificate, 1) as enable_certificate,
+                COALESCE(b.enable_proctoring, e.enable_proctoring, e.proctoring_enabled, 0) as enable_proctoring,
                 s.name as student_name, s.email as student_email,
                 COALESCE(e.name, pe.name, 'Certification Exam') as exam_name
          FROM exam_attempts att
@@ -130,17 +131,20 @@ export class ExamSessionService {
       const result = passed ? 'pass' : 'fail';
 
       // Determine proctoring status
-      let proctoringStatus = 'approved';
-      try {
-        const [viol] = await connection.query(
-          `SELECT COUNT(*) as count FROM proctoring_events 
-           WHERE attempt_id = ? AND type IN ('proxy_mismatch', 'multiple_faces', 'face_absent', 'devtools_open', 'mobile_phone_detected', 'phone_detected', 'suspicious_object')`,
-          [attemptId]
-        );
-        if (viol[0] && viol[0].count > 0) {
-          proctoringStatus = 'pending_review';
-        }
-      } catch (_) {}
+      const isProctoringEnabled = att.enable_proctoring !== false && att.enable_proctoring !== 0 && att.enable_proctoring !== '0' && att.enable_proctoring !== null;
+      let proctoringStatus = isProctoringEnabled ? 'approved' : 'not_applicable';
+      if (isProctoringEnabled) {
+        try {
+          const [viol] = await connection.query(
+            `SELECT COUNT(*) as count FROM proctoring_events 
+             WHERE attempt_id = ? AND type IN ('proxy_mismatch', 'multiple_faces', 'face_absent', 'devtools_open', 'mobile_phone_detected', 'phone_detected', 'suspicious_object')`,
+            [attemptId]
+          );
+          if (viol[0] && viol[0].count > 0) {
+            proctoringStatus = 'pending_review';
+          }
+        } catch (_) {}
+      }
 
       // 1. Update current attempt row
       try {
