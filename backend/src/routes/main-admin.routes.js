@@ -1,11 +1,18 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 import { pool } from '../db/connection.js';
 import { authenticateJWT, authorizeRoles } from '../middleware/auth.js';
 import emailService from '../services/email.service.js';
 import { WalletService } from '../services/wallet.service.js';
+import { CertificateService } from '../services/certificate.service.js';
 import { getFrontendUrl } from '../utils/url-helper.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
@@ -1465,6 +1472,92 @@ router.post('/certificates/:certNumber/reissue', async (req, res) => {
     res.json({ message: 'Certificate re-issued successfully.', newCertNumber });
   } catch (error) {
     console.error('Re-issue certificate error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Download certificate PDF by certificate number or ID
+router.get('/certificates/:certNumber/download', async (req, res) => {
+  try {
+    const { certNumber } = req.params;
+
+    // 1. Look in certificates table
+    const [certs] = await pool.query(
+      `SELECT c.*, s.name as student_name, COALESCE(e.name, 'Certification Exam') as exam_name
+       FROM certificates c
+       JOIN exam_assignments ea ON c.assignment_id = ea.id
+       JOIN students s ON ea.student_id = s.id
+       LEFT JOIN batches b ON ea.batch_id = b.id
+       LEFT JOIN exams e ON b.exam_id = e.id
+       WHERE c.cert_number = ? OR c.id = ?`,
+      [certNumber, certNumber]
+    );
+
+    if (certs.length > 0) {
+      const cert = certs[0];
+      if (cert.pdf_url) {
+        const fullPath = path.resolve(__dirname, '../../', cert.pdf_url.replace(/^\//, ''));
+        if (fs.existsSync(fullPath)) {
+          return res.download(fullPath, `GSFIN-Certificate-${cert.cert_number || cert.id}.pdf`);
+        }
+      }
+      // Regenerate if file missing on disk
+      try {
+        const { pdfUrl } = await CertificateService.generateParticipationCertificate(
+          cert.student_name,
+          cert.exam_name,
+          cert.issued_at || new Date(),
+          null,
+          cert.cert_number
+        );
+        await pool.query('UPDATE certificates SET pdf_url = ? WHERE id = ?', [pdfUrl, cert.id]);
+        const newPath = path.resolve(__dirname, '../../', pdfUrl.replace(/^\//, ''));
+        if (fs.existsSync(newPath)) {
+          return res.download(newPath, `GSFIN-Certificate-${cert.cert_number || cert.id}.pdf`);
+        }
+      } catch (genErr) {
+        console.error('Error auto-generating PDF:', genErr);
+      }
+    }
+
+    // 2. Look in public_exam_issued_certificates
+    const [pubCerts] = await pool.query(
+      `SELECT c.*, COALESCE(e.name, 'Certification Exam') as exam_name
+       FROM public_exam_issued_certificates c
+       LEFT JOIN public_exams e ON c.exam_id = e.id
+       WHERE c.certificate_number = ? OR c.id = ? OR CONCAT('CERT-PUB-', UPPER(SUBSTRING(c.id, 1, 8))) = ?`,
+      [certNumber, certNumber, certNumber]
+    );
+
+    if (pubCerts.length > 0) {
+      const pubCert = pubCerts[0];
+      if (pubCert.pdf_url) {
+        const fullPath = path.resolve(__dirname, '../../', pubCert.pdf_url.replace(/^\//, ''));
+        if (fs.existsSync(fullPath)) {
+          return res.download(fullPath, `GSFIN-Certificate-${pubCert.certificate_number || pubCert.id}.pdf`);
+        }
+      }
+      try {
+        const { pdfUrl } = await CertificateService.generateParticipationCertificate(
+          pubCert.candidate_name,
+          pubCert.exam_name,
+          pubCert.created_at || new Date(),
+          null,
+          pubCert.certificate_number
+        );
+        await pool.query('UPDATE public_exam_issued_certificates SET pdf_url = ? WHERE id = ?', [pdfUrl, pubCert.id]);
+        const newPath = path.resolve(__dirname, '../../', pdfUrl.replace(/^\//, ''));
+        if (fs.existsSync(newPath)) {
+          return res.download(newPath, `GSFIN-Certificate-${pubCert.certificate_number || pubCert.id}.pdf`);
+        }
+      } catch (genErr) {
+        console.error('Error auto-generating pub PDF:', genErr);
+      }
+    }
+
+    return res.status(404).json({ message: 'Certificate file not found.' });
+  } catch (error) {
+    console.error('Download certificate error:', error);
     res.status(500).json({ message: error.message });
   }
 });

@@ -63,7 +63,7 @@ export const ensureCertificatesColumns = async () => {
         SET cert_number = CONCAT('GSFIN-', UPPER(SUBSTRING(id, 1, 8))) 
         WHERE cert_number IS NULL OR cert_number = ''
       `);
-    } catch (_) {}
+    } catch (_) { }
   } catch (err) {
     console.error('[Auto-Heal] Error in ensureCertificatesColumns:', err);
   }
@@ -179,7 +179,7 @@ const storeStudentOtp = async (orgId, email, otp) => {
     if (redis && redis.status === 'ready') {
       await redis.setex(key, 600, otp);
     }
-  } catch (e) {}
+  } catch (e) { }
 };
 
 const verifyStudentOtp = async (orgId, email, userOtp) => {
@@ -190,7 +190,7 @@ const verifyStudentOtp = async (orgId, email, userOtp) => {
     if (redis && redis.status === 'ready') {
       storedOtp = await redis.get(key);
     }
-  } catch (e) {}
+  } catch (e) { }
   if (!storedOtp) {
     const mem = studentRegOtpMap.get(key);
     if (mem && mem.expiresAt > Date.now()) {
@@ -208,7 +208,7 @@ const clearStudentOtp = async (orgId, email) => {
     if (redis && redis.status === 'ready') {
       await redis.del(key);
     }
-  } catch (e) {}
+  } catch (e) { }
 };
 
 router.post('/students/send-email-otp', async (req, res) => {
@@ -238,7 +238,7 @@ router.post('/students/send-email-otp', async (req, res) => {
     try {
       const [orgs] = await pool.query('SELECT name FROM organizations WHERE id = ?', [orgId]);
       if (orgs.length > 0 && orgs[0].name) centerName = orgs[0].name;
-    } catch (e) {}
+    } catch (e) { }
 
     // Dispatch OTP email
     const emailRes = await emailService.sendStudentRegistrationOtp({
@@ -328,20 +328,20 @@ router.post('/students', async (req, res) => {
         `INSERT INTO students (id, org_id, name, email, phone, password, initial_password, face_photo, face_descriptor, otp_code, otp_expires_at, education_level, institution_name, gender, dob) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          id, 
-          orgId, 
-          name, 
-          email, 
-          phone || null, 
-          hashedPassword, 
+          id,
+          orgId,
+          name,
+          email,
+          phone || null,
+          hashedPassword,
           rawPassword,
           face_photo || null,
           insertPayload.face_descriptor,
           otpCode,
           otpExpiresAt,
-          education_level || null, 
-          institution_name || null, 
-          gender || null, 
+          education_level || null,
+          institution_name || null,
+          gender || null,
           dob || null
         ]
       );
@@ -1017,7 +1017,16 @@ router.post('/assignments/:id/retry-link', async (req, res) => {
 // ─── 6. Center Certificates & Student Verifications ──────────────────────────
 
 router.get('/certificates', async (req, res) => {
-  const orgId = getOrgId(req);
+  let orgId = getOrgId(req);
+  if (!orgId && req.user?.role === 'super_admin') {
+    try {
+      const [firstOrg] = await pool.query('SELECT id FROM organizations ORDER BY created_at ASC LIMIT 1');
+      if (firstOrg.length > 0) {
+        orgId = firstOrg[0].id;
+      }
+    } catch (_) {}
+  }
+
   try {
     await ensureCertificatesColumns();
 
@@ -1033,8 +1042,8 @@ router.get('/certificates', async (req, res) => {
          LEFT JOIN exams e ON ea.exam_id = e.id
          LEFT JOIN public_exams pe ON ea.exam_id = pe.id
          LEFT JOIN certificates c ON ea.id = c.assignment_id
-         WHERE b.org_id = ? AND ea.status = 'passed' AND c.id IS NULL`,
-        [orgId]
+         WHERE (? IS NULL OR b.org_id = ? OR s.org_id = ?) AND ea.status = 'passed' AND c.id IS NULL`,
+        [orgId, orgId, orgId]
       );
 
       for (const missing of passedWithoutCert) {
@@ -1074,9 +1083,9 @@ router.get('/certificates', async (req, res) => {
        JOIN batches b ON ea.batch_id = b.id
        LEFT JOIN exams e ON b.exam_id = e.id
        LEFT JOIN public_exams pe ON b.exam_id = pe.id
-       WHERE b.org_id = ?
+       WHERE (? IS NULL OR b.org_id = ? OR s.org_id = ?)
        ORDER BY c.issued_at DESC`,
-      [orgId]
+      [orgId, orgId, orgId]
     );
     res.json(certificates);
   } catch (error) {

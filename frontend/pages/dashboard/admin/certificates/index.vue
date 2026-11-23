@@ -79,13 +79,13 @@
                 :class="['view-mode-btn', viewMode === 'partners' ? 'active' : '']"
                 @click="viewMode = 'partners'"
               >
-                <i class="mdi mdi-domain"></i> By Partner
+                <i class="mdi mdi-domain"></i> By Partner Centers
               </button>
               <button
                 :class="['view-mode-btn', viewMode === 'table' ? 'active' : '']"
                 @click="viewMode = 'table'"
               >
-                <i class="mdi mdi-table"></i> All Certificates
+                <i class="mdi mdi-table"></i> All Certificates ({{ certs.length }})
               </button>
             </div>
 
@@ -174,7 +174,7 @@
                 </div>
               </div>
 
-              <!-- Partner Stats Summary Pill & View Batches Action -->
+              <!-- Partner Stats Summary Pill & Actions -->
               <div class="partner-header-right">
                 <div class="partner-stat-pill">
                   <div class="stat-cell">
@@ -193,14 +193,163 @@
                   </div>
                 </div>
 
+                <!-- Primary: View Certificates Drawer Toggle -->
+                <button
+                  type="button"
+                  class="btn-view-certs-primary"
+                  @click="toggleExpandPartner(partner.id)"
+                  :title="expandedPartners.has(partner.id) ? 'Collapse Certificates Roster' : 'View Certificates for ' + partner.name"
+                >
+                  <i class="mdi mdi-file-certificate-outline"></i>
+                  <span>View Certificates</span>
+                  <span class="btn-cert-badge">{{ partner.total_certificates }}</span>
+                  <i :class="['mdi', expandedPartners.has(partner.id) ? 'mdi-chevron-up' : 'mdi-chevron-down']"></i>
+                </button>
+
+                <!-- Filter in Master Table Button -->
+                <button
+                  type="button"
+                  class="btn-view-in-table"
+                  @click="filterByPartnerInTable(partner.name)"
+                  title="Filter and inspect in full master certificate table"
+                >
+                  <i class="mdi mdi-table"></i>
+                  <span>In Table</span>
+                </button>
+
+                <!-- Secondary Link: View Partner Batches -->
                 <NuxtLink
                   :to="'/admin/partners/' + partner.id + '?tab=batches'"
-                  class="btn-view-batches"
-                  title="View Exam Batches & Candidates in Partner Profile"
+                  class="btn-view-batches-secondary"
+                  title="View Exam Batches in Partner Center Profile"
                 >
-                  <span>View Batches</span>
-                  <i class="mdi mdi-arrow-right"></i>
+                  <span>Batches</span>
+                  <i class="mdi mdi-arrow-top-right"></i>
                 </NuxtLink>
+              </div>
+            </div>
+
+            <!-- ═══ EXPANDABLE PARTNER CERTIFICATES & EXAMS DRAWER ═══ -->
+            <div v-if="expandedPartners.has(partner.id)" class="partner-card-body fade-in">
+              <div class="drawer-header-strip">
+                <div class="drawer-strip-left">
+                  <i class="mdi mdi-certificate text-emerald text-lg"></i>
+                  <span class="font-semibold text-slate-900 text-sm">Official Certificates &amp; Examination Records</span>
+                  <span class="badge-mini-count">{{ partner.total_certificates }} Issued</span>
+                </div>
+                <div class="drawer-strip-right">
+                  <button
+                    type="button"
+                    class="btn-link-action"
+                    @click="filterByPartnerInTable(partner.name)"
+                  >
+                    Open {{ partner.name }} in Master Table &rarr;
+                  </button>
+                </div>
+              </div>
+
+              <!-- When no certificates in this partner -->
+              <div v-if="getPartnerCertificates(partner).length === 0" class="drawer-empty-state">
+                <i class="mdi mdi-file-certificate-outline text-3xl text-slate-300 block mb-1"></i>
+                <div class="text-sm font-semibold text-slate-700">No Certificates Issued Yet</div>
+                <div class="text-xs text-slate-500">Students enrolled in batches at this center will automatically show here once they complete and pass their examinations.</div>
+              </div>
+
+              <!-- Certificate records table -->
+              <div v-else class="drawer-table-wrap">
+                <table class="partner-certs-table">
+                  <thead>
+                    <tr>
+                      <th>Certificate ID</th>
+                      <th>Candidate / Student</th>
+                      <th>Examination / Course</th>
+                      <th>Issue Date</th>
+                      <th>Status</th>
+                      <th class="text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="cert in getPartnerCertificates(partner)" :key="cert.certificate_id || cert.cert_number">
+                      <td>
+                        <div class="cert-id-cell">
+                          <i class="mdi mdi-file-certificate text-red"></i>
+                          <span class="cert-mono-id">{{ cert.cert_number }}</span>
+                          <button
+                            class="btn-copy-id"
+                            :title="copySuccessId === cert.cert_number ? 'Copied!' : 'Copy Certificate ID'"
+                            @click="copyToClipboard(cert.cert_number)"
+                          >
+                            <i :class="['mdi', copySuccessId === cert.cert_number ? 'mdi-check text-emerald' : 'mdi-content-copy']"></i>
+                          </button>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="font-semibold text-slate-900 text-xs">{{ cert.student_name || 'Candidate Holder' }}</div>
+                        <div class="text-[11px] text-slate-400 font-medium">{{ cert.student_email || cert.email }}</div>
+                      </td>
+                      <td>
+                        <div class="font-semibold text-slate-800 text-xs">{{ cert.exam_name || cert.course_title || 'Qualification Exam' }}</div>
+                        <div v-if="cert.batch_id" class="text-[10px] text-slate-400 font-mono">
+                          Batch: {{ String(cert.batch_id).slice(0, 8) }}
+                        </div>
+                      </td>
+                      <td class="text-xs text-slate-600 whitespace-nowrap">
+                        {{ formatDate(cert.issued_at) }}
+                      </td>
+                      <td>
+                        <span :class="['chip-pill', cert.cert_status === 'revoked' || cert.status === 'revoked' ? 'chip-red' : 'chip-green']">
+                          {{ cert.cert_status || cert.status || 'active' }}
+                        </span>
+                      </td>
+                      <td class="text-right">
+                        <div class="action-btn-group justify-end">
+                          <button
+                            class="btn-icon-action btn-icon-view"
+                            title="Download PDF Certificate"
+                            @click="downloadCert(cert.cert_number)"
+                          >
+                            <i class="mdi mdi-download"></i>
+                          </button>
+                          <button
+                            v-if="(cert.cert_status === 'active' || cert.status === 'active') && canManage"
+                            class="btn-icon-action btn-icon-delete"
+                            title="Revoke Certificate"
+                            @click="confirmRevoke(cert)"
+                          >
+                            <i class="mdi mdi-close-octagon"></i>
+                          </button>
+                          <button
+                            v-if="(cert.cert_status === 'revoked' || cert.status === 'revoked') && canManage"
+                            class="btn-icon-action btn-icon-warn"
+                            title="Re-issue Certificate"
+                            @click="confirmReissue(cert)"
+                          >
+                            <i class="mdi mdi-refresh"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Conducted Batches Summary if any -->
+              <div v-if="partner.exams && partner.exams.length > 0" class="drawer-batches-strip">
+                <span class="font-semibold text-xs text-slate-700">Conducted Exam Batches:</span>
+                <div class="batch-chips-list">
+                  <NuxtLink
+                    v-for="exam in partner.exams"
+                    :key="exam.batch_id"
+                    :to="'/dashboard/admin/certificates/batch/' + exam.batch_id"
+                    class="batch-nav-chip"
+                    :title="'View full roster & certificates for ' + exam.exam_name"
+                  >
+                    <i class="mdi mdi-folder-outline"></i>
+                    <span>{{ exam.exam_name }}</span>
+                    <span class="chip-count">({{ exam.total_certificates || 0 }} certs)</span>
+                    <i class="mdi mdi-arrow-right-thin"></i>
+                  </NuxtLink>
+                </div>
               </div>
             </div>
           </div>
@@ -341,6 +490,69 @@ const search = ref('');
 const statusFilter = ref('All');
 const viewMode = ref<'partners' | 'table'>('partners');
 const copySuccessId = ref<string | null>(null);
+const expandedPartners = ref<Set<string>>(new Set());
+
+const toggleExpandPartner = (partnerId: string) => {
+  if (expandedPartners.value.has(partnerId)) {
+    expandedPartners.value.delete(partnerId);
+  } else {
+    expandedPartners.value.add(partnerId);
+  }
+};
+
+const filterByPartnerInTable = (partnerName: string) => {
+  search.value = partnerName;
+  viewMode.value = 'table';
+};
+
+const getPartnerCertificates = (partner: any) => {
+  const list: any[] = [];
+  const seen = new Set<string>();
+
+  // 1. From partner.exams.students
+  if (Array.isArray(partner.exams)) {
+    for (const exam of partner.exams) {
+      if (Array.isArray(exam.students)) {
+        for (const s of exam.students) {
+          if (s.cert_number && !seen.has(s.cert_number)) {
+            seen.add(s.cert_number);
+            list.push({
+              ...s,
+              batch_id: exam.batch_id,
+              exam_name: exam.exam_name || s.exam_name
+            });
+          }
+        }
+      }
+    }
+  }
+
+  // 2. Also check flat certs list
+  for (const c of certs.value) {
+    const pName = (c.partner_name || '').toLowerCase();
+    const targetName = (partner.name || '').toLowerCase();
+    if (
+      (c.partner_id === partner.id || (pName && targetName && (pName.includes(targetName) || targetName.includes(pName)))) &&
+      c.cert_number &&
+      !seen.has(c.cert_number)
+    ) {
+      seen.add(c.cert_number);
+      list.push({
+        certificate_id: c.id,
+        cert_number: c.cert_number,
+        student_name: c.student_name,
+        student_email: c.email,
+        exam_name: c.course_title,
+        issued_at: c.issued_at,
+        cert_status: c.status || 'active',
+        batch_id: c.batch_id,
+        pdf_url: c.pdf_url
+      });
+    }
+  }
+
+  return list;
+};
 
 const canManage = computed(() => {
   const role = authStore.userRole;
@@ -595,19 +807,21 @@ const loadCerts = async () => {
 };
 
 const downloadCert = async (certNumber: string) => {
+  if (!certNumber) return;
   try {
-    const res = await api.get(`/certs/${certNumber}/download`, { responseType: 'blob' });
+    const res = await api.get(`/main-admin/certificates/${encodeURIComponent(certNumber)}/download`, { responseType: 'blob' });
     const blob = new Blob([res.data || res], { type: 'application/pdf' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `${certNumber}.pdf`);
+    link.setAttribute('download', `GSFIN-Certificate-${certNumber}.pdf`);
     document.body.appendChild(link);
     link.click();
     link.parentNode?.removeChild(link);
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
   } catch (err) {
-    console.error('Download failed:', err);
-    alert('Failed to download certificate.');
+    console.warn('API blob download failed, falling back to direct link:', err);
+    window.open(`/api/main-admin/certificates/${encodeURIComponent(certNumber)}/download`, '_blank');
   }
 };
 
@@ -1051,7 +1265,8 @@ onMounted(() => {
   height: 24px;
   background: rgba(15, 23, 42, 0.1);
 }
-.btn-view-batches {
+/* Buttons in Partner Header */
+.btn-view-certs-primary {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1061,22 +1276,204 @@ onMounted(() => {
   font-size: 0.82rem;
   font-weight: 600;
   border-radius: 12px;
-  text-decoration: none;
+  border: none;
+  cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(227, 27, 35, 0.2);
+  box-shadow: 0 2px 8px rgba(227, 27, 35, 0.25);
   white-space: nowrap;
 }
-.btn-view-batches:hover {
+.btn-view-certs-primary:hover {
   background: #C41219;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(227, 27, 35, 0.28);
+  box-shadow: 0 4px 12px rgba(227, 27, 35, 0.32);
 }
-.btn-view-batches i {
-  font-size: 0.95rem;
-  transition: transform 0.15s ease;
+.btn-cert-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+  padding: 1px 7px;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
-.btn-view-batches:hover i {
-  transform: translateX(3px);
+
+.btn-view-in-table {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #FFFFFF;
+  color: #334155;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+.btn-view-in-table:hover {
+  background: #F8FAFC;
+  color: #E31B23;
+  border-color: rgba(227, 27, 35, 0.3);
+}
+
+.btn-view-batches-secondary, .btn-view-batches {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+.btn-view-batches-secondary:hover, .btn-view-batches:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+/* ═════ EXPANDABLE DRAWER FOR PARTNER CERTS ═════ */
+.partner-card-body {
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  background: #FAFBFD;
+  padding: 20px 24px;
+}
+
+.drawer-header-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.drawer-strip-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.badge-mini-count {
+  padding: 3px 10px;
+  border-radius: 50px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.btn-link-action {
+  background: transparent;
+  border: none;
+  color: #E31B23;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+.btn-link-action:hover {
+  background: rgba(227, 27, 35, 0.08);
+  text-decoration: underline;
+}
+
+.drawer-empty-state {
+  text-align: center;
+  padding: 24px 16px;
+  background: #FFFFFF;
+  border: 1px dashed rgba(15, 23, 42, 0.12);
+  border-radius: 14px;
+}
+
+.drawer-table-wrap {
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  overflow-x: auto;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.02);
+}
+
+.partner-certs-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.partner-certs-table th {
+  padding: 10px 16px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748B;
+  background: #F8FAFD;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+  white-space: nowrap;
+}
+.partner-certs-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  font-size: 0.82rem;
+  color: #334155;
+  vertical-align: middle;
+}
+.partner-certs-table tbody tr:hover {
+  background: #F9FAFC;
+}
+
+.cert-id-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cert-mono-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: #0F172A;
+  letter-spacing: 0.03em;
+}
+
+.drawer-batches-strip {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.batch-chips-list {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.batch-nav-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: #FFFFFF;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  color: #334155;
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+.batch-nav-chip:hover {
+  border-color: #E31B23;
+  color: #E31B23;
+  background: #FEF2F2;
+}
+.chip-count {
+  color: #64748B;
+  font-size: 0.72rem;
 }
 
 .panel-loading-state, .panel-empty-state {

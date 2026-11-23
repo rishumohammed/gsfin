@@ -117,6 +117,11 @@ app.use('/api/notifications', notificationRoutes);
 // Stubs for stripped CRM/LMS features to prevent 404s in frontend console
 app.get('/api/dashboard/counts', (req, res) => res.json({ followups: 0, unreadMessages: 0, pendingApprovals: 0 }));
 
+// Global certificate download alias
+app.get('/api/certs/:certNumber/download', (req, res) => {
+  res.redirect(`/api/main-admin/certificates/${encodeURIComponent(req.params.certNumber)}/download`);
+});
+
 const PORT = process.env.PORT || 5000;
 
 // Initialize scheduled jobs
