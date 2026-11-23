@@ -1376,6 +1376,101 @@ router.get('/certificates/batches/:batchId', async (req, res) => {
   }
 });
 
+router.get('/certificates/partners/:partnerId', async (req, res) => {
+  try {
+    const { partnerId } = req.params;
+
+    // 1. Fetch organization details
+    let partner = null;
+    const [orgs] = await pool.query(
+      `SELECT id, name, contact_email, contact_phone, country, city, institution_type, status, created_at
+       FROM organizations
+       WHERE id = ? OR name = ?`,
+      [partnerId, partnerId]
+    );
+
+    if (orgs.length > 0) {
+      partner = orgs[0];
+    } else {
+      partner = {
+        id: partnerId,
+        name: partnerId === 'org-gsfin-direct' ? 'GSFIN Direct Certification' : 'Partner Center',
+        contact_email: 'portal@gsfin.org',
+        contact_phone: 'N/A',
+        city: 'International',
+        country: 'Global',
+        institution_type: 'Authorized Testing Center',
+        status: 'active'
+      };
+    }
+
+    // 2. Fetch all certificates issued for this partner
+    const [certificates] = await pool.query(
+      `SELECT 
+        c.id as certificate_id,
+        COALESCE(c.cert_number, CONCAT('CERT-', UPPER(SUBSTRING(c.id, 1, 8)))) as cert_number,
+        s.id as student_id,
+        s.name as student_name,
+        s.email as student_email,
+        s.phone as student_phone,
+        e.id as exam_id,
+        e.name as exam_name,
+        b.id as batch_id,
+        ea.id as assignment_id,
+        ea.status as exam_status,
+        c.issued_at,
+        COALESCE(c.status, 'active') as cert_status,
+        c.pdf_url
+      FROM certificates c
+      JOIN exam_assignments ea ON c.assignment_id = ea.id
+      JOIN students s ON ea.student_id = s.id
+      JOIN exams e ON ea.exam_id = e.id
+      LEFT JOIN batches b ON ea.batch_id = b.id
+      WHERE b.org_id = ? OR s.org_id = ?
+      ORDER BY c.issued_at DESC`,
+      [partner.id, partner.id]
+    );
+
+    // 3. Fetch batches for this partner
+    const [batches] = await pool.query(
+      `SELECT 
+        b.id as batch_id,
+        b.exam_id,
+        b.status as batch_status,
+        b.opens_at,
+        b.closes_at,
+        b.created_at,
+        e.name as exam_name,
+        e.duration_minutes,
+        (SELECT COUNT(*) FROM exam_assignments WHERE batch_id = b.id) as total_candidates,
+        (SELECT COUNT(*) FROM certificates c JOIN exam_assignments ea ON c.assignment_id = ea.id WHERE ea.batch_id = b.id) as total_certificates
+      FROM batches b
+      JOIN exams e ON b.exam_id = e.id
+      WHERE b.org_id = ?
+      ORDER BY b.created_at DESC`,
+      [partner.id]
+    );
+
+    const activeCount = certificates.filter(c => c.cert_status !== 'revoked').length;
+    const revokedCount = certificates.filter(c => c.cert_status === 'revoked').length;
+
+    res.json({
+      partner,
+      certificates,
+      batches,
+      stats: {
+        total_certificates: certificates.length,
+        active_count: activeCount,
+        revoked_count: revokedCount,
+        total_batches: batches.length
+      }
+    });
+  } catch (error) {
+    console.error('Fetch partner certificates error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.post('/certificates/issue-direct', async (req, res) => {
   try {
     const { studentName, studentEmail, examId, orgId } = req.body;
