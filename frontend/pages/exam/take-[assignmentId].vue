@@ -11,6 +11,7 @@
     <WebcamThumbnail 
       v-if="activeAttempt && !result && examStream" 
       :stream="examStream" 
+      @video-ready="onSittingVideoReady"
     />
 
     <!-- TOP INSTITUTIONAL ACCREDITATION BAR -->
@@ -226,14 +227,32 @@
                 <div class="comparison-badge live-badge">LIVE WEBCAM STREAM</div>
                 <div class="comparison-media-wrap live-media-wrap">
                   <video ref="examCameraVideo" autoplay playsinline class="comparison-video"></video>
-                  <div class="face-oval-hud">
+                  <div class="face-oval-hud" :class="{ 'hud-detected': liveFaceStatus === 'ready', 'hud-warning': liveFaceStatus === 'no_face' || liveFaceStatus === 'multiple_faces' }">
                     <div class="face-scanner-line"></div>
                   </div>
                 </div>
                 <div class="comparison-footer live-footer">
-                  <span class="status-pulse-emerald"></span>
-                  <span>Camera Active &bull; Ready to Match</span>
+                  <span :class="liveFaceStatusDotClass"></span>
+                  <span>{{ liveFaceStatusText }}</span>
                 </div>
+              </div>
+            </div>
+
+            <!-- Real-time Biometric Match Meter if reference descriptor or photo available -->
+            <div v-if="liveFaceConfidence !== null" class="mb-5 p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
+                <span class="flex items-center gap-1.5">
+                  <i class="mdi mdi-shield-search text-sm" :class="liveFaceConfidence >= 65 ? 'text-emerald-600' : 'text-amber-500'"></i>
+                  Identity Match Confidence
+                </span>
+                <span :class="liveFaceConfidence >= 65 ? 'text-emerald-600 font-bold' : 'text-amber-600'">{{ liveFaceConfidence }}%</span>
+              </div>
+              <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                <div 
+                  class="h-full rounded-full transition-all duration-300"
+                  :class="liveFaceConfidence >= 65 ? 'bg-emerald-500' : 'bg-amber-500'"
+                  :style="{ width: `${liveFaceConfidence}%` }"
+                ></div>
               </div>
             </div>
 
@@ -244,7 +263,7 @@
               <button
                 type="button"
                 class="btn-red py-3 px-6 text-sm flex items-center justify-center"
-                :disabled="verifyingFace"
+                :disabled="verifyingFace || liveFaceStatus === 'no_face' || liveFaceStatus === 'multiple_faces'"
                 @click="captureAndVerifyFace"
               >
                 <v-progress-circular v-if="verifyingFace" indeterminate size="16" width="2" color="white" class="mr-2" />
@@ -715,9 +734,13 @@ import { useRoute } from 'vue-router';
 import { useApi } from '@/composables/useApi';
 import WebcamThumbnail from '@/components/exam/WebcamThumbnail.vue';
 import ProctoringOverlay from '@/components/exam/ProctoringOverlay.vue';
+import { useFaceDetection, extractFacialDescriptor, calculateDescriptorDistance } from '@/composables/useFaceDetection';
+import { useObjectDetection } from '@/composables/useObjectDetection';
 
 const route = useRoute();
 const api = useApi();
+const faceDetection = useFaceDetection();
+const objectDetection = useObjectDetection();
 const assignmentId = computed(() => route.params.assignmentId as string);
 
 const loading = ref(true);
@@ -744,6 +767,20 @@ const isExamCameraActive = ref(false);
 const verifyingFace = ref(false);
 const faceMatchResult = ref<any>(null);
 const faceError = ref('');
+
+// Live Face Scan & Verification Realtime State
+const liveFaceStatus = ref<'initializing' | 'no_face' | 'multiple_faces' | 'ready' | 'error'>('initializing');
+const liveFaceStatusText = ref('Initializing camera & AI face detector...');
+const liveFaceConfidence = ref<number | null>(null);
+const refFaceDescriptor = ref<number[] | null>(null);
+let liveScanInterval: any = null;
+
+const liveFaceStatusDotClass = computed(() => {
+  if (liveFaceStatus.value === 'ready') return 'status-pulse-emerald';
+  if (liveFaceStatus.value === 'no_face' || liveFaceStatus.value === 'multiple_faces') return 'status-pulse-red';
+  if (liveFaceStatus.value === 'initializing') return 'status-pulse-amber';
+  return 'status-pulse-red';
+});
 
 // AI Proctoring & Sitting Security State
 const proctoringWarning = ref({
@@ -931,6 +968,9 @@ onMounted(() => {
 onUnmounted(() => {
   if (timerInterval) clearInterval(timerInterval);
   cleanupProctoringListeners();
+  stopLiveFaceScanLoop();
+  faceDetection.stopDetection();
+  objectDetection.stopDetection();
   if (document.fullscreenElement) {
     document.exitFullscreen().catch(() => {});
   }
@@ -938,11 +978,59 @@ onUnmounted(() => {
   window.removeEventListener('beforeunload', handleWindowUnload);
 });
 
+async function extractDescriptorFromPhoto(photoUrl: string): Promise<number[] | null> {
+  if (!photoUrl || typeof window === 'undefined') return null;
+  try {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = photoUrl;
+    await new Promise((resolve, reject) => {
+      if (img.complete) resolve(true);
+      else {
+        img.onload = () => resolve(true);
+        img.onerror = reject;
+      }
+    });
+
+    if (!faceDetection.model?.value) {
+      await faceDetection.loadModel();
+    }
+
+    const faces = await (faceDetection as any).estimateFaces?.(img, { flipHorizontal: false }) || [];
+    if (faces && faces.length >= 1) {
+      const desc = extractFacialDescriptor(faces[0]);
+      if (desc) {
+        refFaceDescriptor.value = desc;
+        return desc;
+      }
+    }
+  } catch (e) {
+    console.warn('Reference photo descriptor extraction notice:', e);
+  }
+  return null;
+}
+
 async function fetchDetails() {
   loading.value = true;
   try {
     const { data } = await api.get(`/assignment-session/${assignmentId.value}/details`);
     details.value = data;
+
+    // Resolve reference profile face descriptor if present
+    if (data.faceDescriptor) {
+      let desc = data.faceDescriptor;
+      if (typeof desc === 'string') {
+        try { desc = JSON.parse(desc); } catch (_) {}
+      }
+      const isDummy = Array.isArray(desc) && desc.length === 5 && Math.abs(desc[0] - 0.85) < 0.02 && Math.abs(desc[1] - 0.84) < 0.02;
+      if (Array.isArray(desc) && !isDummy) {
+        refFaceDescriptor.value = desc;
+      }
+    }
+    if (!refFaceDescriptor.value && data.facePhoto) {
+      extractDescriptorFromPhoto(data.facePhoto);
+    }
+
     if (isCandidateAuthenticated.value && (!data.enableProctoring || isFaceVerified.value)) {
       verificationStep.value = 'authorized';
     }
@@ -995,10 +1083,59 @@ async function verifyLogin() {
   }
 }
 
+function stopLiveFaceScanLoop() {
+  if (liveScanInterval) {
+    clearInterval(liveScanInterval);
+    liveScanInterval = null;
+  }
+}
+
+function startLiveFaceScanLoop() {
+  stopLiveFaceScanLoop();
+  liveScanInterval = setInterval(async () => {
+    if (!examCameraVideo.value || verificationStep.value !== 'face' || verifyingFace.value) return;
+    const video = examCameraVideo.value;
+    if (video.readyState < 2) return;
+
+    try {
+      const faces = await (faceDetection as any).estimateFaces?.(video, { flipHorizontal: false }) || [];
+      if (!faces || faces.length === 0) {
+        liveFaceStatus.value = 'no_face';
+        liveFaceStatusText.value = 'No Face Detected - Please center your face in camera';
+        liveFaceConfidence.value = null;
+      } else if (faces.length > 1) {
+        liveFaceStatus.value = 'multiple_faces';
+        liveFaceStatusText.value = 'Multiple Faces Detected - Only 1 candidate permitted';
+        liveFaceConfidence.value = null;
+      } else {
+        liveFaceStatus.value = 'ready';
+        liveFaceStatusText.value = 'Face Detected & Centered - Ready to Verify';
+
+        if (refFaceDescriptor.value) {
+          const liveDesc = extractFacialDescriptor(faces[0]);
+          if (liveDesc) {
+            const dist = calculateDescriptorDistance(liveDesc, refFaceDescriptor.value);
+            const conf = Math.max(10, Math.min(99, Math.round((1 - Math.min(1, dist / 0.70)) * 100)));
+            liveFaceConfidence.value = conf;
+            if (dist <= 0.45) {
+              liveFaceStatusText.value = `Identity Match Verified (${conf}% confidence)`;
+            } else {
+              liveFaceStatusText.value = `Biometric Mismatch (${conf}% confidence)`;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+  }, 380);
+}
+
 async function startExamCamera() {
   try {
     isExamCameraActive.value = true;
     faceError.value = '';
+    liveFaceStatus.value = 'initializing';
+    liveFaceStatusText.value = 'Initializing camera & AI face detector...';
+
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { width: 480, height: 480, facingMode: 'user' }
     });
@@ -1008,13 +1145,22 @@ async function startExamCamera() {
       examCameraVideo.value.srcObject = stream;
       await examCameraVideo.value.play();
     }
+
+    // Load face detection model if not already loaded
+    await faceDetection.loadModel();
+
+    // Start live face scan loop to guide candidate in real time
+    startLiveFaceScanLoop();
   } catch (err: any) {
     faceError.value = 'Could not access webcam: ' + (err.message || 'Permission denied. Please allow camera access to complete face verification.');
     isExamCameraActive.value = false;
+    liveFaceStatus.value = 'error';
+    liveFaceStatusText.value = 'Camera inaccessible';
   }
 }
 
 function stopExamCamera() {
+  stopLiveFaceScanLoop();
   if (examStream.value) {
     examStream.value.getTracks().forEach(track => track.stop());
     examStream.value = null;
@@ -1031,6 +1177,44 @@ async function captureAndVerifyFace() {
   faceError.value = '';
   try {
     const video = examCameraVideo.value;
+    if (video.readyState < 2) {
+      throw new Error('Webcam stream is not ready yet. Please wait a moment.');
+    }
+
+    if (!faceDetection.model?.value) {
+      await faceDetection.loadModel();
+    }
+
+    // 1. Perform REAL face detection on current live camera video
+    const faces = await (faceDetection as any).estimateFaces?.(video, { flipHorizontal: false }) || [];
+    if (!faces || faces.length === 0) {
+      throw new Error('No human face detected in camera view. Please look directly into the camera in a well-lit area.');
+    }
+    if (faces.length > 1) {
+      throw new Error('Multiple faces detected in camera frame. Only the registered candidate is permitted in front of the camera.');
+    }
+
+    // 2. Extract real live biometric descriptor
+    const realLiveDescriptor = extractFacialDescriptor(faces[0]);
+    if (!realLiveDescriptor) {
+      throw new Error('Could not compute facial biometric landmarks. Please ensure your entire face is visible without obstructions.');
+    }
+
+    // 3. Ensure reference profile descriptor is resolved if registered photo exists
+    if (!refFaceDescriptor.value && details.value.facePhoto) {
+      await extractDescriptorFromPhoto(details.value.facePhoto);
+    }
+
+    // 4. Biometric comparison against reference profile if enrolled
+    if (refFaceDescriptor.value) {
+      const dist = calculateDescriptorDistance(realLiveDescriptor, refFaceDescriptor.value);
+      if (dist > 0.45) {
+        const matchPct = Math.max(10, Math.min(99, Math.round((1 - Math.min(1, dist / 0.70)) * 100)));
+        throw new Error(`Facial biometric mismatch detected (Match Confidence: ${matchPct}%). The person in front of the camera does not match the registered profile for ${details.value.studentName || 'this candidate'}. Only the registered candidate is permitted to sit this examination.`);
+      }
+    }
+
+    // 5. Capture photo frame
     const canvas = document.createElement('canvas');
     canvas.width = video.videoWidth || 480;
     canvas.height = video.videoHeight || 480;
@@ -1040,14 +1224,13 @@ async function captureAndVerifyFace() {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const livePhoto = canvas.toDataURL('image/jpeg', 0.85);
 
-    // 5-element facial aspect ratio descriptor
-    const liveDescriptor = [0.85, 0.84, 0.46, 0.94, 0.95];
-
+    // 6. Post verification to backend
     const { data: res } = await api.post(`/assignment-session/${assignmentId.value}/verify-face`, {
       live_photo: livePhoto,
-      live_descriptor: liveDescriptor
+      live_descriptor: realLiveDescriptor
     });
 
+    stopLiveFaceScanLoop();
     faceMatchResult.value = res;
     isFaceVerified.value = true;
     sessionStorage.setItem('exam_face_' + assignmentId.value, 'true');
@@ -1057,6 +1240,47 @@ async function captureAndVerifyFace() {
   } finally {
     verifyingFace.value = false;
   }
+}
+
+async function onSittingVideoReady(videoEl: HTMLVideoElement) {
+  if (!details.value.enableProctoring) return;
+  console.info('[Proctoring] Sitting webcam video ready, initializing AI monitoring pipeline...');
+
+  // Set reference descriptor for continuous tracking
+  if (refFaceDescriptor.value) {
+    faceDetection.setReferenceDescriptor(refFaceDescriptor.value);
+  }
+
+  // Start continuous proctoring loops
+  faceDetection.startDetection(
+    videoEl,
+    (evtType: string, meta: any) => {
+      api.post(`/assignment-session/${assignmentId.value}/proctoring-event`, {
+        attempt_id: activeAttempt.value?.attemptId,
+        type: evtType,
+        reason: meta?.reason || evtType,
+        metadata: meta
+      }).catch(() => {});
+    },
+    (warningMsg: string) => {
+      triggerViolation(warningMsg);
+    }
+  );
+
+  objectDetection.startDetection(
+    videoEl,
+    (evtType: string, meta: any) => {
+      api.post(`/assignment-session/${assignmentId.value}/proctoring-event`, {
+        attempt_id: activeAttempt.value?.attemptId,
+        type: evtType,
+        reason: meta?.reason || evtType,
+        metadata: meta
+      }).catch(() => {});
+    },
+    (warningMsg: string) => {
+      triggerViolation(warningMsg);
+    }
+  );
 }
 
 async function startSitting() {
@@ -1627,6 +1851,30 @@ function handleWindowUnload(e: BeforeUnloadEvent) {
   box-shadow: 0 0 8px #E31B23;
   position: absolute;
   animation: scan 2s infinite ease-in-out;
+}
+
+.face-oval-hud.hud-detected {
+  border-color: #10B981 !important;
+}
+.face-oval-hud.hud-detected .face-scanner-line {
+  background: #10B981 !important;
+  box-shadow: 0 0 8px #10B981 !important;
+}
+.face-oval-hud.hud-warning {
+  border-color: #F59E0B !important;
+}
+.face-oval-hud.hud-warning .face-scanner-line {
+  background: #F59E0B !important;
+  box-shadow: 0 0 8px #F59E0B !important;
+}
+
+.status-pulse-amber {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #F59E0B;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+  display: inline-block;
 }
 
 .comparison-footer {

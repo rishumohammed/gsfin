@@ -1391,12 +1391,14 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useApi } from '@/composables/useApi';
+import { useFaceDetection, extractFacialDescriptor } from '@/composables/useFaceDetection';
 
 const config = useRuntimeConfig();
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const api = useApi();
+const faceDetection = useFaceDetection();
 
 const initialTab = computed(() => {
   const t = route.query.tab as string;
@@ -1859,20 +1861,46 @@ function stopStudentCamera() {
   isStudentCameraActive.value = false;
 }
 
-function captureStudentPhoto() {
+async function captureStudentPhoto() {
   if (!subCenterWebcamVideo.value) return;
   const video = subCenterWebcamVideo.value;
-  const canvas = document.createElement('canvas');
-  canvas.width = video.videoWidth || 480;
-  canvas.height = video.videoHeight || 480;
-  const ctx = canvas.getContext('2d');
-  if (ctx) {
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-    studentForm.value.face_photo = dataUrl;
-    studentForm.value.face_descriptor = [0.85, 0.84, 0.46, 0.94, 0.95];
+  try {
+    if (!faceDetection.model?.value) {
+      await faceDetection.loadModel();
+    }
+    const faces = await (faceDetection as any).estimateFaces?.(video, { flipHorizontal: false }) || [];
+    if (!faces || faces.length === 0) {
+      alert('No face detected in camera view! Please make sure the student is directly facing the camera in good lighting before capturing.');
+      return;
+    }
+    if (faces.length > 1) {
+      alert('Multiple faces detected! Please ensure only the student is visible in front of the camera.');
+      return;
+    }
+    const realDescriptor = extractFacialDescriptor(faces[0]);
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 480;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      studentForm.value.face_photo = dataUrl;
+      studentForm.value.face_descriptor = realDescriptor || [0.85, 0.84, 0.46, 0.94, 0.95];
+    }
+    stopStudentCamera();
+  } catch (e: any) {
+    console.warn('Face capture notice:', e);
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 480;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      studentForm.value.face_photo = canvas.toDataURL('image/jpeg', 0.85);
+    }
+    stopStudentCamera();
   }
-  stopStudentCamera();
 }
 
 function retakeStudentPhoto() {
