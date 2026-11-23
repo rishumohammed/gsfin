@@ -160,6 +160,14 @@
                 <option value="revoked">Revoked Records</option>
               </select>
 
+              <!-- Filter by Exam Batches -->
+              <select v-model="batchFilter" class="table-select-filter">
+                <option value="All">All Exam Batches</option>
+                <option v-for="b in batchOptions" :key="b.id" :value="b.id">
+                  {{ b.label }}
+                </option>
+              </select>
+
               <button
                 type="button"
                 class="btn-glass-sm"
@@ -229,6 +237,9 @@
                   </td>
                   <td>
                     <div class="font-semibold text-slate-800 text-sm">{{ item.exam_name || 'Certification Exam' }}</div>
+                    <div v-if="item.batch_id" class="text-[11px] text-slate-400 font-mono mt-0.5">
+                      Batch: {{ String(item.batch_id).slice(0, 8) }}
+                    </div>
                   </td>
                   <td class="text-slate-500 font-medium text-xs whitespace-nowrap">
                     {{ formatDate(item.issued_at) }}
@@ -312,6 +323,7 @@ const batches = ref<any[]>([]);
 const stats = ref<any>({});
 const search = ref('');
 const statusFilter = ref('All');
+const batchFilter = ref('All');
 const copySuccessId = ref<string | null>(null);
 
 // Pagination
@@ -331,10 +343,41 @@ const verificationRate = computed(() => {
   return `${rate}%`;
 });
 
+// Unique batch filter options
+const batchOptions = computed(() => {
+  const map = new Map<string, { id: string; label: string; count: number }>();
+  
+  for (const b of batches.value) {
+    const id = b.batch_id || b.id;
+    if (id) {
+      map.set(id, {
+        id,
+        label: `${b.exam_name} (${String(id).slice(0, 8)})`,
+        count: b.total_certificates || 0
+      });
+    }
+  }
+
+  for (const c of certificates.value) {
+    if (c.batch_id && !map.has(c.batch_id)) {
+      map.set(c.batch_id, {
+        id: c.batch_id,
+        label: `${c.exam_name || 'Exam'} (${String(c.batch_id).slice(0, 8)})`,
+        count: 0
+      });
+    }
+  }
+
+  return Array.from(map.values());
+});
+
 const filteredCertificates = computed(() => {
   let list = certificates.value || [];
   if (statusFilter.value !== 'All') {
     list = list.filter(c => c.cert_status === statusFilter.value);
+  }
+  if (batchFilter.value !== 'All') {
+    list = list.filter(c => c.batch_id === batchFilter.value);
   }
   if (search.value.trim()) {
     const q = search.value.toLowerCase().trim();
@@ -354,7 +397,7 @@ const paginatedCertificates = computed(() => {
   return filteredCertificates.value.slice(start, start + perPage.value);
 });
 
-watch([search, statusFilter], () => {
+watch([search, statusFilter, batchFilter], () => {
   page.value = 1;
 });
 
