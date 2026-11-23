@@ -130,12 +130,12 @@
 
           <div class="metric-card">
             <div class="metric-icon-box bg-amber-light">
-              <i class="mdi mdi-school text-amber"></i>
+              <i class="mdi mdi-file-document-outline text-amber"></i>
             </div>
             <div class="metric-info">
-              <span class="metric-label">Exam Batches</span>
-              <span class="metric-value">{{ batches.length }}</span>
-              <span class="metric-sub text-amber">Conducted Exams</span>
+              <span class="metric-label">Verification Rate</span>
+              <span class="metric-value">{{ verificationRate }}</span>
+              <span class="metric-sub text-amber">QR Code Audited</span>
             </div>
           </div>
         </div>
@@ -185,7 +185,6 @@
                   <th>Certificate ID</th>
                   <th>Candidate / Student</th>
                   <th>Examination / Course</th>
-                  <th>Batch Reference</th>
                   <th>Issue Date</th>
                   <th>Status</th>
                   <th class="text-right">Actions</th>
@@ -193,12 +192,12 @@
               </thead>
               <tbody>
                 <tr v-if="loading">
-                  <td colspan="7" class="text-center py-12 text-slate-500 font-medium">
+                  <td colspan="6" class="text-center py-12 text-slate-500 font-medium">
                     <span class="spinner-sm-red"></span> Loading Certificate Records...
                   </td>
                 </tr>
                 <tr v-else-if="filteredCertificates.length === 0">
-                  <td colspan="7" class="text-center py-14 text-slate-500">
+                  <td colspan="6" class="text-center py-14 text-slate-500">
                     <i class="mdi mdi-file-certificate-outline text-4xl block mb-2 text-slate-400"></i>
                     No Certificates Found for {{ partner.name }}
                   </td>
@@ -230,18 +229,6 @@
                   </td>
                   <td>
                     <div class="font-semibold text-slate-800 text-sm">{{ item.exam_name || 'Certification Exam' }}</div>
-                  </td>
-                  <td>
-                    <NuxtLink
-                      v-if="item.batch_id"
-                      :to="'/dashboard/admin/certificates/batch/' + item.batch_id"
-                      class="batch-link-pill"
-                      title="View batch candidate roster"
-                    >
-                      <i class="mdi mdi-folder-outline"></i>
-                      <span>Batch: {{ String(item.batch_id).slice(0, 8) }}</span>
-                    </NuxtLink>
-                    <span v-else class="text-xs text-slate-400">Direct Sitting</span>
                   </td>
                   <td class="text-slate-500 font-medium text-xs whitespace-nowrap">
                     {{ formatDate(item.issued_at) }}
@@ -292,43 +279,6 @@
           </div>
         </div>
 
-        <!-- ─── 4. CONDUCTED BATCHES STRIP ─── -->
-        <div v-if="batches.length > 0" class="panel-card p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-2">
-              <i class="mdi mdi-format-list-checks text-red text-xl"></i>
-              <h3 class="font-semibold text-slate-900 text-base">Conducted Examination Batches</h3>
-            </div>
-            <span class="text-xs font-semibold text-slate-500">{{ batches.length }} Batches Total</span>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div
-              v-for="b in batches"
-              :key="b.batch_id"
-              class="batch-summary-card"
-            >
-              <div class="flex items-start justify-between gap-2 mb-2">
-                <div class="font-semibold text-slate-900 text-sm line-clamp-1">{{ b.exam_name }}</div>
-                <span :class="['badge-mini', b.batch_status === 'open' ? 'badge-green' : 'badge-slate']">
-                  {{ b.batch_status || 'conducted' }}
-                </span>
-              </div>
-              <div class="text-xs text-slate-500 mb-3 flex items-center gap-3">
-                <span><i class="mdi mdi-account-group"></i> {{ b.total_candidates || 0 }} Candidates</span>
-                <span><i class="mdi mdi-certificate"></i> {{ b.total_certificates || 0 }} Certs</span>
-              </div>
-              <NuxtLink
-                :to="'/dashboard/admin/certificates/batch/' + b.batch_id"
-                class="btn-batch-card-link"
-              >
-                <span>View Batch Roster</span>
-                <i class="mdi mdi-arrow-right"></i>
-              </NuxtLink>
-            </div>
-          </div>
-        </div>
-
       </div>
 
     </div>
@@ -375,6 +325,11 @@ const canManage = computed(() => {
 
 const activeCount = computed(() => certificates.value.filter(c => c.cert_status !== 'revoked').length);
 const revokedCount = computed(() => certificates.value.filter(c => c.cert_status === 'revoked').length);
+const verificationRate = computed(() => {
+  if (!certificates.value || certificates.value.length === 0) return '0%';
+  const rate = Math.round((activeCount.value / certificates.value.length) * 100);
+  return `${rate}%`;
+});
 
 const filteredCertificates = computed(() => {
   let list = certificates.value || [];
@@ -878,26 +833,6 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.batch-link-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 8px;
-  background: #F8FAFC;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  color: #475569;
-  font-size: 0.75rem;
-  font-family: ui-monospace, monospace;
-  text-decoration: none;
-  transition: all 0.15s ease;
-}
-.batch-link-pill:hover {
-  border-color: #E31B23;
-  color: #E31B23;
-  background: #FEF2F2;
-}
-
 .chip-pill {
   padding: 5px 12px;
   border-radius: 50px;
@@ -938,44 +873,6 @@ onMounted(() => {
   background: rgba(227, 27, 35, 0.06);
 }
 
-/* Batch Summary Cards */
-.batch-summary-card {
-  background: #F8FAFD;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 14px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  transition: all 0.15s ease;
-}
-.batch-summary-card:hover {
-  border-color: rgba(227, 27, 35, 0.25);
-  background: #FFFFFF;
-}
-.badge-mini {
-  padding: 2px 8px;
-  border-radius: 50px;
-  font-size: 0.68rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-.badge-green { background: rgba(16, 185, 129, 0.12); color: #059669; }
-.badge-slate { background: #F1F5F9; color: #64748B; }
-
-.btn-batch-card-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: auto;
-  padding-top: 10px;
-  border-top: 1px dashed rgba(15, 23, 42, 0.08);
-  color: #E31B23;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-decoration: none;
-}
-.btn-batch-card-link:hover { text-decoration: underline; }
-
 /* States */
 .state-card, .error-state-card {
   background: #FFFFFF;
@@ -999,3 +896,4 @@ onMounted(() => {
 }
 .spinner-sm-red { width: 18px; height: 18px; border: 2px solid rgba(227, 27, 35, 0.2); border-top-color: #E31B23; border-radius: 50%; animation: spin 0.75s linear infinite; display: inline-block; }
 </style>
+
