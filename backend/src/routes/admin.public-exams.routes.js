@@ -122,9 +122,21 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
 router.get('/dashboard-stats', async (req, res) => {
   try {
     const [[{ totalExams }]] = await pool.query("SELECT COUNT(*) AS totalExams FROM public_exams WHERE status = 'published'");
-    const [[{ totalCandidates }]] = await pool.query('SELECT COUNT(*) AS totalCandidates FROM public_exam_candidates');
-    const [[{ totalAttempts }]] = await pool.query('SELECT COUNT(*) AS totalAttempts FROM public_exam_attempts');
+    const [[{ pubCandidates }]] = await pool.query('SELECT COUNT(*) AS pubCandidates FROM public_exam_candidates');
+    const [[{ pubAttempts }]] = await pool.query('SELECT COUNT(*) AS pubAttempts FROM public_exam_attempts');
     const [[{ passRate }]] = await pool.query('SELECT COALESCE(AVG(percentage), 0) AS passRate FROM public_exam_results');
+
+    let subCenterCandidates = 0;
+    let subCenterAttempts = 0;
+    try {
+      const [[subC]] = await pool.query('SELECT COUNT(DISTINCT student_id) as c FROM exam_assignments');
+      subCenterCandidates = Number(subC?.c || 0);
+      const [[subA]] = await pool.query('SELECT COUNT(*) as a FROM exam_attempts');
+      subCenterAttempts = Number(subA?.a || 0);
+    } catch (_) {}
+
+    const totalCandidates = Number(pubCandidates || 0) + subCenterCandidates;
+    const totalAttempts = Number(pubAttempts || 0) + subCenterAttempts;
 
     // Recent Candidates
     const [recentCandidates] = await pool.query(`
@@ -575,8 +587,25 @@ router.get('/', async (req, res) => {
         q.name as qualification_name, q.slug as qualification_slug, q.category as qualification_category,
         e.registration_status,
         (SELECT COUNT(*) FROM public_exam_questions WHERE exam_id = e.id) as question_count,
-        (SELECT COUNT(*) FROM public_exam_attempts WHERE exam_id = e.id AND status = 'submitted') as attempts_count,
-        (SELECT COUNT(*) FROM public_exam_candidates WHERE exam_id = e.id) as candidate_count
+        (
+          COALESCE((SELECT COUNT(*) FROM public_exam_attempts WHERE exam_id = e.id), 0) +
+          COALESCE((
+            SELECT COUNT(*) FROM exam_attempts ea 
+            JOIN exam_assignments a ON ea.assignment_id = a.id
+            WHERE a.exam_id = e.id 
+               OR a.exam_id IN (SELECT ex.id FROM exams ex WHERE ex.name = e.name OR ex.id = CONCAT('exam-', e.slug) OR ex.id = e.slug)
+               OR a.batch_id IN (SELECT b.id FROM batches b JOIN exams ex ON b.exam_id = ex.id WHERE ex.name = e.name OR b.exam_id = e.id)
+          ), 0)
+        ) as attempts_count,
+        (
+          COALESCE((SELECT COUNT(DISTINCT id) FROM public_exam_candidates WHERE exam_id = e.id), 0) +
+          COALESCE((
+            SELECT COUNT(DISTINCT a.student_id) FROM exam_assignments a
+            WHERE a.exam_id = e.id 
+               OR a.exam_id IN (SELECT ex.id FROM exams ex WHERE ex.name = e.name OR ex.id = CONCAT('exam-', e.slug) OR ex.id = e.slug)
+               OR a.batch_id IN (SELECT b.id FROM batches b JOIN exams ex ON b.exam_id = ex.id WHERE ex.name = e.name OR b.exam_id = e.id)
+          ), 0)
+        ) as candidate_count
       FROM public_exams e
       LEFT JOIN public_exam_categories c ON e.category_id = c.id
       LEFT JOIN qualifications q ON e.qualification_id = q.id
