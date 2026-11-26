@@ -343,11 +343,14 @@
                       </div>
                     </td>
                     <td>
-                      <span v-if="item.face_photo" class="badge-chip chip-green">
-                        <i class="mdi mdi-face-recognition"></i> Enrolled
+                      <span v-if="getStudentFaceStatus(item) === 'registration_successful'" class="badge-chip chip-green whitespace-nowrap">
+                        <i class="mdi mdi-check-decagram"></i> Registration Successful
                       </span>
-                      <span v-else class="badge-chip chip-amber">
-                        <i class="mdi mdi-camera-outline"></i> Pending
+                      <span v-else-if="getStudentFaceStatus(item) === 'face_verification_pending'" class="badge-chip chip-blue whitespace-nowrap">
+                        <i class="mdi mdi-face-recognition"></i> Face Verification Pending
+                      </span>
+                      <span v-else class="badge-chip chip-amber whitespace-nowrap">
+                        <i class="mdi mdi-email-clock-outline"></i> Waiting for Face Enrollment
                       </span>
                     </td>
                     <td>
@@ -365,7 +368,7 @@
                     </td>
                     <td class="text-right">
                       <div class="action-btn-group justify-end">
-                        <button class="btn-table-action btn-email" title="Resend Credentials Email" @click="resendStudentCredentials(item)">
+                        <button class="btn-table-action btn-email" title="Resend Face Link / Confirmation Email" @click="resendStudentCredentials(item)">
                           <i class="mdi mdi-email-sync-outline"></i>
                         </button>
                         <NuxtLink :to="'/sub-center/students/' + item.id" class="btn-table-action btn-view" title="View Student Profile">
@@ -937,18 +940,35 @@
                   </div>
                 </div>
 
-                <!-- Row 2B: Student Face Photo Section -->
-                <div class="face-enrollment-card mb-4">
+                <!-- Row 2B: Student Biometric Workflow Notice (New Registration) or Photo (Edit) -->
+                <div v-if="!editingStudent" class="face-enrollment-card mb-4">
+                  <div class="flex items-start gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-red-50 text-red flex items-center justify-center shrink-0 border border-red-100">
+                      <i class="mdi mdi-email-fast-outline text-lg"></i>
+                    </div>
+                    <div>
+                      <div class="text-xs font-semibold text-slate-900">Automated Email Face Enrollment (3 Photos)</div>
+                      <p class="text-[11px] text-slate-500 mt-0.5 mb-0 leading-relaxed">
+                        No camera capture is needed here. After you submit this form, the student will receive an email to upload <strong>3 face photos</strong> (Front, Left, Right), followed by a <strong>Face Verification link</strong> and final <strong>Registration Confirmation</strong>.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-else class="face-enrollment-card mb-4">
                   <div class="flex items-center justify-between mb-2">
                     <div>
-                      <label class="form-label-xs m-0">Face Photo</label>
-                      <span class="text-[11px] text-slate-500 block">Live photo for pre-exam identity verification</span>
+                      <label class="form-label-xs m-0">Face Biometrics</label>
+                      <span class="text-[11px] text-slate-500 block">Candidate biometric enrollment status</span>
                     </div>
-                    <span v-if="studentForm.face_photo" class="badge-emerald-sm">
-                      <i class="mdi mdi-check-circle"></i> Photo Enrolled
+                    <span v-if="getStudentFaceStatus(editingStudent) === 'registration_successful'" class="badge-emerald-sm">
+                      <i class="mdi mdi-check-decagram"></i> Registration Successful
+                    </span>
+                    <span v-else-if="getStudentFaceStatus(editingStudent) === 'face_verification_pending'" class="badge-chip chip-blue">
+                      <i class="mdi mdi-face-recognition"></i> Face Verification Pending
                     </span>
                     <span v-else class="badge-amber-sm">
-                      <i class="mdi mdi-camera-outline"></i> Photo Required
+                      <i class="mdi mdi-email-clock-outline"></i> Waiting for Face Enrollment
                     </span>
                   </div>
 
@@ -957,7 +977,7 @@
                     <img :src="studentForm.face_photo" alt="Student Face" class="enrolled-face-thumb" />
                     <div class="captured-photo-meta">
                       <div class="text-xs font-semibold text-slate-900">Face Photo Saved</div>
-                      <div class="text-[11px] text-slate-500">Camera verification matches against this photo during exam login.</div>
+                      <div class="text-[11px] text-slate-500">Camera verification matches against this profile during exam login.</div>
                       <div class="mt-2 flex gap-2">
                         <button type="button" class="btn-xs-retake" @click="retakeStudentPhoto">
                           <i class="mdi mdi-camera-retake-outline"></i> Retake Photo
@@ -985,15 +1005,6 @@
                         Cancel
                       </button>
                     </div>
-                  </div>
-
-                  <!-- Real-Time Camera Capture Action -->
-                  <div v-else class="face-capture-actions">
-                    <button type="button" class="btn-face-action" @click="startStudentCamera">
-                      <i class="mdi mdi-camera-plus text-2xl text-red"></i>
-                      <span class="font-semibold text-slate-800 text-sm">Take Photo</span>
-                      <span class="text-[11px] text-slate-500 font-normal">Live camera photo required for identity verification</span>
-                    </button>
                   </div>
                 </div>
 
@@ -1190,7 +1201,7 @@
               <div v-if="newRegisteredCredentials.email_status?.success" class="dispatched-banner dispatched-banner-success mb-4">
                 <i class="mdi mdi-email-check text-emerald-600 text-lg mr-2 shrink-0"></i>
                 <div class="text-xs text-emerald-800">
-                  <span>Credentials &amp; security OTP dispatched to <strong>{{ newRegisteredCredentials.email }}</strong> via Resend.</span>
+                  <span>Face enrollment request (3 photos) dispatched to <strong>{{ newRegisteredCredentials.email }}</strong> via Resend.</span>
                 </div>
               </div>
 
@@ -1198,7 +1209,7 @@
                 <i class="mdi mdi-alert-circle text-amber-600 text-lg mr-2 shrink-0"></i>
                 <div class="text-xs text-amber-900 leading-snug">
                   <div class="font-semibold text-amber-800">Email Delivery Notice</div>
-                  <div class="mt-0.5 text-slate-700">{{ newRegisteredCredentials.email_status?.message || 'Email delivery not confirmed. Please copy credentials below or configure Resend in Admin Settings.' }}</div>
+                  <div class="mt-0.5 text-slate-700">{{ newRegisteredCredentials.email_status?.message || 'Email delivery not confirmed. You can share the face enrollment link below directly.' }}</div>
                 </div>
               </div>
 
@@ -1210,11 +1221,22 @@
                 </div>
                 <div>
                   <div class="font-semibold text-slate-900 text-sm">{{ newRegisteredCredentials.name }}</div>
-                  <div class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
-                    <i class="mdi mdi-face-recognition"></i>
-                    {{ newRegisteredCredentials.has_face ? 'Face Photo Enrolled' : 'Face Photo Pending' }}
+                  <div class="text-xs font-medium flex items-center gap-1 mt-0.5" :class="newRegisteredCredentials.has_face ? 'text-emerald-600' : 'text-amber-600'">
+                    <i :class="['mdi', newRegisteredCredentials.has_face ? 'mdi-check-decagram' : 'mdi-email-clock-outline']"></i>
+                    {{ newRegisteredCredentials.has_face ? 'Registration Successful' : 'Waiting for Face Enrollment (3 Photos)' }}
                   </div>
                 </div>
+              </div>
+
+              <div v-if="newRegisteredCredentials.enroll_url" class="cred-field-box mb-3">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="cred-label">Face Enrollment Link (3 Poses)</span>
+                  <button type="button" class="btn-copy-mini" @click="copyText(newRegisteredCredentials.enroll_url, 'EnrollLink')">
+                    <i class="mdi mr-1" :class="copiedField === 'EnrollLink' ? 'mdi-check text-emerald-600' : 'mdi-content-copy'"></i>
+                    {{ copiedField === 'EnrollLink' ? 'Copied!' : 'Copy Link' }}
+                  </button>
+                </div>
+                <div class="cred-val font-mono text-[11px] break-all">{{ newRegisteredCredentials.enroll_url }}</div>
               </div>
 
               <!-- Credential Fields -->
@@ -2022,13 +2044,15 @@ async function confirmDeleteStudent(item: any) {
   }
 }
 
+function getStudentFaceStatus(item: any) {
+  if (!item) return 'waiting_face_enrollment';
+  if (item.face_status) return item.face_status;
+  return item.face_photo ? 'registration_successful' : 'waiting_face_enrollment';
+}
+
 async function registerStudent() {
   if (!studentForm.value.name || !studentForm.value.email) {
     alert('Please enter student full name and email address.');
-    return;
-  }
-  if (!editingStudent.value && !studentForm.value.face_photo) {
-    alert('Student live camera photo is required. Please capture the face photo before proceeding.');
     return;
   }
   if (studentForm.value.password && studentForm.value.password !== studentForm.value.confirm_password) {
@@ -2668,6 +2692,7 @@ definePageMeta({
 .chip-blue { background: rgba(59, 130, 246, 0.1); color: #2563EB; }
 .chip-red { background: rgba(227, 27, 35, 0.1); color: #E31B23; }
 .chip-amber { background: rgba(245, 158, 11, 0.1); color: #D97706; }
+.chip-blue { background: rgba(37, 99, 235, 0.1); color: #1D4ED8; }
 .chip-slate { background: rgba(100, 116, 139, 0.1); color: #64748B; }
 
 /* Action Buttons & Icon Action Group */

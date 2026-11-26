@@ -87,6 +87,7 @@ app.use('/api/', limiter);
 import mainAdminRoutes, { ensureOrganizationsColumns } from './routes/main-admin.routes.js';
 import subCenterRoutes, { ensureStudentsColumns } from './routes/sub-center.routes.js';
 import assignmentSessionRoutes from './routes/assignment-session.routes.js';
+import publicStudentFaceRoutes from './routes/public-student-face.routes.js';
 import { initBatchAutocloseJob } from './jobs/batch-autoclose.job.js';
 import { initMultitenantNotificationsJob } from './jobs/multitenant-notifications.job.js';
 
@@ -94,6 +95,7 @@ import { initMultitenantNotificationsJob } from './jobs/multitenant-notification
 app.use('/api/auth', authRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/public/exams', publicExamsRoutes);
+app.use('/api/public/student-face', publicStudentFaceRoutes);
 app.use('/api/admin/public-exams', adminPublicExamsRoutes);
 app.use('/api/admin/config', adminConfigRoutes);
 app.use('/api/admin/faqs', adminFaqsRoutes);

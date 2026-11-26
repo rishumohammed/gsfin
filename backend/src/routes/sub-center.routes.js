@@ -1,4 +1,5 @@
 import express from 'express';
+import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 import { pool, redis } from '../db/connection.js';
@@ -82,7 +83,13 @@ export const ensureStudentsColumns = async () => {
       { name: 'education_level', type: 'VARCHAR(100) NULL' },
       { name: 'institution_name', type: 'VARCHAR(255) NULL' },
       { name: 'gender', type: 'VARCHAR(50) NULL' },
-      { name: 'dob', type: 'DATE NULL' }
+      { name: 'dob', type: 'DATE NULL' },
+      { name: 'face_status', type: "VARCHAR(50) DEFAULT 'waiting_face_enrollment'" },
+      { name: 'face_photos', type: 'LONGTEXT NULL' },
+      { name: 'face_enroll_token', type: 'VARCHAR(128) NULL' },
+      { name: 'face_enroll_token_expires_at', type: 'DATETIME NULL' },
+      { name: 'face_verify_token', type: 'VARCHAR(128) NULL' },
+      { name: 'face_verify_token_expires_at', type: 'DATETIME NULL' }
     ];
 
     let existingColNames = new Set();
@@ -305,6 +312,11 @@ router.post('/students', async (req, res) => {
     const otpExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     const id = uuidv4();
+    const hasInitialFace = !!face_photo;
+    const faceStatus = hasInitialFace ? 'registration_successful' : 'waiting_face_enrollment';
+    const faceEnrollToken = hasInitialFace ? null : crypto.randomBytes(32).toString('hex');
+    const faceEnrollTokenExpiresAt = hasInitialFace ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
     const insertPayload = {
       id,
       org_id: orgId,
@@ -315,6 +327,9 @@ router.post('/students', async (req, res) => {
       initial_password: rawPassword,
       face_photo: face_photo || null,
       face_descriptor: face_descriptor ? (typeof face_descriptor === 'string' ? face_descriptor : JSON.stringify(face_descriptor)) : null,
+      face_status: faceStatus,
+      face_enroll_token: faceEnrollToken,
+      face_enroll_token_expires_at: faceEnrollTokenExpiresAt,
       otp_code: otpCode,
       otp_expires_at: otpExpiresAt,
       education_level: education_level || null,
@@ -325,8 +340,8 @@ router.post('/students', async (req, res) => {
 
     try {
       await pool.query(
-        `INSERT INTO students (id, org_id, name, email, phone, password, initial_password, face_photo, face_descriptor, otp_code, otp_expires_at, education_level, institution_name, gender, dob) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO students (id, org_id, name, email, phone, password, initial_password, face_photo, face_descriptor, face_status, face_enroll_token, face_enroll_token_expires_at, otp_code, otp_expires_at, education_level, institution_name, gender, dob) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
           orgId,
@@ -337,6 +352,9 @@ router.post('/students', async (req, res) => {
           rawPassword,
           face_photo || null,
           insertPayload.face_descriptor,
+          faceStatus,
+          faceEnrollToken,
+          faceEnrollTokenExpiresAt,
           otpCode,
           otpExpiresAt,
           education_level || null,
@@ -377,17 +395,26 @@ router.post('/students', async (req, res) => {
       // Non-fatal
     }
 
-    // Dispatch credentials & security OTP email
+    const enrollUrl = faceEnrollToken ? `${getFrontendUrl(req)}/student-face/enroll?token=${faceEnrollToken}` : null;
+
+    // Dispatch Email 1 (Face Enrollment Request) if face not enrolled yet, otherwise final confirmation
     let emailStatus = { success: false, message: 'Email dispatch pending' };
     try {
-      const emailRes = await emailService.sendCandidateCredentialsAndOtp({
-        to: email,
-        studentName: name,
-        email,
-        password: rawPassword,
-        otpCode,
-        centerName
-      });
+      const emailRes = hasInitialFace
+        ? await emailService.sendStudentRegistrationConfirmation({
+            to: email,
+            studentName: name,
+            email,
+            password: rawPassword,
+            otpCode,
+            centerName
+          })
+        : await emailService.sendStudentFaceEnrollmentRequest({
+            to: email,
+            studentName: name,
+            centerName,
+            enrollUrl
+          });
 
       if (emailRes?.success) {
         if (emailRes.result?.status === 'logged_to_console') {
@@ -409,7 +436,7 @@ router.post('/students', async (req, res) => {
         };
       }
     } catch (emailErr) {
-      console.error('Candidate credentials email notice (non-fatal):', emailErr.message);
+      console.error('Student registration email notice (non-fatal):', emailErr.message);
       emailStatus = { success: false, message: emailErr.message };
     }
 
@@ -419,12 +446,16 @@ router.post('/students', async (req, res) => {
       email,
       initial_password: rawPassword,
       otp_code: otpCode,
-      has_face: !!face_photo,
+      has_face: hasInitialFace,
+      face_status: faceStatus,
+      enroll_url: enrollUrl,
       face_photo: face_photo || null,
       email_status: emailStatus,
       message: emailStatus.success
-        ? 'Candidate student registered successfully! Access credentials and security OTP dispatched via email.'
-        : `Candidate student registered successfully! Note: ${emailStatus.message}`
+        ? (hasInitialFace
+            ? 'Candidate student registered successfully! Confirmation email dispatched.'
+            : 'Student registered! Face enrollment request email (3 photos) dispatched to student.')
+        : `Candidate student registered! Note: ${emailStatus.message}`
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -591,7 +622,7 @@ router.post('/students/:id/resend-credentials', async (req, res) => {
   try {
     await ensureStudentsColumns();
     const [students] = await pool.query(
-      `SELECT id, org_id, name, email, initial_password, otp_code 
+      `SELECT id, org_id, name, email, initial_password, otp_code, face_photo, face_status, face_enroll_token, face_verify_token
        FROM students 
        WHERE id = ? AND org_id = ?`,
       [id, orgId]
@@ -602,19 +633,7 @@ router.post('/students/:id/resend-credentials', async (req, res) => {
     }
 
     const student = students[0];
-
-    // Ensure student has a valid OTP code
-    let otpCode = student.otp_code;
-    if (!otpCode) {
-      otpCode = String(Math.floor(100000 + Math.random() * 900000));
-      const otpExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-      await pool.query(
-        'UPDATE students SET otp_code = ?, otp_expires_at = ? WHERE id = ?',
-        [otpCode, otpExpiresAt, student.id]
-      );
-    }
-
-    const passwordToSend = student.initial_password || '(Configured on candidate profile)';
+    const effectiveStatus = student.face_status || (student.face_photo ? 'registration_successful' : 'waiting_face_enrollment');
 
     // Fetch center name
     let centerName = 'GSFIN Authorized Test Center';
@@ -625,14 +644,62 @@ router.post('/students/:id/resend-credentials', async (req, res) => {
       // Non-fatal
     }
 
-    const emailRes = await emailService.sendCandidateCredentialsAndOtp({
-      to: student.email,
-      studentName: student.name,
-      email: student.email,
-      password: passwordToSend,
-      otpCode,
-      centerName
-    });
+    let emailRes;
+    let successMsg = '';
+
+    if (effectiveStatus === 'waiting_face_enrollment') {
+      const enrollToken = student.face_enroll_token || crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      await pool.query(
+        'UPDATE students SET face_enroll_token = ?, face_enroll_token_expires_at = ?, face_status = ? WHERE id = ?',
+        [enrollToken, expiresAt, 'waiting_face_enrollment', student.id]
+      );
+      const enrollUrl = `${getFrontendUrl(req)}/student-face/enroll?token=${enrollToken}`;
+      emailRes = await emailService.sendStudentFaceEnrollmentRequest({
+        to: student.email,
+        studentName: student.name,
+        centerName,
+        enrollUrl
+      });
+      successMsg = `Face enrollment request link (3 photos) resent to ${student.email}.`;
+    } else if (effectiveStatus === 'face_verification_pending') {
+      const verifyToken = student.face_verify_token || crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      await pool.query(
+        'UPDATE students SET face_verify_token = ?, face_verify_token_expires_at = ?, face_status = ? WHERE id = ?',
+        [verifyToken, expiresAt, 'face_verification_pending', student.id]
+      );
+      const verifyUrl = `${getFrontendUrl(req)}/student-face/verify?token=${verifyToken}`;
+      emailRes = await emailService.sendStudentFaceVerificationLink({
+        to: student.email,
+        studentName: student.name,
+        centerName,
+        verifyUrl
+      });
+      successMsg = `Face verification link resent to ${student.email}.`;
+    } else {
+      // Ensure student has a valid OTP code
+      let otpCode = student.otp_code;
+      if (!otpCode) {
+        otpCode = String(Math.floor(100000 + Math.random() * 900000));
+        const otpExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        await pool.query(
+          'UPDATE students SET otp_code = ?, otp_expires_at = ? WHERE id = ?',
+          [otpCode, otpExpiresAt, student.id]
+        );
+      }
+
+      const passwordToSend = student.initial_password || '(Configured on candidate profile)';
+      emailRes = await emailService.sendStudentRegistrationConfirmation({
+        to: student.email,
+        studentName: student.name,
+        email: student.email,
+        password: passwordToSend,
+        otpCode,
+        centerName
+      });
+      successMsg = `Registration confirmation & credentials resent to ${student.email}.`;
+    }
 
     if (emailRes?.success) {
       if (emailRes.result?.status === 'logged_to_console') {
@@ -644,7 +711,7 @@ router.post('/students/:id/resend-credentials', async (req, res) => {
       }
       return res.json({
         success: true,
-        message: `Credentials & OTP successfully dispatched to ${student.email} via Resend.`
+        message: successMsg
       });
     } else {
       return res.status(400).json({

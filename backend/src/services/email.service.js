@@ -467,6 +467,160 @@ class EmailService {
       return { success: false, error: error.message };
     }
   }
+
+  async sendStudentFaceEnrollmentRequest({ to, studentName, centerName, enrollUrl }) {
+    try {
+      const subject = `Action Required: Enroll Your Face Profile (3 Photos) - GSFIN`;
+      const html = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+          <div style="background: #0f172a; padding: 24px 32px; border-bottom: 3px solid #e31b23;">
+            <h2 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em;">GSFIN GLOBAL STANDARDS</h2>
+            <p style="color: #94a3b8; margin: 4px 0 0 0; font-size: 13px;">Step 1 of 2: Biometric Face Enrollment</p>
+          </div>
+          <div style="padding: 32px;">
+            <p style="font-size: 16px; color: #1e293b; margin-top: 0;">Dear <strong>${studentName || 'Candidate'}</strong>,</p>
+            <p style="font-size: 14px; color: #475569; line-height: 1.6;">
+              <strong>${centerName || 'An authorized GSFIN Test Center'}</strong> has initiated your candidate registration.
+              To complete your registration, please enroll your biometric face profile by capturing <strong>3 reference photos</strong> (Front, Slight Left, and Slight Right) for higher accuracy during proctored examinations.
+            </p>
+
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin: 22px 0;">
+              <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 10px;">Enrollment Instructions</div>
+              <ol style="margin: 0; padding-left: 18px; font-size: 13px; color: #334155; line-height: 1.8;">
+                <li>Click the button below using a device with a working camera.</li>
+                <li>Capture <strong>3 clear face photos</strong>: Front/Center, Slight Left, and Slight Right.</li>
+                <li>Once submitted, you will receive a <strong>Face Verification link</strong> via email to confirm your face profile works properly.</li>
+              </ol>
+            </div>
+
+            <div style="text-align: center; margin: 28px 0;">
+              <a href="${enrollUrl}" style="display: inline-block; padding: 14px 32px; background: #e31b23; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px;">
+                Enroll 3 Face Photos Now &rarr;
+              </a>
+            </div>
+
+            <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 20px;">
+              If the button does not work, copy and paste this link into your browser:<br>
+              <a href="${enrollUrl}" style="color: #e31b23; word-break: break-all;">${enrollUrl}</a>
+            </p>
+
+            <p style="font-size: 12px; color: #94a3b8; margin-top: 24px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+              GSFIN Global Standards &bull; Accreditation &amp; Assessment Security
+            </p>
+          </div>
+        </div>
+      `;
+
+      const result = await this.sendEmail({ to, subject, html });
+      return { success: true, result };
+    } catch (error) {
+      console.error('Failed to send student face enrollment request email:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async sendStudentFaceVerificationLink({ to, studentName, centerName, verifyUrl }) {
+    try {
+      const subject = `Step 2: Verify Your Enrolled Face Profile - GSFIN`;
+      const html = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+          <div style="background: #0f172a; padding: 24px 32px; border-bottom: 3px solid #e31b23;">
+            <h2 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em;">GSFIN GLOBAL STANDARDS</h2>
+            <p style="color: #94a3b8; margin: 4px 0 0 0; font-size: 13px;">Step 2 of 2: Live Face Verification Check</p>
+          </div>
+          <div style="padding: 32px;">
+            <p style="font-size: 16px; color: #1e293b; margin-top: 0;">Dear <strong>${studentName || 'Candidate'}</strong>,</p>
+            <p style="font-size: 14px; color: #475569; line-height: 1.6;">
+              Your 3 reference face photos for <strong>${centerName || 'GSFIN Test Center'}</strong> have been saved!
+              Before we finalize your registration, please click the button below to run a quick <strong>live face verification check</strong> so you can confirm your enrolled face profile is working accurately.
+            </p>
+
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px 20px; margin: 20px 0;">
+              <p style="margin: 0; font-size: 13px; color: #1e40af; line-height: 1.5;">
+                <strong>What happens next?</strong> Once your live face check passes, your registration will be marked successful and you will immediately receive your final <strong>Registration Confirmation &amp; Exam Credentials</strong> email.
+              </p>
+            </div>
+
+            <div style="text-align: center; margin: 28px 0;">
+              <a href="${verifyUrl}" style="display: inline-block; padding: 14px 32px; background: #e31b23; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px;">
+                Verify My Face Now &rarr;
+              </a>
+            </div>
+
+            <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 20px;">
+              If the button does not work, copy and paste this link into your browser:<br>
+              <a href="${verifyUrl}" style="color: #e31b23; word-break: break-all;">${verifyUrl}</a>
+            </p>
+
+            <p style="font-size: 12px; color: #94a3b8; margin-top: 24px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+              GSFIN Global Standards &bull; Accreditation &amp; Assessment Security
+            </p>
+          </div>
+        </div>
+      `;
+
+      const result = await this.sendEmail({ to, subject, html });
+      return { success: true, result };
+    } catch (error) {
+      console.error('Failed to send student face verification link email:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async sendStudentRegistrationConfirmation({ to, studentName, email, password, otpCode, centerName }) {
+    try {
+      const subject = `Registration Successful & Exam Credentials - GSFIN Accreditation`;
+      const html = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+          <div style="background: #0f172a; padding: 24px 32px; border-bottom: 3px solid #059669;">
+            <h2 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em;">GSFIN GLOBAL STANDARDS</h2>
+            <p style="color: #86efac; margin: 4px 0 0 0; font-size: 13px;">Registration Confirmed &amp; Biometric Profile Verified</p>
+          </div>
+          <div style="padding: 32px;">
+            <p style="font-size: 16px; color: #1e293b; margin-top: 0;">Congratulations <strong>${studentName || 'Candidate'}</strong>,</p>
+            <p style="font-size: 14px; color: #475569; line-height: 1.6;">
+              Your biometric face verification was successful and your candidate registration with <strong>${centerName || 'your authorized GSFIN Test Center'}</strong> is now <strong>confirmed</strong>.
+            </p>
+
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 24px 0;">
+              <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 12px;">Candidate Access Credentials</div>
+              <div style="margin-bottom: 12px;">
+                <span style="font-size: 12px; color: #64748b; display: block;">Username / Login Email:</span>
+                <strong style="font-size: 15px; color: #0f172a; font-family: monospace;">${email}</strong>
+              </div>
+              ${password ? `
+              <div style="margin-bottom: 12px;">
+                <span style="font-size: 12px; color: #64748b; display: block;">Exam Access Password:</span>
+                <strong style="font-size: 15px; color: #0f172a; font-family: monospace;">${password}</strong>
+              </div>
+              ` : ''}
+              ${otpCode ? `
+              <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 16px; margin-top: 16px;">
+                <span style="font-size: 12px; color: #991b1b; display: block; font-weight: 600;">One-Time Security OTP Code:</span>
+                <div style="font-size: 26px; font-weight: 600; color: #e31b23; letter-spacing: 6px; font-family: monospace; margin-top: 4px;">${otpCode}</div>
+                <span style="font-size: 11px; color: #b91c1c;">Use this 6-digit code for 2-factor verification on the exam login screen.</span>
+              </div>
+              ` : ''}
+            </div>
+
+            <div style="background: #ecfdf5; border-left: 4px solid #059669; padding: 14px 16px; border-radius: 4px; margin-bottom: 24px;">
+              <p style="margin: 0; font-size: 13px; color: #065f46; line-height: 1.5;">
+                <strong>Ready for Examination:</strong> Your 3-pose biometric profile is verified and active. Please retain your credentials securely for your upcoming exam sitting.
+              </p>
+            </div>
+
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 0;">GSFIN Global Standards &bull; Accreditation &amp; Assessment Security</p>
+          </div>
+        </div>
+      `;
+
+      const result = await this.sendEmail({ to, subject, html });
+      return { success: true, result };
+    } catch (error) {
+      console.error('Failed to send student registration confirmation email:', error);
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 export default new EmailService();
