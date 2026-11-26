@@ -560,3 +560,4 @@ onBeforeUnmount(() => stopCamera());
 @keyframes spin { to { transform: rotate(360deg); } }
 .w-full { width: 100%; }
 </style>
+

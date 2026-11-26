@@ -13,3 +13,4 @@ ALTER TABLE students
 UPDATE students
 SET face_status = 'registration_successful'
 WHERE face_photo IS NOT NULL AND face_photo != '' AND (face_status IS NULL OR face_status = 'waiting_face_enrollment');
+
