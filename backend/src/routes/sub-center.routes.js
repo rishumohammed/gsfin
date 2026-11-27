@@ -281,25 +281,24 @@ router.post('/students/send-email-otp', async (req, res) => {
 
 router.post('/students', async (req, res) => {
   const orgId = getOrgId(req);
-  const { name, email, phone, password, face_photo, face_descriptor, education_level, institution_name, gender, dob, otp } = req.body;
+  const { name, email, phone, password, face_photo, face_descriptor, education_level, institution_name, gender, dob } = req.body;
 
-  if (!name || !email) {
-    return res.status(400).json({ message: 'Student full name and email address are required.' });
-  }
-
-  // Verify Email OTP before registration
-  if (!otp || String(otp).trim().length !== 6) {
-    return res.status(400).json({ message: 'A valid 6-digit email verification OTP is required to register a student.' });
-  }
-
-  const isOtpValid = await verifyStudentOtp(orgId, email, otp);
-  if (!isOtpValid) {
-    return res.status(400).json({ message: 'Invalid or expired email verification code. Please check the code or request a new OTP.' });
+  if (!name || !email || !email.includes('@')) {
+    return res.status(400).json({ message: 'Student full name and a valid email address are required.' });
   }
 
   try {
     // Ensure table columns exist dynamically
     await ensureStudentsColumns();
+
+    // Check if student with this email is already registered in this organization
+    const [existing] = await pool.query(
+      'SELECT id FROM students WHERE email = ? AND org_id = ?',
+      [email.toLowerCase().trim(), orgId]
+    );
+    if (existing.length > 0) {
+      return res.status(400).json({ message: 'A student with this email address is already registered in your center.' });
+    }
 
     // Generate clean initial password if not supplied
     const rawPassword = password && password.trim().length > 0
@@ -568,12 +567,14 @@ router.put('/students/:id', async (req, res) => {
   try {
     await ensureStudentsColumns();
     const [existing] = await pool.query(
-      'SELECT id FROM students WHERE id = ? AND org_id = ?',
+      'SELECT id, email, face_status, face_photo, face_enroll_token, face_verify_token FROM students WHERE id = ? AND org_id = ?',
       [id, orgId]
     );
     if (existing.length === 0) {
       return res.status(404).json({ message: 'Candidate not found in your organization.' });
     }
+    const prevStudent = existing[0];
+    const emailChanged = prevStudent.email?.toLowerCase().trim() !== email.toLowerCase().trim();
 
     const [duplicate] = await pool.query(
       'SELECT id FROM students WHERE email = ? AND org_id = ? AND id != ?',
@@ -609,7 +610,63 @@ router.put('/students/:id', async (req, res) => {
 
     await pool.query(updateSql, params);
 
-    res.json({ message: 'Candidate details updated successfully.' });
+    let emailResent = false;
+    let emailStatus = null;
+    const effectiveStatus = prevStudent.face_status || (prevStudent.face_photo ? 'registration_successful' : 'waiting_face_enrollment');
+
+    if (emailChanged && effectiveStatus !== 'registration_successful') {
+      let centerName = 'GSFIN Authorized Test Center';
+      try {
+        const [orgs] = await pool.query('SELECT name FROM organizations WHERE id = ?', [orgId]);
+        if (orgs.length > 0 && orgs[0].name) centerName = orgs[0].name;
+      } catch (_) {}
+
+      try {
+        if (effectiveStatus === 'face_verification_pending') {
+          const verifyToken = crypto.randomBytes(32).toString('hex');
+          const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+          await pool.query(
+            'UPDATE students SET face_verify_token = ?, face_verify_token_expires_at = ? WHERE id = ?',
+            [verifyToken, expiresAt, id]
+          );
+          const verifyUrl = `${getFrontendUrl(req)}/student-face/verify?token=${verifyToken}`;
+          const resEmail = await emailService.sendStudentFaceVerificationLink({
+            to: email.trim(),
+            studentName: name.trim(),
+            centerName,
+            verifyUrl
+          });
+          emailResent = !!resEmail?.success;
+          emailStatus = resEmail;
+        } else {
+          const enrollToken = crypto.randomBytes(32).toString('hex');
+          const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+          await pool.query(
+            'UPDATE students SET face_enroll_token = ?, face_enroll_token_expires_at = ?, face_status = ? WHERE id = ?',
+            [enrollToken, expiresAt, 'waiting_face_enrollment', id]
+          );
+          const enrollUrl = `${getFrontendUrl(req)}/student-face/enroll?token=${enrollToken}`;
+          const resEmail = await emailService.sendStudentFaceEnrollmentRequest({
+            to: email.trim(),
+            studentName: name.trim(),
+            centerName,
+            enrollUrl
+          });
+          emailResent = !!resEmail?.success;
+          emailStatus = resEmail;
+        }
+      } catch (emailErr) {
+        console.warn('Auto-resend face link on email edit warning:', emailErr.message);
+      }
+    }
+
+    res.json({
+      email_resent: emailResent,
+      email_status: emailStatus,
+      message: emailResent
+        ? `Candidate details updated and a new face enrollment/verification link was sent to ${email.trim()}.`
+        : 'Candidate details updated successfully.'
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
