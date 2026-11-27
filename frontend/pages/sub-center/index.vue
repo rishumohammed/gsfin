@@ -946,22 +946,8 @@
                   </p>
                 </div>
 
-                <!-- Row 2B: Student Biometric Workflow Notice (New Registration) or Photo (Edit) -->
-                <div v-if="!editingStudent" class="face-enrollment-card mb-4">
-                  <div class="flex items-start gap-3">
-                    <div class="w-9 h-9 rounded-lg bg-red-50 text-red flex items-center justify-center shrink-0 border border-red-100">
-                      <i class="mdi mdi-email-fast-outline text-lg"></i>
-                    </div>
-                    <div>
-                      <div class="text-xs font-semibold text-slate-900">Automated Email Face Enrollment (3 Photos)</div>
-                      <p class="text-[11px] text-slate-500 mt-0.5 mb-0 leading-relaxed">
-                        No camera capture is needed here. After you submit this form, the student will receive an email to upload <strong>3 face photos</strong> (Front, Left, Right), followed by a <strong>Face Verification link</strong> and final <strong>Registration Confirmation</strong>.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div v-else class="face-enrollment-card mb-4">
+                <!-- Row 2B: Face Biometrics (Edit Student only) -->
+                <div v-if="editingStudent" class="face-enrollment-card mb-4">
                   <div class="flex items-center justify-between mb-2">
                     <div>
                       <label class="form-label-xs m-0">Face Biometrics</label>
@@ -1099,8 +1085,8 @@
               <div class="modal-footer flex items-center justify-between">
                 <button type="button" class="btn-glass" @click="showAddStudentModal = false">Cancel</button>
                 <button type="submit" class="btn-red" :disabled="savingStudent || !studentForm.name || !studentForm.email">
-                  <i :class="['mdi', savingStudent ? 'mdi-loading spin-icon' : (editingStudent ? 'mdi-content-save-check' : 'mdi-email-fast')]"></i>
-                  {{ savingStudent ? 'Sending Verification...' : (editingStudent ? 'Update Student' : 'Verify Email & Save') }}
+                  <i :class="['mdi', savingStudent ? 'mdi-loading spin-icon' : (editingStudent ? 'mdi-content-save-check' : 'mdi-account-plus')]"></i>
+                  {{ savingStudent ? (editingStudent ? 'Updating...' : 'Registering...') : (editingStudent ? 'Update Student' : 'Register Student') }}
                 </button>
               </div>
             </form>
