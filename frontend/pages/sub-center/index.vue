@@ -1795,10 +1795,8 @@ async function captureStudentPhoto() {
   if (!subCenterWebcamVideo.value) return;
   const video = subCenterWebcamVideo.value;
   try {
-    if (!faceDetection.model?.value) {
-      await faceDetection.loadModel();
-    }
-    const faces = await (faceDetection as any).estimateFaces?.(video, { flipHorizontal: false }) || [];
+    await faceDetection.loadModel();
+    const faces = await faceDetection.estimateFaces(video, { flipHorizontal: false }) || [];
     if (!faces || faces.length === 0) {
       alert('No face detected in camera view! Please make sure the student is directly facing the camera in good lighting before capturing.');
       return;
