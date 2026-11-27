@@ -284,6 +284,9 @@
                   <i class="mdi mdi-magnify search-icon"></i>
                   <input v-model="studentSearchQuery" type="text" placeholder="Search students..." class="table-search-input" />
                 </div>
+                <button class="btn-glass text-xs py-2 px-3.5 inline-flex items-center gap-1.5" @click="openBulkImportModal">
+                  <i class="mdi mdi-file-delimited-outline"></i> Bulk Import CSV
+                </button>
                 <button class="btn-red text-xs py-2 px-4 inline-flex items-center gap-1.5" @click="openRegisterStudentModal">
                   <i class="mdi mdi-account-plus"></i> Add Student
                 </button>
@@ -1106,6 +1109,153 @@
       </Transition>
     </Teleport>
 
+    <!-- Bulk Import Students (CSV) Modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showBulkImportModal" class="modal-overlay" @click.self="showBulkImportModal = false">
+          <div class="modal-card modal-card-lg">
+            <div class="modal-header">
+              <div class="modal-title-row">
+                <div class="modal-header-icon bg-red-50 text-red border border-red-100">
+                  <i class="mdi mdi-file-delimited-outline"></i>
+                </div>
+                <div class="modal-title-text">
+                  <h3 style="font-weight: 600;">Bulk Import Students (CSV)</h3>
+                  <p>Upload a CSV file to register multiple students and send 3-pose face enrollment emails</p>
+                </div>
+              </div>
+              <button class="modal-close-btn" @click="showBulkImportModal = false" aria-label="Close modal">
+                <i class="mdi mdi-close"></i>
+              </button>
+            </div>
+
+            <div class="modal-body" style="padding: 20px 24px;">
+              <!-- Result Summary View -->
+              <div v-if="bulkImportResult">
+                <div class="dispatched-banner dispatched-banner-success mb-4">
+                  <i class="mdi mdi-check-decagram text-emerald-600 text-lg mr-2 shrink-0"></i>
+                  <div class="text-xs text-emerald-900">
+                    <div class="font-semibold">{{ bulkImportResult.message }}</div>
+                    <div class="mt-0.5 text-emerald-700">
+                      All imported students now have status <strong>Waiting for Face Enrollment</strong>.
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="bulkImportResult.skipped && bulkImportResult.skipped.length > 0" class="mb-4">
+                  <div class="text-xs font-semibold text-amber-800 mb-2">
+                    Skipped Rows ({{ bulkImportResult.skipped.length }})
+                  </div>
+                  <div style="max-height: 200px; overflow-y: auto; border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 10px;">
+                    <table class="gsfin-table" style="font-size: 0.76rem;">
+                      <thead>
+                        <tr>
+                          <th>Row</th>
+                          <th>Name</th>
+                          <th>Email</th>
+                          <th>Reason</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(skip, idx) in bulkImportResult.skipped" :key="idx">
+                          <td>#{{ skip.row }}</td>
+                          <td>{{ skip.name }}</td>
+                          <td>{{ skip.email }}</td>
+                          <td class="text-red">{{ skip.reason }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div class="modal-footer flex justify-end gap-2 pt-2">
+                  <button type="button" class="btn-glass text-xs" @click="resetBulkImportState">
+                    Import Another CSV
+                  </button>
+                  <button type="button" class="btn-red text-xs px-5" @click="showBulkImportModal = false">
+                    Done
+                  </button>
+                </div>
+              </div>
+
+              <!-- Upload & Preview View -->
+              <div v-else>
+                <div class="flex items-center justify-between gap-3 mb-4 p-3 rounded-xl" style="background: #F8FAFC; border: 1px solid rgba(15, 23, 42, 0.08);">
+                  <div class="text-xs text-slate-600">
+                    <strong class="text-slate-900">Required columns:</strong> <code>name</code>, <code>email</code>
+                    <span class="block text-[11px] text-slate-500 mt-0.5">Optional: <code>phone</code>, <code>education_level</code>, <code>institution_name</code>, <code>gender</code>, <code>dob</code> (YYYY-MM-DD)</span>
+                  </div>
+                  <button type="button" class="btn-glass text-xs py-1.5 px-3 shrink-0 inline-flex items-center gap-1.5" @click="downloadSampleStudentsCsv">
+                    <i class="mdi mdi-download"></i> Sample CSV
+                  </button>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label-xs mb-1.5 block">Select CSV File</label>
+                  <input
+                    ref="bulkCsvInputRef"
+                    type="file"
+                    accept=".csv,text/csv"
+                    class="modal-input-field"
+                    style="padding: 10px;"
+                    @change="handleBulkCsvFileChange"
+                  />
+                  <p v-if="bulkCsvError" class="text-xs text-red mt-1.5 mb-0">{{ bulkCsvError }}</p>
+                </div>
+
+                <!-- Parsed Rows Preview -->
+                <div v-if="bulkCsvRows.length > 0" class="mb-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold text-slate-800">
+                      Preview ({{ bulkCsvRows.length }} student{{ bulkCsvRows.length === 1 ? '' : 's' }} detected)
+                    </span>
+                    <span class="text-[11px] text-slate-500">Showing up to first 8 rows</span>
+                  </div>
+                  <div style="max-height: 220px; overflow-y: auto; border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 10px;">
+                    <table class="gsfin-table" style="font-size: 0.76rem;">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Name</th>
+                          <th>Email</th>
+                          <th>Phone</th>
+                          <th>Education</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(r, idx) in bulkCsvRows.slice(0, 8)" :key="idx">
+                          <td>{{ idx + 1 }}</td>
+                          <td class="font-medium text-slate-900">{{ r.name || '-' }}</td>
+                          <td>{{ r.email || '-' }}</td>
+                          <td>{{ r.phone || '-' }}</td>
+                          <td>{{ r.education_level || '-' }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div class="modal-footer flex justify-end gap-2 pt-2">
+                  <button type="button" class="btn-glass text-xs" @click="showBulkImportModal = false">
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-red text-xs px-5 inline-flex items-center gap-1.5"
+                    :disabled="importingBulkStudents || bulkCsvRows.length === 0"
+                    @click="submitBulkStudentImport"
+                  >
+                    <i :class="['mdi', importingBulkStudents ? 'mdi-loading spin-icon' : 'mdi-upload']"></i>
+                    {{ importingBulkStudents ? 'Importing & Sending Emails...' : `Import ${bulkCsvRows.length || ''} Student${bulkCsvRows.length === 1 ? '' : 's'}` }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
     <!-- Student Enrolled Credentials & Security OTP Modal -->
     <Teleport to="body">
       <Transition name="fade">
@@ -1342,6 +1492,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useApi } from '@/composables/useApi';
 import { useFaceDetection, extractFacialDescriptor } from '@/composables/useFaceDetection';
+import Papa from 'papaparse';
 
 const config = useRuntimeConfig();
 const route = useRoute();
@@ -2007,6 +2158,107 @@ async function registerStudent() {
     alert(err.response?.data?.message || err.message || 'Failed to register student');
   } finally {
     savingStudent.value = false;
+  }
+}
+
+// ─── Bulk CSV Student Import ───
+const showBulkImportModal = ref(false);
+const bulkCsvInputRef = ref<HTMLInputElement | null>(null);
+const bulkCsvRows = ref<any[]>([]);
+const bulkCsvError = ref('');
+const importingBulkStudents = ref(false);
+const bulkImportResult = ref<any>(null);
+
+function resetBulkImportState() {
+  bulkCsvRows.value = [];
+  bulkCsvError.value = '';
+  bulkImportResult.value = null;
+  if (bulkCsvInputRef.value) bulkCsvInputRef.value.value = '';
+}
+
+function openBulkImportModal() {
+  resetBulkImportState();
+  showBulkImportModal.value = true;
+}
+
+function downloadSampleStudentsCsv() {
+  const sample = [
+    'name,email,phone,education_level,institution_name,gender,dob',
+    'Amina Rahman,amina.rahman@example.com,+971501234567,Undergraduate / Bachelor Degree,Gulf Food Institute,Female,1998-05-14',
+    'John Mathew,john.mathew@example.com,+971507654321,Diploma,Emirates Culinary Academy,Male,1995-11-22'
+  ].join('\n');
+  const blob = new Blob([sample], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'gsfin-students-template.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function handleBulkCsvFileChange(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  bulkCsvError.value = '';
+  bulkCsvRows.value = [];
+  if (!file) return;
+
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: (results: any) => {
+      if (results.errors && results.errors.length > 0 && (!results.data || results.data.length === 0)) {
+        bulkCsvError.value = 'Could not parse CSV file. Please check the file format.';
+        return;
+      }
+      const normalized = (results.data || []).map((raw: Record<string, any>) => {
+        const lowerMap: Record<string, any> = {};
+        Object.keys(raw || {}).forEach((k) => {
+          lowerMap[k.trim().toLowerCase().replace(/\s+/g, '_')] = raw[k];
+        });
+        return {
+          name: String(lowerMap.name || lowerMap.full_name || lowerMap.student_name || '').trim(),
+          email: String(lowerMap.email || lowerMap.email_address || '').trim(),
+          phone: String(lowerMap.phone || lowerMap.mobile || lowerMap.phone_number || '').trim(),
+          education_level: String(lowerMap.education_level || lowerMap.education || '').trim(),
+          institution_name: String(lowerMap.institution_name || lowerMap.institution || '').trim(),
+          gender: String(lowerMap.gender || '').trim(),
+          dob: String(lowerMap.dob || lowerMap.date_of_birth || '').trim()
+        };
+      }).filter((r: any) => r.name || r.email);
+
+      if (normalized.length === 0) {
+        bulkCsvError.value = 'No student rows found in CSV. Ensure columns "name" and "email" are present.';
+        return;
+      }
+      if (normalized.length > 500) {
+        bulkCsvError.value = 'Maximum 500 students per CSV upload.';
+        return;
+      }
+      bulkCsvRows.value = normalized;
+    },
+    error: () => {
+      bulkCsvError.value = 'Failed to read CSV file.';
+    }
+  });
+}
+
+async function submitBulkStudentImport() {
+  if (bulkCsvRows.value.length === 0 || importingBulkStudents.value) return;
+  importingBulkStudents.value = true;
+  bulkCsvError.value = '';
+  try {
+    const { data } = await api.post('/sub-center/students/bulk-import', {
+      students: bulkCsvRows.value
+    });
+    bulkImportResult.value = data;
+    await fetchStudents();
+  } catch (err: any) {
+    bulkCsvError.value = err.response?.data?.message || err.message || 'Bulk import failed.';
+  } finally {
+    importingBulkStudents.value = false;
   }
 }
 

@@ -461,6 +461,134 @@ router.post('/students', async (req, res) => {
   }
 });
 
+// POST /api/sub-center/students/bulk-import - Bulk import students from CSV and send face enrollment emails
+router.post('/students/bulk-import', async (req, res) => {
+  const orgId = getOrgId(req);
+  const { students: rows } = req.body;
+
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return res.status(400).json({ message: 'Please provide a non-empty list of students to import.' });
+  }
+  if (rows.length > 500) {
+    return res.status(400).json({ message: 'Maximum 500 students can be imported per CSV upload.' });
+  }
+
+  try {
+    await ensureStudentsColumns();
+
+    // Fetch existing emails in this org
+    const [existingRows] = await pool.query(
+      'SELECT LOWER(TRIM(email)) as email FROM students WHERE org_id = ?',
+      [orgId]
+    );
+    const existingEmails = new Set((existingRows || []).map(r => r.email).filter(Boolean));
+
+    // Fetch center name once for email branding
+    let centerName = 'GSFIN Authorized Test Center';
+    try {
+      const [orgs] = await pool.query('SELECT name FROM organizations WHERE id = ?', [orgId]);
+      if (orgs.length > 0 && orgs[0].name) centerName = orgs[0].name;
+    } catch (_) {}
+
+    const frontendUrl = getFrontendUrl(req);
+    const imported = [];
+    const skipped = [];
+    let emailsSentCount = 0;
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i] || {};
+      const rowNum = i + 1;
+      const name = String(row.name || '').trim();
+      const email = String(row.email || '').trim().toLowerCase();
+      const phone = row.phone ? String(row.phone).trim() : null;
+      const educationLevel = row.education_level ? String(row.education_level).trim() : null;
+      const institutionName = row.institution_name ? String(row.institution_name).trim() : null;
+      const gender = row.gender ? String(row.gender).trim() : null;
+      const dobRaw = row.dob ? String(row.dob).trim() : '';
+      const dob = /^\d{4}-\d{2}-\d{2}$/.test(dobRaw) ? dobRaw : null;
+
+      if (!name) {
+        skipped.push({ row: rowNum, name: name || '-', email: email || '-', reason: 'Missing student name' });
+        continue;
+      }
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        skipped.push({ row: rowNum, name, email: email || '-', reason: 'Invalid or missing email address' });
+        continue;
+      }
+      if (existingEmails.has(email)) {
+        skipped.push({ row: rowNum, name, email, reason: 'Email already registered in your center' });
+        continue;
+      }
+
+      existingEmails.add(email);
+
+      const id = uuidv4();
+      const rawPassword = row.password && String(row.password).trim().length > 0
+        ? String(row.password).trim()
+        : 'GSFIN-' + Math.floor(100000 + Math.random() * 900000);
+      const hashedPassword = await bcrypt.hash(rawPassword, 10);
+      const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+      const otpExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const faceEnrollToken = crypto.randomBytes(32).toString('hex');
+      const faceEnrollTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+      await pool.query(
+        `INSERT INTO students (id, org_id, name, email, phone, password, initial_password, face_photo, face_descriptor, face_status, face_enroll_token, face_enroll_token_expires_at, otp_code, otp_expires_at, education_level, institution_name, gender, dob)
+         VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, 'waiting_face_enrollment', ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          orgId,
+          name,
+          email,
+          phone,
+          hashedPassword,
+          rawPassword,
+          faceEnrollToken,
+          faceEnrollTokenExpiresAt,
+          otpCode,
+          otpExpiresAt,
+          educationLevel,
+          institutionName,
+          gender,
+          dob
+        ]
+      );
+
+      let emailSent = false;
+      try {
+        const enrollUrl = `${frontendUrl}/student-face/enroll?token=${faceEnrollToken}`;
+        const emailRes = await emailService.sendStudentFaceEnrollmentRequest({
+          to: email,
+          studentName: name,
+          centerName,
+          enrollUrl
+        });
+        if (emailRes?.success && emailRes.result?.status !== 'logged_to_console') {
+          emailSent = true;
+          emailsSentCount++;
+        }
+      } catch (emailErr) {
+        console.warn(`Bulk import email failed for ${email}:`, emailErr.message);
+      }
+
+      imported.push({ id, name, email, email_sent: emailSent });
+    }
+
+    res.status(201).json({
+      success: true,
+      imported_count: imported.length,
+      skipped_count: skipped.length,
+      emails_sent_count: emailsSentCount,
+      imported,
+      skipped,
+      message: `Imported ${imported.length} student(s) (${emailsSentCount} face enrollment email(s) sent)${skipped.length > 0 ? `, ${skipped.length} skipped` : ''}.`
+    });
+  } catch (error) {
+    console.error('Bulk import students error:', error);
+    res.status(500).json({ message: error.message || 'Failed to bulk import students.' });
+  }
+});
+
 router.get('/students/:id', async (req, res) => {
   const orgId = getOrgId(req);
   const { id } = req.params;
